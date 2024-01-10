@@ -6,6 +6,16 @@ import React, { useState, useDeferredValue } from 'react'
 import Button from '@mui/material/Button';
 import { Chuck } from 'webchuck'
 
+interface AudioDestinationNode {
+    state: string;
+    close: () => void;
+    createMediaStreamSource: (e: any) => MediaStreamAudioSourceNode;
+    createMediaStreamDestination: () => any;
+    resume: () => void;
+    suspend: () => void;
+    connect: (x: any, y: any, z: any) => void;
+}
+
 interface MediaStream {
     id: string;
     active: boolean;
@@ -22,9 +32,14 @@ interface MediaStreamAudioSourceNode extends AudioNode {
     createMediaStreamSource: (e: any) => MediaStreamAudioSourceNode | void;
 }
 
+interface MediaStreamAudioDestinationNode extends AudioNode {
+    stream: MediaStream;
+}
+
 interface InitializationComponentProps {
     res:Response,
 }
+
 
 export default function InitializationComponent({res}: InitializationComponentProps) {
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();

@@ -2,103 +2,18 @@ import Image from 'next/image'
 import styles from './page.module.css'
 import InitializationStyle from './components/InitializationStyle'
 import { CssBaseline } from '@mui/material'
+import axios from 'axios';
 
 
 export default function Home() {
 
-  // const [chuckHook, setChuckHook] = useState<Chuck | undefined>(undefined);
-  // const aChuck = useDeferredValue(chuckHook)
-
-  // const initChuck = async() => {
-  
-  //   const serverFilesToPreload = [
-  //     {
-  //       serverFilename: '/static/vocoder.ck',
-  //       virtualFilename: 'static/vocoder.ck'
-  //     },
-  //   ]
-  //   // Create the default ChucK object
-  //   const theChuck = await Chuck.init(serverFilesToPreload, undefined, 2);
-  //   console.log("The Chuck: ", theChuck);
-
-  //   try {
-  //     if (theChuck) {
-  //       setChuckHook(theChuck);
-  //     } else {
-  //       return;
-  //     }
-  //   } catch (e: any) {
-  //     console.log('failed to pass theChuck into theChuckHook', e);
-  //   }
-
-  //   if (theChuck.context.state === "suspended") {
-  //     const theChuckContext: any = theChuck.context;
-  //     theChuckContext.resume();
-  //   }
-
-  //   try {
-  //     await theChuck.runCode(`
-  //       adc => Gain g => dac;
-  //       0.03 => g.gain;
-  //       while( true ) { 100::ms => now; }
-  //     `);
-  //   } catch (e) {
-  //     console.log('err: ', e);
-  //   }
-
-  //   const fau: any = await fetch('/chugin/Faust.chug/Contents/MacOS/Faust');
-  //   console.log('OYYY ', fau)
-  //   await theChuck.loadChugin('/chugin/Faust.chug/Contents/MacOS/Faust');
-  //   console.log('ummmmm..... ', theChuck.loadedChugins());
-  //   // try {
-  //   // console.log(theChuck.loadedChugins())
-  //   // console.log('FC ', faustChug);
-  //   // } catch (e) {
-  //   //   console.log('what is err: ', e)
-  //   // }
-
-  //   // Run ChucK code
-  // };
-
-  // const chuckMicButton = function ()
-  // {
-  //     navigator.mediaDevices
-  //         .getUserMedia({
-  //             video: false,
-  //             audio: {
-  //                 echoCancellation: false,
-  //                 autoGainControl: false,
-  //                 noiseSuppression: false,
-  //             },
-  //         })
-  //         .then(async (stream: MediaStream) => {
-  //             const audioDestinationNode: any = await aChuck?.context;
-  //             console.log('wtf stream: ', stream);
-  //             try {
-  //               const adc: AudioDestinationNode = AudioDestinationNode ? audioDestinationNode?.createMediaStreamSource(stream) : null;
-  //               console.log('er adc? ', adc);
-  //               console.log('er stream ', stream);
-
-
-  //               const connectorFun = (destinationNode: AudioDestinationNode, outputNum: number | undefined, inputNum: number | undefined) => {
-  //                 if (destinationNode instanceof Chuck) {
-  //                             try {
-  //                               return adc && (adc.connect(destinationNode, inputNum, outputNum));
-  //                             } catch (e: any) {
-  //                               console.log('could not access adc: ', e);
-  //                             }
-  //                 };
-  //               };
-  //               connectorFun(adc, 1, 1);
-  //             } catch (e) {
-  //               console.log(e);
-  //             }
-  //           })
-          
-  //     const micButton: any = document.querySelector(`#micButton`)
-  //     micButton && (
-  //     micButton.disabled = true)
-  // };
+  const baseUrl = 'http://localhost:3000';
+  const res: any = axios.get(`${baseUrl}/api/preloadedFiles`, {
+      headers: {
+          'Content-Type': 'application/json',
+      },
+  });
+  console.log('res in gsp: ', res);
   return (
     <main className={styles.main}>
       <div className={styles.description}>
@@ -148,7 +63,7 @@ export default function Home() {
           </h2>
           <p>Find in-depth information about Next.js features and API.</p>
         </a>
-        <InitializationStyle />
+        <InitializationStyle res={res} />
         <a
           href="#"
           className={styles.card}

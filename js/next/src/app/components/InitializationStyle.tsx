@@ -12,7 +12,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import dynamic from 'next/dynamic';
 
 const DynamicComponentWithNoSSR = dynamic(
@@ -66,23 +66,16 @@ interface MediaStreamAudioDestinationNode extends AudioNode {
 }
 
 interface InitializationStyleProps {
+    res: any
 };
 
-export default async function InitializationComponent({}: InitializationStyleProps) {
+export default async function InitializationComponent({res}: InitializationStyleProps) {
 
     const theme = createTheme({
         status: {
             danger: 'rgba(0,0,0,0.68)',
         },
     });
-
-    const baseUrl = 'http://localhost:3000';
-    const res: any = await axios.get(`${baseUrl}/api/preloadedFiles`, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    console.log('res in gsp: ', res);
     
     return (
         <ThemeProvider theme={theme}>
