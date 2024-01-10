@@ -65,11 +65,8 @@ interface MediaStreamAudioDestinationNode extends AudioNode {
     stream: MediaStream;
 }
 
-interface InitializationStyleProps {
-    res: any
-};
 
-export default async function InitializationComponent({res}: InitializationStyleProps) {
+export default async function InitializationComponent() {
 
     const theme = createTheme({
         status: {
@@ -77,6 +74,14 @@ export default async function InitializationComponent({res}: InitializationStyle
         },
     });
     
+    const baseUrl = 'http://localhost:3000';
+    const res: any = axios.get(`${baseUrl}/api/preloadedFiles`, {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    console.log('res in gsp: ', res);
+
     return (
         <ThemeProvider theme={theme}>
             {/* <CssBaseline /> */}

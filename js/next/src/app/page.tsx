@@ -7,13 +7,6 @@ import axios from 'axios';
 
 export default function Home() {
 
-  const baseUrl = 'http://localhost:3000';
-  const res: any = axios.get(`${baseUrl}/api/preloadedFiles`, {
-      headers: {
-          'Content-Type': 'application/json',
-      },
-  });
-  console.log('res in gsp: ', res);
   return (
     <main className={styles.main}>
       <div className={styles.description}>
@@ -63,7 +56,7 @@ export default function Home() {
           </h2>
           <p>Find in-depth information about Next.js features and API.</p>
         </a>
-        <InitializationStyle res={res} />
+        <InitializationStyle />
         <a
           href="#"
           className={styles.card}
