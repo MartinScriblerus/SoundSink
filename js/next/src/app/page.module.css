@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 6rem;
+  /* padding: 6rem; */
   min-height: 100vh;
 }
 
@@ -107,6 +107,12 @@
 .logo {
   position: relative;
 }
+
+/* #babylonCanvas {
+  height: 100vh;
+  width: 100vw;
+} */
+
 /* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
   .card:hover {

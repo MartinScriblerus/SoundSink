@@ -25,12 +25,14 @@ declare module '@mui/material/styles' {
     interface Theme {
         status: {
             danger: string;
+            text: string;
         };
     }
     // allow configuration using `createTheme`
     interface ThemeOptions {
         status?: {
             danger?: string;
+            text?: string;
         };
     }
 }
@@ -66,27 +68,41 @@ interface MediaStreamAudioDestinationNode extends AudioNode {
 }
 
 
-export default async function InitializationComponent() {
+export default async function InitializationStyle(
+    // props: {preloadedFiles: any}
+    ) {
+
+    // const {preloadedFiles} = props;
 
     const theme = createTheme({
         status: {
             danger: 'rgba(0,0,0,0.68)',
+            text: 'rgba(255,255,255,0.87)',
         },
     });
     
-    const baseUrl = 'http://localhost:3000';
-    const res: any = axios.get(`${baseUrl}/api/preloadedFiles`, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-    console.log('res in gsp: ', res);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL_LOCAL; // start creating variables for envs
+    // const res: any = await axios.get(`${baseUrl}/api/preloadedFiles`, {
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //     },
+    // }); <<< bring this back eventually
+    console.log('baseURL ', baseUrl);
 
     return (
         <ThemeProvider theme={theme}>
             {/* <CssBaseline /> */}
-            <Box sx={{ border: "solid 5px green" }}>
-                <DynamicComponentWithNoSSR res={res} />
+            <Box sx={{ 
+                width: "100vw", 
+                height: "100vh", 
+                boxSizing: "border-box", 
+                display: "flex", 
+                flexDirection: "column", 
+                border: "solid 5px green", 
+                alignItems: "center",
+                justifyContent: "center"
+            }}>
+                <DynamicComponentWithNoSSR />
             </Box>
         </ThemeProvider>
     )
