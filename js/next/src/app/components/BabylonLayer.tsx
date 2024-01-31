@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 
 import * as BABYLON from 'babylonjs';
 import * as GUI from 'babylonjs-gui';
@@ -19,30 +19,31 @@ function BabylonScene(props: {
     chuckUpdateNeeded: boolean; 
     runChuck: () => void;
 }) {
-    // if(typeof window === 'undefined') return (<></>);
     const {game, handleUpdateSliderVal, cameraCount, needsUpdate, handleResetNeedsUpdate, effects, chuckUpdateNeeded, runChuck} = props;
     
     const theme = useTheme();
 
     const [effectsList, setEffectsList] = useState<Array<any>>(Object.values(effects).map((i:any) => [i.label, i]));
-    const rotationRadians = useRef<number>(0);
     const prevKnobValue = useRef<number>(0);
     const prevKnobVals = useRef<any>({});
 
     const rot_state = useRef<any>();
-    const pivot = useRef<any>();
+    const pivot = useRef<any>({});
     const knobPosition = useRef<any>();
 
     if (game && game.engine && !game.scene) {
-        console.log('in the if');
         game.scene = new BABYLON.Scene(game.engine);
-        console.log('game scene ', game.scene);
         if (game.scene.isReady()) {
             console.log('scene is ready')
             game.gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, game.scene);
+            // ******************************** 
+            // change Name and Behavior of this cameraCount hook
             const squareRoot = Math.ceil(Math.sqrt(cameraCount));
             const zPos = -12;
             console.log('yooooooo game gui ', game.gui);
+            
+            // CREATE MATERIALS
+            // create colors
             const redMat = new BABYLON.StandardMaterial("redMat", game.scene);
             redMat.emissiveColor = new BABYLON.Color3(236/255, 128/255, 139/255);
             
@@ -68,14 +69,12 @@ function BabylonScene(props: {
 
             for(let i = 0; i < squareRoot; i++) {
                 for (let j = 0; j < squareRoot; j++) {
-                    console.log('in the doubel loop');
                     if(Object.keys(prevKnobVals.current).indexOf(`${i}`) === -1) {
                         prevKnobVals.current.i = prevKnobVals.current.i || {};
                         prevKnobVals.current.i.j = prevKnobVals.current.i.j ? prevKnobVals.current.i.j : 0;
                     };
-                    if (i === 0 && j === 0) {
-                        console.log('fuck shit : ', prevKnobVals.current);
-
+                    // // create a totally static camera 
+                    if (i === 0 && j === 0) {   
                         game.camera[i] = {};
                         game.camera[i][j] = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
                         game.camera[i][j].setTarget(BABYLON.Vector3.Zero());
@@ -88,8 +87,6 @@ function BabylonScene(props: {
                         game.camera[i][j].multiTouchPanning = false;
                         game.camera[i][j].pinchInwards = false;
                         game.camera[i][j].pinchZoom = false;
-                        // console.log("OOOOOO", game.camera[i][j].inputs.attached);
-                        // game.camera[0].inputs.detachControl();
                         game.camera[i][j].inputs.removeByType("ArcRotationCameraInputs");
                         game.camera[i][j].wheelDeltaPercentage = 0.0;
                         game.camera[i][j].panningSensibility = 0.0;
@@ -97,37 +94,47 @@ function BabylonScene(props: {
                         rot_state.current[i] = {};
                         rot_state.current[i][j] = {x:game.camera[i][j].alpha, y:game.camera[i][j].beta};
                     }
+
+                    // create a light for each knob
                     game.light[i] = {};
                     game.light[i][j] = new BABYLON.SpotLight("spotLight", new BABYLON.Vector3(0, 30, -10), new BABYLON.Vector3(0, -1, 0), Math.PI / 3, 2, game.scene);
                     game.light[i][j].intensity = 0.05;
                         
+                    // create a stack panel GUI for each knob
                     const paneL = new GUI.StackPanel();
-                    
-                    // GUI
                     paneL.width = "220px";
-                    paneL.horizontalAlignment = i === 0 ? GUI.Control.HORIZONTAL_ALIGNMENT_CENTER : i === 1 ? GUI.Control.HORIZONTAL_ALIGNMENT_LEFT : GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                    // build columns off of a center row
+                    paneL.horizontalAlignment = i === 0 
+                    ? 
+                        GUI.Control.HORIZONTAL_ALIGNMENT_CENTER 
+                    : 
+                        i === 1 
+                        ? 
+                            GUI.Control.HORIZONTAL_ALIGNMENT_LEFT 
+                        : 
+                            GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
                     paneL.verticalAlignment = GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                     game.panel[i] = game.panel[i] || {};
                     game.panel[i][j] = paneL;
                     game.gui.addControl(game.panel[i][j]);
 
+                    // create a text field for each knob
                     game.header[i] = game.header[i] || {};                                
                     const effectsIndex = j + squareRoot * i;
-
                     game.header[i][j] = new GUI.TextBlock();
                     game.header[i][j].height = "60px";
                     game.header[i][j].paddingTop = "40px";
                     game.header[i][j].fontSizeInPixels = "16px";
                     game.header[i][j].color = "white";
 
+                    // create a slider for each knob
                     const slid = new GUI.Slider();
                     game.slider[i] = game.slider[i] || {};
                     game.slider[i][j] = slid;
                     game.slider[i][j].minimum = 0;
                     game.slider[i][j].name = `slider_${i}`;
                     game.slider[i][j].maximum = 2 * Math.PI;
-                    // game.slider[i][j].value = 2 * Math.PI * (effectsList[effectsIndex][1].value / (effectsList[effectsIndex][1].max - effectsList[effectsIndex][1].min));
-                    game.slider[i][j].value = 0;
+                    game.slider[i][j].value = 2 * Math.PI * (effectsList[effectsIndex][1].value / (effectsList[effectsIndex][1].max - effectsList[effectsIndex][1].min));
                     game.slider[i][j].isVertical = false;
                     game.slider[i][j].height = "80px";
                     game.slider[i][j].paddingTop = "20px";
@@ -137,42 +144,47 @@ function BabylonScene(props: {
                     game.panel[i][j].addControl(game.header[i][j]); 
 
                     game.slider[i][j].onValueChangedObservable.add(function(value: any) {
-                        
                         const getDegrees: any = +(BABYLON.Tools.ToDegrees(value));
-                        const getDegreesToFixed: any = parseFloat(getDegrees).toFixed(2);
+                        const getDegreesToFixed: any = parseFloat(getDegrees);
                         const convertScale = +effectsList[effectsIndex][1].min + ((effectsList[effectsIndex][1].max - effectsList[effectsIndex][1].min) * (getDegreesToFixed / 360));
                         const typeNormalizedNum = +(effectsList[effectsIndex][1].screenInterface === 'knob') ? Number(0 + convertScale) : Math.ceil(Number(0 + convertScale));
-                        const parseConvertScale:number = +Number(typeNormalizedNum).toFixed(2);
-                        game.header[i][j].text = `${effectsList[effectsIndex][0]}: ${parseConvertScale}`;
+                        const parseConvertScale:number = +Number(typeNormalizedNum);
+                        game.header[i][j].text = `${effectsList[effectsIndex][0]}: ${parseConvertScale.toFixed(2)}`;
                         handleUpdateSliderVal(effectsList[effectsIndex][1], parseConvertScale);
-                        
-                        rotationRadians.current = value;
-                        if (!prevKnobValue.current) value = parseConvertScale;
-                        game.knob[i][j].rotate(BABYLON.Axis.Z, -(value - prevKnobVals.current.i.j), BABYLON.Space.LOCAL);
+                        if (!prevKnobVals.current.i.j) value = parseConvertScale;
+                        if (prevKnobVals.current.i.j || prevKnobVals.current.i.j < 2 * Math.PI && prevKnobVals.current.i.j > -2 * Math.PI ) {
+                            game.knob[i][j][0].rotation = new BABYLON.Vector3(0,Math.PI,-value);
+                            // game.knob[i][j][0].rotate(BABYLON.Axis.Z, -(value), BABYLON.Space.LOCAL);
+                        }                        
                         prevKnobValue.current = value;
                         prevKnobVals.current.i.j = value;
                     });
-
                     game.header[i][j].text = !prevKnobVals.current.i.j ? `${effectsList[effectsIndex][0]}: ${effectsList[effectsIndex][1].value}` : `${effectsList[effectsIndex][0]}: ${game.slider[i][j].value}`;
             
+
                     if (game.scene && game.engine?.scenes[0] && game.engine?.scenes[0].meshes.length < 1) {
-                        console.log("fucking game: ", game.scene);
                         game.scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000000001);
-                        console.log('YOYOYO ', BABYLON.SceneLoader);
+
                         // This is the effects knob: use this to handle "amount" based values (eg. 0.0–1.0 / 1–100)
                         BABYLON.SceneLoader.ImportMesh("", "/", "knob3.glb", game.scene, function (newMeshes: any) {
                             newMeshes[0].position.x = 8 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
                             newMeshes[0].position.y = 7.3 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3);
                             newMeshes[0].position.z = zPos;
-                            newMeshes[0].rotation.z = 0;
+
+
+                            if (!prevKnobVals.current.i.j) {
+                                const getVal = (effectsList[effectsIndex][1].value - effectsList[effectsIndex][1].min) / (effectsList[effectsIndex][1].max - effectsList[effectsIndex][1].min)
+                                newMeshes[0].rotation = new BABYLON.Vector3(0,Math.PI,-getVal * 2 * Math.PI);
+                            }
 
                             game.panel[i][j].linkWithMesh(newMeshes[0]);
+                            
+                            pivot.current.i = pivot.current.i || {};
+                            pivot.current.i.j = pivot.current.i.j ? prevKnobVals.current.i.j : 0;
+                            pivot.current.i.j = new BABYLON.TransformNode("root_test");
+                            pivot.current.i.j.position = new BABYLON.Vector3(newMeshes[0].position.x, newMeshes[0].position.y, newMeshes[0].position.z); 
                                                     
-                            pivot.current = new BABYLON.TransformNode("root_test");
-                            pivot.current.position = new BABYLON.Vector3(newMeshes[0].position.x, newMeshes[0].position.y, newMeshes[0].position.z); 
                             knobPosition.current = new BABYLON.Vector3(newMeshes[0].position);
-
-                            pivot.current.rotate(knobPosition.current, rotationRadians.current, BABYLON.Space.WORLD);
 
                             const texture = game.scene.textures[1];
                             newMeshes[0].getChildMeshes().forEach((childMesh: any, index: any) => {
@@ -211,8 +223,8 @@ function BabylonScene(props: {
                             }
                             });
                             game.knob[i] = game.knob[i] || {};
-                            game.knob[i][j] = newMeshes[0];
-
+                            game.knob[i][j] = [];
+                            game.knob[i][j].push(newMeshes[0]);
                         });
 
                     // SEE / ADD STARTER CODE FOR SWITCH HERE! (***see switchKnob file***)
@@ -226,7 +238,6 @@ function BabylonScene(props: {
                 game.camera[0].rotation.y = rot_state.current.y;
                 game.camera[0].setTarget(BABYLON.Vector3.Zero());
                 game.camera[0].inputs.attached.mouse.detachControl();
-                // game.camera[0].attachControl(game.scene, false);
                 game.camera[0].position = new BABYLON.Vector3(0, 0, 12);
             }
             game.scene.render();
@@ -243,10 +254,6 @@ function BabylonScene(props: {
         const embedHost: any = document.querySelector(`#embed-host`)
         if (embedHost) embedHost.style.position = "absolute";
     }
-
-    useEffect(() => {
-        handleResetNeedsUpdate();
-    }, [needsUpdate])
 
     return (
     <ThemeProvider theme={theme}>

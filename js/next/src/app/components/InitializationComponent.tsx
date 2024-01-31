@@ -177,8 +177,6 @@ export default function InitializationComponent() {
                 console.log('Err removing shreds: ', e);
             }
 
-            console.log('WTF MOOG GM FX ', moogGrandmotherEffects);
-            // tk
             aChuck.runCode(`
             
             ((60.0 / ${bpm})) => float secLenBeat;
@@ -544,10 +542,6 @@ export default function InitializationComponent() {
         if(typeof window === 'undefined') return;
         if (!aChuck) return;
         await aChuck.runCode(`
-
-
-
-
         adc => Gain g => NRev r => dac;
         0.4 => g.gain;
         0.9 => r.mix;
@@ -599,6 +593,7 @@ export default function InitializationComponent() {
                 {preserveDrawingBuffer: true, stencil: true }, //engineOptions
                 false // adaptToDeviceRatio
             );
+
             babylonGame.current.knob = {};
             babylonGame.current.header = {}; 
         };
@@ -619,11 +614,9 @@ export default function InitializationComponent() {
     const handleUpdateSliderVal = (obj: any, value: any) => {
         moogGrandmotherEffects.current[`${obj.name}`].value = value;
         setChuckUpdateNeeded(true);
-        setNeedsUpdate(true);  
     };
 
     const handleChangeBPM = (newBpm: number) => {
-        console.log('fuckin number', newBpm);
         if (newBpm) {
             setBpm(Number(newBpm));
         }
