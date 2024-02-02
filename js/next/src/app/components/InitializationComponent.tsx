@@ -16,6 +16,7 @@ import {BabylonGame} from '../../interfaces/gameInterfaces';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import axios from 'axios';
 import ControlPopup from './ControlPopup';
+import FixedOptionsDropdown from './FixedOptionsSelect';
 // interface InitializationComponentProps {
 //     res:Response,
 // }
@@ -145,25 +146,46 @@ export default function InitializationComponent() {
         console.log("running chuck now... ", chuckUpdateNeeded);
 
         const stk1Code = `
-            if(velocity > 100)
+            if(note > 127)
             {
-                100 => velocity;
+                127 => note;
             }
-            if(velocity < 0)
+            if(note < 0)
             {
-                0 => velocity;
+                0 => note;
             }
             me.dir() + "ByronGlacier.wav" => string filePathIR;
             filePathIR => man.bodyIR;
-            <<< velocity >>>;
-            1.0 => man.bodySize;
-            <<< "test with pitch knob" >>>;
-            ${moogGrandmotherEffects.current.lfoPitch.value} => man.pluckPos;
+            0.2 => man.bodySize;
+            0.7 => man.pluckPos;
    
-            0.7 => man.stringDamping;
+            0.2 => man.stringDamping;
             0.0 => man.stringDetune;
-            0.8 => man.pluck; 
-            Std.mtof(60 + velocity) => man.freq;
+            0.2 => man.pluck; 
+            Std.mtof(60 + note) => man.freq;
+        `;
+
+            const test = 'clair';
+
+        const stk2Code = `
+            if(note > 127)
+            {
+                127 => note;
+            }
+            if(note < 0)
+            {
+                0 => note;
+            }
+            0.9 => ${test}.reed;
+            0.5 => ${test}.noiseGain;
+            0.5 => clair.pressure;
+            0.2 => clair.rate;
+            0.1 => clair.vibratoFreq;
+            0.5 => clair.vibratoGain;
+            0.3 => clair.startBlowing;
+            0.6 => clair.stopBlowing;
+            Std.mtof(60 + note) => clair.freq;
+            1.0 => clair.noteOn;
         `;
 
         if (chuckUpdateNeeded === false) {
@@ -185,7 +207,7 @@ export default function InitializationComponent() {
             class SynthVoice extends Chugraph
                 {
                     SawOsc saw1 => Mandolin man => LPF lpf => ADSR adsr => Dyno limiter => NRev rev => outlet;
-                    SawOsc saw2 => lpf;
+                    SawOsc saw2 => Clarinet clair => lpf;
                     Noise noiseSource => lpf;
            
                     0 => noiseSource.gain;
@@ -442,9 +464,14 @@ export default function InitializationComponent() {
                         84 * (amount / 100) => pitchLfo.gain;
                     }
 
-                    fun void stk1(float velocity)
+                    fun void stk1(float note)
                     {
                        ${stk1Code}
+                    }
+
+                    fun void stk2(float note)
+                    {
+                        ${stk2Code}
                     }
 
                     fun void cutoffMod(float amount)
@@ -517,6 +544,7 @@ export default function InitializationComponent() {
                     <<< "call STKs from here", notes[Math.random2(0, notes.cap()-1)] + 12 >>>;
                     
                     notes[Math.random2(0, notes.cap()-1)] + 12 => voice.stk1;
+                    notes[Math.random2(0, notes.cap()-1)] + 12 => voice.stk2;
 
                     beat => now;
                     1 => voice.keyOff;
@@ -680,6 +708,8 @@ export default function InitializationComponent() {
                             beatsDenominator={beatsDenominator}
                             handleChangeBeatsDenominator={handleChangeBeatsDenominator}    
                         />
+                        {/* <FixedOptionsDropdown/> */}
+                        {<FixedOptionsDropdown/>}
                     </Box>
                 </Box>
             )}

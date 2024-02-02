@@ -233,3 +233,8 @@
     transform: rotate(0deg);
   }
 }
+
+.basic-multi-select {
+  background-color: black;
+  color: white;
+}
