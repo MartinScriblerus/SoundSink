@@ -1,5 +1,5 @@
-export const stkVariableDelay = "d";
-export const stkIdentifierDelay = "Delay";
+export const stkVariablePitShift = "pitShift";
+export const stkIdentifierPitShift = "PitShift";
 
 const pitShiftPresets = {
     mix: {
@@ -17,7 +17,7 @@ const pitShiftPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
-    }, // reverb amount (0-100)
+    },
 };
 
 export default pitShiftPresets;

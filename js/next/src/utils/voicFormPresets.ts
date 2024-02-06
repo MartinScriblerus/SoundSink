@@ -13,7 +13,7 @@ const voicFormPresets = {
     phoneme: {
         name: "phoneme",
         label: "Phoneme",
-        value: 2, // NOTE THAT PHONEME TAKES A STRING!!!
+        value: phonemes[2], // NOTE THAT PHONEME TAKES A STRING!!!
         min: 0,
         max: 31,
         screenInterface: "intSpinner_31",
@@ -66,14 +66,14 @@ const voicFormPresets = {
         max: 128,
         screenInterface: "intSpinner_128",
     },
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default voicFormPresets;

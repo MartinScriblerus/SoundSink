@@ -58,14 +58,14 @@ const bowedPresets = {
         max: 2,
         screenInterface: "knob",
     }, // rate in seconds
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default bowedPresets;

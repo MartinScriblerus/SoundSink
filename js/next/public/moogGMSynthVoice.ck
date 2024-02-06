@@ -348,7 +348,7 @@ class SynthVoice extends Chugraph
 SynthVoice voice => HPF hpf => dac;
 Std.atoi(me.arg(23)) => hpf.freq;
 
-[0,0,10,12] @=> int notes[];
+[0,0,4,5] @=> int notes[];
 Std.atoi(me.arg(6)) => voice.cutoff;
 Std.atoi(me.arg(7)) => voice.rez;
 Std.atoi(me.arg(8)) => voice.env;
@@ -391,7 +391,7 @@ while(true)
     // Std.atoi(me.arg(6)) => voice.cutoff;
     // Std.atoi(me.arg(7)) => voice.rez;
     // Std.atoi(me.arg(8)) => voice.env;
-    notes[Math.random2(0, notes.cap()-1)] + 12 => voice.keyOn;
+    notes[Math.random2(0, notes.cap()-1)] => voice.keyOn;
     1::second => now;
     1 => voice.keyOff;
 }

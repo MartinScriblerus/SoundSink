@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { SetStateAction, useState } from 'react';
 
 import Select, { ActionMeta, OnChangeValue, StylesConfig } from 'react-select';
 
 import { STKOption, stkOptions } from '../../utils/fixedOptionsDropdownData';
+
+type Props = {
+    stkValues: STKOption[] | undefined;
+    setStkValues: React.Dispatch<SetStateAction<any>>;
+    updateStkKnobs: (e: STKOption[]) => void;
+};
 
 const styles: StylesConfig<any, true> = {
     container: (provided: any) => ({
@@ -36,16 +42,15 @@ const styles: StylesConfig<any, true> = {
     })
 }
 
-
 const orderOptions = (values: readonly STKOption[]) => {
     return values
         .filter((v) => v.isFixed)
         .concat(values.filter((v) => !v.isFixed));
 };
 
-const FixedOptionsDropdown = () => {
+const FixedOptionsDropdown = ({stkValues, setStkValues, updateStkKnobs}: Props) => {
     
-    const [value, setValue] = useState<readonly STKOption[] | Array<any>>([]);
+    // const [value, setValue] = useState<readonly STKOption[] | Array<any>>([]);
 
     const onChange = (
     newValue: OnChangeValue<STKOption, true>,
@@ -72,16 +77,17 @@ const FixedOptionsDropdown = () => {
                 newOpts = orderOptions(newValue);
                 console.log('ELSE NEW OPS! ', newOpts);
             }
-            setValue(newOpts);
+            setStkValues(newOpts);
+            updateStkKnobs(newOpts);
         }
     };
 
     return (
         <Select
-            value={value}
+            value={stkValues}
             isMulti
             styles={styles}
-            isClearable={value.some((v) => !v.isFixed)}
+            isClearable={stkValues?.some((v) => !v.isFixed)}
             name="colors"
             className="basic-multi-select"
             classNamePrefix="select"

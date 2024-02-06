@@ -1,11 +1,11 @@
-export const stkVariableClarinet = "sax";
-export const stkIdentifierClarinet = "Saxofony";
+export const stkVariableSaxofony = "sax";
+export const stkIdentifierSaxofony = "Saxofony";
 
 const saxofonyPresets = {
     stiffness: { // if this does not work, try controlChange 1
         name: "stiffness",
         label: "Stiffness",
-        value: 0.50,
+        value: 0.3,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -37,7 +37,7 @@ const saxofonyPresets = {
     vibratoGain: {
         name: "vibratoGain",
         label: "Vibrato Gain",
-        value: 0.0,
+        value: 0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -45,15 +45,15 @@ const saxofonyPresets = {
     noiseGain: {
         name: "noiseGain",
         label: "Noise Gain",
-        value: 0.0,
+        value: 0,
         min: 0,
         max: 1,
         screenInterface: "knob",
     },
     blowPosition: {
         name: "blowPosition",
-        label: "Blow Position",
-        value: 0.2,
+        label: "Blow Pos",
+        value: 0,
         min: 0,
         max: 2,
         screenInterface: "knob",
@@ -68,28 +68,28 @@ const saxofonyPresets = {
     }, // rate in seconds
     startBlowing: {
         name: "startBlowing",
-        label: "Start Blowing",
-        value: 0.0,
+        label: "Strt Blow",
+        value: 0,
         min: 0,
         max: 1,
         screenInterface: "knob",
     },
     stopBlowing: {
         name: "stopBlowing",
-        label: "Stop Blowing",
+        label: "Stp Blow",
         value: 0.5,
         min: 0,
         max: 1,
         screenInterface: "knob",
     },
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default saxofonyPresets;

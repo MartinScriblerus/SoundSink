@@ -1,5 +1,5 @@
-export const stkVariableDelay = "d";
-export const stkIdentifierDelay = "Delay";
+export const stkVariableModulate = "mod";
+export const stkIdentifierModulate = "Modulate";
 
 const modulatePresets = {
     vibratoRate: {

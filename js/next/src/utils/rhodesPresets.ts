@@ -1,5 +1,5 @@
-export const stkVariableMoog = "rod";
-export const stkIdentifierMoog = "Rhodey";
+export const stkVariableRhodey = "rod";
+export const stkIdentifierRhodey = "Rhodey";
 
 const rhodeyPresets = { // .clair
     controlOne: { // Make sure to SET on code side (see ChucK reference)
@@ -34,22 +34,54 @@ const rhodeyPresets = { // .clair
         max: 1,
         screenInterface: "knob",
     },
-    opADSR: {
-        name: "ADSR",
-        label: "ADSR 1",
-        value: [2, 0.001, 3.00, 0.0, 0.04],
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-    },
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // opADSR_op: {
+    //     name: "opADSR_op",
+    //     label: "ADSR Op",
+    //     value: 2,
+    //     min: 0,
+    //     max: 4,
+    //     screenInterface: "interface_5",
+    // },
+    // attackTime: {
+    //     name: "attackTime",
+    //     label: "Attack",
+    //     value: 0.01,
+    //     min: 0,
+    //     max: 1,
+    //     screenInterface: "knob",
+    // },
+    // opADSR_decay: {
+    //     name: "opADSR_decay",
+    //     label: "Decay",
+    //     value: 1.00,
+    //     min: 0,
+    //     max: 4,
+    //     screenInterface: "knob",
+    // },
+    // opADSR_sustain: {
+    //     name: "opADSR_sustain",
+    //     label: "Sustain",
+    //     value: 0,
+    //     min: 0,
+    //     max: 4,
+    //     screenInterface: "knob",
+    // },
+    // opADSR_release: {
+    //     name: "opADSR_release",
+    //     label: "Release",
+    //     value: 0.04,
+    //     min: 0,
+    //     max: 1,
+    //     screenInterface: "knob",
+    // },
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default rhodeyPresets;

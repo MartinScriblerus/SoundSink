@@ -42,14 +42,14 @@ const mandolinPresets = { // .clair
         max: 1,
         screenInterface: "knob",
     }, // filter cutoff amount (0-100)
-   bodyIR: {
-        name: "bodyIR",
-        label: "Body IR",
-        value: 'me.dir() + "ByronGlacier.wav"',
-        min: 0,
-        max: 1,
-        screenInterface: "none",
-   } // impulse response file source
+//    bodyIR: {
+//         name: "bodyIR",
+//         label: "Body IR",
+//         value: 'me.dir() + "ByronGlacier.wav"',
+//         min: 0,
+//         max: 1,
+//         screenInterface: "none",
+//    } // impulse response file source
 };
 
 export default mandolinPresets;

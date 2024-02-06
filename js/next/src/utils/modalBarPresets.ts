@@ -1,5 +1,5 @@
-export const stkVariableShakers = "mdlbr";
-export const stkIdentifierShakers = "ModalBar";
+export const stkVariableModalBar = "mdlbr";
+export const stkIdentifierModalBar = "ModalBar";
 
 // - Marimba = 0
 // - Vibraphone = 1
@@ -116,14 +116,14 @@ const modalBarPresets = {
         max: 1,
         screenInterface: "knob",
     },
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default modalBarPresets;

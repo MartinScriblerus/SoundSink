@@ -1,5 +1,5 @@
-export const stkVariableClarinet = "wg";
-export const stkIdentifierClarinet = "BandedWG";
+export const stkVariableBandedWg = "wg";
+export const stkIdentifierBandedWg = "BandedWG";
 
 const bandedWGPresets = {
     bowPressure: {
@@ -82,14 +82,14 @@ const bandedWGPresets = {
         max: 1,
         screenInterface: "knob",
     },
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default bandedWGPresets;

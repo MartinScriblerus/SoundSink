@@ -60,7 +60,7 @@ const flutePresets = {
     },
     startBlowing: {
         name: "startBlowing",
-        label: "Start Blowing",
+        label: "Strt Blow",
         value: 0.0,
         min: 0,
         max: 1,
@@ -68,7 +68,7 @@ const flutePresets = {
     },
     stopBlowing: {
         name: "stopBlowing",
-        label: "Stop Blowing",
+        label: "Stp Blow",
         value: 0.5,
         min: 0,
         max: 1,
@@ -82,14 +82,14 @@ const flutePresets = {
         max: 2,
         screenInterface: "knob",
     }, // rate in seconds
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default flutePresets;

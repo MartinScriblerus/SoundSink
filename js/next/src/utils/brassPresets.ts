@@ -36,7 +36,7 @@ const brassPresets = {
     },
     startBlowing: {
         name: "startBlowing",
-        label: "Start Blowing",
+        label: "Strt Blow",
         value: 0.0,
         min: 0,
         max: 1,
@@ -44,7 +44,7 @@ const brassPresets = {
     },
     stopBlowing: {
         name: "stopBlowing",
-        label: "Stop Blowing",
+        label: "Stp Blow",
         value: 0.5,
         min: 0,
         max: 1,
@@ -58,14 +58,14 @@ const brassPresets = {
         max: 2,
         screenInterface: "knob",
     }, // rate in seconds
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default brassPresets;

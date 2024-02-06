@@ -1,7 +1,7 @@
 const moogGMPresets = {
     lfoGain: {
         name: "lfoGain",
-        label: "Lfo Gain",
+        label: "Lfo Gn",
         value: 0.50,
         min: 0,
         max: 1,
@@ -9,7 +9,7 @@ const moogGMPresets = {
     }, // lfo gain 
     lfoPitch: {
         name: "lfoPitch",
-        label: "Lfo Pitch",
+        label: "Lfo Pit",
         value: 0.5,
         min: 0,
         max: 1,
@@ -17,7 +17,7 @@ const moogGMPresets = {
     }, // lfo pitch
     lfoVoice: {
         name: "lfoVoice",
-        label: "Lfo Voice",
+        label: "Lfo Voc",
         value: 2,
         min: 0,
         max: 3,
@@ -81,7 +81,7 @@ const moogGMPresets = {
     }, // detune the two voice oscs (1-100)
     oscOffset: {
         name: "oscOffset",
-        label: "Osc Offset",
+        label: "Oscs Off",
         value: 0,
         min: 0,
         max: 100,
@@ -92,7 +92,7 @@ const moogGMPresets = {
         label: "Attack",
         value: 1,
         min: 0,
-        max: 8000,
+        max: 4000,
         screenInterface: "knob",
     }, // adsr attack (0-100) amount over time
     adsrDecay: {
@@ -100,7 +100,7 @@ const moogGMPresets = {
         label: "Decay",
         value: 150,
         min: 0,
-        max: 4000,
+        max: 2000,
         screenInterface: "knob",
     }, // adsr decay (0-100)
     adsrSustain: {
@@ -116,12 +116,12 @@ const moogGMPresets = {
         label: "Release",
         value: 1,
         min: 0,
-        max: 8000,
+        max: 4000,
         screenInterface: "knob",
     }, // adsr release (0-100)
     limiterAttack: {
         name: "limiterAttack",
-        label: "Limiter Attack",
+        label: "Limit Attack",
         value: 0,
         min: 0,
         max: 100,
@@ -129,7 +129,7 @@ const moogGMPresets = {
     }, // limiter attack (0-100)
     limiterThreshold: {
         name: "limiterThreshold",
-        label: "Limiter Thresh",
+        label: "Limit Thresh",
         value: 0.8,
         min: 0.0,
         max: 1.0,
@@ -177,17 +177,17 @@ const moogGMPresets = {
     },  // 0 = sync freq to input, 1 = sync phase to input, 2 = fm synth
     filterEnv: {
         name: "filterEnv",
-        label: "Filter Env",
+        label: "Filt Env",
         value: 0,
         min: 0,
-        max: 1200,
+        max: 3200,
         screenInterface: "knob",
     }, // controls filter envelope in Hz (NEEDS TESTING!)
     highPassFreq: {
         name: "highPassFreq",
-        label: "HighPass Freq",
+        label: "HP Freq",
         value: 120,
-        min: 0,
+        min: 1,
         max: 1000,
         screenInterface: "knob",
     }, // high pass filter frequency in hZ (NEEDS TESTING!)
