@@ -145,7 +145,7 @@ function BabylonScene(props: {
                             game.header[i][j] = new GUI.TextBlock();
                             game.header[i][j].height = "60px";
                             game.header[i][j].paddingTop = "40px";
-                            game.header[i][j].fontSizeInPixels = "16px";
+                            game.header[i][j].fontSizeInPixels = "14px";
                             game.header[i][j].color = "white";
 
                             // create a slider for each knob
@@ -194,8 +194,8 @@ function BabylonScene(props: {
 
                                 // This is the effects knob: use this to handle "amount" based values (eg. 0.0–1.0 / 1–100)
                                 BABYLON.SceneLoader.ImportMesh("", "/", "knob3.glb", game.scene, function (newMeshes: any) {
-                                    newMeshes[0].position.x = 8 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
-                                    newMeshes[0].position.y = 7.3 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3);
+                                    newMeshes[0].position.y = 6.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3.2);
+                                    newMeshes[0].position.x = 7.8 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.2);
                                     newMeshes[0].position.z = zPos;
 
 

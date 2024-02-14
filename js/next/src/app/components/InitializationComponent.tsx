@@ -18,9 +18,10 @@ import axios from 'axios';
 import ControlPopup from './ControlPopup';
 import FixedOptionsDropdown from './FixedOptionsSelect';
 
-import { STKOption } from '../../utils/fixedOptionsDropdownData';
+import { FXOption, STKOption, fxGroupOptions } from '../../utils/fixedOptionsDropdownData';
 import ToggleFXView from './ToggleFXView';
-import { getSTK1Preset, getSTK2Preset } from '@/utils/presetsHelper';
+import { getSTK1Preset, getSTK2Preset, getFX1Preset } from '@/utils/presetsHelper';
+import FXCheckboxLabels from './FXCheckboxes';
 
 // interface InitializationComponentProps {
 //     res:Response,
@@ -86,6 +87,13 @@ export default function InitializationComponent() {
     const stk1Var = useRef<string | undefined>('');
     const stk2Type = useRef<string | undefined>('');
     const stk2Var = useRef<string | undefined>('');
+
+    const fxValsRef = useRef<FXOption[]>([]);
+    const fxFX = useRef<any>([]);
+    const fx1Type = useRef<string | undefined>('');
+    const fx1Var = useRef<string | undefined>('');
+    const fx1Group = useRef<string | undefined>('');
+
     
     // currentFX are the ones we are actively editing
     const currentFX = useRef<any>();
@@ -94,12 +102,33 @@ export default function InitializationComponent() {
         currentFX.current = moogGrandmotherEffects.current
     }
 
+    currentFX.current = {...currentFX.current, ...fxFX.current}
+
     const stkFXString = useRef<any>('');
     const stkFX2String = useRef<any>('');
     
     // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
     const visibleFXKnobs = useRef<Array<any>>();
     
+    const handleFXGroupChange = (e: any) => {
+        // let tempKnobs: any = []
+        if (fxValsRef.current.indexOf(e.target.value) === -1) { 
+            fxValsRef.current.push(e.target.value)
+        } else {
+            const index = fxValsRef.current.indexOf(e.target.value);
+            fxValsRef.current.splice(index, 1);
+        } 
+        console.log('FXValsRef: ', fxValsRef.current);
+        fxValsRef.current.map((fx: any) => {
+            console.log()
+            if ((!fxFX.current) || (fxFX.current && fxFX.current.length < 1) || fxFX.current && fxFX.current.length > 0 && fxFX.current.filter((f: any) => f.length > 0 && f.var === fx).length < 1) {
+                console.log('FUCK SHIT ', getFX1Preset(fx));
+                fxFX.current.push(getFX1Preset(fx)[0]);
+            }
+        });
+        console.log('heya heya: ', fxFX.current);
+    };
+
     console.log('CURRENT EFFECTS LIST: ', currentFX.current);
 
     visibleFXKnobs.current = !currentFX.current.presets 
@@ -109,20 +138,6 @@ export default function InitializationComponent() {
             ? Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])
             : Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
     
-            // FIGURE OUT WHAT TO DO WITH THIS...
-            // catch STKs with ADSR effects
-            // const hasOpADSRArray = visibleFXKnobs.current && visibleFXKnobs.current.filter((fx: any) => fx[0].indexOf('_') > 0).length > 0;
-            // if (!hasOpADSRArray) {
-            // } else {
-            //     visibleFXKnobs.current?.forEach((fx: any) => {
-            //         if(fx[0].indexOf('_') > 0) {
-            //         //     game.header[i][j].text = !prevKnobVals.current.i.j ? `${visibleFXKnobs[effectsIndex][0]}: ${visibleFXKnobs[effectsIndex][1].value.toFixed(2)}` : `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(2)}`;
-            //         // } else {
-            //             fx[0] = `${fx[0].split('_')[1]}`;
-            //         }
-            //     });
-            // }
-
 
     const updateStkKnobs = (knobVals: STKOption[]) => {
         stkValsRef.current = [];
@@ -217,9 +232,11 @@ export default function InitializationComponent() {
         if (!babylonGame.current || !babylonGame.current.engine) {
             return;
         }
+        
         if (currentScreen.current === 'synth') {
             stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
             currentFX.current = stkFX.current;
+
             currentScreen.current = 'stk';
             visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
         } else if (currentScreen.current === 'stk') {
@@ -275,7 +292,9 @@ export default function InitializationComponent() {
 
         console.log('????? would this cause a break? ', stkFX.current.var);
         Object.values(stkFX.current.presets).map((preset: any) => {
+            console.log('WHAT IS FUCKIN PRESET: ', preset);
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
+            console.log('MOVING INTO FUCKING CURRENT? ', stkFXString.current);
             stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
         });
 
@@ -312,13 +331,7 @@ export default function InitializationComponent() {
         if(typeof window === 'undefined') return;
         if (!aChuck) return;
         console.log("aChuck!?!?!?!?!?!? : ", await aChuck);
-        try {
-            await aChuck.loadChugin('chugins/AmbPan.chug.wasm');
-        } catch (err) {
-            console.log(err);
-        }
-        console.log('ANY LOADED CHUGINS? ', aChuck.loadedChugins());
-        
+
         // ****************************************************************
         // Props for main ChucK file
         // ****************************************************************
@@ -327,10 +340,18 @@ export default function InitializationComponent() {
         // gather score information & instruments
         // get an array of all files we want to load
         // ****************************************************************
-        aChuck.chuckPrint = (message) => setLastChuckMessage(message)
+        aChuck.chuckPrint = (message) => {
+            setLastChuckMessage(message);
+            if (aChuck) {
+                (async () => {
+                    const shredCount = await aChuck.runCode(`Machine.numShreds();`);
+                    console.log('shred count: ', shredCount);
+                })
+            }
+        }
         console.log("running chuck now... ", chuckUpdateNeeded);
   
-        
+
 
     
 
@@ -343,6 +364,9 @@ export default function InitializationComponent() {
 
         const bodyIR1 = getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;`: '';
         const bodyIR2 = getStk2String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk2String[2]}.bodyIR;` : '';
+        // const isBowing = getStk1String[2] === 'wg' ? 'wg.startBowing(1);' : '';
+
+        console.log('WHAT THE FLYING FUCK: ', getStk1String);
 
         const STK_1_Code = getStk1String ? `
             if(note > 127)
@@ -359,28 +383,26 @@ export default function InitializationComponent() {
             ${bodyIR1}
 
             Std.mtof(note + 32) => ${getStk1String[2]}.freq;
+
             1 => ${getStk1String[2]}.noteOn;
         ` : '';
-if (stkValsRef.current.length === 2) {
-        
-        const STK_2_Code = getStk2String ? `
-            if(note > 127)
-            {
-                127 => note;
-            }
-            if(note < 0)
-            {
-                0 => note;
-            }
-
-            ${bodyIR2}
-            ${getStk2String[0]}
-
-            Std.mtof(note + 32) => ${getStk2String[2]}.freq;
-            1 => ${getStk2String[2]}.noteOn;
-        ` : '';
-setStk2Code(STK_2_Code);
-}
+        if (stkValsRef.current.length === 2) {                
+            const STK_2_Code = getStk2String ? `
+                if(note > 127)
+                {
+                    127 => note;
+                }
+                if(note < 0)
+                {
+                    0 => note;
+                }
+                ${bodyIR2}
+                ${getStk2String[0]}
+                Std.mtof(note + 32) => ${getStk2String[2]}.freq;
+                1 => ${getStk2String[2]}.noteOn;
+            ` : '';
+            setStk2Code(STK_2_Code);
+        }
         setStk1Code(STK_1_Code);
         
         
@@ -398,11 +420,18 @@ setStk2Code(STK_2_Code);
                 console.log('Err removing shreds: ', e);
             }
 
+console.log('WHAT THE FUCK: ', getStk2String);
 
             const connector1Stk = getStk1String.length ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
+            const connector2Stk = getStk2String.length ? `=> ${getStk2String[1]} ${getStk2String[2]}` : '';
+            
             const connectorStk1DirectToDac = getStk1String ? `${getStk1String[2]} => dac;` : ``;
-
             const connectorStk2DirectToDac = getStk2String ? `${getStk2String[1]} ${getStk2String[2]}_ => dac;` : '';
+            
+            // await aChuck.loadFile('Multicomb.chug.wasm');   
+            //aChuck.loadFile('multicomb-help.ck'); 
+            // aChuck.runFile('pitchtrack-help.ck'); 
+
             aChuck.runCode(`
             
             ((60.0 / ${bpm})) => float secLenBeat;
@@ -411,12 +440,22 @@ setStk2Code(STK_2_Code);
             class SynthVoice extends Chugraph
                 {
                     SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter => NRev rev => outlet;
-                    SawOsc saw2 => Clarinet clair => lpf;
+                    
+                    SawOsc saw2 => SinOsc sintest => lpf;
+                    880 => sintest.freq;
                     Noise noiseSource => lpf;
 
-                    ${connectorStk1DirectToDac}
-                    ${connectorStk2DirectToDac}
+                    // ${connectorStk1DirectToDac}
+                    // ${connectorStk2DirectToDac}
 
+
+
+
+
+
+
+
+                    
 
                     0 => noiseSource.gain;
 
@@ -435,8 +474,8 @@ setStk2Code(STK_2_Code);
                     }
 
                     6.0 => SetLfoFreq;
-                    ${moogGrandmotherEffects.current.lfoGain.value} => filterLfo.gain;
-                    ${parseFloat(moogGrandmotherEffects.current.lfoPitch.value).toFixed(2)} => pitchLfo.gain;
+                    0.5 => filterLfo.gain;
+                    0.5 => pitchLfo.gain;
 
 
                     ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
@@ -466,7 +505,7 @@ setStk2Code(STK_2_Code);
                     ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
 
                     ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
-                    ${parseInt(moogGrandmotherEffects.current.filterEnv.value)} => float filterEnv;
+                    880 => float filterEnv;
 
                     1 => float osc2Detune;
                     0 => int oscOffset;
@@ -602,7 +641,8 @@ setStk2Code(STK_2_Code);
                         while((adsr.state() != 0 && adsr.value() == 0) == false)
                         {
                             (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
-                            10::ms => now;  
+                            10::ms => now;
+                            <<< "FUCK SHIT" >>>;
                         }
                     }
 
@@ -726,7 +766,7 @@ setStk2Code(STK_2_Code);
 
                 ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
 
-                [0,1,2,3,4,5,6,7] @=> int notes[];
+                [0,5] @=> int notes[];
                 
                 ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice.cutoff;
                 ${moogGrandmotherEffects.current.rez.value} => voice.rez;
@@ -737,46 +777,49 @@ setStk2Code(STK_2_Code);
                 ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice.oscOffset;
                 ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice.pitchMod;
                 ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice.ChooseLfo;
-                ${parseInt(moogGrandmotherEffects.current.lfoGain.value)} => voice.filterLfo.gain;
+                0.5 => voice.filterLfo.gain;
                 ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
-                ${moogGrandmotherEffects.current.filterEnv.value} => voice.filterEnv;
-                ${moogGrandmotherEffects.current.noise.value} => voice.noise;
-                ${moogGrandmotherEffects.current.reverb.value} => voice.reverb;
+                880 => voice.filterEnv;
+                0 => voice.noise;
+
 
                 while(${!chuckUpdateNeeded})
                 {
                     ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(2)} => voice.env;
                     ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
                     
-                    if (Machine.numShreds() < 7) {
-                        notes[Math.random2(0, notes.cap()-1)] + 24 => voice.keyOn; 
-                        
-                        notes[Math.random2(0, notes.cap()-1)] + 24 => voice.stk1;
+                    if (Machine.numShreds() < 10) {
 
-                        if (Machine.shreds().size() >= 2) {
+                        if (Machine.shreds().size() >= 0) {
                             for (0 => int shrds; shrds < Machine.shreds().size() - 1; shrds++) {
-                                if (shrds > 2) {
+                                if (shrds > 3) {
                                     Machine.remove(Machine.shreds()[shrds]);
                                 }
                             };
                         }
 
+                        notes[Math.random2(0, notes.cap()-1)] + 24 => voice.keyOn; 
+                        
+                        notes[Math.random2(0, notes.cap()-1)] + 24 => voice.stk1;
+
                         beat => now;
+                        <<< "****** ", Machine.numShreds() >>>;
+                        1 => voice.keyOff;
                     } else {
-                        if (${bpm} > 300) {
+                        // if (${bpm} > 200) {
                             Machine.removeAllShreds();
                             Machine.resetShredID();
-                        }
+                        // }
                         1::ms => now;
+                        1 => voice.keyOff;
                     }    
                     1 => voice.keyOff;
-                    
                 }
             `);
             console.log('Shred Count in IF: ', await shredCount);
         } else {
-            // aChuck.runCode(`Machine.removeAllShreds();`);
-            // aChuck.runCode(`Machine.resetShredID();`);
+            aChuck.runCode(`Machine.removeAllShreds();`);
+            aChuck.runCode(`Machine.resetShredID();`);
             const shredCount = await aChuck.runCode(`Machine.numShreds();`);
             console.log('Shred Count in ELSE: ', await shredCount);
             setChuckUpdateNeeded(false);
@@ -945,13 +988,13 @@ setStk2Code(STK_2_Code);
                             width: '100%',
                             paddingTop: '6px',
                             paddingBottom: '12px',
-                            background: 'rgba(255,255,255,.07)',
+                            background: 'transparent',
                             display: 'flex',
                         }}
                     >
-                        {!chuckHook && (<Button sx={{maxHeight: '40px'}} variant="contained" id="initChuckButton" onClick={initChuck}>Start Chuck</Button>)}
-                        {chuckHook && (<Button sx={{maxHeight: '40px'}} variant="contained" id="runChuckButton" onClick={runChuck}>Run Chuck</Button>)}
-                        {chuckHook && (<Button sx={{maxHeight: '40px'}} variant="contained" id="micStartRecordButton" onClick={chuckMicButton}>Record</Button>)}
+                        {!chuckHook && (<Button sx={{paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="initChuckButton" onClick={initChuck}>Start Chuck</Button>)}
+                        {chuckHook && (<Button sx={{paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="runChuckButton" onClick={runChuck}>Run Chuck</Button>)}
+                        {chuckHook && (<Button sx={{paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="micStartRecordButton" onClick={chuckMicButton}>Record</Button>)}
                         <ControlPopup 
                             bpm={bpm} 
                             handleChangeBPM={handleChangeBPM} 
@@ -964,6 +1007,9 @@ setStk2Code(STK_2_Code);
                         {/* <FixedOptionsDropdown/> */}
                         {<FixedOptionsDropdown updateStkKnobs={(e: STKOption[]) => updateStkKnobs(e)} stkValues={stkValues} setStkValues={setStkValues} />}
                     </Box>
+                    {
+                        currentScreen.current === 'stk' && <FXCheckboxLabels fxValsRef={fxFX.current} handleFXGroupChange={handleFXGroupChange} fxGroupsArrayList={fxGroupOptions} />
+                    }
                 </Box>
             )}
             </Box>

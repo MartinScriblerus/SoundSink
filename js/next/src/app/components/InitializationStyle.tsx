@@ -98,7 +98,8 @@ export default async function InitializationStyle(
                 boxSizing: "border-box", 
                 display: "flex", 
                 flexDirection: "column", 
-                border: "solid 5px green", 
+                border: "solid 5px green",
+                backgroundColor: "rgba(255,255,255, 0.1",
                 alignItems: "center",
                 justifyContent: "center"
             }}>

@@ -73,3 +73,15 @@ export default interface MoogGrandmotherEffects {
     noise: MoogGrandmotherEffectsItem;
     reverb: MoogGrandmotherEffectsItem;
 }
+
+export interface FixedSimpleLabel {
+    label: string;
+    value: number;
+    effects: Array<{effectLabel: string, effectVar: string}>;
+}
+
+export interface FXGroupsArray {
+    fxGroupsArrayList: Array<FixedSimpleLabel>;
+    handleFXGroupChange: (e: any) => void;
+    fxValsRef: any;
+}

@@ -1,20 +1,20 @@
 const moogGMPresets = {
-    lfoGain: {
-        name: "lfoGain",
-        label: "Lfo Gn",
-        value: 0.50,
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-    }, // lfo gain 
-    lfoPitch: {
-        name: "lfoPitch",
-        label: "Lfo Pit",
-        value: 0.5,
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-    }, // lfo pitch
+    // lfoGain: {
+    //     name: "lfoGain",
+    //     label: "Lfo Gn",
+    //     value: 0.50,
+    //     min: 0,
+    //     max: 4,
+    //     screenInterface: "knob",
+    // }, // lfo gain 
+    // lfoPitch: {
+    //     name: "lfoPitch",
+    //     label: "Lfo Pit",
+    //     value: 0.5,
+    //     min: 0,
+    //     max: 1000,
+    //     screenInterface: "knob",
+    // }, // lfo pitch
     lfoVoice: {
         name: "lfoVoice",
         label: "Lfo Voc",
@@ -87,6 +87,14 @@ const moogGMPresets = {
         max: 100,
         screenInterface: "knob",
     }, // offset the two voice oscs (in semitones)
+    syncMode: {
+        name: "syncMode",
+        label: "Sync Mode",
+        value: 2,
+        min: 0,
+        max: 2,
+        screenInterface: "switch_3_1_2_3",
+    },  // 0 = sync freq to input, 1 = sync phase to input, 2 = fm synth
     adsrAttack: {
         name: "adsrAttack",
         label: "Attack",
@@ -154,35 +162,27 @@ const moogGMPresets = {
     cutoffMod: {
         name: "cutoffMod",
         label: "Cutoff Mod",
-        value: 50,
+        value: 5,
         min: 0,
         max: 100,
         screenInterface: "knob",
     }, // cutoff modulation (0-100)
-    noise: {
-        name: "noise",
-        label: "Noise",
-        value: 0,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // noise level (0-100)
-    syncMode: {
-        name: "syncMode",
-        label: "Sync Mode",
-        value: 2,
-        min: 0,
-        max: 2,
-        screenInterface: "switch_3_1_2_3",
-    },  // 0 = sync freq to input, 1 = sync phase to input, 2 = fm synth
-    filterEnv: {
-        name: "filterEnv",
-        label: "Filt Env",
-        value: 0,
-        min: 0,
-        max: 3200,
-        screenInterface: "knob",
-    }, // controls filter envelope in Hz (NEEDS TESTING!)
+    // noise: {
+    //     name: "noise",
+    //     label: "Noise",
+    //     value: 0,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // noise level (0-100)
+    // filterEnv: {
+    //     name: "filterEnv",
+    //     label: "Filt Env",
+    //     value: 0,
+    //     min: 0,
+    //     max: 3200,
+    //     screenInterface: "knob",
+    // }, // controls filter envelope in Hz (NEEDS TESTING!)
     highPassFreq: {
         name: "highPassFreq",
         label: "HP Freq",
@@ -191,14 +191,14 @@ const moogGMPresets = {
         max: 1000,
         screenInterface: "knob",
     }, // high pass filter frequency in hZ (NEEDS TESTING!)
-    reverb: {
-        name: "reverb",
-        label: "Reverb",
-        value: 5,
-        min: 0,
-        max: 100,
-        screenInterface: "knob",
-    }, // reverb amount (0-100)
+    // reverb: {
+    //     name: "reverb",
+    //     label: "Reverb",
+    //     value: 5,
+    //     min: 0,
+    //     max: 100,
+    //     screenInterface: "knob",
+    // }, // reverb amount (0-100)
 };
 
 export default moogGMPresets;

@@ -1,34 +1,73 @@
-import bandedWGPresets, {stkVariableBandedWg, stkIdentifierBandedWg} from '@/utils/bandedWGPresets';
-import beeThreePresets, {stkVariableBeeThree, stkIdentifierBeeThree} from '@/utils/beeThreePresets';
-import blowBotlPresets, {stkVariableBlowBotl, stkIdentifierBlowBotl} from '@/utils/blowBottlePresets';
-import blowHolePresets, {stkVariableBlowHole, stkIdentifierBlowHole} from '@/utils/blowHolePresets';
-import bowedPresets, {stkVariableBowed, stkIdentifierBowed} from '@/utils/bowedPresets';
-import brassPresets, {stkVariableBrass, stkIdentifierBrass} from '@/utils/brassPresets';
-import chorusPresets, {stkVariableChorus, stkIdentifierChorus} from '@/utils/chorusPresets';
-import clarinetPresets, {stkVariableClarinet, stkIdentifierClarinet} from '@/utils/clarinetPresets';
-import delayAPresets, {stkVariableDelayA, stkIdentifierDelayA} from '@/utils/delayAPreset';
-import delayLPresets, {stkVariableDelayL, stkIdentifierDelayL} from '@/utils/delayLPresets';
-import delayPresets, {stkVariableDelay, stkIdentifierDelay} from '@/utils/delayPresets';
-import echoPresets, {stkVariableEcho, stkIdentifierEcho} from '@/utils/echoPresets';
-import flutePresets, {stkVariableFlute, stkIdentifierFlute} from '@/utils/flutePresets';
-import fmPresets, {stkVariableFM, stkIdentifierFM} from '@/utils/fmPresets';
-import fmVoicesPresets, {stkVariableFMVoices, stkIdentifierFMVoices} from '@/utils/fmVoices';
-import frencHrnPresets, {stkVariableFrencHrn, stkIdentifierFrencHrn} from '@/utils/frenchHornPresets';
-import krstlChrPresets, {stkVariableKrstlChr, stkIdentifierKrstlChr} from '@/utils/krstlChrPresets';
-import mandolinPresets, {stkVariableMandolin, stkIdentifierMandolin} from '@/utils/mandolinPresets';
-import modalBarPresets, {stkVariableModalBar, stkIdentifierModalBar} from '@/utils/modalBarPresets';
-import modulatePresets, {stkVariableModulate, stkIdentifierModulate} from '@/utils/modulatePresets';
-import moogPresets, {stkVariableMoog, stkIdentifierMoog} from '@/utils/moogPresets';
-import percFlutPresets, {stkVariablePercFlut, stkIdentifierPercFlut} from '@/utils/percFlutPresets';
-import pitShiftPresets, {stkVariablePitShift, stkIdentifierPitShift} from '@/utils/pitchShiftPresets';
-import rhodeyPresets, {stkVariableRhodey, stkIdentifierRhodey} from '@/utils/rhodesPresets';
-import saxofonyPresets, {stkIdentifierSaxofony, stkVariableSaxofony} from '@/utils/saxPresets';
-import sitarPresets, {stkVariableSitar, stkIdentifierSitar} from '@/utils/sitarPresets';
-import stifKarpPresets, {stkVariableStifKarp, stkIdentifierStifKarp} from '@/utils/stifKarpPresets';
-import shakersPresets, {stkVariableShakers, stkIdentifierShakers} from '@/utils/shakersPresets';
-import tubeBellPresets, {stkVariableTubeBell, stkIdentifierTubeBell} from '@/utils/tubeBell';
-import voicFormPresets, {stkVariableVoiceForm, stkIdentifierVoiceForm} from '@/utils/voicFormPresets';
-import wurleyPresets, {stkVariableWurley, stkIdentifierWurley} from '@/utils/wurleyPresets';
+import bandedWGPresets, {stkVariableBandedWg, stkIdentifierBandedWg} from '@/utils/STKPresets/bandedWGPresets';
+import beeThreePresets, {stkVariableBeeThree, stkIdentifierBeeThree} from '@/utils/STKPresets/beeThreePresets';
+import blowBotlPresets, {stkVariableBlowBotl, stkIdentifierBlowBotl} from '@/utils/STKPresets/blowBottlePresets';
+import blowHolePresets, {stkVariableBlowHole, stkIdentifierBlowHole} from '@/utils/STKPresets/blowHolePresets';
+import bowedPresets, {stkVariableBowed, stkIdentifierBowed} from '@/utils/STKPresets/bowedPresets';
+import brassPresets, {stkVariableBrass, stkIdentifierBrass} from '@/utils/STKPresets/brassPresets';
+import chorusPresets, {
+    stkVariableChorus, 
+    stkIdentifierChorus, 
+    stkVariableModulate, 
+    stkIdentifierModulate, 
+    modulatePresets, 
+    pitShiftPresets, 
+    stkVariablePitShift, 
+    stkIdentifierPitShift} from '@/utils/FXPresets/chorusModPitchPresets';
+import jcRevPresets, {
+    gainPresets,
+    nRevPresets,
+    pcRevPresets,
+    stkIdentifierGain, 
+    stkIdentifierJCRev, 
+    stkIdentifierNRev, 
+    stkIdentifierPCRev,
+    stkIdentifierGVerb, 
+    stkVariableGVerb, 
+    stkVariableGain, 
+    stkVariableJCRev, 
+    stkVariableNRev, 
+    stkVariablePCRev,
+    gVerbPresets} from './FXPresets/reverbGainPresets';
+import clarinetPresets, {stkVariableClarinet, stkIdentifierClarinet} from '@/utils/STKPresets/clarinetPresets';
+import delayAPresets, {stkVariableDelayA, stkIdentifierDelayA} from '@/utils/STKPresets/delayAPreset';
+import delayLPresets, {stkVariableDelayL, stkIdentifierDelayL} from '@/utils/STKPresets/delayLPresets';
+import delayPresets, {stkVariableDelay, stkIdentifierDelay} from '@/utils/STKPresets/delayPresets';
+import echoPresets, {stkVariableEcho, stkIdentifierEcho} from '@/utils/FXPresets/echoPresets';
+import flutePresets, {stkVariableFlute, stkIdentifierFlute} from '@/utils/STKPresets/flutePresets';
+
+import fmVoicesPresets, {stkVariableFMVoices, stkIdentifierFMVoices} from '@/utils/STKPresets/fmVoices';
+import frencHrnPresets, {stkVariableFrencHrn, stkIdentifierFrencHrn} from '@/utils/STKPresets/frenchHornPresets';
+import krstlChrPresets, {stkVariableKrstlChr, stkIdentifierKrstlChr} from '@/utils/STKPresets/krstlChrPresets';
+import mandolinPresets, {stkVariableMandolin, stkIdentifierMandolin} from '@/utils/STKPresets/mandolinPresets';
+import modalBarPresets, {stkVariableModalBar, stkIdentifierModalBar} from '@/utils/STKPresets/modalBarPresets';
+// import modulatePresets, {stkVariableModulate, stkIdentifierModulate} from '@/utils/FXPresets/modulatePresets';
+import moogPresets, {stkVariableMoog, stkIdentifierMoog} from '@/utils/STKPresets/moogPresets';
+import percFlutPresets, {stkVariablePercFlut, stkIdentifierPercFlut} from '@/utils/STKPresets/percFlutPresets';
+// import pitShiftPresets, {stkVariablePitShift, stkIdentifierPitShift} from '@/utils/FXPresets/pitchShiftPresets';
+import rhodeyPresets, {stkVariableRhodey, stkIdentifierRhodey} from '@/utils/STKPresets/rhodesPresets';
+import saxofonyPresets, {stkIdentifierSaxofony, stkVariableSaxofony} from '@/utils/STKPresets/saxPresets';
+import sitarPresets, {stkVariableSitar, stkIdentifierSitar} from '@/utils/STKPresets/sitarPresets';
+import stifKarpPresets, {stkVariableStifKarp, stkIdentifierStifKarp} from '@/utils/STKPresets/stifKarpPresets';
+import shakersPresets, {stkVariableShakers, stkIdentifierShakers} from '@/utils/STKPresets/shakersPresets';
+import tubeBellPresets, {stkVariableTubeBell, stkIdentifierTubeBell} from '@/utils/STKPresets/tubeBell';
+import voicFormPresets, {stkVariableVoiceForm, stkIdentifierVoiceForm} from '@/utils/STKPresets/voicFormPresets';
+import wurleyPresets, {stkVariableWurley, stkIdentifierWurley} from '@/utils/STKPresets/wurleyPresets';
+import ambPan3Presets, { stkIdentifierAmbPan3, stkVariableAmbPan3 } from './FXPresets/ambPanPresets';
+import bitcrusherPresets, { stkIdentifierBitcrusher, stkVariableBitcrusher } from './FXPresets/bitcrusherPresets';
+import ellipticPresets, { stkIdentifierElliptic, stkVariableElliptic } from './FXPresets/ellipticPresets';
+import expDelayPresets, { stkIdentifierExpDelay, stkVariableExpDelay } from './FXPresets/expDelayPresets';
+import expEnvPresets, { stkIdentifierExpEnv, stkVariableExpEnv } from './FXPresets/expEnvPresets';
+import foldbackSaturatorPresets, { stkIdentifierFoldbackSaturator, stkVariableFoldbackSaturator } from './FXPresets/foldbackSaturatorPresets';
+import kasFilterPresets, { stkIdentifierKasFilter, stkVariableKasFilter } from './FXPresets/kasFilterPresets';
+import multicombPresets, { stkIdentifierMulticomb, stkVariableMulticomb } from './FXPresets/MulticombPresets';
+import pitchTrackPresets, { stkIdentifierPitchTrack, stkVariablePitchTrack } from './FXPresets/pitchTrackPresets';
+import powerADSRPresets, { stkIdentifierPowerADSR, stkVariablePowerADSR } from './FXPresets/powerADSR';
+import sigmundPresets, { stkIdentifierSigmund, stkVariableSigmund } from './FXPresets/sigmundPresets';
+import spectaclePresets, { stkIdentifierSpectacle, stkVariableSpectacle } from './FXPresets/spectaclePresets';
+import winFuncEnvPresets, { stkIdentifierWinFuncEnv, stkVariableWinFuncEnv } from './FXPresets/winFuncEnv';
+import wpDiodeLadderPresets, { stkIdentifierWPDiodeLadder, stkVariableWPDiodeLadder } from './FXPresets/wpDiodeLadder';
+import wpKorg35Presets, { stkIdentifierWPKorg35, stkVariableWPKorg35 } from './FXPresets/WPKorg35';
+import adsrPresets, { stkIdentifierADSR, stkVariableADSR } from './FXPresets/adsrPresets';
 
 
 
@@ -142,11 +181,11 @@ export const getSTK1Preset = (stkVal: string) => {
             type: stkIdentifierBeeThree,
             var: stkVariableBeeThree
         };
-    } else if (stkVal === 'fm') {
+    } else if (stkVal === 'fmVoices') {
         theStk1Fx = {
-            presets: fmPresets,
-            type: stkIdentifierFM,
-            var: stkVariableFM
+            presets: fmVoicesPresets,
+            type: stkIdentifierFMVoices,
+            var: stkVariableFMVoices
         };
     } else if (stkVal === 'krstlChr') {
         theStk1Fx = {
@@ -172,43 +211,45 @@ export const getSTK1Preset = (stkVal: string) => {
             type: stkIdentifierWurley,
             var: stkVariableWurley
         };
-    } else if (stkVal === 'delay') {
-        theStk1Fx = {
-            presets: delayPresets,
-            type: stkIdentifierDelay,
-            var: stkVariableDelay
-        };
-    } else if (stkVal === 'delayA') {
-        theStk1Fx = {
-            presets: delayAPresets,
-            type: stkIdentifierDelayA,
-            var: stkVariableDelayA
-        };
-    } else if (stkVal === 'delayL') {
-        theStk1Fx = {
-            presets: delayLPresets,
-            type: stkIdentifierDelayL,
-            var: stkVariableDelayL
-        };
-    } else if (stkVal === 'echo') {
-        theStk1Fx = {
-            presets: echoPresets,
-            type: stkIdentifierEcho,
-            var: stkVariableEcho
-        };
-    } else if (stkVal === 'modulate') {
-        theStk1Fx = {
-            presets: modulatePresets,
-            type: stkIdentifierModulate,
-            var: stkVariableModulate
-        };
-    } else if (stkVal === 'pitShift') {
-        theStk1Fx = {
-            presets: pitShiftPresets,
-            type: stkIdentifierPitShift,
-            var: stkVariablePitShift
-        };
-    } else {
+    }
+    // else if (stkVal === 'delay') {
+    //     theStk1Fx = {
+    //         presets: delayPresets,
+    //         type: stkIdentifierDelay,
+    //         var: stkVariableDelay
+    //     };
+    // } else if (stkVal === 'delayA') {
+    //     theStk1Fx = {
+    //         presets: delayAPresets,
+    //         type: stkIdentifierDelayA,
+    //         var: stkVariableDelayA
+    //     };
+    // } else if (stkVal === 'delayL') {
+    //     theStk1Fx = {
+    //         presets: delayLPresets,
+    //         type: stkIdentifierDelayL,
+    //         var: stkVariableDelayL
+    //     };
+    // } else if (stkVal === 'echo') {
+    //     theStk1Fx = {
+    //         presets: echoPresets,
+    //         type: stkIdentifierEcho,
+    //         var: stkVariableEcho
+    //     };
+    // } else if (stkVal === 'modulate') {
+    //     theStk1Fx = {
+    //         presets: modulatePresets,
+    //         type: stkIdentifierModulate,
+    //         var: stkVariableModulate
+    //     };
+    // } else if (stkVal === 'pitShift') {
+    //     theStk1Fx = {
+    //         presets: pitShiftPresets,
+    //         type: stkIdentifierPitShift,
+    //         var: stkVariablePitShift
+    //     };
+    // } 
+    else {
         console.log("******** WHY IN THE ELSE??? *********")
         theStk1Fx = {
             presets: frencHrnPresets,
@@ -329,12 +370,6 @@ export const getSTK2Preset = (stkVal: string) => {
             type: stkIdentifierBeeThree,
             var: stkVariableBeeThree
         };
-    } else if (stkVal === 'fm') {
-        theStk2Fx = {
-            presets: fmPresets,
-            type: stkIdentifierFM,
-            var: stkVariableFM
-        };
     } else if (stkVal === 'krstlChr') {
         theStk2Fx = {
             presets: krstlChrPresets,
@@ -359,42 +394,6 @@ export const getSTK2Preset = (stkVal: string) => {
             type: stkIdentifierWurley,
             var: stkVariableWurley
         };
-    } else if (stkVal === 'delay') {
-        theStk2Fx = {
-            presets: delayPresets,
-            type: stkIdentifierDelay,
-            var: stkVariableDelay
-        };
-    } else if (stkVal === 'delayA') {
-        theStk2Fx = {
-            presets: delayAPresets,
-            type: stkIdentifierDelayA,
-            var: stkVariableDelayA
-        };
-    } else if (stkVal === 'delayL') {
-        theStk2Fx = {
-            presets: delayLPresets,
-            type: stkIdentifierDelayL,
-            var: stkVariableDelayL
-        };
-    } else if (stkVal === 'echo') {
-        theStk2Fx = {
-            presets: echoPresets,
-            type: stkIdentifierEcho,
-            var: stkVariableEcho
-        };
-    } else if (stkVal === 'modulate') {
-        theStk2Fx = {
-            presets: modulatePresets,
-            type: stkIdentifierModulate,
-            var: stkVariableModulate
-        };
-    } else if (stkVal === 'pitShift') {
-        theStk2Fx = {
-            presets: pitShiftPresets,
-            type: stkIdentifierPitShift,
-            var: stkVariablePitShift
-        };
     } else {
         console.log("******** WHY IN THE ELSE??? *********")
         theStk2Fx = {
@@ -404,4 +403,199 @@ export const getSTK2Preset = (stkVal: string) => {
         };
     }
     return theStk2Fx;
+}
+
+export const getFX1Preset = (fxVal: string) => {
+    const theFX1Fx = [];
+    if (fxVal === 'modulate') {
+        theFX1Fx.push({
+            presets: modulatePresets,
+            type: stkIdentifierModulate,
+            var: stkVariableModulate,
+        });
+    } else if (fxVal === 'pitShift') {
+        theFX1Fx.push({
+            presets: pitShiftPresets,
+            type: stkIdentifierPitShift,
+            var: stkVariablePitShift,
+        });
+    } else if (fxVal === 'chor') {
+        theFX1Fx.push({
+            presets: chorusPresets,
+            type: stkIdentifierChorus,
+            var: stkVariableChorus,
+        });
+    } else if (fxVal === 'g') {
+        theFX1Fx.push({
+            presets: gainPresets,
+            type: stkIdentifierGain,
+            var: stkVariableGain,
+        });
+    } else if (fxVal === 'pcr') {
+        theFX1Fx.push({
+            presets: pcRevPresets,
+            type: stkIdentifierPCRev,
+            var: stkVariablePCRev,
+        });
+    } else if (fxVal === 'nr') {
+        theFX1Fx.push({
+            presets: nRevPresets,
+            type: stkIdentifierNRev,
+            var: stkVariableNRev,
+        });
+    } else if (fxVal === 'jcr') {
+        theFX1Fx.push({
+            presets: jcRevPresets,
+            type: stkIdentifierJCRev,
+            var: stkVariableJCRev
+        });
+    }
+    else if (fxVal === 'gverb') {
+        theFX1Fx.push({
+            presets: gVerbPresets,
+            type: stkIdentifierGVerb, //
+            var: stkVariableGVerb
+        });
+    }  
+    else if (fxVal === 'delay') {
+        theFX1Fx.push({
+            presets: delayPresets,
+            type: stkIdentifierDelay,
+            var: stkVariableDelay
+        });
+    } else if (fxVal === 'delayA') {
+        theFX1Fx.push({
+            presets: delayAPresets,
+            type: stkIdentifierDelayA,
+            var: stkVariableDelayA
+        });
+    } else if (fxVal === 'delayL') {
+        theFX1Fx.push({
+            presets: delayLPresets,
+            type: stkIdentifierDelayL,
+            var: stkVariableDelayL
+        });
+    } else if (fxVal === 'echo') {
+        theFX1Fx.push({
+            presets: echoPresets,
+            type: stkIdentifierEcho,
+            var: stkVariableEcho
+        });
+    } 
+    else if (fxVal === 'ambPan3') {
+        theFX1Fx.push({
+            presets: ambPan3Presets,
+            type: stkIdentifierAmbPan3,
+            var: stkVariableAmbPan3
+        });
+    } 
+    else if (fxVal === 'bitcrusher') {
+        theFX1Fx.push({
+            presets: bitcrusherPresets,
+            type: stkIdentifierBitcrusher,
+            var: stkVariableBitcrusher
+        });
+    } 
+    else if (fxVal === 'elliptic') {
+        theFX1Fx.push({
+            presets: ellipticPresets,
+            type: stkIdentifierElliptic, //
+            var: stkVariableElliptic
+        });
+    } 
+    else if (fxVal === 'expdelay') {
+        theFX1Fx.push({
+            presets: expDelayPresets,
+            type: stkIdentifierExpDelay, //
+            var: stkVariableExpDelay
+        });
+    } 
+    else if (fxVal === 'expenv') {
+        theFX1Fx.push({
+            presets: expEnvPresets,
+            type: stkIdentifierExpEnv, //
+            var: stkVariableExpEnv
+        });
+    } 
+    else if (fxVal === 'foldbacksaturator') {
+        theFX1Fx.push({
+            presets: foldbackSaturatorPresets,
+            type: stkIdentifierFoldbackSaturator, //
+            var: stkVariableFoldbackSaturator
+        });
+    } 
+    else if (fxVal === 'kasfilter') {
+        theFX1Fx.push({
+            presets: kasFilterPresets,
+            type: stkIdentifierKasFilter, //
+            var: stkVariableKasFilter
+        });
+    } 
+    else if (fxVal === 'multicomb') {
+        theFX1Fx.push({
+            presets: multicombPresets,
+            type: stkIdentifierMulticomb, //
+            var: stkVariableMulticomb
+        });
+    } 
+    else if (fxVal === 'pittrack') {
+        theFX1Fx.push({
+            presets: pitchTrackPresets,
+            type: stkIdentifierPitchTrack, //
+            var: stkVariablePitchTrack
+        });
+    } 
+    else if (fxVal === 'adsr') {
+        theFX1Fx.push({
+            presets: adsrPresets,
+            type: stkIdentifierADSR, //
+            var: stkVariableADSR
+        });
+    } 
+    else if (fxVal === 'poweradsr') {
+        theFX1Fx.push({
+            presets: powerADSRPresets,
+            type: stkIdentifierPowerADSR, //
+            var: stkVariablePowerADSR
+        });
+    } 
+    else if (fxVal === 'sigmund') {
+        theFX1Fx.push({
+            presets: sigmundPresets,
+            type: stkIdentifierSigmund, //
+            var: stkVariableSigmund
+        });
+    } 
+    else if (fxVal === 'spectacle') {
+        theFX1Fx.push({
+            presets: spectaclePresets,
+            type: stkIdentifierSpectacle, //
+            var: stkVariableSpectacle
+        });
+    } 
+    else if (fxVal === 'winfuncenv') {
+        theFX1Fx.push({
+            presets: winFuncEnvPresets,
+            type: stkIdentifierWinFuncEnv, //
+            var: stkVariableWinFuncEnv
+        });
+    }
+    else if (fxVal === 'wpdiodeladder') {
+        theFX1Fx.push({
+            presets: wpDiodeLadderPresets,
+            type: stkIdentifierWPDiodeLadder, //
+            var: stkVariableWPDiodeLadder
+        });
+    }
+    else if (fxVal === 'wpkorg35') {
+        theFX1Fx.push({
+            presets: wpKorg35Presets,
+            type: stkIdentifierWPKorg35, //
+            var: stkVariableWPKorg35
+        });
+    } 
+    else {
+        console.log('in the else');
+    }
+    return theFX1Fx;
 }

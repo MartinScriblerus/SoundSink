@@ -1,5 +1,7 @@
 SynthVoice voice => dac;
 
+<<< "this file is now in chuck strings" >>>;
+
 [0,4,7,11,14,16,19,23,24] @=> int notes[];
 0 => voice.cutoff;
 2 => voice.ChooseOsc1;
