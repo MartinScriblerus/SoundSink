@@ -106,9 +106,9 @@ const moogGMPresets = {
     adsrDecay: {
         name: "adsrDecay",
         label: "Decay",
-        value: 150,
+        value: 50,
         min: 0,
-        max: 2000,
+        max: 500,
         screenInterface: "knob",
     }, // adsr decay (0-100)
     adsrSustain: {

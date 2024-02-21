@@ -32,9 +32,9 @@ export const stkIdentifierNoise = "Noise";
 
 const jcRevPresets = {
     mix: {
-        name: "jcreverb",
-        label: "JCReverb",
-        value: 0,
+        name: "mix",
+        label: "JCRev Mix",
+        value: 0.00,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -45,8 +45,8 @@ const jcRevPresets = {
 
 export const nRevPresets = {
     mix: {
-        name: "nreverb",
-        label: "NReverb",
+        name: "mix",
+        label: "NRev Mix",
         value: 0,
         min: 0,
         max: 1,
@@ -58,8 +58,8 @@ export const nRevPresets = {
 
 export const pcRevPresets = {
     mix: {
-        name: "pcreverb",
-        label: "PCReverb",
+        name: "mix",
+        label: "PCRev Mix",
         value: 0,
         min: 0,
         max: 1,
@@ -121,7 +121,7 @@ export const gVerbPresets = {
         group: 3,
     },
     roomSize: {
-        name: "roomsize",
+        name: "roomSize",
         label: "Room Size",
         value: 30.0,
         min: 1.0,

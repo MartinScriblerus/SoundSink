@@ -38,14 +38,14 @@ function BabylonScene(props: {
     const pivot = useRef<any>({});
     const knobPosition = useRef<any>();
 
-    useEffect(() => {
-        // if (visibleFXKnobs.length > 0) {
-        //     setvisibleFXKnobs(effects);
-        // }
+    // useEffect(() => {
+    //     // if (visibleFXKnobs.length > 0) {
+    //     //     setvisibleFXKnobs(effects);
+    //     // }
         
-        console.log('!@#$_checkFXList ', visibleFXKnobs);
-        console.log('!@#$_checkEffects: ', effects);
-    }, [effects])
+    //     console.log('visibleKnobs: ', visibleFXKnobs);
+    //     console.log('(current) effects: ', effects);
+    // }, [effects])
 
     if (game && game.engine && !game.scene) {
         game.scene = new BABYLON.Scene(game.engine);
@@ -54,10 +54,9 @@ function BabylonScene(props: {
             game.gui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, game.scene);
             // ******************************** 
             // change Name and Behavior of this fxKnobsCount hook
-            console.log('what is the FUCKING FX LIST! ', effects);
             const squareRoot = Math.ceil(Math.sqrt(Object.keys(visibleFXKnobs).length));
             const zPos = -12;
-            console.log('yooooooo game gui ', game.gui);
+            console.log('babylon game gui ', game.gui);
             
             // CREATE MATERIALS
             // create colors
@@ -87,8 +86,7 @@ function BabylonScene(props: {
             for(let i = 0; i < squareRoot; i++) {
                 for (let j = 0; j < squareRoot; j++) {
                     const effectsIndex = j + squareRoot * i;
-                    console.log('caughtcha! FX INDEX: ', effectsIndex);
-                    console.log('caughtcha! KEY LENGTH: ', Object.keys(visibleFXKnobs).length);
+                    console.log('viz idx: ', effectsIndex, visibleFXKnobs[effectsIndex]);
                     if (effectsIndex < Object.keys(visibleFXKnobs).length) {
                             if(Object.keys(prevKnobVals.current).indexOf(`${i}`) === -1) {
                                 prevKnobVals.current.i = prevKnobVals.current.i || {};
@@ -145,9 +143,9 @@ function BabylonScene(props: {
                             game.header[i][j] = new GUI.TextBlock();
                             game.header[i][j].height = "60px";
                             game.header[i][j].paddingTop = "40px";
-                            game.header[i][j].fontSizeInPixels = "14px";
+                            game.header[i][j].fontSizeInPixels = 14;
                             game.header[i][j].color = "white";
-
+                            // console.log('WHAT IS KNOB FOR THIS EFFECT?: ', visibleFXKnobs[effectsIndex])
                             // create a slider for each knob
                             const slid = new GUI.Slider();
                             game.slider[i] = game.slider[i] || {};
@@ -171,6 +169,7 @@ function BabylonScene(props: {
                                 const typeNormalizedNum = +(visibleFXKnobs[effectsIndex][1].screenInterface === 'knob') ? Number(0 + convertScale) : Math.ceil(Number(0 + convertScale));
                                 const parseConvertScale:number = +Number(typeNormalizedNum);
                                 game.header[i][j].text = `${visibleFXKnobs[effectsIndex][0]}: ${parseConvertScale.toFixed(2)}`;
+                                
                                 handleUpdateSliderVal(visibleFXKnobs[effectsIndex][1], parseConvertScale);
                                 if (!prevKnobVals.current.i.j) value = parseConvertScale;
                                 if (prevKnobVals.current.i.j || prevKnobVals.current.i.j < 2 * Math.PI && prevKnobVals.current.i.j > -2 * Math.PI ) {
@@ -183,12 +182,30 @@ function BabylonScene(props: {
                             game.slider[i][j].onPointerUpObservable.add(function (e: any) {
                                 handleTurnKnob();
                             });
-                            console.log('fuck shit 1 ', visibleFXKnobs[effectsIndex]);
-                            console.log('fuck shit 2 ', visibleFXKnobs);
-                            console.log('fuck shit 3 ', effectsIndex);
-                            game.header[i][j].text = !prevKnobVals.current.i.j ? `${visibleFXKnobs[effectsIndex][0]}: ${visibleFXKnobs[effectsIndex][1].value.toFixed(2)}` : `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(2)}`;
-                    
 
+                            let effectLen = 1;
+                            if (visibleFXKnobs[effectsIndex][0] && visibleFXKnobs[effectsIndex][0][1] && Object.keys(visibleFXKnobs[effectsIndex][0][1])) {
+                                effectLen = Object.keys(visibleFXKnobs[effectsIndex][0][1]).length;
+                            }
+
+
+                            
+                            // console.log('VIZ EFFECTS KNOB Value Value Value Value CHECK ', visibleFXKnobs[effectsIndex][1].value);
+                            game.header[i][j].text = !prevKnobVals.current.i.j 
+                                ?   visibleFXKnobs[effectsIndex][1] && 
+                                    visibleFXKnobs[effectsIndex][1].value && 
+                                    visibleFXKnobs[effectsIndex][0].length > 0 &&
+                                    typeof visibleFXKnobs[effectsIndex][0][1] && 
+                                    typeof visibleFXKnobs[effectsIndex][0][1].value === 'number'
+                                    ?
+                                        `${visibleFXKnobs[effectsIndex][0][0]}: ${visibleFXKnobs[effectsIndex][0][1].value.toFixed(2)}`    
+                                    :
+                                        `${visibleFXKnobs[effectsIndex][0]}: ${visibleFXKnobs[effectsIndex][1].value ? visibleFXKnobs[effectsIndex][1].value.toFixed(2) : 0.00}`
+
+                                : 
+                                    `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(2)}`;
+                    
+                            // handleResetNeedsUpdate();
                             if (game.scene && game.engine?.scenes[0] && game.engine?.scenes[0].meshes.length < 1) {
                                 game.scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000000001);
 

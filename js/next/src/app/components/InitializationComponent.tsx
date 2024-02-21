@@ -18,10 +18,11 @@ import axios from 'axios';
 import ControlPopup from './ControlPopup';
 import FixedOptionsDropdown from './FixedOptionsSelect';
 
-import { FXOption, STKOption, fxGroupOptions } from '../../utils/fixedOptionsDropdownData';
+import { FXOption, STKOption, fxGroupOptions, fxOptions } from '../../utils/fixedOptionsDropdownData';
 import ToggleFXView from './ToggleFXView';
 import { getSTK1Preset, getSTK2Preset, getFX1Preset } from '@/utils/presetsHelper';
 import FXCheckboxLabels from './FXCheckboxes';
+import ShowFXView from './ShowFXBtn';
 
 // interface InitializationComponentProps {
 //     res:Response,
@@ -80,8 +81,11 @@ export default function InitializationComponent() {
     const [stk1Code, setStk1Code] = useState<string>('');
     const [stk2Code, setStk2Code] = useState<string>('');
 
+    const [test, setTest] = useState<boolean>(true);
+    const [showFX, setShowFX] = useState<boolean>(false)
+;
     const stkValsRef = useRef<STKOption[]>([]);
-    const stkFX = useRef<any>();
+    const stkFX = useRef<any>([]);
     const stkFX2 = useRef<any>();
     const stk1Type = useRef<string | undefined>('');
     const stk1Var = useRef<string | undefined>('');
@@ -93,6 +97,7 @@ export default function InitializationComponent() {
     const fx1Type = useRef<string | undefined>('');
     const fx1Var = useRef<string | undefined>('');
     const fx1Group = useRef<string | undefined>('');
+    const checkedFXList = useRef<FXOption[]>([]);
 
     
     // currentFX are the ones we are actively editing
@@ -102,7 +107,7 @@ export default function InitializationComponent() {
         currentFX.current = moogGrandmotherEffects.current
     }
 
-    currentFX.current = {...currentFX.current, ...fxFX.current}
+    // currentFX.current = {...currentFX.current, ...fxFX.current.filter((fx: any) => fx.visible === true && fx)}
 
     const stkFXString = useRef<any>('');
     const stkFX2String = useRef<any>('');
@@ -110,46 +115,147 @@ export default function InitializationComponent() {
     // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
     const visibleFXKnobs = useRef<Array<any>>();
     
-    const handleFXGroupChange = (e: any) => {
-        // let tempKnobs: any = []
-        if (fxValsRef.current.indexOf(e.target.value) === -1) { 
-            fxValsRef.current.push(e.target.value)
+
+    const updateCheckedFXList = (e: any) => {
+  
+
+        if (checkedFXList.current.indexOf(e.target.value) === -1) { 
+            checkedFXList.current.push(e.target.value);
+        } else {
+            const index = checkedFXList.current.indexOf(e.target.value);
+            checkedFXList.current.splice(index, 1);
+        }
+
+        console.log("Checked List Current in Update: ", checkedFXList.current);
+
+        const allFx: any = [];
+        fxGroupOptions.map((i: any) => {
+            if(allFx.indexOf(i.effects) === -1) {
+                allFx.push(i.effects);
+            }
+        });
+
+        allFx.flat().forEach((fx: any) => {
+            if (fxFX.current.filter((fx:any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
+                fxFX.current.push({
+                    presets: getFX1Preset(fx.effectVar)[0].presets,
+                    type: fx.effectLabel,
+                    var: fx.effectVar,
+                    fxType: 'fx',
+                    visible: false,
+                });
+            }
+        });
+        
+        fxFX.current.forEach((c: any) => {
+            const isChecked = checkedFXList.current.indexOf(c.var); 
+            if (isChecked !== -1) {
+                c.visible = true;
+            } else {
+                c.visible = false;
+            }
+        });
+
+        fxFX.current = fxFX.current.filter((f: any) => f.visible === true && f)
+
+        // checkedFXList.current.forEach((fx) => {
+        //     fxFX.current.push(getFX1Preset(fx)[0]);
+        // })
+        setTest(!test);
+    };
+
+    useEffect(() => {
+        // console.log('this should be updating! ', checkedFXList.current.map((i: any) => i));
+
+        // // console.log('heya heya: ', fxFX.current);
+        // console.log('compare to this!!! ', currentFX.current);
+        const stksAndFX: any = [stkFX.current, ...Object.values(fxFX.current)];
+        const visibleStkAndFX: Array<any> = Array.from(stksAndFX).filter((i: any) => i.visible);
+        // console.log('???%%%% ', currentFX.current);
+        console.log('visibleStkAndFX: ', visibleStkAndFX);
+
+        visibleFXKnobs.current = [];
+        visibleStkAndFX.map((i: any) => {
+            console.log('ARG I! ', i)
+            Object.values(i.presets).map((j: any) => {
+                console.log('ARG J! ', [j.label, j]);
+                visibleFXKnobs.current?.push([j.label, j]);
+            });
+            // currentFX.current = visibleStkAndFX;
+        });
+        console.log('visibleFXKNOBS: ', visibleFXKnobs.current);
+        
+        let newVals: any = [];
+   
+        visibleFXKnobs.current.map((fxK: any) => newVals.push([fxK, fxK.label]))
+        
+        const availableFX: any =  visibleStkAndFX.filter((i: any) => i.fxType === 'fx');
+        setNeedsUpdate(true);
+        console.log('ummmmmmm what are availableFX: ', availableFX);
+        if (availableFX.length > 0 && availableFX[0].var) {
+            currentScreen.current = `fx_${availableFX[0].var}`;
+            // currentFX.current = fxFX.current;
+
+            currentFX.current = [];
+            visibleFXKnobs.current = availableFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i:any) => [i.label, i])));
+        }
+    }, [test]);
+
+    const handleFXGroupChange = (e: any) => {        
+        if (fxValsRef.current.indexOf(e.target.value) === -1 && fxValsRef.current.indexOf(e.target.value) === -1) { 
+            fxValsRef.current.push(e.target.value);
+            checkedFXList.current.push(e.target.value);
         } else {
             const index = fxValsRef.current.indexOf(e.target.value);
             fxValsRef.current.splice(index, 1);
-        } 
-        console.log('FXValsRef: ', fxValsRef.current);
-        fxValsRef.current.map((fx: any) => {
-            console.log()
-            if ((!fxFX.current) || (fxFX.current && fxFX.current.length < 1) || fxFX.current && fxFX.current.length > 0 && fxFX.current.filter((f: any) => f.length > 0 && f.var === fx).length < 1) {
-                console.log('FUCK SHIT ', getFX1Preset(fx));
-                fxFX.current.push(getFX1Preset(fx)[0]);
-            }
-        });
-        console.log('heya heya: ', fxFX.current);
+            const indexChecked = checkedFXList.current.indexOf(e.target.value);
+            checkedFXList.current.slice(indexChecked, 1);
+        }
     };
 
-    console.log('CURRENT EFFECTS LIST: ', currentFX.current);
+    // console.log('CURRENT EFFECTS LIST: ', currentFX.current);
+    // < TODO This File runs constantly... should it!?!?!
 
+    const gotFX: any = fxFX.current.length > 0 && fxFX.current.filter((fx: any) => fx.visible === true && fx);
+    
     visibleFXKnobs.current = !currentFX.current.presets 
         ? 
-            Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
-        : stkValsRef.current.length > 1 && currentScreen.current === 'stk2' 
+        currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
+            ?
+                Object.values(gotFX[0].presets).map((f: any) => [f.label, f])
+            :
+                Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
+        : (stkValsRef.current.length > 1 && currentScreen.current === 'stk2')
             ? Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])
-            : Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
+            : 
+                currentScreen.current !== 'fx_'
+                ?
+                    Object.values(stkFX.current.presets).map((i:any) => [i.label, i])
+                : 
+                    Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])                
+
     
 
     const updateStkKnobs = (knobVals: STKOption[]) => {
         stkValsRef.current = [];
-        knobVals.forEach((kv:any) => {
-            console.log('KV from dropdown selector => ', kv)  
-            stkValsRef.current.push(kv);
-        })
+        console.log("WHAT ARE KNOBVALS? ", stkValsRef.current);
+        if (knobVals[0] && Object.values(knobVals[0]).length > 0 && knobVals.length > 1) {
+            knobVals.map((kv: any) => {
+                    (kv:any) => {
+                        console.log('KV from dropdown selector => ', kv)  
+                        stkValsRef.current.push(kv);
+                    }
+                })
+        
+        } else {
+            knobVals.forEach((kv:any) => {
+                console.log('KV from dropdown selector => ', kv)  
+                stkValsRef.current.push(kv);
+            })
+        }
         console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', stkValsRef.current);
         if (stkValsRef.current && stkValsRef.current.length === 1) stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
         if (stkValsRef.current && stkValsRef.current.length === 2) stkFX2.current = getSTK2Preset(stkValsRef.current[1].value);
-
-        console.log('@@@@@@ WTF IS CURR SCREEN??? ', currentScreen.current);
 
         let knobsCountTemp;
         if (currentScreen.current === 'stk') {
@@ -200,64 +306,50 @@ export default function InitializationComponent() {
 
     const theme = useTheme();
 
-    useEffect(() => {
-        (async() => {
-
-            switch(currentScreen.current) {
-                case 'synth': 
-                    visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-                    break;
-                case 'stk':
-                    if (stkFX.current && stkFX.current.presets) {
-                        visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
-                        currentFX.current = stkFX.current;
-                    }
-                    break;
-                case 'stk2':
-                    if (stkFX2.current && stkFX2.current.presets) {
-                        visibleFXKnobs.current = Object.values(stkFX2.current.presets).map((i:any) => [i.label, i]);
-                        currentFX.current = stkFX2.current;
-                    }
-                    break;
-                default:
-                    visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-                    break;
-            }
-        })();
-    }, [currentScreen, currentFX, stkFX])
-
     const updateCurrentFXScreen = () => {
         console.log('FX SCREEN!: ', currentScreen.current);
         console.log('GANME TO RECREATE! ', babylonGame.current);
         if (!babylonGame.current || !babylonGame.current.engine) {
             return;
         }
-        
-        if (currentScreen.current === 'synth') {
-            stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
-            currentFX.current = stkFX.current;
 
-            currentScreen.current = 'stk';
-            visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
-        } else if (currentScreen.current === 'stk') {
-            if (stkValsRef.current.length < 2) {
-                currentScreen.current = 'synth';
+        if (currentScreen.current === 'fx_') {
+            if (stkValsRef.current.length > 0 ) {
+                stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
+                currentFX.current = stkFX.current;
+                currentScreen.current = 'stk';
+                visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
+            } else if (currentScreen.current === 'fx_') {
+                currentScreen.current = 'stk';
                 currentFX.current = moogGrandmotherEffects.current;
                 visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-            } else {
-                stkFX2.current = getSTK2Preset(stkValsRef.current[1].value);
-                currentScreen.current = 'stk2';
-                visibleFXKnobs.current = Object.values(stkFX2.current.presets).map((i:any) => [i.label, i]);
-                currentFX.current = stkFX2.current;
+                setFxKnobsCount(visibleFXKnobs.current.length);                
             }
-        } else if (currentScreen.current === 'stk2') {
-            currentScreen.current = 'synth';
-            currentFX.current = moogGrandmotherEffects.current;
-            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-        } else {
-            console.log('@@@INNOSCREEN=>so what are stk vals: ', stkValsRef.current);
         }
-        // currentFX.current = stkValsRef.current;
+// tk
+        if (currentScreen.current === 'synth') {
+            try {
+                stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
+                currentFX.current = stkFX.current;
+                currentScreen.current = 'stk';
+                visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
+            } catch (e: any) {}
+        } else if (currentScreen.current === 'stk' || currentScreen.current === 'fx_') {
+            // if (stkValsRef.current.length < 2) {
+                currentScreen.current = 'synth';
+                currentFX.current = []; 
+                currentFX.current = moogGrandmotherEffects.current;
+                fxFX.current = [];
+                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
+                console.log('what are current FX in stk? ', fxFX.current);
+
+        } else {
+            console.log('what are current FX in stk? ', fxFX.current);
+            currentScreen.current = 'fx_';
+            currentFX.current = fxFX.current;
+            visibleFXKnobs.current = Object.values(fxFX.current).map((i:any) => [i.label, i]);
+        }
+
         babylonGame.current.engine.dispose();
         babylonGame.current = undefined;
         setBabylonKey(`${babylonKey}1`);
@@ -290,11 +382,9 @@ export default function InitializationComponent() {
             stk2Var.current = stkFX2.current.var + '2';
         }
 
-        console.log('????? would this cause a break? ', stkFX.current.var);
         Object.values(stkFX.current.presets).map((preset: any) => {
-            console.log('WHAT IS FUCKIN PRESET: ', preset);
+            console.log('STK PRESET: ', preset);
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
-            console.log('MOVING INTO FUCKING CURRENT? ', stkFXString.current);
             stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
         });
 
@@ -322,7 +412,7 @@ export default function InitializationComponent() {
     };
 
     useEffect(() => {
-        if (Object.keys(moogGrandmotherEffects).length > 0) {
+        if (Object.keys(moogGrandmotherEffects).length > 0 || currentScreen.current === 'fx_') {
             createEffectsButtons(moogGrandmotherEffects.current);
         }
     }, [moogGrandmotherEffects]);
@@ -352,11 +442,6 @@ export default function InitializationComponent() {
         console.log("running chuck now... ", chuckUpdateNeeded);
   
 
-
-    
-
-
-
         const getStk1String: any = await stkFXToString();
         // ********************************************** THIS ONE BELOW WILL NEED THE UPDATES TO STK2 
         const getStk2String: any = await stkFXToString();
@@ -365,8 +450,6 @@ export default function InitializationComponent() {
         const bodyIR1 = getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;`: '';
         const bodyIR2 = getStk2String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk2String[2]}.bodyIR;` : '';
         // const isBowing = getStk1String[2] === 'wg' ? 'wg.startBowing(1);' : '';
-
-        console.log('WHAT THE FLYING FUCK: ', getStk1String);
 
         const STK_1_Code = getStk1String ? `
             if(note > 127)
@@ -419,8 +502,6 @@ export default function InitializationComponent() {
             } catch (e) {
                 console.log('Err removing shreds: ', e);
             }
-
-console.log('WHAT THE FUCK: ', getStk2String);
 
             const connector1Stk = getStk1String.length ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
             const connector2Stk = getStk2String.length ? `=> ${getStk2String[1]} ${getStk2String[2]}` : '';
@@ -642,7 +723,6 @@ console.log('WHAT THE FUCK: ', getStk2String);
                         {
                             (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
                             10::ms => now;
-                            <<< "FUCK SHIT" >>>;
                         }
                     }
 
@@ -875,6 +955,7 @@ console.log('WHAT THE FUCK: ', getStk2String);
 
     useEffect(() => {
         console.log('in useeffect');
+        console.log('recreating babylon on this screen and with these fx: ', currentScreen.current, currentFX.current)
         if (babylonGame.current && !babylonGame.current.canvas) {
             console.log('in useeffect getting canvas');
             babylonGame.current.canvas = document.querySelector(`babylonCanvas`);
@@ -905,25 +986,33 @@ console.log('WHAT THE FUCK: ', getStk2String);
     }, [windowListenerRef, recreateBabylon]);
     
     const handleUpdateSliderVal = (obj: any, value: any) => {
-        console.log('WHAT IS CURRENT SCREEN? ', currentScreen.current);
+
+        console.log('%cWHAT IS FXVAL? ', 'style={color: red;}', fxFX.current);
+        
         // moogGrandmotherEffects.current[`${obj.name}`].value = value;
         ////// CURRENT SCREEN ISN'T UPDATING FAST ENOUGH!!!!! CAUSING REGRESSION BUGS
         if (currentScreen.current === 'stk') {
-            console.log('FUCKING WORK IT OUT OBJ NAME: ', obj.name);
-            console.log('FUCKING WORK IT IS ', stkFX.current.presets);
-            console.log('FUCKING SHIT ', stkFX.current.presets[`${obj.name}`]);
+            console.log('SLIDER OBJ NAME: ', obj.name);
+            console.log('STK PRESETS FOR OBJ ', stkFX.current.presets[`${obj.name}`]);
             stkFX.current.presets[`${obj.name}`].value = value;
         } else if (currentScreen.current === 'stk2') {
-            console.log('FUCKING WORK IT OUT OBJ NAME: ', obj.name);
-            console.log('FUCKING WORK IT IS ', stkFX2.current.presets);
-            console.log('FUCKING SHIT ', stkFX2.current.presets[`${obj.name}`]);
+            console.log('SLIDER OBJ NAME: ', obj.name);
+            console.log('STK2 PRESETS FOR OBJ ', stkFX2.current.presets[`${obj.name}`]);
             stkFX2.current.presets[`${obj.name}`].value = value;
         } else if (currentScreen.current === 'synth') {
-            console.log('@@@ FUCKING WORK IT OUT OBJ NAME: ', obj.name);
-            console.log('@@@ FUCKING WORK IT IS ', currentFX.current);
-            console.log('@@@ FUCKING SHIT ', currentFX.current[`${obj.name}`]);
+            console.log('SLIDER OBJ NAME: ', obj.name);
+            console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
+            currentFX.current[`${obj.name}`].value = value;
+        } 
+        else if (currentScreen.current.indexOf(`fx_`) !== -1) {
+  
+            console.log('this just sucks: ', fxFX.current);
+            console.log('SLIDER OBJ NAME: ', obj.name);
+            currentFX.current = fxFX.current[0].presets;
+            console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
             currentFX.current[`${obj.name}`].value = value;
         }
+        // tk
         setChuckUpdateNeeded(true);
     };
 
@@ -953,12 +1042,17 @@ console.log('WHAT THE FUCK: ', getStk2String);
         setChuckUpdateNeeded(true);
     }
 
+    const handleShowFX = () => {
+        setShowFX(!showFX);
+    };
+
     useEffect(() => {
         console.log("Last ChucK msg: ", lastChuckMessage);
     }, [lastChuckMessage]);
 
     useEffect(() => {
-        console.log('do we hear FX CHANGE AT ALL? ', currentFX.current);
+        // IF WE HIT THIS EFFECT, THE CHANGE SEEMS TO BE IN GOOD SHAPE
+        console.log('do we hear currentFX.current CHANGE? ', currentFX.current);
     }, [currentFX])
 
     return (
@@ -1004,11 +1098,20 @@ console.log('WHAT THE FUCK: ', getStk2String);
                             handleChangeBeatsDenominator={handleChangeBeatsDenominator}    
                         />
                         <ToggleFXView updateCurrentFXScreen={updateCurrentFXScreen}/>
+                        <ShowFXView handleShowFX={handleShowFX}/>
                         {/* <FixedOptionsDropdown/> */}
                         {<FixedOptionsDropdown updateStkKnobs={(e: STKOption[]) => updateStkKnobs(e)} stkValues={stkValues} setStkValues={setStkValues} />}
                     </Box>
                     {
-                        currentScreen.current === 'stk' && <FXCheckboxLabels fxValsRef={fxFX.current} handleFXGroupChange={handleFXGroupChange} fxGroupsArrayList={fxGroupOptions} />
+                        // currentScreen.current === 'stk' && 
+                        showFX &&
+                        <FXCheckboxLabels 
+                            fxValsRef={fxFX.current} 
+                            handleFXGroupChange={handleFXGroupChange}
+                            updateCheckedFXList={updateCheckedFXList} 
+                            fxGroupsArrayList={fxGroupOptions} 
+                            checkedFXList={checkedFXList.current}
+                        />
                     }
                 </Box>
             )}

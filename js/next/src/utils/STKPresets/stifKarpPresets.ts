@@ -5,7 +5,7 @@ const stifKarpPresets = {
     pickupPosition: {
         name: "pickupPosition",
         label: "Pickup Position",
-        value: 0.5,
+        value: 0.20,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -13,7 +13,7 @@ const stifKarpPresets = {
     sustain: {
         name: "sustain",
         label: "Sustain",
-        value: 0.5,
+        value: 0.76,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -21,7 +21,7 @@ const stifKarpPresets = {
     stretch: {
         name: "stretch",
         label: "Stretch",
-        value: 0.5,
+        value: 0.49,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -29,7 +29,7 @@ const stifKarpPresets = {
     pluck: {
         name: "pluck",
         label: "Pluck",
-        value: 0.5,
+        value: 0.15,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -37,7 +37,7 @@ const stifKarpPresets = {
     baseLoopGain: {
         name: "baseLoopGain",
         label: "Loop Gain",
-        value: 0.9,
+        value: 0.97,
         min: 0.8,
         max: 2,
         screenInterface: "knob",

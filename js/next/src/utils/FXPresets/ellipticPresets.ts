@@ -31,7 +31,7 @@ const ellipticPresets = {
         group: 5,
     },
     bpfStop: {
-        name: "bpfstop",
+        name: "bpfStop",
         label: "Bpf Stop",
         value: 0,
         min: 0,
@@ -41,7 +41,7 @@ const ellipticPresets = {
         group: 5,
     },
     bpfHip: {
-        name: "bpfhip",
+        name: "bpfHip",
         label: "Bpf Hip",
         value: 0,
         min: 0,
@@ -51,7 +51,7 @@ const ellipticPresets = {
         group: 5,
     },
     bpfLop: {
-        name: "bpflop",
+        name: "bpfLop",
         label: "Bpf Lop",
         value: 0,
         min: 0,
@@ -81,7 +81,7 @@ const ellipticPresets = {
         group: 5,
     },
     hpfPass: {
-        name: "hpfpass",
+        name: "hpfPass",
         label: "Hpf Pass",
         value: 0,
         min: 0,
@@ -101,7 +101,7 @@ const ellipticPresets = {
         group: 5,
     },
     lpfPass: {
-        name: "lpfpass",
+        name: "lpfPass",
         label: "Lpf Pass",
         value: 0,
         min: 0,

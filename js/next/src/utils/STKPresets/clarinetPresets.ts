@@ -5,7 +5,7 @@ const clarinetPresets = { // .clair
     reed: {
         name: "reed",
         label: "Reed",
-        value: 0.50,
+        value: 0.71,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -13,7 +13,7 @@ const clarinetPresets = { // .clair
     noiseGain: {
         name: "noiseGain",
         label: "Noise Gain",
-        value: 0.5,
+        value: 0.04,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -21,7 +21,7 @@ const clarinetPresets = { // .clair
     pressure: {
         name: "pressure",
         label: "Pressure",
-        value: 0.2,
+        value: 0.16,
         min: 0,
         max: 1,
         screenInterface: "knob",

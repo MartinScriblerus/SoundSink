@@ -13,7 +13,7 @@ import { Box } from '@mui/material';
 
 
 export default function FXCheckboxLabels(props: FXGroupsArray) {
-    const {fxGroupsArrayList, handleFXGroupChange, fxValsRef} = props;
+    const {fxGroupsArrayList, handleFXGroupChange, updateCheckedFXList, fxValsRef, checkedFXList} = props;
     const fxGroupsArrayListNoDupes = fxGroupsArrayList.length > 8 ? fxGroupsArrayList.filter((item: any, index: number) => fxGroupsArrayList[index] = item) : fxGroupsArrayList;
     const [expanded, setExpanded] = React.useState<string | false>(false);
 
@@ -68,7 +68,22 @@ export default function FXCheckboxLabels(props: FXGroupsArray) {
                             >
                                 <Typography sx={{margin: '0px', display: 'flex', flexDirection: 'column'}} key={`${fxG.label.replace(' ','_')}_fx_accordion_fx_dropdown`}>
                                     {fxG.effects.map((fxE: any) => {
-                                        return <FormControlLabel key={`${fxE.effectLabel.replace(' ','_')}_fx_checkbox`} onChange={(e) => handleFXGroupChange(e)} control={<Checkbox id={fxE.effectLabel.replace(' ','_')} />} label={fxE.effectLabel} value={fxE.effectVar} />
+                                        const isChecked = checkedFXList.indexOf(fxE.effectVar) !== -1 ? true : false;
+                                        return (
+                                            <FormControlLabel 
+                                                key={`${fxE.effectLabel.replace(' ','_')}_fx_checkbox`} 
+                                                onChange={(e) => handleFXGroupChange(e)} 
+                                                control={
+                                                        <Checkbox 
+                                                            checked={isChecked} 
+                                                            id={fxE.effectLabel.replace(' ','_')}
+                                                            onChange={updateCheckedFXList}
+                                                        /> 
+                                                } 
+                                                label={fxE.effectLabel || ''} 
+                                                value={fxE.effectVar || ''} 
+                                            />
+                                        )
                                     })}                            
                                 </Typography>
                             </AccordionDetails>

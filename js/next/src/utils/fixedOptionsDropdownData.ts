@@ -211,12 +211,12 @@ export const fxGroupOptions: Array<FixedSimpleLabel> = [
 export const fxOptions: readonly FXOption[] = [
   { value: 'gain', label: 'Gain', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'bitcrusher', label: 'Bit Crusher', color: 'rgb(158/255, 210/255, 162/255)'},
-  { value: 'chorus', label: 'Chorus', color: 'rgb(158/255, 210/255, 162/255)' },
-  { value: 'modulate', label: 'Modulate', color: 'rgb(158/255, 210/255, 162/255)'},
+  { value: 'chor', label: 'Chorus', color: 'rgb(158/255, 210/255, 162/255)' },
+  { value: 'mod', label: 'Modulate', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'pitShift', label: 'Pitch Shift', color: 'rgb(158/255, 210/255, 162/255)'},
-  { value: 'pcreverb', label: 'PC Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
-  { value: 'jcreverb', label: 'JC Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
-  { value: 'nreverb', label: 'N Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
+  { value: 'pcr', label: 'PC Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
+  { value: 'jcr', label: 'JC Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
+  { value: 'nr', label: 'N Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'gverb', label: 'G Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'delay', label: 'Delay', color: 'rgb(158/255, 210/255, 162/255)' }, // 
   { value: 'delayA', label: 'Fract Delay', color: 'rgb(158/255, 210/255, 162/255)' },

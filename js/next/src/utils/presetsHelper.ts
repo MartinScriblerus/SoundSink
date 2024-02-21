@@ -77,180 +77,189 @@ export const getSTK1Preset = (stkVal: string) => {
         theStk1Fx = {
             presets: saxofonyPresets,
             type: stkIdentifierSaxofony,
-            var: stkVariableSaxofony
+            var: stkVariableSaxofony,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'clarinet') {
         theStk1Fx = {
             presets: clarinetPresets,
             type: stkIdentifierClarinet,
-            var: stkVariableClarinet
+            var: stkVariableClarinet,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'stifkrp') {
         theStk1Fx = {
             presets: stifKarpPresets,
             type: stkIdentifierStifKarp,
-            var: stkVariableStifKarp
+            var: stkVariableStifKarp,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'sitar') {
         theStk1Fx = {
             presets: sitarPresets,
             type: stkIdentifierSitar,
-            var: stkVariableSitar
+            var: stkVariableSitar,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'moog') {
         theStk1Fx = {
             presets: moogPresets,
             type: stkIdentifierMoog,
-            var: stkVariableMoog
+            var: stkVariableMoog,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'frenchhorn') {
         theStk1Fx = {
             presets: frencHrnPresets,
             type: stkIdentifierFrencHrn,
-            var: stkVariableFrencHrn
+            var: stkVariableFrencHrn,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'rhodey') {
         theStk1Fx = {
             presets: rhodeyPresets,
             type: stkIdentifierRhodey,
-            var: stkVariableRhodey
+            var: stkVariableRhodey,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'mandolin') {
         theStk1Fx = {
             presets: mandolinPresets,
             type: stkIdentifierMandolin,
-            var: stkVariableMandolin
+            var: stkVariableMandolin,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'bandedWg') {
         theStk1Fx = {
             presets: bandedWGPresets,
             type: stkIdentifierBandedWg,
-            var: stkVariableBandedWg
+            var: stkVariableBandedWg,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'blowbotl') {
         theStk1Fx = {
             presets: blowBotlPresets,
             type: stkIdentifierBlowBotl,
-            var: stkVariableBlowBotl
+            var: stkVariableBlowBotl,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'blowhole') {
         theStk1Fx = {
             presets: blowHolePresets,
             type: stkIdentifierBlowHole,
-            var: stkVariableBlowHole
+            var: stkVariableBlowHole,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'bowed') {
         theStk1Fx = {
             presets: bowedPresets,
             type: stkIdentifierBowed,
-            var: stkVariableBowed
+            var: stkVariableBowed,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'brass') {
         theStk1Fx = {
             presets: brassPresets,
             type: stkIdentifierBrass,
-            var: stkVariableBrass
+            var: stkVariableBrass,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'flute') {
         theStk1Fx = {
             presets: flutePresets,
             type: stkIdentifierFlute,
-            var: stkVariableFlute
+            var: stkVariableFlute,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'modalBar') {
         theStk1Fx = {
             presets: modalBarPresets,
             type: stkIdentifierModalBar,
-            var: stkVariableModalBar
+            var: stkVariableModalBar,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'shakers') {
         theStk1Fx = {
             presets: shakersPresets,
             type: stkIdentifierShakers,
-            var: stkVariableShakers
+            var: stkVariableShakers,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'voiceForm') {
         theStk1Fx = {
             presets: voicFormPresets,
             type: stkIdentifierVoiceForm,
-            var: stkVariableVoiceForm
+            var: stkVariableVoiceForm,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'beeThree') {
         theStk1Fx = {
             presets: beeThreePresets,
             type: stkIdentifierBeeThree,
-            var: stkVariableBeeThree
+            var: stkVariableBeeThree,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'fmVoices') {
         theStk1Fx = {
             presets: fmVoicesPresets,
             type: stkIdentifierFMVoices,
-            var: stkVariableFMVoices
+            var: stkVariableFMVoices,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'krstlChr') {
         theStk1Fx = {
             presets: krstlChrPresets,
             type: stkIdentifierKrstlChr,
-            var: stkVariableKrstlChr
+            var: stkVariableKrstlChr,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'percFlute') {
         theStk1Fx = {
             presets: percFlutPresets,
             type: stkIdentifierPercFlut,
-            var: stkVariablePercFlut
+            var: stkVariablePercFlut,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'tubeBell') {
         theStk1Fx = {
             presets: tubeBellPresets,
             type: stkIdentifierTubeBell,
-            var: stkVariableTubeBell
+            var: stkVariableTubeBell,
+            fxType: 'stk',
+            visible: true,
         };
     } else if (stkVal === 'wurley') {
         theStk1Fx = {
             presets: wurleyPresets,
             type: stkIdentifierWurley,
-            var: stkVariableWurley
+            var: stkVariableWurley,
+            fxType: 'stk',
+            visible: true,
         };
     }
-    // else if (stkVal === 'delay') {
-    //     theStk1Fx = {
-    //         presets: delayPresets,
-    //         type: stkIdentifierDelay,
-    //         var: stkVariableDelay
-    //     };
-    // } else if (stkVal === 'delayA') {
-    //     theStk1Fx = {
-    //         presets: delayAPresets,
-    //         type: stkIdentifierDelayA,
-    //         var: stkVariableDelayA
-    //     };
-    // } else if (stkVal === 'delayL') {
-    //     theStk1Fx = {
-    //         presets: delayLPresets,
-    //         type: stkIdentifierDelayL,
-    //         var: stkVariableDelayL
-    //     };
-    // } else if (stkVal === 'echo') {
-    //     theStk1Fx = {
-    //         presets: echoPresets,
-    //         type: stkIdentifierEcho,
-    //         var: stkVariableEcho
-    //     };
-    // } else if (stkVal === 'modulate') {
-    //     theStk1Fx = {
-    //         presets: modulatePresets,
-    //         type: stkIdentifierModulate,
-    //         var: stkVariableModulate
-    //     };
-    // } else if (stkVal === 'pitShift') {
-    //     theStk1Fx = {
-    //         presets: pitShiftPresets,
-    //         type: stkIdentifierPitShift,
-    //         var: stkVariablePitShift
-    //     };
-    // } 
     else {
-        console.log("******** WHY IN THE ELSE??? *********")
+        console.log("******** WHY IN THE ELSE of STKVAL 1111 ??? *********")
         theStk1Fx = {
             presets: frencHrnPresets,
             type: stkIdentifierFrencHrn,
@@ -395,7 +404,7 @@ export const getSTK2Preset = (stkVal: string) => {
             var: stkVariableWurley
         };
     } else {
-        console.log("******** WHY IN THE ELSE??? *********")
+        console.log("******** WHY IN THE ELSE of STKVal 2222??? *********")
         theStk2Fx = {
             presets: frencHrnPresets,
             type: stkIdentifierFrencHrn,
@@ -407,7 +416,7 @@ export const getSTK2Preset = (stkVal: string) => {
 
 export const getFX1Preset = (fxVal: string) => {
     const theFX1Fx = [];
-    if (fxVal === 'modulate') {
+    if (fxVal === 'mod') {
         theFX1Fx.push({
             presets: modulatePresets,
             type: stkIdentifierModulate,
@@ -595,7 +604,12 @@ export const getFX1Preset = (fxVal: string) => {
         });
     } 
     else {
-        console.log('in the else');
+        console.log('in the else of PresetsHelper');
+        theFX1Fx.push({
+            presets: {},
+            type: '', //
+            var: ''
+        });
     }
     return theFX1Fx;
 }

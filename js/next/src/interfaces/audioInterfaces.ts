@@ -83,5 +83,7 @@ export interface FixedSimpleLabel {
 export interface FXGroupsArray {
     fxGroupsArrayList: Array<FixedSimpleLabel>;
     handleFXGroupChange: (e: any) => void;
+    updateCheckedFXList: (e: any) => void;
     fxValsRef: any;
+    checkedFXList: Array<any>;
 }
