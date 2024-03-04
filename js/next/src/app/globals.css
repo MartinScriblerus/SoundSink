@@ -105,3 +105,50 @@ a {
     color-scheme: dark;
   }
 }
+
+.MuiPaper-root {
+  color: rgba(228,225,209,1) !important;
+  background: rgba(30,34,26,0.96) !important; 
+}
+
+.MuiPaper-root-MuiPopover-paper {
+  background: rgba(30,34,26,0.96) !important;
+  left: 0 !important;
+}
+
+.MuiList-root-MuiMenu-list {
+  background: rgba(30,34,26,0.96) !important;
+}
+
+.MuiAccordionSummary-expandIconWrapper {
+  color: rgba(228,225,209,1);
+}
+
+.MuiFormLabel-root.Mui-focused {
+  color: rgba(147, 206, 214, 1);
+}
+
+.MuiButtonBase-root.Mui-focused {
+  color: rgba(147, 206, 214, 1);
+}
+
+.Mui-checked {
+  color: rgba(228,225,209,1) !important;
+  fill: rgba(228,225,209,1) !important;
+}
+
+.MuiFormControl-root {
+  justify-content: center;
+}
+
+.MuiFormControl-root.side-nav {
+  justify-content: flex-start;
+}
+
+.fx-popup-left-row {
+  min-height: 16vh;
+  padding-top: 2vh;
+  padding-bottom: 1vh;
+  display: flex;
+  flex-direction: column;
+}

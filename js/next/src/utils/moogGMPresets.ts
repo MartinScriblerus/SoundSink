@@ -58,7 +58,7 @@ const moogGMPresets = {
     oscType1: {
         name: "oscType1",
         label: "Osc1",
-        value: 2,
+        value: 1,
         min: 0,
         max: 3,
         screenInterface: "switch_4_disabled_tri_saw_square",
@@ -66,7 +66,7 @@ const moogGMPresets = {
     oscType2: {
         name: "oscType2",
         label: "Osc2",
-        value: 3,
+        value: 1,
         min: 0,
         max: 3,
         screenInterface: "switch_4_disabled_tri_saw_square",

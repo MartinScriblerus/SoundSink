@@ -5,6 +5,7 @@
   align-items: center;
   /* padding: 6rem; */
   min-height: 100vh;
+  font-family: var(--font-inter);
 }
 
 .description {
@@ -15,7 +16,7 @@
   max-width: var(--max-width);
   width: 100%;
   z-index: 2;
-  font-family: var(--font-mono);
+  font-family: var(--font-inter);
 }
 
 .description a {
@@ -106,6 +107,10 @@
 
 .logo {
   position: relative;
+}
+
+.sequencer-dropdown {
+  min-width: 4rem;
 }
 
 /* #babylonCanvas {
@@ -236,5 +241,14 @@
 
 .basic-multi-select {
   background-color: black;
-  color: white;
+  color: rgba(228,225,209,1);
+}
+
+.increment_decrement_signals {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  z-index: 6;
+  width: 4rem;
+  height: 4rem;
 }

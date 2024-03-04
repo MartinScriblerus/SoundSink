@@ -26,7 +26,7 @@ export const stkIdentifierPitShift = "PitShift";
 const chorusPresets = {
     modFreq: {
         name: "modFreq",
-        label: "Modulation Frequency",
+        label: "Mod Freq",
         value: 0,
         min: 0,
         max: 2000,
@@ -36,7 +36,7 @@ const chorusPresets = {
     },
     modDepth: {
         name: "modDepth",
-        label: "Modulation Depth",
+        label: "Mod Depth",
         value: 0,
         min: 0,
         max: 1,
@@ -46,7 +46,7 @@ const chorusPresets = {
     },
     mix: {
         name: "mix",
-        label: "Modulation Mix",
+        label: "Mod Mix",
         value: 0,
         min: 0,
         max: 1,

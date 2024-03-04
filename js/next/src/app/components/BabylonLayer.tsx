@@ -87,6 +87,7 @@ function BabylonScene(props: {
                 for (let j = 0; j < squareRoot; j++) {
                     const effectsIndex = j + squareRoot * i;
                     console.log('viz idx: ', effectsIndex, visibleFXKnobs[effectsIndex]);
+
                     if (effectsIndex < Object.keys(visibleFXKnobs).length) {
                             if(Object.keys(prevKnobVals.current).indexOf(`${i}`) === -1) {
                                 prevKnobVals.current.i = prevKnobVals.current.i || {};
@@ -117,7 +118,7 @@ function BabylonScene(props: {
                             // create a light for each knob
                             game.light[i] = {};
                             game.light[i][j] = new BABYLON.SpotLight("spotLight", new BABYLON.Vector3(0, 30, -10), new BABYLON.Vector3(0, -1, 0), Math.PI / 3, 2, game.scene);
-                            game.light[i][j].intensity = 0.10;
+                            game.light[i][j].intensity = 0.010;
                                 
                             // create a stack panel GUI for each knob
                             const paneL = new GUI.StackPanel();

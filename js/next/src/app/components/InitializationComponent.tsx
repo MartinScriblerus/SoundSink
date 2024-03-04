@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import styles from './page.module.css';
-import { Box, Button, FormControl, TextField } from '@mui/material';
+import { Box, Button, FormControl, Grid, TextField } from '@mui/material';
 import React, { useState, useEffect, useDeferredValue, useRef } from 'react'
 import BabylonLayer from './BabylonLayer';
 import * as BABYLON from 'babylonjs';
@@ -17,12 +17,14 @@ import { ThemeProvider, useTheme } from '@mui/material/styles';
 import axios from 'axios';
 import ControlPopup from './ControlPopup';
 import FixedOptionsDropdown from './FixedOptionsSelect';
-
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { FXOption, STKOption, fxGroupOptions, fxOptions } from '../../utils/fixedOptionsDropdownData';
 import ToggleFXView from './ToggleFXView';
 import { getSTK1Preset, getSTK2Preset, getFX1Preset } from '@/utils/presetsHelper';
-import FXCheckboxLabels from './FXCheckboxes';
-import ShowFXView from './ShowFXBtn';
+import FXRouting from './FXRouting';
+import { getBaseUrl } from '@/utils/siteHelpers';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 
 // interface InitializationComponentProps {
 //     res:Response,
@@ -60,27 +62,52 @@ function useWindowSize() {
     return windowSize;
 }
 
+interface AllFXPersistent {
+    Osc1: Array<any>;
+    Osc2: Array<any>;
+    STK: Array<any>;
+    Sampler: Array<any>;
+    AudioIn: Array<any>;
+}
+
 export default function InitializationComponent() {
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
     const [lastChuckMessage, setLastChuckMessage] = useState<string>("");
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
+    const allFxPersistent = useRef<AllFXPersistent | any>({
+        Osc1: [],
+        Osc2: [],
+        STK: [],
+        Sampler: [],
+        AudioIn: [],
+    });
     const [fxKnobsCount, setFxKnobsCount] = useState<number>(0);
+    const [fxRoutingNeedsUpdate, setFxRoutingNeedsUpdate] = useState<number>(0);
+    const [fXChainKey, setFXChainKey] = useState<string>('');
     const [needsUpdate, setNeedsUpdate] = useState<boolean>(false);
     const [chuckUpdateNeeded, setChuckUpdateNeeded] = useState(false);
     const [bpm, setBpm] = useState<number>(60.00);
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
-    const [stkValues, setStkValues] = useState<STKOption[]>();
+    const [stkValues, setStkValues] = useState<STKOption[]>([]);
     const [stk2Values, setStk2Values] = useState<STKOption[]>();
+    const [octave, setOctave] = useState('4');
+    const [audioKey, setAudioKey] = useState('C');
+    const [audioScale, setAudioScale] = useState('Major');
+    const [audioChord, setAudioChord] = useState('M');
+    const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
 
-    const currentScreen = useRef<string>('synth');
+   
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
-    
+    const [clickFXChain, setClickFXChain] = useState<boolean>(false);
+
     const [stk1Code, setStk1Code] = useState<string>('');
     const [stk2Code, setStk2Code] = useState<string>('');
 
+    const selectedEffect = useRef<string>('')
+    const currentScreen = useRef<string>('synth');
     const [test, setTest] = useState<boolean>(true);
     const [showFX, setShowFX] = useState<boolean>(false)
 ;
@@ -115,60 +142,33 @@ export default function InitializationComponent() {
     // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
     const visibleFXKnobs = useRef<Array<any>>();
     
-
-    const updateCheckedFXList = (e: any) => {
-  
-
-        if (checkedFXList.current.indexOf(e.target.value) === -1) { 
-            checkedFXList.current.push(e.target.value);
-        } else {
-            const index = checkedFXList.current.indexOf(e.target.value);
-            checkedFXList.current.splice(index, 1);
-        }
-
-        console.log("Checked List Current in Update: ", checkedFXList.current);
-
-        const allFx: any = [];
-        fxGroupOptions.map((i: any) => {
-            if(allFx.indexOf(i.effects) === -1) {
-                allFx.push(i.effects);
+    const submitMingus = async () => {
+        console.log("DO WE HAVE AUDIOKEY??? ", audioKey);
+        console.log("TEST HERE 1$");
+        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, {audioKey, audioScale, octave}, {
+            headers: {
+              'Content-Type': 'application/json'
             }
+        }).then(({data}) => {
+            console.log("TEST SCALES HERE 1# ", data);
+            //return setMingusKeyboardData(data);
         });
-
-        allFx.flat().forEach((fx: any) => {
-            if (fxFX.current.filter((fx:any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
-                fxFX.current.push({
-                    presets: getFX1Preset(fx.effectVar)[0].presets,
-                    type: fx.effectLabel,
-                    var: fx.effectVar,
-                    fxType: 'fx',
-                    visible: false,
-                });
+        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, {audioChord, audioKey}, {
+            headers: {
+              'Content-Type': 'application/json'
             }
+        }).then(({data}) => {
+            console.log("TEST CHORDS 1# ", data);
+            // return mingusChordsData.current = data;
+            return data;
         });
-        
-        fxFX.current.forEach((c: any) => {
-            const isChecked = checkedFXList.current.indexOf(c.var); 
-            if (isChecked !== -1) {
-                c.visible = true;
-            } else {
-                c.visible = false;
-            }
-        });
+    }
 
-        fxFX.current = fxFX.current.filter((f: any) => f.visible === true && f)
-
-        // checkedFXList.current.forEach((fx) => {
-        //     fxFX.current.push(getFX1Preset(fx)[0]);
-        // })
-        setTest(!test);
+    const handleClickName = (e: any, op: string) => {
+        console.log('TEST CLICK ', e, op);
     };
 
     useEffect(() => {
-        // console.log('this should be updating! ', checkedFXList.current.map((i: any) => i));
-
-        // // console.log('heya heya: ', fxFX.current);
-        // console.log('compare to this!!! ', currentFX.current);
         const stksAndFX: any = [stkFX.current, ...Object.values(fxFX.current)];
         const visibleStkAndFX: Array<any> = Array.from(stksAndFX).filter((i: any) => i.visible);
         // console.log('???%%%% ', currentFX.current);
@@ -181,7 +181,6 @@ export default function InitializationComponent() {
                 console.log('ARG J! ', [j.label, j]);
                 visibleFXKnobs.current?.push([j.label, j]);
             });
-            // currentFX.current = visibleStkAndFX;
         });
         console.log('visibleFXKNOBS: ', visibleFXKnobs.current);
         
@@ -198,8 +197,94 @@ export default function InitializationComponent() {
 
             currentFX.current = [];
             visibleFXKnobs.current = availableFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i:any) => [i.label, i])));
+            selectedEffect.current = currentFX.current[0].var;
+            // this is where we decide which fx get pushed down into the fxChain
+            availableFX.map((fx: any) => {
+                // if(fx.var && allFxPersistent.current.Osc1.map((f:any) => f.var).indexOf(fx.var) === -1) {
+                //     allFxPersistent.current.Osc1.push(fx);
+                //     allFxPersistent.current.Osc1.filter((v:any) => v.var && v);
+                // }
+                if(fx.var && allFxPersistent.current[`${fxRadioValue}`].map((f:any) => f.var).indexOf(fx.var) === -1) {
+                    allFxPersistent.current[`${fxRadioValue}`].push(fx);
+                    allFxPersistent.current[`${fxRadioValue}`].filter((v:any) => v.var && v);
+                }
+            })
+            // alert('cha cha checkit: ' + allFxPersistent.current.length);
+            currentScreen.current = '';
+            updateCurrentFXScreen();
         }
+
+
+        const gotFX: any = fxFX.current.length > 0 && fxFX.current.filter((fx: any) => fx.visible === true && fx);
+        console.log('what are visible knobs? ', visibleFXKnobs.current);
+        console.log('what are fxFX? ', fxFX.current.filter((fx: any) => fx.visible === true && fx))
+        console.log("GOT FX?!@!@? ", gotFX.length > 0 && gotFX.map((f: any) => f.var));
+        console.log("SEL FX ", selectedEffect.current);
+        console.log("CURR SCREEN ", currentScreen.current);
+    
+        const theFXIdx = gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) >= 0 
+        ? 
+            gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) 
+        : 
+            gotFX.length - 1;
+        console.log(`theFXIdx ${theFXIdx}`)
+        visibleFXKnobs.current = !currentFX.current.presets 
+            ? 
+                currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
+                ?
+                    Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
+                :
+                    Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
+            : (stkValsRef.current.length > 1 && currentScreen.current === 'stk2')
+                ? 
+                    Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])
+                : 
+                    currentScreen.current !== 'fx_'
+                    ?
+                        Object.values(stkFX.current.presets).map((i:any) => [i.label, i])
+                    : 
+                        Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])                
+    
+        console.log('VIZ FX CURR AT END OF TEST: ', visibleFXKnobs.current);
     }, [test]);
+
+    useEffect(() => {
+        currentFX.current = [];
+        fxFX.current = [];
+        // setFXChainKey('');
+        checkedFXList.current = [];
+        setNeedsUpdate(true);
+    }, [fxRadioValue]);
+
+    const fxChainNeedsUpdate = (msg: any) => {
+        console.log("MSG MSG MSG ", msg[0].source);
+        selectedEffect.current = msg[0].source;
+
+        const effectToSwitchDisplay = allFxPersistent.current[`${fxRadioValue}`].filter((fx: any) => fx.var === msg[0].source && fx);
+        if (effectToSwitchDisplay.length > 0) {
+            console.log('12345 ', effectToSwitchDisplay);
+            fxFX.current = effectToSwitchDisplay;
+            
+        }
+        selectedEffect.current = msg[0].source;
+        setClickFXChain(true);
+        setFXChainKey(msg.map((l:any) => l.source + "_"));
+
+
+        
+        // visibleFXKnobs.current = Object.values(fxFX.current).map((i:any) => [i.label, i]);
+    //     const theOne = allFxPersistent.current.filter((fx: any) => fx.var === msg[0].source && fx)
+    //     console.log('###1: ', theOne[0].label);
+    //     console.log('###2: ', visibleFXKnobs.current);
+    //     console.log('###3: ', fxFX.current)
+    //     const gotIt: any = Array.from(theOne[0].presets);
+    //     // visibleFXKnobs.current = [];
+    //    const test = gotIt.map((preset: any) => ([preset.label, preset]));
+    //     console.log('#### COMPARE TO 2: ', test);
+        // updateCurrentFXScreen();
+        // setNeedsUpdate(true);
+        // setTest(!test);
+    }
 
     const handleFXGroupChange = (e: any) => {        
         if (fxValsRef.current.indexOf(e.target.value) === -1 && fxValsRef.current.indexOf(e.target.value) === -1) { 
@@ -216,23 +301,29 @@ export default function InitializationComponent() {
     // console.log('CURRENT EFFECTS LIST: ', currentFX.current);
     // < TODO This File runs constantly... should it!?!?!
 
-    const gotFX: any = fxFX.current.length > 0 && fxFX.current.filter((fx: any) => fx.visible === true && fx);
-    
-    visibleFXKnobs.current = !currentFX.current.presets 
-        ? 
-        currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
-            ?
-                Object.values(gotFX[0].presets).map((f: any) => [f.label, f])
-            :
-                Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
-        : (stkValsRef.current.length > 1 && currentScreen.current === 'stk2')
-            ? Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])
-            : 
-                currentScreen.current !== 'fx_'
-                ?
-                    Object.values(stkFX.current.presets).map((i:any) => [i.label, i])
-                : 
-                    Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])                
+    // const gotFX: any = fxFX.current.length > 0 && fxFX.current.filter((fx: any) => fx.visible === true && fx);
+    // console.log('what are visible knobs? ', visibleFXKnobs.current);
+    // console.log('what are fxFX? ', fxFX.current.filter((fx: any) => fx.visible === true && fx))
+    // console.log("GOT FX?!@!@? ", gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect));
+    // console.log("SEL FX ", selectedEffect);
+
+    // const theFXIdx = gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect) >= 0 ? gotFX.map((f: any) => f.var).indexOf(selectedEffect) : gotFX.length - 1;
+    // alert(`FUCK ${theFXIdx}`)
+    // visibleFXKnobs.current = !currentFX.current.presets 
+    //     ? 
+    //     currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
+    //         ?
+    //             Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
+    //         :
+    //             Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
+    //     : (stkValsRef.current.length > 1 && currentScreen.current === 'stk2')
+    //         ? Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])
+    //         : 
+    //             currentScreen.current !== 'fx_'
+    //             ?
+    //                 Object.values(stkFX.current.presets).map((i:any) => [i.label, i])
+    //             : 
+    //                 Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])                
 
     
 
@@ -266,22 +357,25 @@ export default function InitializationComponent() {
             knobsCountTemp = currentFX.current.length
         }
         setFxKnobsCount(knobsCountTemp);
-        console.log('#### Current FX current: ', currentFX.current);      
+        console.log('#### Current FX current: ', currentFX.current);    
+        updateCurrentFXScreen();  
     }
     // const isLocal = process.env.NEXT_PUBLIC_BASE_URL_LOCAL; 
     // const baseUrl = isLocal ? process.env.NEXT_PUBLIC_BASE_URL_LOCAL : window.location.href; // start creating variables for envs
-    // const preloadedFiles: any = new Promise((resolve, reject) => {
-    //   try {
-    //     resolve(axios.get(`${baseUrl}/api/preloadedFiles`, {
-    //       headers: {
-    //           'Content-Type': 'application/json',
-    //       },
-    //     }));
-    //   } catch (error) {
-    //     console.log('error in axios get: ', error);
-    //     reject(error);
-    //   }
-    // });
+
+    const baseUrl = getBaseUrl();
+    const preloadedFiles: any = new Promise((resolve, reject) => {
+        try {
+          resolve(axios.get(`${baseUrl}/api/preloadedFiles`, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+          }));
+        } catch (error) {
+          console.log('error in axios get: ', error);
+          reject(error);
+        }
+    });
   
     // console.log('preloadedFiles on PAGE: ', preloadedFiles);
     const babylonGame = useRef<BabylonGame | any>();
@@ -313,21 +407,23 @@ export default function InitializationComponent() {
             return;
         }
 
-        if (currentScreen.current === 'fx_') {
-            if (stkValsRef.current.length > 0 ) {
-                stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
-                currentFX.current = stkFX.current;
-                currentScreen.current = 'stk';
-                visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
-            } else if (currentScreen.current === 'fx_') {
-                currentScreen.current = 'stk';
-                currentFX.current = moogGrandmotherEffects.current;
-                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-                setFxKnobsCount(visibleFXKnobs.current.length);                
-            }
+    
+        if (currentScreen.current === 'fx_' && stkValsRef.current.length > 0 ) {
+            stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
+            currentFX.current = stkFX.current;
+            currentScreen.current = 'stk';
+            visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
+        } else if (currentScreen.current === 'fx_') {
+            alert('goddamnit3');
+            currentScreen.current = 'stk';
+            currentFX.current = moogGrandmotherEffects.current;
+            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
+            setFxKnobsCount(visibleFXKnobs.current.length);                
         }
+  
 // tk
         if (currentScreen.current === 'synth') {
+            alert('goddamnit1');
             try {
                 stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
                 currentFX.current = stkFX.current;
@@ -335,6 +431,7 @@ export default function InitializationComponent() {
                 visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
             } catch (e: any) {}
         } else if (currentScreen.current === 'stk' || currentScreen.current === 'fx_') {
+            alert('goddamnit2');
             // if (stkValsRef.current.length < 2) {
                 currentScreen.current = 'synth';
                 currentFX.current = []; 
@@ -343,21 +440,91 @@ export default function InitializationComponent() {
                 visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
                 console.log('what are current FX in stk? ', fxFX.current);
 
-        } else {
+        } 
+        else {
             console.log('what are current FX in stk? ', fxFX.current);
-            currentScreen.current = 'fx_';
+            currentScreen.current = '';
             currentFX.current = fxFX.current;
             visibleFXKnobs.current = Object.values(fxFX.current).map((i:any) => [i.label, i]);
         }
-
         babylonGame.current.engine.dispose();
         babylonGame.current = undefined;
         setBabylonKey(`${babylonKey}1`);
         setRecreateBabylon(!recreateBabylon);
-        babylonGame.current = null;
-        
+        babylonGame.current = null;   
+             
         return currentScreen.current;
     };
+
+    const updateCheckedFXList = (e: any) => {
+        if (checkedFXList.current.indexOf(e.target.value) === -1) { 
+            checkedFXList.current.push(e.target.value);
+        } else {
+            const index = checkedFXList.current.indexOf(e.target.value);
+            checkedFXList.current.splice(index, 1);
+        }
+
+        console.log("Checked List Current in Update: ", checkedFXList.current);
+
+        const allFx: any = [];
+        fxGroupOptions.map((i: any) => {
+            if(allFx.indexOf(i.effects) === -1) {
+                allFx.push(i.effects);
+            }
+        });
+
+        console.log("DOES ALLFX DO WHAT WE WANT? ", allFx);
+        allFx.flat().forEach((fx: any) => {
+            if (fxFX.current.filter((fx:any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
+                fxFX.current.push({
+                    presets: getFX1Preset(fx.effectVar)[0].presets,
+                    type: fx.effectLabel,
+                    var: fx.effectVar,
+                    fxType: 'fx',
+                    visible: false,
+                });
+            }
+        });
+        
+        fxFX.current.forEach((c: any) => {
+            const isChecked = checkedFXList.current.indexOf(c.var); 
+            if (isChecked !== -1) {
+                c.visible = true;
+            } else {
+                c.visible = false;
+            }
+        });
+
+        fxFX.current = fxFX.current.filter((f: any) => f.visible === true && f)
+        
+        setTest(!test);
+    };
+
+    const handleUpdateFXChain = (msg: any) => {
+        console.log('MSGMSG: ', msg);
+        setFxRoutingNeedsUpdate(fxRoutingNeedsUpdate + 1);
+    }
+
+    const handleChangeAudioKey = (key: string) => {
+        console.log('ALL GOOD ON KEY ', key);
+        setAudioKey(key as string);
+    };
+
+    const handleChangeOctave = (octave: string) => {
+        console.log('ALL GOOD ON OCTAVE ', octave);
+        setOctave(octave);
+    };
+
+    const handleChangeScale = (event: SelectChangeEvent) => {
+        console.log('WHAT IS EVENT IN HANDLECHANNGESCALE? ', event);
+        setAudioScale(event.target.value as string);
+    };
+
+    const handleChangeChord = (event: SelectChangeEvent) => {
+        console.log('WHAT IS EVENT IN HANDLECHANNGECHORD? ', event);
+        setAudioChord(event.target.value as string);
+    };
+
 
     useEffect(() => {
         console.log('BABYLON KEY: ', babylonKey);
@@ -440,7 +607,7 @@ export default function InitializationComponent() {
             }
         }
         console.log("running chuck now... ", chuckUpdateNeeded);
-  
+        console.log("CHECK CURRENT FX ************** ", currentFX.current)
 
         const getStk1String: any = await stkFXToString();
         // ********************************************** THIS ONE BELOW WILL NEED THE UPDATES TO STK2 
@@ -987,8 +1154,7 @@ export default function InitializationComponent() {
     
     const handleUpdateSliderVal = (obj: any, value: any) => {
 
-        console.log('%cWHAT IS FXVAL? ', 'style={color: red;}', fxFX.current);
-        
+
         // moogGrandmotherEffects.current[`${obj.name}`].value = value;
         ////// CURRENT SCREEN ISN'T UPDATING FAST ENOUGH!!!!! CAUSING REGRESSION BUGS
         if (currentScreen.current === 'stk') {
@@ -1006,11 +1172,15 @@ export default function InitializationComponent() {
         } 
         else if (currentScreen.current.indexOf(`fx_`) !== -1) {
   
-            console.log('this just sucks: ', fxFX.current);
+            console.log('fxFX.current in : ', fxFX.current);
             console.log('SLIDER OBJ NAME: ', obj.name);
             currentFX.current = fxFX.current[0].presets;
             console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
             currentFX.current[`${obj.name}`].value = value;
+            
+            // IF WE HIT THIS EFFECT, THE CHANGE SEEMS TO BE IN GOOD SHAPE
+            console.log('ALL PERSISTENT FX###s ', allFxPersistent.current);
+            alert('we should be good to add vals here');
         }
         // tk
         setChuckUpdateNeeded(true);
@@ -1042,9 +1212,16 @@ export default function InitializationComponent() {
         setChuckUpdateNeeded(true);
     }
 
-    const handleShowFX = () => {
+    const handleShowFX = (closeOnly?: boolean) => {
         setShowFX(!showFX);
     };
+
+    const updateFXInputRadio = (value: any) => {
+        if (value && value !== fxRadioValue) {
+            console.log('VALUE: ', value);
+            setFxRadioValue(value);
+        }
+    }
 
     useEffect(() => {
         console.log("Last ChucK msg: ", lastChuckMessage);
@@ -1059,8 +1236,50 @@ export default function InitializationComponent() {
         <ThemeProvider theme={theme}>
             <Box sx={{height: size.width, width: size.width, boxSizing: 'border-box', display: 'flex', flexDirection: 'row'}}>
             {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
-                <Box key={babylonKey} sx={{left: '0'}}>
-                    <BabylonLayer 
+                <Box key={babylonKey} sx={{left: '0', display: 'flex', flexDirection: 'row'}}>
+
+               
+                {/* <Box sx={{height: '100vh', width: '100vw'}}>
+                    <LineChartWrapper />
+                </Box> */}
+
+       
+
+{/* <Grid style={{ left: '0px', bottom: '80px', position: 'absolute'}} container spacing={2}>
+    {allFxPersisent.current.map((fx:any, i:number) => {
+        return <Grid sx={{}} item xs={1}>
+            yooo: fx.data.name {i}
+        </Grid>
+    })}
+</Grid> */}
+
+
+                    <FXRouting
+                        key={fXChainKey + fxRadioValue} 
+                        fxChainNeedsUpdate={fxChainNeedsUpdate} 
+                        fxData={allFxPersistent.current[`${fxRadioValue}`]} 
+                        width={useWindowSize().width} 
+                        height={useWindowSize().height}
+                        handleShowFX={handleShowFX}
+                        showFX={showFX}
+                        fxValsRef={fxFX.current} 
+                        handleFXGroupChange={handleFXGroupChange}
+                        updateCheckedFXList={updateCheckedFXList} 
+                        fxGroupsArrayList={fxGroupOptions} 
+                        checkedFXList={checkedFXList.current}
+                        fxFX={fxFX.current}
+                        handleClickName={handleClickName}
+                        setClickFXChain={setClickFXChain}
+                        clickFXChain={clickFXChain}
+                        updateFXInputRadio={updateFXInputRadio}
+                        fxRadioValue={fxRadioValue}
+                        updateStkKnobs={updateStkKnobs}
+                        setStkValues={setStkValues}
+                        stkValues={stkValues}
+                        updateCurrentFXScreen={updateCurrentFXScreen}
+                        currentScreen={currentScreen.current}
+                    />
+                    <BabylonLayer
                         game={babylonGame.current}
                         handleUpdateSliderVal={handleUpdateSliderVal}
                         fxKnobsCount={fxKnobsCount}
@@ -1072,7 +1291,7 @@ export default function InitializationComponent() {
                         chuckUpdateNeeded={chuckUpdateNeeded}
                         handleTurnKnob={handleTurnKnob}
                         runChuck={runChuck}
-                    />     
+                    />
                     <Box 
                         sx={{
                             left: '0px', 
@@ -1086,33 +1305,42 @@ export default function InitializationComponent() {
                             display: 'flex',
                         }}
                     >
-                        {!chuckHook && (<Button sx={{paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="initChuckButton" onClick={initChuck}>Start Chuck</Button>)}
-                        {chuckHook && (<Button sx={{paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="runChuckButton" onClick={runChuck}>Run Chuck</Button>)}
-                        {chuckHook && (<Button sx={{paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="micStartRecordButton" onClick={chuckMicButton}>Record</Button>)}
+                        {!chuckHook && (<Button style={{color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)'}} sx={{minWidth: '76px', paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon/>}>St</Button>)}
+                        {chuckHook && (<Button style={{color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)'}} sx={{minWidth: '76px', paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="runChuckButton" onClick={runChuck} endIcon={<PlayCircleFilledIcon/>}>Pl</Button>)}
+                        {chuckHook && (<Button style={{color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)'}} sx={{minWidth: '76px',paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="micStartRecordButton" onClick={chuckMicButton}>Rc</Button>)}
                         <ControlPopup 
                             bpm={bpm} 
                             handleChangeBPM={handleChangeBPM} 
                             handleChangeBeatsNumerator={handleChangeBeatsNumerator}
                             beatsNumerator={beatsNumerator}
                             beatsDenominator={beatsDenominator}
-                            handleChangeBeatsDenominator={handleChangeBeatsDenominator}    
+                            handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                            submitMingus={submitMingus}
+                            audioKey={audioKey}
+                            octave={octave}
+                            audioScale={audioScale}
+                            audioChord={audioChord}
+                            handleChangeChord={handleChangeChord}
+                            handleChangeScale={handleChangeScale}
+                            handleShowFX={handleShowFX}
+                            showFX={showFX}
                         />
-                        <ToggleFXView updateCurrentFXScreen={updateCurrentFXScreen}/>
-                        <ShowFXView handleShowFX={handleShowFX}/>
+
+                    {/* {stkValues.length > 0 || currentScreen.current !== 'synth' ?
+                        <ToggleFXView updateCurrentFXScreen={updateCurrentFXScreen}/> : <></>
+                    } */}
+
+                        {/* <ToggleFXView updateCurrentFXScreen={updateCurrentFXScreen}/> */}
+                        {/* <ShowFXView handleShowFX={handleShowFX}/> */}
                         {/* <FixedOptionsDropdown/> */}
-                        {<FixedOptionsDropdown updateStkKnobs={(e: STKOption[]) => updateStkKnobs(e)} stkValues={stkValues} setStkValues={setStkValues} />}
+                        {/* {<FixedOptionsDropdown 
+                            updateStkKnobs={
+                                (e: STKOption[]) => updateStkKnobs(e)
+                            } 
+                            stkValues={stkValues} 
+                            setStkValues={setStkValues} 
+                        />} */}
                     </Box>
-                    {
-                        // currentScreen.current === 'stk' && 
-                        showFX &&
-                        <FXCheckboxLabels 
-                            fxValsRef={fxFX.current} 
-                            handleFXGroupChange={handleFXGroupChange}
-                            updateCheckedFXList={updateCheckedFXList} 
-                            fxGroupsArrayList={fxGroupOptions} 
-                            checkedFXList={checkedFXList.current}
-                        />
-                    }
                 </Box>
             )}
             </Box>

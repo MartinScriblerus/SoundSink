@@ -3,6 +3,11 @@ import React from 'react';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import { BPMModule } from '@/interfaces/audioInterfaces';
 import InputField from './InputField';
+import { Noto_Sans } from 'next/font/google'
+
+// If loading a variable font, you don't need to specify the font weight
+const notoSans = Noto_Sans({ subsets: ['latin'] })
+
 
 const BPMModule = (props: BPMModule) => {
     const { 
@@ -17,29 +22,50 @@ const BPMModule = (props: BPMModule) => {
     return (
         <ThemeProvider theme={theme}>
             <Box sx={{
-                marginTop: '10vh',
-                marginBottom: '20vh',
-                width: '60vw',
-                height: '70vh',
-                marginLeft: '20vw',
-                marginRight: '20vw',
+                // marginTop: '10vh',
+                // marginBottom: '20vh',
+                // width: '60vw',
+                // height: '70vh',
+                fontFamily: 'Noto Sans, Roboto, monospace',
+                fontSize: '24px',
+                // marginLeft: '6vw',
+                marginRight: '0vw',
                 backgroundColor: 'rgba(0,0,0,1)',
                 border: '1px solid rgba(255,255,255,.5)',
+                display: 'flex',
+                flexDirection: 'row',
+                padding: '12px',
+                minWidth: '17vw',
+                justifyContent: 'center'
             }}>
                 <FormControl
-                    sx={{margin: '12px', maxWidth: '100px',}}
+                    sx={{
+                        margin: '8px', 
+                        padding: '0', 
+                        maxWidth: '100px', 
+                        color:'rgba(228,225,209,1)'
+                    }}
                     onSubmit={(e) => {
                         e.preventDefault();
                     }
                 }>
                     <TextField
-                        inputProps={{ style: { color: 'primary.contrastText'} }}
+                        focused
+                        inputProps={{ 
+                            style: { 
+                                color: 'primary.contrastText',
+                                fontFamily: 'Noto Sans, Roboto, monospace',
+                                fontSize: '24px',
+                            } 
+                        }}
                         sx={{
                             input: { color: 'primary.contrastText' },
                             minWidth: "2rem",
                             backgroundColor: 'status.danger',
                             color: 'status.text',
                             paddingTop: 0,
+                            fontFamily: 'Noto Sans, Roboto, monospace',
+                            fontSize: '32px',
                             alignItems: 'center',
                             paddingBottom: 0,
                             // margin: "1rem",
@@ -48,9 +74,13 @@ const BPMModule = (props: BPMModule) => {
                         }}
                         label={"BPM"}
                         placeholder="BPM"
+                        InputLabelProps={{
+                            shrink: true,
+                          }}
                         type="number"
-                        id="outlined-textarea"
+                        id="standard-textarea"
                         className="inputSampleInfo"
+                        variant="outlined"
                         defaultValue={bpm}
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
                                 event.preventDefault();
@@ -63,29 +93,41 @@ const BPMModule = (props: BPMModule) => {
                     />
                 </FormControl>
 
+
+            <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                 <FormControl
-                    sx={{margin: '12px', maxWidth: '100px',}}
+                    hiddenLabel
+                    sx={{margin: '4px', padding: '0', maxWidth: '40px',}}
                     onSubmit={(e) => {
                         e.preventDefault();
                     }
                 }>
                     <TextField
-                        inputProps={{ style: { color: 'primary.contrastText'} }}
+                        hiddenLabel
+                        focused
+                        inputProps={{ 
+                            style: { 
+                                fontSize: '18px',
+                                textAlign: 'center',
+                                color: 'primary.contrastText'
+                            } 
+                        }}
                         sx={{
                             input: { color: 'primary.contrastText' },
-                            minWidth: "2rem",
+                            minWidth: "1rem",
                             backgroundColor: 'status.danger',
                             color: 'status.text',
                             paddingTop: 0,
                             alignItems: 'center',
                             paddingBottom: 0,
                             width: '100%',
+                            fontFamily: 'Noto Sans, Roboto, monospace',
+                            fontSize: '24px',
                         }}
-                        label={"Numerator"}
                         placeholder="Numerator"
                         type="number"
-                        id="outlined-textarea"
-                        className="inputSampleInfo"
+                        id="standard-textarea"
+                        variant="standard"
                         defaultValue={beatsNumerator}
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
                                 event.preventDefault();
@@ -101,16 +143,24 @@ const BPMModule = (props: BPMModule) => {
 
 
                 <FormControl
-                    sx={{margin: '12px', maxWidth: '100px',}}
+                    hiddenLabel
+                    sx={{margin: '4px', padding: '0', maxWidth: '40px',}}
                     onSubmit={(e) => {
                         e.preventDefault();
                     }
                 }>
                     <TextField
-                        inputProps={{ style: { color: 'primary.contrastText'} }}
+                        hiddenLabel
+                        inputProps={{ 
+                            style: {
+                                fontSize: '18px',
+                                textAlign: 'center',
+                                color: 'primary.contrastText'
+                            } 
+                        }}
                         sx={{
                             input: { color: 'primary.contrastText' },
-                            minWidth: "2rem",
+                            minWidth: "1rem",
                             backgroundColor: 'status.danger',
                             color: 'status.text',
                             paddingTop: 0,
@@ -118,12 +168,12 @@ const BPMModule = (props: BPMModule) => {
                             paddingBottom: 0,
                             width: '100%',
                         }}
-                        label={"Denominator"}
                         placeholder="Denominator"
                         type="number"
-                        id="outlined-textarea"
+                        id="standard-textarea"
                         className="inputSampleInfo"
                         defaultValue={beatsDenominator}
+                        variant="standard"
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
                                 event.preventDefault();
                                 const mpb: any = parseInt(event.target.value);
@@ -135,6 +185,8 @@ const BPMModule = (props: BPMModule) => {
                         }
                     />
                 </FormControl>
+            </Box>      
+            
             </Box>
         </ThemeProvider>
     )

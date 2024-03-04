@@ -4,6 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import KeyboardTabIcon from '@mui/icons-material/KeyboardTab';
 import Stack from '@mui/material/Stack';
 
+
 type Props = {
     // currentFXScreen: string;
     // setCurrentFXScreen: React.Dispatch<React.SetStateAction<string>>;
@@ -13,8 +14,8 @@ type Props = {
 const ToggleFXView = ({updateCurrentFXScreen}: Props) => {
     return (
         <Stack direction="row" spacing={2}>
-            <Button onClick={updateCurrentFXScreen} variant="outlined" endIcon={<KeyboardTabIcon />}>
-                FX View
+            <Button sx={{color: 'rgba(228,225,209,1)', borderColor: 'rgba(228,225,209,1)'}} onClick={updateCurrentFXScreen} variant="outlined" startIcon={<KeyboardTabIcon />}>
+                {/* FX View */}FX Back
             </Button>
         </Stack>
     );

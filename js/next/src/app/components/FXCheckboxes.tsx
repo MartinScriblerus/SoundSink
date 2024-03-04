@@ -10,6 +10,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { FXGroupsArray } from '@/interfaces/audioInterfaces';
 import { Box } from '@mui/material';
+import '../globals.css';
 
 
 export default function FXCheckboxLabels(props: FXGroupsArray) {
@@ -27,7 +28,8 @@ export default function FXCheckboxLabels(props: FXGroupsArray) {
             sx={{
                 position: 'absolute', 
                 right: '0', 
-                top: '44px'
+                top: '0px',
+                width: '20vw',
             }}
         >
             {
@@ -46,7 +48,7 @@ export default function FXCheckboxLabels(props: FXGroupsArray) {
                         >
                             <AccordionSummary
                                 key={`${fxG.label.replace(' ','_')}_fx_accordion_summary`}
-                                expandIcon={<ArrowDownwardIcon />}
+                                expandIcon={<ArrowDownwardIcon sx={{color:'rgba (147, 206, 214, 1)'}} />}
                                 aria-controls="panel1-content"
                                 id="panel1-header"
                                 sx={{
@@ -56,7 +58,11 @@ export default function FXCheckboxLabels(props: FXGroupsArray) {
                                     margin: '0px',
                                 }}
                             >
-                                <Typography key={`${fxG.label.replace(' ','_')}_fx_accordion_label`}>{fxG.label}</Typography>
+                                <Typography 
+                                    key={`${fxG.label.replace(' ','_')}_fx_accordion_label`}
+                                >
+                                    {fxG.label}
+                                </Typography>
                             </AccordionSummary>
                             <AccordionDetails 
                                 key={`${fxG.label.replace(' ','_')}_fx_accordion_details`}
@@ -82,6 +88,11 @@ export default function FXCheckboxLabels(props: FXGroupsArray) {
                                                 } 
                                                 label={fxE.effectLabel || ''} 
                                                 value={fxE.effectVar || ''} 
+                                                sx={{
+                                                    color:'rgba(228,225,209,1)',
+                                                    fill:'rgba(228,225,209,1)',
+                                                    // stroke:'rgba(228,225,209,1)'
+                                                }}
                                             />
                                         )
                                     })}                            

@@ -40,16 +40,16 @@ const ambPan3Presets = {
         type: "float_float",
         group: 2,
     },
-    channelMap: {
-        name: "channelMap", // probably won't be implemented by default
-        label: "Channel Map",
-        value: [0,1,2,7,8,9,10,3,4,11,12,13,14,15,5,6],
-        min: 0,
-        max: 0,
-        screenInterface: "arrayinterface",
-        type: "array_int",
-        group: 2,
-    }
+    // channelMap: {
+    //     name: "channelMap", // probably won't be implemented by default
+    //     label: "Channel Map",
+    //     value: [0,1,2,7,8,9,10,3,4,11,12,13,14,15,5,6],
+    //     min: 0,
+    //     max: 0,
+    //     screenInterface: "arrayinterface",
+    //     type: "array_int",
+    //     group: 2,
+    // }
 };
 
 export default ambPan3Presets;
