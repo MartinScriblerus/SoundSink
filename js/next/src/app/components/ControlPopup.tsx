@@ -73,7 +73,7 @@ export default function ControlPopup(props: ControlProps) {
           position: 'absolute', 
           minWidth: '48px', 
           left: '12px', 
-          top: '104px'
+          top: '100px'
         }} 
         aria-describedby={id} 
         variant="outlined" 

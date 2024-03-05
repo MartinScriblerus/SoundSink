@@ -88,7 +88,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
           
           <React.Fragment key={`${fxChainsSelected}`}>
           <circle
-            cx={-TEXT_TO_NODE_PADDING * 8}
+            cx={-TEXT_TO_NODE_PADDING * 5}
             cy={yScale(node.id)}
             key={`${node.id}_circle_remove`}
             r={16}
@@ -98,7 +98,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
             onMouseEnter={(e: any) => handleMouseOver(e, node.id)} 
           />
             <text
-              x={-TEXT_TO_NODE_PADDING * 8}
+              x={-TEXT_TO_NODE_PADDING * 5}
               y={yScale(node.id)}
               fontSize={22}
               fill={'rgb(228, 225, 209)'}
@@ -112,7 +112,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
             >X</text>
 
           <circle
-            cx={-TEXT_TO_NODE_PADDING * 12}
+            cx={-TEXT_TO_NODE_PADDING * 8}
             cy={yScale(node.id)}
             key={`${node.id}_circle_edit`}
             r={16}
@@ -124,7 +124,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
           />
           
           <text
-              x={-TEXT_TO_NODE_PADDING * 12}
+              x={-TEXT_TO_NODE_PADDING * 8}
               y={yScale(node.id)}
               fontSize={16}
               fill={'rgb(228, 225, 209)'}

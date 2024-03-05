@@ -147,6 +147,7 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                 <Button
                     variant="contained"
                     component="label"
+                    sx={{marginTop: '4px', marginBottom: '8px'}}
                     >
                     Upload File
                     <input
