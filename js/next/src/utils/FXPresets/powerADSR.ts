@@ -23,18 +23,18 @@ const powerADSRPresets = {
     attack: {
         name: "attack",
         label: "Attack Dur",
-        value: 0, // default 1000
-        min: 0,
+        value: 1, // default 1000
+        min: 1,
         max: 2000,
-        screenInterface: "knob",
+        screenInterface: "intspinner",
         type: "dur_dur",
         group: 4,
     },
     attackCurve: {
         name: "attackcurve",
         label: "Attack Curve",
-        value: 0, // default 0.5
-        min: 0,
+        value: 0.01, // default 0.5
+        min: 0.01,
         max: 4,
         screenInterface: "knob",
         type: "float_float",
@@ -43,18 +43,18 @@ const powerADSRPresets = {
     attackTime: { // # of comb filters (default 5)
         name: "attacktime",
         label: "Attack Time",
-        value: 0,
-        min: 0,
+        value: 1,
+        min: 1,
         max: 2000,
-        screenInterface: "knob",
+        screenInterface: "intspinner",
         type: "dur_dur",
         group: 4,
     },
     decay: {
         name: "decay",
         label: "Decay",
-        value: 0,
-        min: 0,
+        value: 0.01,
+        min: 0.01,
         max: 3000,
         screenInterface: "knob",
         type: "dur_dur",
@@ -63,8 +63,8 @@ const powerADSRPresets = {
     decayCurve: {
         name: "decayCurve",
         label: "Decay Curve",
-        value: 0, // default 1.25
-        min: 0,
+        value: 0.01, // default 1.25
+        min: 0.01,
         max: 3,
         screenInterface: "knob",
         type: "float_float",
@@ -73,8 +73,8 @@ const powerADSRPresets = {
     decayTime: {
         name: "decayTime",
         label: "Decay Time",
-        value: 0, // 1000 ms default
-        min: 0,
+        value: 0.01, // 1000 ms default
+        min: 0.01,
         max: 2000,
         screenInterface: "knob",
         type: "dur_dur",
@@ -83,8 +83,8 @@ const powerADSRPresets = {
     release: {
         name: "release",
         label: "Release",
-        value: 0,
-        min: 0,
+        value: 0.01,
+        min: 0.01,
         max: 2000,
         screenInterface: "knob",
         type: "dur_dur",
@@ -93,8 +93,8 @@ const powerADSRPresets = {
     releaseCurve: {
         name: "releaseCurve",
         label: "Release Curve",
-        value: 0, // default 1.5
-        min: 0,
+        value: 1.0, // default 1.5
+        min: 0.01,
         max: 3,
         screenInterface: "knob",
         type: "float_float",
@@ -103,18 +103,18 @@ const powerADSRPresets = {
     releaseTime: {
         name: "releaseTime",
         label: "Release Time",
-        value: 0,
-        min: 0,
+        value: 1,
+        min: 1,
         max: 2000,
-        screenInterface: "knob",
+        screenInterface: "intspinner",
         type: "dur_dur",
         group: 4,
     },
     sustainLevel: {
         name: "sustainLevel",
         label: "Sustain Level",
-        value: 0, // default 0.8
-        min: 0,
+        value: 0.5, // default 0.8
+        min: 0.01,
         max: 1,
         screenInterface: "knob",
         type: "float_float",

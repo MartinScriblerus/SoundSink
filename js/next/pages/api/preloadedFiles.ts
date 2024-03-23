@@ -12,7 +12,7 @@ export default function handler(
   res: NextApiResponse<ResponseData>
 ) {
     const dirRelativeToPublicFolder = './';
-    const dir = path.resolve('./public', dirRelativeToPublicFolder);
+    const dir = path.resolve('./public/uploads/', dirRelativeToPublicFolder);
     const filenames: string[] = fs.readdirSync(dir);
     console.log('filenames: ', filenames); // 'http://localhost:3000'
   

@@ -47,12 +47,14 @@ interface Props {
   clickFXChain: boolean;
   updateFXInputRadio: (value: any) =>  void;
   fxRadioValue: string;
-
+  playUploadedFile: () => void;
   updateStkKnobs: (knobVals: any) => void;
   setStkValues: React.Dispatch<SetStateAction<any>>;
   stkValues: STKOption[] | [];
   updateCurrentFXScreen: () => void;
   currentScreen: string;
+  lastFileUpload: string;
+  updateFileUploads: () => void;
 }
 
 export default function FXRouting(props: Props) {
@@ -78,7 +80,10 @@ export default function FXRouting(props: Props) {
     setStkValues,
     stkValues,
     updateCurrentFXScreen,
-    currentScreen
+    currentScreen,
+    playUploadedFile,
+    lastFileUpload,
+    updateFileUploads
   } = props;
 
   // const [visibleFXCols, setVisibleFXCols] = useState<number>(0);
@@ -170,6 +175,9 @@ export default function FXRouting(props: Props) {
             stkValues={stkValues}
             updateCurrentFXScreen={updateCurrentFXScreen}
             currentScreen={currentScreen}
+            playUploadedFile={playUploadedFile}
+            lastFileUpload={lastFileUpload}
+            updateFileUploads={updateFileUploads}
           />
           <Box 
             // key={`${fxRadioValue}_arcDiagramInnerWrapper`} 

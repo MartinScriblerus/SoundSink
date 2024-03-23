@@ -20,26 +20,6 @@ export const stkIdentifierFoldbackSaturator = "FoldbackSaturator";
             // 7. Envelopes
 
 const foldbackSaturatorPresets = {
-    index: {
-        name: "index",
-        label: "Index",
-        value: 0.50,
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-        type: "float_float",
-        group: 0,
-    },
-    makeupGain: {
-        name: "makeupgain",
-        label: "Makeup Gain",
-        value: 0.2,
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-        type: "float_float",
-        group: 0,
-    },
     threshold: {
         name: "threshold",
         label: "Threshold",

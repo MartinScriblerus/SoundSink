@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import { Unstable_Popup as BasePopup } from '@mui/base/Unstable_Popup';
 import BPMModule from './BPMModule';
 import Button from '@mui/material/Button';
@@ -8,6 +8,8 @@ import { heatmapData } from '@/utils/VizHelpers/heatmapData';
 import MingusPopup from './MingusPopup';
 import { Box, SelectChangeEvent } from '@mui/material';
 import { Inter } from 'next/font/google'
+
+import Inventory2Icon from '@mui/icons-material/Inventory2';
  
 // If loading a variable font, you don't need to specify the font weight
 const inter = Inter({ subsets: ['latin'] })
@@ -26,8 +28,11 @@ interface ControlProps {
     audioChord: string;
     handleChangeScale: (event: SelectChangeEvent) => void;
     handleChangeChord: (event: SelectChangeEvent) => void;
-    handleShowFX: (msg?: any) => void,
-    showFX: boolean
+    handleShowFX: (msg?: any) => void;
+    showFX: boolean;
+    showFiles: boolean;
+    handleShowFiles: (e: any) => void;
+    filesToProcess: string[];
 }
 
 export default function ControlPopup(props: ControlProps) {
@@ -46,9 +51,16 @@ export default function ControlPopup(props: ControlProps) {
     handleChangeScale,
     handleChangeChord,
     handleShowFX,
-    showFX
+    showFX,
+    showFiles,
+    handleShowFiles,
+    filesToProcess,
   } = props;
-  const [anchor, setAnchor] = React.useState<null | HTMLElement>(null);
+  const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+
+  const handleClickUploadedFiles = (e: any) => {
+    console.log("THIS IS FUCKING BULLSHIT: ", e.target);
+  }
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
@@ -60,6 +72,10 @@ export default function ControlPopup(props: ControlProps) {
       setAnchor(null);
     }
   }, [showFX]);
+
+  useEffect(() => {
+    console.log('yoooooo');
+  }, [showFiles])
 
   const open = Boolean(anchor);
   const id = open ? 'simple-popup' : undefined;
@@ -82,65 +98,82 @@ export default function ControlPopup(props: ControlProps) {
       >
         PT
       </Button>
+
       <BasePopup style={{display: "flex", transform: 'translate(0px,0px)', flexDirection: "column", left: '94px', right: '94px', top: '56px', position: 'absolute'}} width={window.innerWidth}  id={id} open={open} anchor={anchor}>
         <Box>
+
           <Box sx={{display: "flex", flexDirection: "row", width: "100%"}}>
-            <BPMModule 
-                bpm={bpm} 
-                handleChangeBPM={handleChangeBPM}
-                beatsNumerator={beatsNumerator}
-                beatsDenominator={beatsDenominator}
-                handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-            />
-            <Box 
-              sx={{
-                backgroundColor: 'rgba(30,34,26,0.96)', 
-                width:'100%', 
-                display:'flex', 
-                flexDirection: 'column',
-                minHeight:'100%',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <MingusPopup 
-                  submitMingus={submitMingus}
-                  audioKey={audioKey}
-                  octave={octave}
-                  audioScale={audioScale}
-                  audioChord={audioChord}
-                  handleChangeScale={handleChangeScale}
-                  handleChangeChord={handleChangeChord}
+            <>
+              <BPMModule 
+                  bpm={bpm} 
+                  handleChangeBPM={handleChangeBPM}
+                  beatsNumerator={beatsNumerator}
+                  beatsDenominator={beatsDenominator}
+                  handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                  handleChangeBeatsDenominator={handleChangeBeatsDenominator}
               />
-            </Box>            
+                {showFiles === true && filesToProcess.length > 0
+                ? 
+                  <Box sx={{
+                    backgroundColor: 'rgba(30,34,26,0.96)', 
+                    width:'100%', 
+                    display:'flex', 
+                    flexDirection: 'row',
+                    minHeight:'100%',
+                    // justifyContent: 'center',
+                    // alignItems: 'left'
+                  }} key={'handleClickUploadedFilesWrapper'}>
+                    
+                    {filesToProcess.map((file: any) => {
+                      return <Button sx={{left: '24px'}} key={`handleClickUploadedFilesBtn_${file.name}`} onClick={handleClickUploadedFiles}>{file.name}</Button>
+                    })}
+                  </Box>
+                :
+                  <Box 
+                    sx={{
+                      backgroundColor: 'rgba(30,34,26,0.96)', 
+                      width:'100%', 
+                      display:'flex', 
+                      flexDirection: 'column',
+                      minHeight:'100%',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}>
+                      <MingusPopup 
+                        submitMingus={submitMingus}
+                        audioKey={audioKey}
+                        octave={octave}
+                        audioScale={audioScale}
+                        audioChord={audioChord}
+                        handleChangeScale={handleChangeScale}
+                        handleChangeChord={handleChangeChord}
+                    />
+                  </Box>
+                }
+                {filesToProcess.length > 0 && <Button sx={{
+                  color: 'rgba(228,225,209,1)', 
+                  borderColor: 'rgba(228,225,209,1)', 
+                  position: 'absolute', 
+                  minWidth: '48px', 
+                  right: '0px', 
+                  // top: '232px'
+                }} 
+                aria-describedby={id} 
+                variant="outlined" 
+                onClick={handleShowFiles} 
+                // startIcon={<Inventory2Icon />}
+              >
+                <Inventory2Icon />
+              </Button>}
+            </>  
           </Box>
-          
+
           <Heatmap 
             width={window.innerWidth - 128} 
             height={window.innerHeight / 2} 
             data={heatmapData}
           />
         </Box>
-        {/* <BPMModule 
-              bpm={bpm} 
-              handleChangeBPM={handleChangeBPM}
-              beatsNumerator={beatsNumerator}
-              beatsDenominator={beatsDenominator}
-              handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-              handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-          />
-        <Box sx={{backgroundColor: 'brown', display:'flex', flexDirection: 'row'}}>
-            <MingusPopup 
-              submitMingus={submitMingus}
-              audioKey={audioKey}
-              octave={octave}
-              audioScale={audioScale}
-              audioChord={audioChord}
-              handleChangeScale={handleChangeScale}
-              handleChangeChord={handleChangeChord}
-          />
-        </Box> */}
-
       </BasePopup>
     </Box>
   );

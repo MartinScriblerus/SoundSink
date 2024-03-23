@@ -20,34 +20,34 @@ export const stkIdentifierExpEnv = "ExpEnv";
             // 7. Envelopes
 
 const expEnvPresets = {
-    t60: {
-        name: "t60",
+    T60: {
+        name: "T60",
         label: "T60",
-        value: 0,
-        min: 0,
-        max: 3,
-        screenInterface: "knob",
-        type: "dur_dur",
+        value: 500,
+        min: 10,
+        max: 3000,
+        screenInterface: "intspinner",
+        type: "dur",
         group: 7,
     },
     radius: {
         name: "radius",
         label: "Radius",
-        value: 0,
+        value: 0.1,
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 7,
     },
     value: {
         name: "value",
         label: "Value",
-        value: 0,
+        value: 0.1,
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 7,
     },
 };

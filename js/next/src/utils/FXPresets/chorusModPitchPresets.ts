@@ -56,44 +56,44 @@ const chorusPresets = {
     },
 };
 
-export const modulatePresets = {
-    vibratoRate: {
-        name: "vibratoRate",
-        label: "Vibr Rate",
-        value: 0,
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-        type: "float",
-        group: 2,
-    },
-    vibratoGain: {
-        name: "vibratoGain",
-        label: "Vibr Gain",
-        value: 0,
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-        type: "float",
-        group: 2,
-    },
-    randomGain: {
-        name: "randomGain",
-        label: "Random Gain",
-        value: 0,
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-        type: "float",
-        group: 2,
-    }
-};
+// export const modulatePresets = {
+//     vibratoRate: {
+//         name: "vibratoRate",
+//         label: "Vibr Rate",
+//         value: 6.0,
+//         min: 0.0,
+//         max: 12.0,
+//         screenInterface: "knob",
+//         type: "float",
+//         group: 2,
+//     },
+//     vibratoGain: {
+//         name: "vibratoGain",
+//         label: "Vibr Gain",
+//         value: 0.1,
+//         min: 0,
+//         max: 1,
+//         screenInterface: "knob",
+//         type: "float",
+//         group: 2,
+//     },
+//     randomGain: {
+//         name: "randomGain",
+//         label: "Random Gain",
+//         value: 0.1,
+//         min: 0,
+//         max: 1,
+//         screenInterface: "knob",
+//         type: "float",
+//         group: 2,
+//     }
+// };
 
 export const pitShiftPresets = {
     mix: {
         name: "mix",
         label: "Mix",
-        value: 0,
+        value: 1,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -106,7 +106,7 @@ export const pitShiftPresets = {
         value: 6, // need to translate this to center of -6 0 6
         min: 0,
         max: 12,
-        screenInterface: "knob", // new type needed?
+        screenInterface: "intspinner", // new type needed?
         type: "float",
         group: 2,
     },

@@ -20,20 +20,20 @@ export const stkIdentifierSigmund = "Sigmund";
             // 7. Envelopes
 
 const sigmundPresets = {
-    amp: {
-        name: "amp",
-        label: "Amp",
-        value: 0,
-        min: 0,
-        max: 12,
-        screenInterface: "intspinner",
-        type: "float_int",
-        group: 6,
-    },
+    // amp: {
+    //     name: "amp",
+    //     label: "Amp",
+    //     value: 0,
+    //     min: 0,
+    //     max: 12,
+    //     screenInterface: "intspinner",
+    //     type: "float_int",
+    //     group: 6,
+    // },
     maxFreq: {
         name: "maxFreq",
         label: "Max Freq",
-        value: 129,
+        value: 128,
         min: 0,
         max: 128, // freq measured as MIDI vals here
         screenInterface: "knob",
@@ -55,8 +55,8 @@ const sigmundPresets = {
         label: "N Peak",
         value: 9,
         min: 0,
-        max: 1, // this will be exponent for powers of 2 (0 - 4096)
-        screenInterface: "intspinner", // should this be a float knob?
+        max: 11, // this will be exponent for powers of 2 (0 - 4096)
+        screenInterface: "exponentialintspinner", // should this be a float knob?
         type: "int_int",
         group: 6,
     },
@@ -66,7 +66,7 @@ const sigmundPresets = {
         value: 7, // (necessary clarification => 2 should actually equal 2 ^ (10 + 1) => 2048)
         min: 6,
         max: 11, // this will be exponent for powers of 2 (0 - 4096)
-        screenInterface: "intspinner", // should this be a float knob?
+        screenInterface: "exponentialintspinner", // should this be a float knob?
         type: "int_int",
         group: 6,
     },
@@ -75,8 +75,8 @@ const sigmundPresets = {
         label: "Peak",
         value: 9,
         min: 0,
-        max: 1, // this will be exponent for powers of 2 (0 - 4096)
-        screenInterface: "intspinner", // should this be a float knob?
+        max: 11, // this will be exponent for powers of 2 (0 - 4096)
+        screenInterface: "exponentialintspinner", // should this be a float knob?
         type: "int_int",
         group: 6,
     },

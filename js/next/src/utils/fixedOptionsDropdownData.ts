@@ -125,8 +125,8 @@ export const fxGroupOptions: Array<FixedSimpleLabel> = [
         effectVar: "nr"
       },
       {
-        effectLabel: "PCRev",
-        effectVar: "pcr"
+        effectLabel: "PRCRev",
+        effectVar: "prcr"
       },
       {
         effectLabel: "GVerb",
@@ -206,6 +206,20 @@ export const fxGroupOptions: Array<FixedSimpleLabel> = [
       },
     ],
   },
+  {
+    label: "Samples", 
+    value: 8,
+    effects: [
+      {
+        effectLabel: "SndBuf",
+        effectVar: "sndbuf"
+      },
+      {
+        effectLabel: "LiSa",
+        effectVar: "lisa"
+      },
+    ],
+  },
 ]
 
 export const fxOptions: readonly FXOption[] = [
@@ -214,7 +228,7 @@ export const fxOptions: readonly FXOption[] = [
   { value: 'chor', label: 'Chorus', color: 'rgb(158/255, 210/255, 162/255)' },
   { value: 'mod', label: 'Modulate', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'pitShift', label: 'Pitch Shift', color: 'rgb(158/255, 210/255, 162/255)'},
-  { value: 'pcr', label: 'PC Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
+  { value: 'prcr', label: 'PC Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'jcr', label: 'JC Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'nr', label: 'N Reverb', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'gverb', label: 'G Reverb', color: 'rgb(158/255, 210/255, 162/255)'},

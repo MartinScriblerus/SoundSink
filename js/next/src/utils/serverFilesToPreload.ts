@@ -44,10 +44,6 @@ const serverFilesToPreload = [
       virtualFilename: "/chugins/Bitcrusher.chug.wasm"
     },
     {
-      serverFilename: "/Bitcrusher-test.ck",
-      virtualFilename: "Bitcrusher-test.ck"
-    },
-    {
       serverFilename: "/Elliptic.chug.wasm",
       virtualFilename: "/chugins/Elliptic.chug.wasm"
     },
@@ -76,16 +72,8 @@ const serverFilesToPreload = [
       virtualFilename: "/chugins/GVerb.chug.wasm"
     },
     {
-      serverFilename: "/gverb-help.ck",
-      virtualFilename: "gverb-help.ck"
-    },
-    {
       serverFilename: "/KasFilter.chug.wasm",
       virtualFilename: "/chugins/KasFilter.chug.wasm"
-    },
-    {
-      serverFilename: "/KasFilter-test.ck",
-      virtualFilename: "KasFilter-test.ck"
     },
     {
       serverFilename: "/Multicomb.chug.wasm",

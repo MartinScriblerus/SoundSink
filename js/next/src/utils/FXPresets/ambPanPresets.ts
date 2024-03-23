@@ -25,9 +25,9 @@ const ambPan3Presets = {
         label: "Azimuth",
         value: 2, // (necessary clarification => 2 should actually equal 2 ^ (12 - 2) => 1024)
         min: 0,
-        max: 12, // this will be exponent for powers of 2 (0 - 4096)
+        max: 11, // this will be exponent for powers of 2 (0 - 4096)
         screenInterface: "intspinnerReverseVals", // should this be a float knob? this should go in reverse because larger values are actually smaller
-        type: "float_float",
+        type: "int",
         group: 2,
     },
     elevation: {
@@ -35,9 +35,9 @@ const ambPan3Presets = {
         label: "Elevation",
         value: 3, // (clarification much like above [a bit tricky!] => this 3 should equal 2 ^ (12 - 3) => 512)
         min: 0,
-        max: 12,
+        max: 11,
         screenInterface: "intspinnerReverseVals", // should this be a float knob? see above on reverse vals
-        type: "float_float",
+        type: "int",
         group: 2,
     },
     // channelMap: {

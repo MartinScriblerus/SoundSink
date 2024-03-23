@@ -2,8 +2,8 @@ export const stkVariableJCRev = "jcr";
 export const stkIdentifierJCRev = "JCRev";
 export const stkVariableNRev = "nr";
 export const stkIdentifierNRev = "NRev";
-export const stkVariablePCRev = "pcr";
-export const stkIdentifierPCRev = "PCRev";
+export const stkVariablePRCRev = "prcr";
+export const stkIdentifierPRCRev = "PRCRev";
 export const stkVariableGVerb = "gverb";
 export const stkIdentifierGVerb = "GVerb";
 export const stkVariableGain = "g";
@@ -56,10 +56,10 @@ export const nRevPresets = {
     },
 };
 
-export const pcRevPresets = {
+export const prcRevPresets = {
     mix: {
         name: "mix",
-        label: "PCRev Mix",
+        label: "PRCRev Mix",
         value: 0,
         min: 0,
         max: 1,
@@ -73,21 +73,21 @@ export const gVerbPresets = {
     bandwidth: {
         name: "bandwidth",
         label: "Bandwidth",
-        value: 0.50,
+        value: 0.5,
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 3,
     },
     damping: {
         name: "damping",
         label: "Damping",
-        value: 0,
+        value: 0.5,
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 3,
     },
     dry: {
@@ -97,47 +97,47 @@ export const gVerbPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 3,
     },
     early: {
         name: "early",
         label: "Early",
-        value: 0, // default 0.4
+        value: 0.4, // default 0.4
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 3,
     },
     revtime: {
         name: "revtime",
         label: "Rev Time",
-        value: 0, // default 0.5
-        min: 0,
-        max: 1,
-        screenInterface: "knob",
-        type: "dur_dur",
+        value: 5000, // default 0.5
+        min: 1,
+        max: 10000,
+        screenInterface: "intspinner",
+        type: "dur",
         group: 3,
     },
-    roomSize: {
-        name: "roomSize",
+    roomsize: {
+        name: "roomsize",
         label: "Room Size",
         value: 30.0,
         min: 1.0,
         max: 300.0,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 3,
     },
     tail: {
         name: "tail",
         label: "Tail",
-        value: 0, // default 0.5
+        value: 0.5, // default 0.5
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float",
         group: 3,
     },
 };

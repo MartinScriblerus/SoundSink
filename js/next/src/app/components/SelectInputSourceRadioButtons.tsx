@@ -1,14 +1,12 @@
-import * as React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import '../globals.css';
 import { Box, Button } from '@mui/material';
 import FixedOptionsDropdown from './FixedOptionsSelect';
 import { STKOption } from '@/utils/fixedOptionsDropdownData';
-import ToggleFXView from './ToggleFXView';
 
 interface Props {
     value: string;
@@ -18,6 +16,9 @@ interface Props {
     stkValues: STKOption[] | [];
     updateCurrentFXScreen: () => void;
     currentScreen: string;
+    playUploadedFile: (name: string) => void;
+    lastFileUpload: string;
+    updateFileUploads: () => void;
 }
 
 const SelectInputSourceRadioButtons = (props: Props) => {
@@ -27,8 +28,6 @@ const SelectInputSourceRadioButtons = (props: Props) => {
         updateStkKnobs,
         setStkValues,
         stkValues,
-        updateCurrentFXScreen,
-        currentScreen
     } = props;
 
     return (
@@ -44,7 +43,6 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                 color: 'rgba(147, 206, 214, 1)',
                 height: '100%',
             }}>
-
 
             <Box sx={{borderBottom: 'solid 1px rgba(147, 206, 214, 1)'}} className={'fx-popup-left-row'}>
                 <FormLabel 
@@ -66,9 +64,6 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                     stkValues={stkValues} 
                     setStkValues={setStkValues} 
                 />}
-                {/* {stkValues.length > 0 ? */}
-                   {currentScreen !== '' && <ToggleFXView updateCurrentFXScreen={updateCurrentFXScreen}/>}
-                {/* } */}
             </Box>
             
             {/* /////// FX to INPUT */}
@@ -132,7 +127,7 @@ const SelectInputSourceRadioButtons = (props: Props) => {
             </Box>
 
             {/* /////// FILE MANAGER */}
-            <Box className={'fx-popup-left-row'}>
+            {/* <Box className={'fx-popup-left-row'}>
                 <FormLabel 
                     sx={{
                         fontSize:'28px',
@@ -147,17 +142,25 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                 <Button
                     variant="contained"
                     component="label"
-                    sx={{marginTop: '4px', marginBottom: '8px'}}
+                    sx={{marginTop: '4px', marginBottom: '8px', color: 'rgba(0,0,0,0.94)', background: 'rgba(144, 204, 212, 1)'}}
                     >
                     Upload File
-                    <input
-                        type="file"
-                        hidden
-                    />
-                </Button>
 
+
+  
+        
+        <form onSubmit={handleSubmit(onSubmit)}>
+                    <input
+                        type={"file"}
+                        // onChange={"form.submit()"}
+                        {...register("file") } 
+                        
+                        hidden={true}
+                    />
+        </form>
+</Button>
                 <Box>No File Found</Box>
-            </Box>
+            </Box> */}
         </Box>
     );
 }

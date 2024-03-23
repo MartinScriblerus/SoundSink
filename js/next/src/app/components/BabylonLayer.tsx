@@ -168,7 +168,11 @@ function BabylonScene(props: {
                                 const getDegreesToFixed: any = parseFloat(getDegrees);
                                 const convertScale = +visibleFXKnobs[effectsIndex][1].min + ((visibleFXKnobs[effectsIndex][1].max - visibleFXKnobs[effectsIndex][1].min) * (getDegreesToFixed / 360));
                                 const typeNormalizedNum = +(visibleFXKnobs[effectsIndex][1].screenInterface === 'knob') ? Number(0 + convertScale) : Math.ceil(Number(0 + convertScale));
-                                const parseConvertScale:number = +Number(typeNormalizedNum);
+                                const handleExponentialVal = +(visibleFXKnobs[effectsIndex][1].screenInterface === 'exponentialintspinner') ? 2 ** +Number(typeNormalizedNum) : +Number(typeNormalizedNum);
+                                
+                
+                                // const parseConvertScale:number = +Number(typeNormalizedNum);
+                                const parseConvertScale:number = +Number(handleExponentialVal);
                                 game.header[i][j].text = `${visibleFXKnobs[effectsIndex][0]}: ${parseConvertScale.toFixed(2)}`;
                                 
                                 handleUpdateSliderVal(visibleFXKnobs[effectsIndex][1], parseConvertScale);

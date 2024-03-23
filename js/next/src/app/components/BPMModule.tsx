@@ -22,21 +22,17 @@ const BPMModule = (props: BPMModule) => {
     return (
         <ThemeProvider theme={theme}>
             <Box sx={{
-                // marginTop: '10vh',
-                // marginBottom: '20vh',
-                // width: '60vw',
-                // height: '70vh',
-                fontFamily: 'Noto Sans, Roboto, monospace',
+                fontFamily: notoSans,
                 fontSize: '24px',
-                // marginLeft: '6vw',
                 marginRight: '0vw',
                 backgroundColor: 'rgba(0,0,0,1)',
                 border: '1px solid rgba(255,255,255,.5)',
                 display: 'flex',
                 flexDirection: 'row',
                 padding: '12px',
-                minWidth: '17vw',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                minWidth: '30%',
+                minHeight: '24vh'
             }}>
                 <FormControl
                     sx={{
@@ -54,7 +50,7 @@ const BPMModule = (props: BPMModule) => {
                         inputProps={{ 
                             style: { 
                                 color: 'primary.contrastText',
-                                fontFamily: 'Noto Sans, Roboto, monospace',
+                                // fontFamily: notoSans,
                                 fontSize: '24px',
                             } 
                         }}
@@ -64,7 +60,7 @@ const BPMModule = (props: BPMModule) => {
                             backgroundColor: 'status.danger',
                             color: 'status.text',
                             paddingTop: 0,
-                            fontFamily: 'Noto Sans, Roboto, monospace',
+                            fontFamily: notoSans,
                             fontSize: '32px',
                             alignItems: 'center',
                             paddingBottom: 0,
@@ -92,101 +88,98 @@ const BPMModule = (props: BPMModule) => {
                         }
                     />
                 </FormControl>
-
-
-            <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                <FormControl
-                    hiddenLabel
-                    sx={{margin: '4px', padding: '0', maxWidth: '40px',}}
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                    }
-                }>
-                    <TextField
+                <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                    <FormControl
                         hiddenLabel
-                        focused
-                        inputProps={{ 
-                            style: { 
-                                fontSize: '18px',
-                                textAlign: 'center',
-                                color: 'primary.contrastText'
-                            } 
-                        }}
-                        sx={{
-                            input: { color: 'primary.contrastText' },
-                            minWidth: "1rem",
-                            backgroundColor: 'status.danger',
-                            color: 'status.text',
-                            paddingTop: 0,
-                            alignItems: 'center',
-                            paddingBottom: 0,
-                            width: '100%',
-                            fontFamily: 'Noto Sans, Roboto, monospace',
-                            fontSize: '24px',
-                        }}
-                        placeholder="Numerator"
-                        type="number"
-                        id="standard-textarea"
-                        variant="standard"
-                        defaultValue={beatsNumerator}
-                        onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                event.preventDefault();
-                                const inputBpmeasure: any = parseInt(event.target.value);
-                                console.log('@@@@', inputBpmeasure)
-                                if (inputBpmeasure) {
-                                    handleChangeBeatsNumerator(inputBpmeasure);
+                        sx={{margin: '4px', padding: '0', maxWidth: '40px',}}
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                        }
+                    }>
+                        <TextField
+                            hiddenLabel
+                            focused
+                            inputProps={{ 
+                                style: { 
+                                    fontSize: '18px',
+                                    textAlign: 'center',
+                                    color: 'primary.contrastText'
+                                } 
+                            }}
+                            sx={{
+                                input: { color: 'primary.contrastText' },
+                                minWidth: "1rem",
+                                backgroundColor: 'status.danger',
+                                color: 'status.text',
+                                paddingTop: 0,
+                                alignItems: 'center',
+                                paddingBottom: 0,
+                                width: '100%',
+                                fontFamily: notoSans,
+                                fontSize: '24px',
+                            }}
+                            placeholder="Numerator"
+                            type="number"
+                            id="standard-textarea"
+                            variant="standard"
+                            defaultValue={beatsNumerator}
+                            onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                    event.preventDefault();
+                                    const inputBpmeasure: any = parseInt(event.target.value);
+                                    console.log('@@@@', inputBpmeasure)
+                                    if (inputBpmeasure) {
+                                        handleChangeBeatsNumerator(inputBpmeasure);
+                                    }
                                 }
                             }
-                        }
-                    />
-                </FormControl>
+                        />
+                    </FormControl>
 
 
-                <FormControl
-                    hiddenLabel
-                    sx={{margin: '4px', padding: '0', maxWidth: '40px',}}
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                    }
-                }>
-                    <TextField
+                    <FormControl
                         hiddenLabel
-                        inputProps={{ 
-                            style: {
-                                fontSize: '18px',
-                                textAlign: 'center',
-                                color: 'primary.contrastText'
-                            } 
-                        }}
-                        sx={{
-                            input: { color: 'primary.contrastText' },
-                            minWidth: "1rem",
-                            backgroundColor: 'status.danger',
-                            color: 'status.text',
-                            paddingTop: 0,
-                            alignItems: 'center',
-                            paddingBottom: 0,
-                            width: '100%',
-                        }}
-                        placeholder="Denominator"
-                        type="number"
-                        id="standard-textarea"
-                        className="inputSampleInfo"
-                        defaultValue={beatsDenominator}
-                        variant="standard"
-                        onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                event.preventDefault();
-                                const mpb: any = parseInt(event.target.value);
+                        sx={{margin: '4px', padding: '0', maxWidth: '40px',}}
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                        }
+                    }>
+                        <TextField
+                            hiddenLabel
+                            inputProps={{ 
+                                style: {
+                                    fontSize: '18px',
+                                    textAlign: 'center',
+                                    color: 'primary.contrastText'
+                                } 
+                            }}
+                            sx={{
+                                input: { color: 'primary.contrastText' },
+                                minWidth: "1rem",
+                                backgroundColor: 'status.danger',
+                                color: 'status.text',
+                                paddingTop: 0,
+                                alignItems: 'center',
+                                paddingBottom: 0,
+                                width: '100%',
+                            }}
+                            placeholder="Denominator"
+                            type="number"
+                            id="standard-textarea"
+                            className="inputSampleInfo"
+                            defaultValue={beatsDenominator}
+                            variant="standard"
+                            onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                    event.preventDefault();
+                                    const mpb: any = parseInt(event.target.value);
 
-                                if (mpb) {
-                                    handleChangeBeatsDenominator(mpb);
+                                    if (mpb) {
+                                        handleChangeBeatsDenominator(mpb);
+                                    }
                                 }
                             }
-                        }
-                    />
-                </FormControl>
-            </Box>      
-            
+                        />
+                    </FormControl>
+                </Box>      
             </Box>
         </ThemeProvider>
     )

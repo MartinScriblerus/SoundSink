@@ -9,30 +9,29 @@ import chorusPresets, {
     stkIdentifierChorus, 
     stkVariableModulate, 
     stkIdentifierModulate, 
-    modulatePresets, 
+    // modulatePresets, 
     pitShiftPresets, 
     stkVariablePitShift, 
     stkIdentifierPitShift} from '@/utils/FXPresets/chorusModPitchPresets';
 import jcRevPresets, {
     gainPresets,
     nRevPresets,
-    pcRevPresets,
+    prcRevPresets,
     stkIdentifierGain, 
     stkIdentifierJCRev, 
     stkIdentifierNRev, 
-    stkIdentifierPCRev,
+    stkIdentifierPRCRev,
     stkIdentifierGVerb, 
     stkVariableGVerb, 
     stkVariableGain, 
     stkVariableJCRev, 
     stkVariableNRev, 
-    stkVariablePCRev,
+    stkVariablePRCRev,
     gVerbPresets} from './FXPresets/reverbGainPresets';
 import clarinetPresets, {stkVariableClarinet, stkIdentifierClarinet} from '@/utils/STKPresets/clarinetPresets';
-import delayAPresets, {stkVariableDelayA, stkIdentifierDelayA} from '@/utils/STKPresets/delayAPreset';
-import delayLPresets, {stkVariableDelayL, stkIdentifierDelayL} from '@/utils/STKPresets/delayLPresets';
-import delayPresets, {stkVariableDelay, stkIdentifierDelay} from '@/utils/STKPresets/delayPresets';
-import echoPresets, {stkVariableEcho, stkIdentifierEcho} from '@/utils/FXPresets/echoPresets';
+
+import delayPresets, {echoPresets, stkVariableEcho, stkIdentifierEcho, delayLPresets, delayAPresets, stkVariableDelayL, stkVariableDelayA, stkVariableDelay, stkIdentifierDelayL, stkIdentifierDelayA, stkIdentifierDelay} from '@/utils/FXPresets/delayPresets';
+
 import flutePresets, {stkVariableFlute, stkIdentifierFlute} from '@/utils/STKPresets/flutePresets';
 
 import fmVoicesPresets, {stkVariableFMVoices, stkIdentifierFMVoices} from '@/utils/STKPresets/fmVoices';
@@ -68,6 +67,7 @@ import winFuncEnvPresets, { stkIdentifierWinFuncEnv, stkVariableWinFuncEnv } fro
 import wpDiodeLadderPresets, { stkIdentifierWPDiodeLadder, stkVariableWPDiodeLadder } from './FXPresets/wpDiodeLadder';
 import wpKorg35Presets, { stkIdentifierWPKorg35, stkVariableWPKorg35 } from './FXPresets/WPKorg35';
 import adsrPresets, { stkIdentifierADSR, stkVariableADSR } from './FXPresets/adsrPresets';
+import sndBufPresets, {stkIdentifierSndBuf, stkVariableSndBuf, stkIdentifierLisa, stkVariableLisa, lisaPresets} from './FXPresets/sndBufLisaPresets';
 
 
 
@@ -416,13 +416,14 @@ export const getSTK2Preset = (stkVal: string) => {
 
 export const getFX1Preset = (fxVal: string) => {
     const theFX1Fx = [];
-    if (fxVal === 'mod') {
-        theFX1Fx.push({
-            presets: modulatePresets,
-            type: stkIdentifierModulate,
-            var: stkVariableModulate,
-        });
-    } else if (fxVal === 'pitShift') {
+    // if (fxVal === 'mod') {
+    //     theFX1Fx.push({
+    //         presets: modulatePresets,
+    //         type: stkIdentifierModulate,
+    //         var: stkVariableModulate,
+    //     });
+    // } else 
+    if (fxVal === 'pitShift') {
         theFX1Fx.push({
             presets: pitShiftPresets,
             type: stkIdentifierPitShift,
@@ -440,11 +441,11 @@ export const getFX1Preset = (fxVal: string) => {
             type: stkIdentifierGain,
             var: stkVariableGain,
         });
-    } else if (fxVal === 'pcr') {
+    } else if (fxVal === 'prcr') {
         theFX1Fx.push({
-            presets: pcRevPresets,
-            type: stkIdentifierPCRev,
-            var: stkVariablePCRev,
+            presets: prcRevPresets,
+            type: stkIdentifierPRCRev,
+            var: stkVariablePRCRev,
         });
     } else if (fxVal === 'nr') {
         theFX1Fx.push({
@@ -603,6 +604,13 @@ export const getFX1Preset = (fxVal: string) => {
             var: stkVariableWPKorg35
         });
     } 
+    else if (fxVal === 'sndbuf') {
+        theFX1Fx.push({
+            presets: sndBufPresets,
+            type: stkIdentifierSndBuf, //
+            var: stkVariableSndBuf
+        });
+    } 
     else {
         console.log('in the else of PresetsHelper');
         theFX1Fx.push({
@@ -612,4 +620,31 @@ export const getFX1Preset = (fxVal: string) => {
         });
     }
     return theFX1Fx;
+}
+
+export const tableIntToStringHelper: any = async(formattedValue: number) => {
+    let theVal;
+    switch(formattedValue){
+        case 0:
+            theVal = `("delay", "random")`;
+        case 1:
+            theVal = `("delay", "ascending")`;
+        case 2:
+            theVal = `("delay", "descending")`;
+        case 3:
+            theVal = `("eq", "random")`;
+        case 4:
+            theVal = `("eq", "ascending")`;
+        case 5:
+            theVal = `("eq", "descending")`;
+        case 6:
+            theVal = `("feedback", "random")`;
+        case 7:
+            theVal = `("feedback", "ascending")`;
+        case 8:
+            theVal = `("feedback", "descending")`;
+        default:
+            theVal = `("delay", "descending")`;
+    }
+    return await theVal;
 }

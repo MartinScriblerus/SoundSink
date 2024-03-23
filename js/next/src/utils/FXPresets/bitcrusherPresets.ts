@@ -23,8 +23,8 @@ const bitcrusherPresets = {
     bits: {
         name: "bits", // 1-32
         label: "Bits",
-        value: 0,
-        min: 0,
+        value: 8,
+        min: 1,
         max: 32,
         screenInterface: "intspinner",
         type: "int_int",
@@ -33,8 +33,8 @@ const bitcrusherPresets = {
     downsample: {
         name: "downsample",  // >= 1
         label: "Downsample",
-        value: 0,
-        min: 0,
+        value: 1,
+        min: 1,
         max: 32,
         screenInterface: "intspinner",
         type: "int_int",
@@ -43,8 +43,8 @@ const bitcrusherPresets = {
     downsampleFactor: {
         name: "downsampleFactor",
         label: "Downsample Factor",
-        value: 0,
-        min: 0,
+        value: 1,
+        min: 1,
         max: 32,
         screenInterface: "intspinner",
         type: "int_int",

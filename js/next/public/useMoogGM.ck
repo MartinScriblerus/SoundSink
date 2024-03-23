@@ -22,14 +22,14 @@ while(true)
     nextOsc => voice.ChooseOsc1;
     nextOsc => voice.ChooseOsc2;
     // Math.random2(1, 100) => voice.cutoff;
-    Math.random2(1,10) => voice.SetLfoFreq;
+    // Math.random2(1,10) => voice.SetLfoFreq;
     Math.random2(1, 25) => voice.rez;
     Math.random2(1, 25) => voice.env;
     10 => voice.cutoff;
     // 1 => voice.rez;
     // 1 => voice.env;
     notes[Math.random2(0, notes.cap()-1)] + 12 => voice.keyOn;
-    2::second => now;
+    500::ms => now;
     1 => voice.keyOff;
 
 }
