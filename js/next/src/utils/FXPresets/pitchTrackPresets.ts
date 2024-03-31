@@ -46,8 +46,8 @@ const pitchTrackPresets = {
         value: 2, // (necessary clarification => 2 should actually equal 2 ^ (12 - 2) => 1024)
         min: 0,
         max: 12, // this will be exponent for powers of 2 (0 - 4096)
-        screenInterface: "knob",
-        type: "float",
+        screenInterface: "exponentialintspinner",
+        type: "int",
         group: 6,
     },
     overlap: {
@@ -56,8 +56,8 @@ const pitchTrackPresets = {
         value: 2,
         min: 0,
         max: 6,
-        screenInterface: "knob",
-        type: "float",
+        screenInterface: "intspinner",
+        type: "int",
         group: 6,
     },
     sensitivity: {

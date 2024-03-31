@@ -17,7 +17,7 @@ const FileManager = (props: Props) => {
     const [uploadedFileName, setUploadedFileName] = useState<string>('')
     const uploadedFilesRef: any = useRef([]);
     const suggestedNameRef = useRef<string>("");
-console.log('HEEEEEERE')
+// console.log('HEEEEEERE')
       useEffect(() => {
         console.log('HERE! ')
         const subscription = watch(() => handleSubmit(onSubmit)())

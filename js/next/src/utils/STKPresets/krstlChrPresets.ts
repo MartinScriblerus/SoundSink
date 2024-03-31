@@ -5,7 +5,7 @@ const krstlChrPresets = {
     controlOne: {
         name: "controlOne",
         label: "Modulator Index",
-        value: 2,
+        value: 1,
         min: 0,
         max: 2,
         screenInterface: "switch_2_0_1_2",
@@ -13,7 +13,7 @@ const krstlChrPresets = {
     controlTwo: {
         name: "controlTwo",
         label: "Modulator Crossfade",
-        value: 4,
+        value: 1,
         min: 0,
         max: 4,
         screenInterface: "intSpinner_5",

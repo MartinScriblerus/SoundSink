@@ -56,38 +56,38 @@ const chorusPresets = {
     },
 };
 
-// export const modulatePresets = {
-//     vibratoRate: {
-//         name: "vibratoRate",
-//         label: "Vibr Rate",
-//         value: 6.0,
-//         min: 0.0,
-//         max: 12.0,
-//         screenInterface: "knob",
-//         type: "float",
-//         group: 2,
-//     },
-//     vibratoGain: {
-//         name: "vibratoGain",
-//         label: "Vibr Gain",
-//         value: 0.1,
-//         min: 0,
-//         max: 1,
-//         screenInterface: "knob",
-//         type: "float",
-//         group: 2,
-//     },
-//     randomGain: {
-//         name: "randomGain",
-//         label: "Random Gain",
-//         value: 0.1,
-//         min: 0,
-//         max: 1,
-//         screenInterface: "knob",
-//         type: "float",
-//         group: 2,
-//     }
-// };
+export const modulatePresets = {
+    vibratoRate: {
+        name: "vibratoRate",
+        label: "Vibr Rate",
+        value: 0,
+        min: 0,
+        max: 1000,
+        screenInterface: "intspinner",
+        type: "int",
+        group: 2,
+    },
+    vibratoGain: {
+        name: "vibratoGain",
+        label: "Vibr Gain",
+        value: 0,
+        min: 0,
+        max: 1,
+        screenInterface: "knob",
+        type: "float",
+        group: 2,
+    },
+    randomGain: {
+        name: "randomGain",
+        label: "Random Gain",
+        value: 0,
+        min: 0,
+        max: 5,
+        screenInterface: "knob",
+        type: "float",
+        group: 2,
+    }
+};
 
 export const pitShiftPresets = {
     mix: {

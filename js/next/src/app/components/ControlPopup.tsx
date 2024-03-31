@@ -59,7 +59,7 @@ export default function ControlPopup(props: ControlProps) {
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
   const handleClickUploadedFiles = (e: any) => {
-    console.log("THIS IS FUCKING BULLSHIT: ", e.target);
+    console.log("WHY IS THIS NOT WORKING?: ", e.target);
   }
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -74,7 +74,7 @@ export default function ControlPopup(props: ControlProps) {
   }, [showFX]);
 
   useEffect(() => {
-    console.log('yoooooo');
+    console.log('showFiles is ', showFiles);
   }, [showFiles])
 
   const open = Boolean(anchor);

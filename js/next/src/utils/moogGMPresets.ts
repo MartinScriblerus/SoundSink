@@ -34,7 +34,7 @@ const moogGMPresets = {
     cutoff: {
         name: "cutoff",
         label: "Cutoff",
-        value: 10,
+        value: 50,
         min: 0,
         max: 100,
         screenInterface: "knob",
@@ -42,7 +42,7 @@ const moogGMPresets = {
     rez: {
         name: "rez",
         label: "Rez",
-        value: 0,
+        value: 50,
         min: 0,
         max: 100,
         screenInterface: "knob",
@@ -50,7 +50,7 @@ const moogGMPresets = {
     env: {
         name: "env",
         label: "Env",
-        value: 0,
+        value: 75,
         min: 0,
         max: 100,
         screenInterface: "knob",
@@ -58,7 +58,7 @@ const moogGMPresets = {
     oscType1: {
         name: "oscType1",
         label: "Osc1",
-        value: 1,
+        value: 2,
         min: 0,
         max: 3,
         screenInterface: "switch_4_disabled_tri_saw_square",
@@ -66,7 +66,7 @@ const moogGMPresets = {
     oscType2: {
         name: "oscType2",
         label: "Osc2",
-        value: 1,
+        value: 3,
         min: 0,
         max: 3,
         screenInterface: "switch_4_disabled_tri_saw_square",
@@ -114,9 +114,9 @@ const moogGMPresets = {
     adsrSustain: {
         name: "adsrSustain",
         label: "Sustain",
-        value: 0, // should this be a float?
+        value: 0.01, // should this be a float?
         min: 0,
-        max: 1,
+        max: 0.5,
         screenInterface: "knob",
     }, // adsr sustain (0-100)
     adsrRelease: {
@@ -124,7 +124,7 @@ const moogGMPresets = {
         label: "Release",
         value: 1,
         min: 0,
-        max: 2000,
+        max: 1000,
         screenInterface: "knob",
     }, // adsr release (0-100)
     limiterAttack: {
@@ -146,7 +146,7 @@ const moogGMPresets = {
     lfoFreq: {
         name: "lfoFreq",
         label: "Lfo Freq",
-        value: 5,
+        value: 320,
         min: 0,
         max: 1000,
         screenInterface: "knob",
@@ -154,7 +154,7 @@ const moogGMPresets = {
     pitchMod: {
         name: "pitchMod",
         label: "Pitch Mod",
-        value: 1.5,
+        value: 9.5,
         min: 0,
         max: 100,
         screenInterface: "knob",

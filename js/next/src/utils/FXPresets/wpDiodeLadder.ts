@@ -40,9 +40,9 @@ const wpDiodeLadderPresets = {
         type: "int_int",
         group: 5,
     },
-    nonLinear: {
-        name: "nonLinear",
-        label: "NonLinear",
+    nonlinear: {
+        name: "nonlinear",
+        label: "Nonlinear",
         value: 0,
         min: 0,
         max: 1,

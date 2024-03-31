@@ -31,7 +31,7 @@ const powerADSRPresets = {
         group: 4,
     },
     attackCurve: {
-        name: "attackcurve",
+        name: "attackCurve",
         label: "Attack Curve",
         value: 0.01, // default 0.5
         min: 0.01,
@@ -41,7 +41,7 @@ const powerADSRPresets = {
         group: 4,
     },
     attackTime: { // # of comb filters (default 5)
-        name: "attacktime",
+        name: "attackTime",
         label: "Attack Time",
         value: 1,
         min: 1,

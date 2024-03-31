@@ -67,7 +67,7 @@ const ellipticPresets = {
         min: 0,
         max: 1,
         screenInterface: "intspinner",
-        type: "dur",
+        type: "int",
         group: 5,
     },
     hpfStop: {

@@ -46,7 +46,7 @@ const moogPresets = { // .clair
     lfoSpeed: {
         name: "lfoSpeed",
         label: "LFO Speed",
-        value: 0.7,
+        value: 0.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -54,7 +54,7 @@ const moogPresets = { // .clair
     lfoDepth: {
         name: "lfoDepth",
         label: "LFO Depth",
-        value: 0.7,
+        value: 0.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -62,7 +62,7 @@ const moogPresets = { // .clair
     modSpeed: {
         name: "modSpeed",
         label: "Mod Speed",
-        value: 0.7,
+        value: 0.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -70,7 +70,7 @@ const moogPresets = { // .clair
     modDepth: {
         name: "modDepth",
         label: "Mod Depth",
-        value: 0.7,
+        value: 0.0,
         min: 0,
         max: 1,
         screenInterface: "knob",

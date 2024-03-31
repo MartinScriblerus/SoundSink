@@ -27,7 +27,7 @@ const expEnvPresets = {
         min: 10,
         max: 3000,
         screenInterface: "intspinner",
-        type: "dur",
+        type: "dur_funBasedFX",
         group: 7,
     },
     radius: {
@@ -37,7 +37,7 @@ const expEnvPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float",
+        type: "float_funBasedFX",
         group: 7,
     },
     value: {
@@ -47,7 +47,7 @@ const expEnvPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float",
+        type: "float_funBasedFX",
         group: 7,
     },
 };

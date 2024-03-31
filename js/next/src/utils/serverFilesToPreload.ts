@@ -24,6 +24,26 @@ const serverFilesToPreload = [
       virtualFilename: "knob.wav"
     },
     {
+      serverFilename: "/DR-55Hat.wav",
+      virtualFilename: "DR-55Hat.wav"
+    },
+    {
+      serverFilename: "/DR-55Kick.wav",
+      virtualFilename: "DR-55Kick.wav"
+    },
+    {
+      serverFilename: "/DR-55Pop.wav",
+      virtualFilename: "DR-55Pop.wav"
+    },
+    {
+      serverFilename: "/DR-55Snare.wav",
+      virtualFilename: "DR-55Snare.wav"
+    },
+    {
+      serverFilename: "/lines.txt",
+      virtualFilename: "lines.txt"
+    },
+    {
       serverFilename: "/ExpEnv.chug.wasm",
       virtualFilename: "/chugins/ExpEnv.chug.wasm"
     },

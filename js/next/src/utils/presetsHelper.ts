@@ -12,7 +12,8 @@ import chorusPresets, {
     // modulatePresets, 
     pitShiftPresets, 
     stkVariablePitShift, 
-    stkIdentifierPitShift} from '@/utils/FXPresets/chorusModPitchPresets';
+    stkIdentifierPitShift,
+    modulatePresets} from '@/utils/FXPresets/chorusModPitchPresets';
 import jcRevPresets, {
     gainPresets,
     nRevPresets,
@@ -435,6 +436,12 @@ export const getFX1Preset = (fxVal: string) => {
             type: stkIdentifierChorus,
             var: stkVariableChorus,
         });
+    } else if (fxVal === 'mod') {
+        theFX1Fx.push({
+            presets: modulatePresets,
+            type: stkIdentifierModulate,
+            var: stkVariableModulate,
+        })
     } else if (fxVal === 'g') {
         theFX1Fx.push({
             presets: gainPresets,

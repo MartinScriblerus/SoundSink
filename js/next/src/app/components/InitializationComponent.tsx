@@ -28,7 +28,8 @@ import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import { useForm } from "react-hook-form";
 import FileManager from './FileManager';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
-import winFuncEnvHelper from '@/utils/FXHelpers/winFuncEnvHelper';
+import { convertEnvSetting } from '@/utils/FXHelpers/winFuncEnvHelper';
+import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
 // }
@@ -77,10 +78,27 @@ interface AllFXPersistent {
     AudioIn: Array<any>;
 }
 
+interface MixingBoard {
+    osc1: {},
+    osc2: {},
+    stk1: {},
+    sampler: {},
+    audioIn: {},
+}
+// interface EnvHelper {
+//     soundSource: string;
+//     effectName: string;
+//     attackRateDenominator: any;
+//     envSetting: any;
+//     releaseRateDenominator: any;
+// }
+
 export default function InitializationComponent() {
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
     const [lastChuckMessage, setLastChuckMessage] = useState<string>("");
+    // const [osc1WinEnvOn, setOsc1WinEnvOn] = useState<boolean>(false);
+    const osc1WinEnvOn = useRef<any>(false);
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
         Osc1: [],
@@ -141,6 +159,7 @@ export default function InitializationComponent() {
     const stk1Var = useRef<string | undefined>('');
     const stk2Type = useRef<string | undefined>('');
     const stk2Var = useRef<string | undefined>('');
+    const [useStkDirect, setUseDtkDirect] = useState<boolean>(false)
 
     const filesToProcess = useRef<Array<any>>([]);
     const uploadedFiles = useRef<Array<any>>([]);
@@ -151,9 +170,26 @@ export default function InitializationComponent() {
     const fx1Var = useRef<string | undefined>('');
     const fx1Group = useRef<string | undefined>('');
     const checkedFXList = useRef<FXOption[]>([]);
-    const modulationToChuck = useRef<string>('');
+   
     const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    const osc1FxStringNeedsBlackhole = useRef<string>('');
+    const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    const winFuncEnvFinalHelper = useRef<any>({
+        osc1: {
+            attackTime: 16,
+            releaseTime: 16,
+            envSetting: 0,
+        },
+        osc2: '',
+        stk1: '',
+        sampler: '',
+        audioIn: '',
+    });
+
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
+
+
+    
 
     const [windowWidth, setWindowWidth] = useState<any>(0);
     const [windowHeight, setWindowHeight] = useState<any>(0);
@@ -177,6 +213,8 @@ export default function InitializationComponent() {
     const osc2FXString = useRef<any>('');
     const audioInFXString = useRef<any>('');
     const samplerFXString = useRef<any>('');
+
+
 
     const osc1FXStringToChuck = useRef<any>('');
     const osc2FXStringToChuck = useRef<any>('');
@@ -372,16 +410,15 @@ export default function InitializationComponent() {
         stkValsRef.current = [];
         console.log("WHAT ARE KNOBVALS? ", stkValsRef.current);
         if (knobVals[0] && Object.values(knobVals[0]).length > 0 && knobVals.length > 1) {
-            knobVals.map((kv: any) => {
-                    (kv:any) => {
-                        console.log('KV from dropdown selector => ', kv)  
+            knobVals.map(
+                // (kv: any) => {
+                    (kv:any) => { 
                         stkValsRef.current.push(kv);
-                    }
+                    // }
                 })
         
         } else {
-            knobVals.forEach((kv:any) => {
-                console.log('KV from dropdown selector => ', kv)  
+            knobVals.forEach((kv:any) => { 
                 stkValsRef.current.push(kv);
             })
         }
@@ -401,39 +438,6 @@ export default function InitializationComponent() {
         console.log('#### Current FX current: ', currentFX.current);    
         updateCurrentFXScreen();  
     }
-    // const isLocal = process.env.NEXT_PUBLIC_BASE_URL_LOCAL; 
-    // const baseUrl = isLocal ? process.env.NEXT_PUBLIC_BASE_URL_LOCAL : window.location.href; // start creating variables for envs
-
-   
-    // const preloadedFiles: any = new Promise((resolve, reject) => {
-    //     try {
-    //       resolve(axios.get(`${baseUrl}/api/preloadedFiles`, {
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //       }));
-    //     } catch (error) {
-    //       console.log('error in axios get: ', error);
-    //       reject(error);
-    //     }
-    // });
-  
-    // const uploadedFiles: any = new Promise((resolve, reject) => {
-    //     try {
-    //       resolve(axios.get(`${baseUrl}/api/upload_files`, {
-    //         // headers: {
-    //         //     'Content-Type': 'application/json',
-    //         // },
-    //       }));
-    //     } catch (error) {
-    //       console.log('error in axios get: ', error);
-    //       reject(error);
-    //     }
-    // });
-    
-    // useEffect(() => {
-    //     console.log('got upload files in variable form: ', uploadedFiles);
-    // }, [uploadedFiles]);
   
 
     // console.log('preloadedFiles on PAGE: ', preloadedFiles);
@@ -647,57 +651,68 @@ export default function InitializationComponent() {
 
     const formerValSub = useRef<string>('');
 
+    const winFuncString = (source: string, attackDenom: number, releaseDenom: number, envSetting: string) => `winfuncenv_${source}.set${envSetting}(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_${source}, whole/${attackDenom}, whole/${releaseDenom}); }`;
+
     const osc1FXToString = () => {
         Object.values(allFxPersistent.current.Osc1).map((o1: any) => {
             if (osc1FXStringToChuck.current.indexOf(`${o1.var}_o1`) === -1) {
-                osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${o1.type} ${o1.var}_o1 `)
-            }
-            
-            Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async(preset: any, idx: number) => {
-                const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
-                let formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${parseInt(preset.value)}${addDurMs}`: `${preset.value}`;
-                const thePreset: any = Object.values(o1.presets)[idx];
-                console.log('THE PRESET: ', thePreset);
-                if (osc1FXString.current !== '') {
-                    
-
-                    
-                    
-          
-                    if (finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name) !== -1) {
-                        const theIndex = finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name);
-                        finalOsc1FxStringToChuck.current[theIndex].string = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
+                if (o1.type === "PitchTrack") {
+                    if (osc1FxStringToChuckNeedsBlackhole.current.map((i:any) => i.name).indexOf(`${o1.var}`) === -1) {  
+                        osc1FxStringToChuckNeedsBlackhole.current.push({name: `${o1.var}`, string: `=> ${o1.type} ${o1.var}_o1 => blackhole;`});
                     }
-                    else {    
-                        finalOsc1FxStringToChuck.current.push({name: preset.name, string: `${formattedValue} => ${o1.var}_o1.${preset.name};`}); 
-                    }
-
-          
-                    console.log('%cPRESET final: ', 'color: limegreen;', finalOsc1FxStringToChuck.current);
-                    console.log('%cPRESET NAME: ', 'color: pink;', o1.var, preset.name);
-                    const t: string = osc1FXString.current;
-                    const sub =  ` => ${o1.var}_o1.${preset.name};`;
-                    let lastIndexOfValue: any = t.indexOf(sub);
-                    const lastCharOfVal = t[lastIndexOfValue];
-                    
-                    formerValSub.current = lastCharOfVal;
-                    console.log('FORMER VAL SUB: ', formerValSub.current);
-                    let chartWindowIndex: any;
-                    const readBackwards = osc1FXString.current[lastIndexOfValue - 1] && setInterval(() => {
-                        formerValSub.current = formerValSub.current + (osc1FXString.current[lastIndexOfValue])
-                        if (lastIndexOfValue && osc1FXString.current && osc1FXString.current[lastIndexOfValue] === ' ') {
-                            clearInterval(readBackwards);
-                            return;
-                        }
-                        chartWindowIndex = chartWindowIndex - 1;
-                    }, 0);
-                    const fullPriorString = `${formerValSub.current}${sub}`;
-                    osc1FXString.current.indexOf(fullPriorString) !== -1 && osc1FXString.current.replace(fullPriorString, osc1FXString.current = `${formattedValue} => ${o1.var}_o1.${preset.name};`);
-                } else {
-                    alert('in the else');
-                    osc1FXString.current = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
+                    return;
+                } else if (o1.type === "WinFuncEnv") {
+                    osc1WinEnvOn.current = true;
+                 }else {
+                    osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${o1.type} ${o1.var}_o1 `)
                 }
-                console.log('CHECK OSC1 STRING CURRENT: ', osc1FXString.current);
+            }
+     
+
+            Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async(preset: any, idx: number) => {
+                if (preset.type.includes("_needsFun")) {
+                    
+                    console.log('What IS PRESET: ', preset);
+                    console.log('What IS O1 ATTACK ??? ',  Math.pow(2, preset.value))
+
+                    if (preset.type.includes("_winFuncEnv")) {
+                        if (preset.name === "attackTime") {
+                            winFuncEnvFinalHelper.current.osc1.attackTime = Math.pow(2, Number(preset.value));
+                        } else if (preset.name === "releaseTime") {
+                            winFuncEnvFinalHelper.current.osc1.releaseTime = Math.pow(2, Number(preset.value));
+                        } else if (preset.name === "envSetting") {
+                            winFuncEnvFinalHelper.current.osc1.envSetting = convertEnvSetting(preset.value);
+                        } else {
+                        }   
+                    }
+
+                } else {
+                    const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
+                    let formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${preset.value}${addDurMs}`: `${preset.value}`;
+                    const thePreset: any = Object.values(o1.presets)[idx];
+                    console.log('THE PRESET (obj vals of o1.presets at idx=> ): ', thePreset);
+                    console.log('%c?????? ', 'color: beige;', preset);
+
+                    
+                    if (osc1FXString.current !== '') {
+                        if (finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name) !== -1) {
+                            const theIndex = finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name);
+                            console.log("OY OY OY ", finalOsc1FxStringToChuck.current);
+                            finalOsc1FxStringToChuck.current[theIndex].string = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
+                        } 
+                        else {    
+                            finalOsc1FxStringToChuck.current.push({name: preset.name, string: `${formattedValue} => ${o1.var}_o1.${preset.name};`}); 
+                        }
+
+                        console.log('%cPRESET final: ', 'color: limegreen;', finalOsc1FxStringToChuck.current);
+                        console.log('%cPRESET VAR / NAME: ', 'color: limegreen;', o1.var, preset.name);
+  
+                    } else {
+                        alert('in the else');
+                        osc1FXString.current = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
+                    }
+                    console.log('%cCHECK OSC1 STRING CURRENT: ', 'color: aqua;', osc1FXString.current);
+                }
             });
         });
     }
@@ -782,15 +797,6 @@ export default function InitializationComponent() {
         setChuckHook(theChuck);
     };
 
-    const createEffectsButtons = (moogGMEffects: MoogGrandmotherEffects) => {
-        console.log("moogGMEffects: ", moogGMEffects); 
-    };
-
-    useEffect(() => {
-        if (Object.keys(moogGrandmotherEffects).length > 0 || currentScreen.current === 'fx_') {
-            createEffectsButtons(moogGrandmotherEffects.current);
-        }
-    }, [moogGrandmotherEffects]);
 
    // console.log('!!!!! ', allFxPersistent.current.length, Object.values(allFxPersistent.current.Osc1[0].presets));
     if (allFxPersistent.current.Osc1[0] && Object.values(allFxPersistent.current.Osc1[0].presets).length > 0) {
@@ -811,64 +817,48 @@ export default function InitializationComponent() {
     const runMainChuckCode = async (aChuck: Chuck, getStk1String: any) => {
         if (chuckUpdateNeeded === false) {
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
-            // try {
-            //     if (shredCount > 3) {
-            //         aChuck.runCode(`Machine.removeAllShreds();`);
-            //         aChuck.runCode(`Machine.resetShredID();`);
-            //     }
-            // } catch (e) {
-            //     console.log('Err removing shreds: ', e);
-            // }
 
-            // uploadedFiles.current.length > 0 && uploadedFiles.current.map((fileUp: any, idx: number) => {
-            //     console.log('what is fileUP? ', idx, fileUp)
-            //     const baseUrl = getBaseUrl();
-            //     console.log(`MOMENT OF TRUTH: ${fileUp.name}`);
-            //     aChuck.createFile("", `${fileUp.name}`,`${baseUrl}/uploads/${fileUp.name}`);
-            // })
-            // aChuck.createFile("", "Clave.wav", testArrBuffFile.current);
-
-            filesToProcess.current.map((f: any)  => {
+            filesToProcess.current.map((f: any, idx: number)  => {
                 if (f.processed === false) {
                     aChuck.createFile("", f.name, f.data);
                     alert(`${f.name} created`);
                     f.processed = true;
-                    uploadedFilesToChuckString.current = uploadedFilesToChuckString.current.concat(`SndBuf buf_${f.name.split('.')[0]} => dac; `);
-                    uploadedFilesCodeString.current = uploadedFilesCodeString.current.concat(`"${f.name}" => buf_${f.name.split('.')[0]}.read; `);
+                    uploadedFilesToChuckString.current = uploadedFilesToChuckString.current.concat(`SndBuf buf_${idx} => dac; `); // f.name.split('.')[0]
+                    uploadedFilesCodeString.current = uploadedFilesCodeString.current.concat(`"${f.name}" => buf_${idx}.read; `); // f.name.split('.')[0]
                 }
             });
 
             const connector1Stk = getStk1String.length ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
             // const connector2Stk = getStk2String.length ? `=> ${getStk2String[1]} ${getStk2String[2]}` : '';
             
-            const connectorStk1DirectToDac = getStk1String ? `${getStk1String[2]} => dac;` : ``;
+            const connectorStk1DirectToDac = getStk1String && useStkDirect ? `${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; winfuncenv_stk1.setHann(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_stk1, whole/${16}, whole/${16}); }` : ``;
 
-            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => outlet;`;
+            const winFuncDeclarationOsc1 = osc1WinEnvOn.current ? ' WinFuncEnv winfuncenv_o1 =>' : '';
+            console.log('fucking sanity: ', winFuncEnvFinalHelper.current);
+            const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
+
+            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} outlet;`;
             
-            
+            console.log('%cWHAT IS CHUCK OUTLET? ', 'color: limegreen;', osc1ChuckToOutlet);
+
+            osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             const osc2ChuckToOutlet: string = ` SawOsc saw2 => lpf;`;
+            // const winFuncString = (source: string) => `winfuncenv_${source}.setHann(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_${source}, whole/${1}, whole/${1}); }`;
 
             const finalOsc1Code = Object.values(finalOsc1FxStringToChuck.current).length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',','') : '';
-
-            // console.log('AAAAA ', uploadedFilesCodeString.current);
-            // console.log('BBBBBB ', uploadedFilesToChuckString.current);
-            
+         
+            console.log('WTF WTF WTF ', finalOsc1Code);
             aChuck.runCode(`
             
             ((60.0 / ${bpm})) => float secLenBeat;
-            secLenBeat::second => dur beat;
-            ((secLenBeat * 1000)/4)::ms => dur twoDiv;
-            ((secLenBeat * 1000)/2)::ms => dur fourDiv;
-            (secLenBeat * 1000)::ms => dur eightDiv;
-            (secLenBeat * 2 * 1000)::ms => dur sixteenDiv;
-            (secLenBeat * 4 * 1000)::ms => dur thirtyTwoDiv;
+            (secLenBeat * 1000)::ms => dur beat;
+            ((secLenBeat * 1000) * 2)::ms => dur whole;
+            (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
              
 
             ${uploadedFilesToChuckString.current}
             // ${uploadedFilesCodeString.current}
-
-
 
 
 
@@ -878,12 +868,15 @@ export default function InitializationComponent() {
                     ${osc1ChuckToOutlet}
        
                     // saw1 ${osc1FXStringToChuck.current} => dac;
-  
                    ${osc2ChuckToOutlet}
+
+            
+                    ${winFuncCodeStringOsc1}
+
                     // 880 => sintest.freq;
                     Noise noiseSource => lpf;
 
-                    // ${connectorStk1DirectToDac}
+                    ${connectorStk1DirectToDac}
              
               
                     // ${osc1FXStringToChuck.current}
@@ -923,20 +916,18 @@ export default function InitializationComponent() {
                     ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(2)} => limiter.thresh;
 
                     0.1 => saw1.gain => saw2.gain;
-                    0.15 => tri1.gain => tri2.gain;
-                    0.15 => sqr1.gain => sqr2.gain;
+                    0.45 => tri1.gain => tri2.gain;
+                    0.3 => sqr1.gain => sqr2.gain;
 
                     10.0 => float filterCutoff;
                     filterCutoff => lpf.freq;
 
 
                     ${parseInt(moogGrandmotherEffects.current.adsrAttack.value)}::ms => adsr.attackTime;
-                
                     ${parseInt(moogGrandmotherEffects.current.adsrDecay.value)}::ms => adsr.decayTime;
                     ${moogGrandmotherEffects.current.adsrSustain.value} => float susLevel; 
                     (susLevel) => adsr.sustainLevel;
                     ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
-
                     ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
                     880 => float filterEnv;
 
@@ -959,7 +950,6 @@ export default function InitializationComponent() {
                         Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
                         1 => adsr.keyOn;
                         spork ~ filterEnvelope();
-                        
                     }
 
                     fun void ChooseOsc1(int oscType)
@@ -1075,7 +1065,7 @@ export default function InitializationComponent() {
                         while((adsr.state() != 0 && adsr.value() == 0) == false)
                         {
                             (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
-                            10::ms => now;
+                            adsr.releaseTime() => now;  
                         }
                     }
 
@@ -1147,6 +1137,7 @@ export default function InitializationComponent() {
 
                     fun void stk1(float note)
                     {
+                        <<< "YO NOTE HERE: " + note >>>;
                        ${stk1Code}
                     }
 
@@ -1193,17 +1184,24 @@ export default function InitializationComponent() {
                     //     }
                     //     0.02 * (amount / 100) => rev.mix;
                     // }
+
+   
                 }
 
                 SynthVoice voice ${osc1FXStringToChuck.current} => HPF hpf => dac;
+
+                
+                
+                
+
+                ${osc1FxStringNeedsBlackhole.current}
 
                 // ${osc1FXString.current}
 
                 ${finalOsc1Code}
 
-                ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
 
-                [1,2,3,4,5,6,7,8] @=> int notes[];
+                ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
                 
                 ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice.cutoff;
                 ${moogGrandmotherEffects.current.rez.value} => voice.rez;
@@ -1219,71 +1217,175 @@ export default function InitializationComponent() {
                 880 => voice.filterEnv;
                 0 => voice.noise;
 
-
                 0 => int count;
-                while(${!chuckUpdateNeeded})
-                // while(true)
+
+                 
+    
+        
+
+
+                
+
+                SndBuf kick => dac;
+                SndBuf snare => dac;
+                SndBuf cHat => dac;
+                SndBuf oHat => dac;
+
+                me.dir() + "DR-55Kick.wav" => string kickFilename;
+                me.dir() + "DR-55Snare.wav" => string snareFilename;
+                me.dir() + "DR-55Hat.wav" => string cHatFilename;
+                me.dir() + "DR-55Pop.wav" => string oHatFilename;
+
+                kickFilename => kick.read;
+                snareFilename => snare.read;
+                cHatFilename => cHat.read;
+                oHatFilename => oHat.read;
+
+                fun void SilenceAllBuffers()
                 {
+                    kick.samples() => kick.pos;
+                    snare.samples() => snare.pos;
+                    oHat.samples() => oHat.pos;
+                    cHat.samples() => cHat.pos;
+                }
+
+                bar => now;
+
+                fun void playWindow(WinFuncEnv @ win, dur attack, dur release) {
+                    win.attackTime(attack);
+                    win.releaseTime(release);
+                    while (true) {
+                        win.keyOn();
+                        attack => now;
+                        win.keyOff();
+                        release => now;
+                    }
+                }
+
+                fun void Drum(int select, dur duration)
+                {
+                    if(select == 0)
+                    {
+                        0 => kick.pos; 
+                        0 => cHat.pos;
+                    }
+                    if(select == 1)
+                    {
+                        0 => oHat.pos;
+                    }
+                    if(select == 2)
+                    {
+                        0 => kick.pos; 
+                        0 => cHat.pos;
+                        0 => snare.pos;
+                    }
+                    if(select == 3)
+                    {
+                        0 => snare.pos;
+                    }
+                    duration => now;
+                    SilenceAllBuffers();
+                    me.exit();
+                }
+
+                SilenceAllBuffers();
+
+
+
+
+                
+
+
+                fun void PlaySynthNotes(int notesToPlay[], dur duration) {
                     ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(2)} => voice.env;
                     ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
+
                     
 
-                   
-                    
 
-                    if (Machine.numShreds() < 9) {
 
-                        if (Machine.shreds().size() >= 0) {
-                            for (0 => int shrd; shrd < Machine.shreds().size() - 1; shrd++) {
-                                if (shrd < Machine.shreds().size() - 4) {
-                                    // Machine.remove(Machine.shreds()[shrd]);
-                                }
-                            };
+                    while (true) {
+                        // ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(2)} => voice.env;
+                        // ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
+                        count % (notesToPlay.size()) => int osc1Idx;
+                        <<< notesToPlay[osc1Idx] >>>;
+                        for (0 => int i; i < notesToPlay.size(); i++) {
+                            if (notesToPlay[i] != -1) {
+                                notesToPlay[i] + 24 => voice.keyOn;
+                            }
+                            duration / notesToPlay.size() => now;
                         }
-
-
-                        count % (notes.size()) => int osc1Idx;
-<<< notes[osc1Idx] >>>;
-                        notes[osc1Idx] + 24 => voice.keyOn; 
-
-
-
-
-
-                        notes[Math.random2(0, notes.cap()-1)] + 24 => voice.stk1;
-
-                        ${uploadedFilesCodeString.current}
-
-///////  
-        
-// SinOsc s => WinFuncEnv win1 ${osc1FXStringToChuck.current}  => dac;
-
-// win1.setBlackman();
-// win1.attackTime(100::ms);
-// win1.releaseTime(1000::ms);
-// win1.keyOn();
-// 100::ms => now;
-// win1.keyOff();
-// <<< "HERE!" >>>;
-// 1000::ms => now;
-///////
-
-                        beat => now;
-                        <<< "****** ", Machine.numShreds() >>>;
+                        duration => now;
                         1 => voice.keyOff;
-                        count++;
-                    } else {
-                        // if (${bpm} > 200) {
-                            // Machine.removeAllShreds();
-                            // Machine.resetShredID();
-                            <<< "rerunChuck" >>>;
-                        // }
-                        1::ms => now;
-                        1 => voice.keyOff;
-                    }    
+                    }
                     
-                    1 => voice.keyOff;
                 }
+
+                fun void PlaySTK(int notesToPlay[], dur duration){
+
+                    count % (notesToPlay.size()) => int stk1Idx;
+                    while (true) {
+                        
+                      
+                        for (0 => int i; i < notesToPlay.cap(); i++) {
+                            <<< notesToPlay[i] >>>;
+                            if (notesToPlay[i] != -1) {
+                                notesToPlay[i] + 24 => voice.stk1;
+                            }
+                            duration / notesToPlay.size() => now;
+                        }
+                    
+
+                    }
+
+                }
+
+
+
+                
+                fun void PlaySamples(string codeString) {
+                    ${uploadedFilesCodeString.current}
+                }
+
+                fun void PlaySamplePattern(int samplesArrayPos, int notesToPlay[], dur duration) {                
+                    count % (notesToPlay.size()) => int sampler1Idx;
+                    
+                    <<< samplesArrayPos >>>;
+                    while (true) {
+                        for (0 => int i; i < notesToPlay.size(); i++) {
+                            <<< "NOTE!!! ", notesToPlay[i] >>>;
+                            spork ~ Drum(notesToPlay[i], duration);
+                            duration/notesToPlay.size() => now;
+                        }   
+                    }
+                }
+
+                [1,4] @=> int notes[];
+
+                [1,3,3,1] @=> int sample1Notes[];
+                [1, 4, 1, 3] @=> int sample2Notes[];
+                [1,4] @=> int sample3Notes[];
+                [1,-1,4,-1,5,-1] @=> int stkNotes[];
+
+                            
+                  
+                <<< count >>>; 
+                spork ~ PlaySTK(stkNotes, whole * 4);           
+                
+                spork ~ PlaySamplePattern(0, sample1Notes, whole);
+                // spork ~ PlaySamplePattern(0, sample2Notes, whole);
+                
+                spork ~ PlaySynthNotes(notes, whole);
+                
+                // spork ~ playWindow(winfuncenv_o1, whole/2, whole/2);
+                                        
+                while(${!chuckUpdateNeeded}) {
+                    
+                    beat => now; 
+                    // 1 => voice.keyOff;
+                    <<< "****** ", Machine.numShreds() >>>;
+                    count++;
+                }                
             `);
 
         } else {
@@ -1347,7 +1449,7 @@ export default function InitializationComponent() {
             filesGenericCodeString.current = filesGenericCodeString.current + codeString;
         });
         // console.log('TO CHUK AUDIO FILE: ', filesChuckToDac.current);
-        // console.log('TO CHUCK AUDIO CODE ', filesGenericCodeString.current);
+        console.log('%cTO CHUCK AUDIO CODE ', 'color: orange;', filesGenericCodeString.current);
         // console.log('TEST? ', test);
         
         const getStk1String: any = await stkFXToString();
@@ -1409,9 +1511,9 @@ export default function InitializationComponent() {
         setOsc1Code(OSC_1_Code);
         
         
-        console.log('STK_1_Code !!!!!!! ', stk1Code);
+        console.log('%cSTK_1_Code !!!!!!! ', 'orange', stk1Code);
         // console.log('STK_2_Code %%%%%%% ', stk2Code);
-        console.log('OSC_1_Code %%%%%%% ', osc1Code);
+        console.log('%cOSC_1_Code %%%%%%% ', 'color: orange;', osc1Code);
 
         runMainChuckCode(aChuck, getStk1String);
 
@@ -1422,9 +1524,9 @@ export default function InitializationComponent() {
     useEffect(() => {
         (async() => {
             // await aChuck?.createFile("", uploadedFile[0], uploadedFile[1]);
-            await aChuck?.runCode(`SndBuf buffer => dac;
+            await aChuck?.runCode(`SndBuf buffer => NRev nrTest => dac;
 
-
+            0.8 => nrTest.mix;
             ${uploadedFiles.current[0].name} => buffer;
             buffer.samples() => buffer.pos;
             
@@ -1549,14 +1651,7 @@ export default function InitializationComponent() {
             currentFX.current = fxFX.current[0].presets;
             console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
             currentFX.current[`${obj.name}`].value = value;
-                      
-            // IF WE HIT THIS EFFECT, THE CHANGE SEEMS TO BE IN GOOD SHAPE
-            // console.log('ALL PERSISTENT Inside FX###s ', allFxPersistent.current);
-            // alert('we should be good to add vals here');
         }
-        // console.log('ALL PERSISTENT FX###s ', allFxPersistent.current);
-        // tk
-        //setChuckUpdateNeeded(true);
     };
 
     const handleChangeBPM = (newBpm: number) => {
@@ -1566,16 +1661,16 @@ export default function InitializationComponent() {
         setChuckUpdateNeeded(true);
     }
 
-    const handleChangeBeatsNumerator = (newBpm: number) => {
-        if (newBpm) {
-            setBeatsNumerator(Number(newBpm));
+    const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
+        if (newBeatsNumerator) {
+            setBeatsNumerator(Number(newBeatsNumerator));
         }
         setChuckUpdateNeeded(true);
     }
 
-    const handleChangeBeatsDenominator = (newBpm: number) => {
-        if (newBpm) {
-            setBeatsDenominator(Number(newBpm));
+    const handleChangeBeatsDenominator = (newDenominator: number) => {
+        if (newDenominator) {
+            setBeatsDenominator(Number(newDenominator));
         }
         setChuckUpdateNeeded(true);
     }
@@ -1597,6 +1692,7 @@ export default function InitializationComponent() {
     }
 
     const updateFileUploads = () => {
+        console.log('%cDO WE GET CONTACT HERE ON FILE UPLOOAD? ', 'color: cyan');
         // const test = new Promise((resolve, reject) => {
         //     resolve(axios.post(`${baseUrl}/api/upload_files`, {
         //         // headers: {
@@ -1608,23 +1704,22 @@ export default function InitializationComponent() {
     };
 
     const playUploadedFile = (e?: any) => {
-        alert('in play upload file')
         if (!chuckHook) {
             return;
         }
         const theFile = e ? e: lastFileUpload;
         // if (!uploadedFileName) return;
-        console.log('what are we looking at here? ', theFile);
+        console.log('%cwhat is the uploaded file? ', 'color: beige;', theFile);
         chuckHook.loadFile(`./src/tmp/${theFile}`);
         // chuckHook.loadFile("/readData.ck")
-        if (!tActive) { 
-            chuckHook.runFileWithArgs("/readData.ck", `${bpm}:${numeratorSignature}:${denominatorSignature}:/${theFile}`);
-            setTActive(true);
-        } else {
-            // chuckHook.removeLastCode();
-            chuckHook.replaceFileWithArgs("/readData.ck", `${bpm}:${numeratorSignature}:${denominatorSignature}:/${theFile}`);
-        }
-        console.log('ran chuck code');
+        // if (!tActive) { 
+        //     chuckHook.runFileWithArgs("/readData.ck", `${bpm}:${numeratorSignature}:${denominatorSignature}:/${theFile}`);
+        //     setTActive(true);
+        // } else {
+        //     // chuckHook.removeLastCode();
+        //     chuckHook.replaceFileWithArgs("/readData.ck", `${bpm}:${numeratorSignature}:${denominatorSignature}:/${theFile}`);
+        // }
+        // console.log('ran chuck code');
     };
 
     useEffect(() => {
@@ -1635,10 +1730,6 @@ export default function InitializationComponent() {
         }
     }, [lastChuckMessage]);
 
-    useEffect(() => {
-        // IF WE HIT THIS EFFECT, THE CHANGE SEEMS TO BE IN GOOD SHAPE
-        console.log('do we hear currentFX.current CHANGE? ', currentFX.current);
-    }, [currentFX])
 
     const handleShowFiles = (e: any) => {
         setShowFiles(!showFiles);
@@ -1656,15 +1747,6 @@ export default function InitializationComponent() {
                 </Box> */}
 
        
-
-{/* <Grid style={{ left: '0px', bottom: '80px', position: 'absolute'}} container spacing={2}>
-    {allFxPersisent.current.map((fx:any, i:number) => {
-        return <Grid sx={{}} item xs={1}>
-            yooo: fx.data.name {i}
-        </Grid>
-    })}
-</Grid> */}
-
 
                     <FXRouting
                         key={fXChainKey + fxRadioValue} 
@@ -1753,32 +1835,7 @@ export default function InitializationComponent() {
                             // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
                             filesToProcess={filesToProcess.current}
                         />
-
-                    {/* {stkValues.length > 0 || currentScreen.current !== 'synth' ? */}
                         <ToggleFXView handleReturnToSynth={handleReturnToSynth}/> 
-
-                        {/* : <></>
-                    // } */}
-
-                        {/* <ToggleFXView updateCurrentFXScreen={updateCurrentFXScreen}/> */}
-                        {/* <ShowFXView handleShowFX={handleShowFX}/> */}
-                        {/* <FixedOptionsDropdown/> */}
-                        {/* {<FixedOptionsDropdown 
-                            updateStkKnobs={
-                                (e: STKOption[]) => updateStkKnobs(e)
-                            } 
-                            stkValues={stkValues} 
-                            setStkValues={setStkValues} 
-                            
-                        />} */}
-        {/* <form onSubmit={handleSubmit(onSubmit)}>
-            <input 
-              type="file" 
-              {...register("file") } />
-
-            <input type="submit" />
-        </form> */}
-        
                     </Box>
                 </Box>
             )}

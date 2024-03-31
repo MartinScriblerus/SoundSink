@@ -21,17 +21,17 @@ const rhodeyPresets = { // .clair
     lfoSpeed: {
         name: "lfoSpeed",
         label: "LFO Speed",
-        value: 1.0,
-        min: 0,
-        max: 1,
+        value: 11.0,
+        min: 0.0,
+        max: 12.0,
         screenInterface: "knob",
     }, // freq in hZ
     lfoDepth: {
         name: "lfoDepth",
         label: "LFO Depth",
-        value: 0.2,
-        min: 0,
-        max: 1,
+        value: 1.0,
+        min: 0.0,
+        max: 12.0,
         screenInterface: "knob",
     },
     // opADSR_op: {
