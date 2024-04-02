@@ -20,94 +20,94 @@ export const stkIdentifierPowerADSR = "PowerADSR";
             // 7. Envelopes
 
 const powerADSRPresets = {
-    attack: {
-        name: "attack",
-        label: "Attack Dur",
-        value: 1, // default 1000
-        min: 1,
-        max: 2000,
-        screenInterface: "intspinner",
-        type: "dur_dur",
-        group: 4,
-    },
+    // attack: {
+    //     name: "attack",
+    //     label: "Attack Dur",
+    //     value: 1, // default 1000
+    //     min: 1,
+    //     max: 2000,
+    //     screenInterface: "intspinner",
+    //     type: "dur",
+    //     group: 4,
+    // },
     attackCurve: {
         name: "attackCurve",
         label: "Attack Curve",
-        value: 0.01, // default 0.5
+        value: 0.5, // default 0.5
         min: 0.01,
         max: 4,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float_needsFun_powerADSR",
         group: 4,
     },
     attackTime: { // # of comb filters (default 5)
         name: "attackTime",
         label: "Attack Time",
-        value: 1,
+        value: 1000,
         min: 1,
         max: 2000,
         screenInterface: "intspinner",
-        type: "dur_dur",
+        type: "dur_needsFun_powerADSR",
         group: 4,
     },
-    decay: {
-        name: "decay",
-        label: "Decay",
-        value: 0.01,
-        min: 0.01,
-        max: 3000,
-        screenInterface: "knob",
-        type: "dur_dur",
-        group: 4,
-    },
+    // decay: {
+    //     name: "decay",
+    //     label: "Decay",
+    //     value: 0.01,
+    //     min: 0.01,
+    //     max: 3000,
+    //     screenInterface: "knob",
+    //     type: "dur",
+    //     group: 4,
+    // },
     decayCurve: {
         name: "decayCurve",
         label: "Decay Curve",
-        value: 0.01, // default 1.25
+        value: 1.25, // default 1.25
         min: 0.01,
         max: 3,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float_needsFun_powerADSR",
         group: 4,
     },
     decayTime: {
         name: "decayTime",
         label: "Decay Time",
-        value: 0.01, // 1000 ms default
-        min: 0.01,
+        value: 1000, // 1000 ms default
+        min: 1,
         max: 2000,
-        screenInterface: "knob",
-        type: "dur_dur",
+        screenInterface: "intspinner",
+        type: "dur_needsFun_powerADSR",
         group: 4,
     },
-    release: {
-        name: "release",
-        label: "Release",
-        value: 0.01,
-        min: 0.01,
-        max: 2000,
-        screenInterface: "knob",
-        type: "dur_dur",
-        group: 4,
-    },
+    // release: {
+    //     name: "release",
+    //     label: "Release",
+    //     value: 0.01,
+    //     min: 0.01,
+    //     max: 2000,
+    //     screenInterface: "knob",
+    //     type: "dur",
+    //     group: 4,
+    // },
     releaseCurve: {
         name: "releaseCurve",
         label: "Release Curve",
-        value: 1.0, // default 1.5
+        value: 1.5, // default 1.5
         min: 0.01,
         max: 3,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float_needsFun_powerADSR",
         group: 4,
     },
     releaseTime: {
         name: "releaseTime",
         label: "Release Time",
-        value: 1,
+        value: 1000,
         min: 1,
         max: 2000,
         screenInterface: "intspinner",
-        type: "dur_dur",
+        type: "dur_needsFun_powerADSR",
         group: 4,
     },
     sustainLevel: {
@@ -117,10 +117,39 @@ const powerADSRPresets = {
         min: 0.01,
         max: 1,
         screenInterface: "knob",
-        type: "float_float",
+        type: "float_needsFun_powerADSR",
         group: 4,
     },
-    
+    // quantizeAttackTime: {
+    //     name: "quantizeAttackTime",
+    //     label: "Quant Attack",
+    //     value: 0, // default 0.8
+    //     min: 0,
+    //     max: 7,
+    //     screenInterface: "knob",
+    //     type: "float_needsFun_powerADSR",
+    //     group: 4,       
+    // },
+    // quantizeReleaseTime: {
+    //     name: "quantizeReleaseTime",
+    //     label: "Quant Release",
+    //     value: 0, // default 0.8
+    //     min: 0,
+    //     max: 7,
+    //     screenInterface: "knob",
+    //     type: "float_needsFun_powerADSR",
+    //     group: 4,
+    // },
+    // quantizationOn: {
+    //     name: "quantizationOn",
+    //     label: "Quantize On",
+    //     value: 0, // default 0.8
+    //     min: 0,
+    //     max: 1,
+    //     screenInterface: "intspinner",
+    //     type: "int_needsFun_powerADSR",
+    //     group: 4,
+    // }
 };
 
 export default powerADSRPresets;

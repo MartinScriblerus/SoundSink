@@ -29,7 +29,7 @@ import { useForm } from "react-hook-form";
 import FileManager from './FileManager';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import { convertEnvSetting } from '@/utils/FXHelpers/winFuncEnvHelper';
-import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
+// import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
 // }
@@ -97,8 +97,10 @@ export default function InitializationComponent() {
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
     const [lastChuckMessage, setLastChuckMessage] = useState<string>("");
-    // const [osc1WinEnvOn, setOsc1WinEnvOn] = useState<boolean>(false);
+
     const osc1WinEnvOn = useRef<any>(false);
+    const osc1PowerADSROn = useRef<any>(false);
+    const osc1ExpEnvOn = useRef<any>(false);
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
         Osc1: [],
@@ -159,7 +161,7 @@ export default function InitializationComponent() {
     const stk1Var = useRef<string | undefined>('');
     const stk2Type = useRef<string | undefined>('');
     const stk2Var = useRef<string | undefined>('');
-    const [useStkDirect, setUseDtkDirect] = useState<boolean>(false)
+    const [useStkDirect, setUseDtkDirect] = useState<boolean>(true);
 
     const filesToProcess = useRef<Array<any>>([]);
     const uploadedFiles = useRef<Array<any>>([]);
@@ -185,6 +187,32 @@ export default function InitializationComponent() {
         sampler: '',
         audioIn: '',
     });
+    const powerADSRFinalHelper = useRef<any>({
+        osc1: {
+            attackTime: 1000,
+            attackCurve: 0.5,
+            decayTime: 1000,
+            decayCurve: 1.25,
+            sustainLevel: 0.5,
+            releaseTime: 1000,
+            releaseCurve: 1.5,
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
+    const expEnvFinalHelper = useRef<any>({
+        osc1: {
+            T60: 3,
+            radius: 0.995,
+            value: 0,
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    })
 
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
 
@@ -475,7 +503,6 @@ export default function InitializationComponent() {
         if (!babylonGame.current || !babylonGame.current.engine) {
             return;
         }
-
     
         if (currentScreen.current === 'fx_' && stkValsRef.current.length > 0 ) {
             stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
@@ -628,14 +655,16 @@ export default function InitializationComponent() {
         
         stk1Type.current = stkFX.current.type;
         stk1Var.current = stkFX.current.var;
+
         // *********************************** STK2 WILL NEED UPDATING!!!
         if (stkFX2.current && stkFX2.current.length > 1) {
             stk2Type.current = stkFX2.current.type;
             stk2Var.current = stkFX2.current.var + '2';
         }
+        // ***********************************
 
         Object.values(stkFX.current.presets).map((preset: any) => {
-            console.log('STK PRESET: ', preset);
+            console.log('STK PRESET: ', preset); // preset.name
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
             stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
         });
@@ -653,7 +682,42 @@ export default function InitializationComponent() {
 
     const winFuncString = (source: string, attackDenom: number, releaseDenom: number, envSetting: string) => `winfuncenv_${source}.set${envSetting}(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_${source}, whole/${attackDenom}, whole/${releaseDenom}); }`;
 
+    const powerADSRString = (source: string, attackTime: number, attackCurve: number, decayTime: number, decayCurve: number, sustainLevel: number, releaseTime: number, releaseCurve: number) => `
+
+        fun void playPowerADSRWindow(PowerADSR @ win, dur attackTime, float attackCurve, dur decayTime, float decayCurve, float sustainLevel, dur releaseTime, float releaseCurve) {
+            win.set(attackTime, decayTime, sustainLevel, releaseTime);
+            win.setCurves(attackCurve, decayCurve, releaseCurve);
+            while (true) {
+                win.keyOn();
+                attackTime => now;
+                win.keyOff();
+                releaseTime => now;
+            }
+        }
+        spork ~ playPowerADSRWindow(poweradsr_${source}, ${attackTime}::ms, ${attackCurve}, ${decayTime}::ms, ${decayCurve}, ${sustainLevel}, ${releaseTime}::ms, ${releaseCurve});
+
+    `;
+
+    const expEnvString = (source: string, T60: number, radius: number, value: number) => `
+
+        fun void playExpEnvWindow(ExpEnv @ win, dur T60, float radius, dur value) {
+            radius => win.radius;    
+            T60 => win.T60; 
+            1 => win.keyOn; 
+            value => now;
+            while (1)  {
+                1.0 => win.gain;
+                1 => win.keyOn;
+                value => now;
+            }
+        }
+        spork ~ playExpEnvWindow(expenv_${source}, whole/${Math.pow(2, T60)}, ${radius}, whole/${Math.pow(2,value)});
+    `
+
     const osc1FXToString = () => {
+
+        // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
+        // =================================================================
         Object.values(allFxPersistent.current.Osc1).map((o1: any) => {
             if (osc1FXStringToChuck.current.indexOf(`${o1.var}_o1`) === -1) {
                 if (o1.type === "PitchTrack") {
@@ -663,18 +727,41 @@ export default function InitializationComponent() {
                     return;
                 } else if (o1.type === "WinFuncEnv") {
                     osc1WinEnvOn.current = true;
-                 }else {
+                 } else if (o1.type === "PowerADSR") {
+                    osc1PowerADSROn.current = true;
+                 } else if (o1.type === "ExpEnv") {
+                    osc1ExpEnvOn.current = true;
+                 }
+
+                
+                // TODO => All of ExpEnv
+                // TODO => All of WPDiodeLadder
+                // TODO => All of WPKorg35
+                // TODO => Modulation loop on Modulate
+                // TODO => All of Delay Lines Implementation
+                // TODO => Ascending/Descending Pitch & EQ + Feedback effects on Spectacle
+                // TODO => Basic Implementation of Sampler Interface / Play Logic
+                // TODO => All of SndBuf Implementation
+                // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
+                // TODO => All of Sigmund
+                // TODO => All of Autotune (PitchTrack implelementation)
+                // TODO => All of the Gains & Note Swells (create a mixer W PANNING!??)
+                // TODO => Add other Osc Ugens to Synthvoice
+                // TODO => All of UAna Generics for Analysis Blobs
+
+                // AFTER ALL OF THIS, WE CAN LEVEL OUT (OR MAKE FACTORY OF FX CODE FOR ALL SOURCES)
+                // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
+                 
+                 else {
                     osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${o1.type} ${o1.var}_o1 `)
                 }
             }
      
-
+            // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
+            // =================================================================
             Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async(preset: any, idx: number) => {
+                // ******** TODO change to read type directly from o1.type
                 if (preset.type.includes("_needsFun")) {
-                    
-                    console.log('What IS PRESET: ', preset);
-                    console.log('What IS O1 ATTACK ??? ',  Math.pow(2, preset.value))
-
                     if (preset.type.includes("_winFuncEnv")) {
                         if (preset.name === "attackTime") {
                             winFuncEnvFinalHelper.current.osc1.attackTime = Math.pow(2, Number(preset.value));
@@ -684,6 +771,27 @@ export default function InitializationComponent() {
                             winFuncEnvFinalHelper.current.osc1.envSetting = convertEnvSetting(preset.value);
                         } else {
                         }   
+                    }
+                    if (preset.type.includes("_powerADSR")) {
+                        // add quantization / feedback etc later
+                        if (preset.name === "attackTime") {
+                            powerADSRFinalHelper.current.osc1.attackTime = preset.value;
+                        } else if (preset.name === "attackCurve") {
+                            powerADSRFinalHelper.current.osc1.attackCurve = preset.value;
+                        } else if (preset.name === "releaseTime") {
+                            powerADSRFinalHelper.current.osc1.releaseTime = preset.value;
+                        } else if (preset.name === "releaseCurve") {
+                            powerADSRFinalHelper.current.osc1.releaseCurve = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_expEnv")) {
+                        if (preset.name === "T60") {
+                            expEnvFinalHelper.current.osc1.T60 = preset.value;
+                        } else if (preset.name === "radius") {
+                            expEnvFinalHelper.current.osc1.radius = preset.value;
+                        } else if (preset.name === "value") {
+                            expEnvFinalHelper.current.osc1.value = preset.value;
+                        }
                     }
 
                 } else {
@@ -708,7 +816,7 @@ export default function InitializationComponent() {
                         console.log('%cPRESET VAR / NAME: ', 'color: limegreen;', o1.var, preset.name);
   
                     } else {
-                        alert('in the else');
+                       
                         osc1FXString.current = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
                     }
                     console.log('%cCHECK OSC1 STRING CURRENT: ', 'color: aqua;', osc1FXString.current);
@@ -834,10 +942,15 @@ export default function InitializationComponent() {
             const connectorStk1DirectToDac = getStk1String && useStkDirect ? `${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; winfuncenv_stk1.setHann(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_stk1, whole/${16}, whole/${16}); }` : ``;
 
             const winFuncDeclarationOsc1 = osc1WinEnvOn.current ? ' WinFuncEnv winfuncenv_o1 =>' : '';
+            const powerADSRDeclarationOsc1 = osc1PowerADSROn.current ? ' PowerADSR poweradsr_o1 =>' : '';
+            const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>': '';
+
             console.log('fucking sanity: ', winFuncEnvFinalHelper.current);
             const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
+            const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
+            const expEnvCodeStringOsc1 = osc1ExpEnvOn.current ? expEnvString('o1', expEnvFinalHelper.current.osc1.T60, expEnvFinalHelper.current.osc1.radius, expEnvFinalHelper.current.osc1.value) : '';
 
-            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} outlet;`;
+            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} outlet;`;
             
             console.log('%cWHAT IS CHUCK OUTLET? ', 'color: limegreen;', osc1ChuckToOutlet);
 
@@ -872,6 +985,8 @@ export default function InitializationComponent() {
 
             
                     ${winFuncCodeStringOsc1}
+                    ${powerADSRCodeStringOsc1}
+                    ${expEnvCodeStringOsc1}
 
                     // 880 => sintest.freq;
                     Noise noiseSource => lpf;
@@ -926,7 +1041,7 @@ export default function InitializationComponent() {
                     ${parseInt(moogGrandmotherEffects.current.adsrAttack.value)}::ms => adsr.attackTime;
                     ${parseInt(moogGrandmotherEffects.current.adsrDecay.value)}::ms => adsr.decayTime;
                     ${moogGrandmotherEffects.current.adsrSustain.value} => float susLevel; 
-                    (susLevel) => adsr.sustainLevel;
+                    susLevel => adsr.sustainLevel;
                     ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
                     ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
                     880 => float filterEnv;
@@ -1300,10 +1415,7 @@ export default function InitializationComponent() {
                     ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(2)} => voice.env;
                     ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
 
-                    
-
-
-
+    
                     while (true) {
                         // ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(2)} => voice.env;
                         // ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
@@ -1323,9 +1435,9 @@ export default function InitializationComponent() {
 
                 fun void PlaySTK(int notesToPlay[], dur duration){
 
-                    count % (notesToPlay.size()) => int stk1Idx;
+                    // count % (notesToPlay.size()) => int stk1Idx;
                     while (true) {
-                        
+                        count % (notesToPlay.size()) => int stk1Idx;
                       
                         for (0 => int i; i < notesToPlay.cap(); i++) {
                             <<< notesToPlay[i] >>>;
@@ -1334,13 +1446,8 @@ export default function InitializationComponent() {
                             }
                             duration / notesToPlay.size() => now;
                         }
-                    
-
                     }
-
                 }
-
-
 
                 
                 fun void PlaySamples(string codeString) {
@@ -1348,10 +1455,11 @@ export default function InitializationComponent() {
                 }
 
                 fun void PlaySamplePattern(int samplesArrayPos, int notesToPlay[], dur duration) {                
-                    count % (notesToPlay.size()) => int sampler1Idx;
+                    // count % (notesToPlay.size()) => int sampler1Idx;
                     
                     <<< samplesArrayPos >>>;
                     while (true) {
+                        count % (notesToPlay.size()) => int sampler1Idx;
                         for (0 => int i; i < notesToPlay.size(); i++) {
                             <<< "NOTE!!! ", notesToPlay[i] >>>;
                             spork ~ Drum(notesToPlay[i], duration);
@@ -1361,7 +1469,6 @@ export default function InitializationComponent() {
                 }
 
                 [1,4] @=> int notes[];
-
                 [1,3,3,1] @=> int sample1Notes[];
                 [1, 4, 1, 3] @=> int sample2Notes[];
                 [1,4] @=> int sample3Notes[];
@@ -1370,7 +1477,7 @@ export default function InitializationComponent() {
                             
                   
                 <<< count >>>; 
-                spork ~ PlaySTK(stkNotes, whole * 4);           
+                spork ~ PlaySTK(stkNotes, whole);           
                 
                 spork ~ PlaySamplePattern(0, sample1Notes, whole);
                 // spork ~ PlaySamplePattern(0, sample2Notes, whole);
@@ -1486,6 +1593,8 @@ export default function InitializationComponent() {
             Std.mtof(note + 32) => ${getStk1String[2]}.freq;
 
             1 => ${getStk1String[2]}.noteOn;
+
+     
         ` : '';
 
         // TODO 2nd STK NOT YET IMPLEMENTED

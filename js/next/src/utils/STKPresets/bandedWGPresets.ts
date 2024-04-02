@@ -2,26 +2,26 @@ export const stkVariableBandedWg = "wg";
 export const stkIdentifierBandedWg = "BandedWG";
 
 const bandedWGPresets = {
-    bowPressure: {
-        name: "bowPressure",
-        label: "Bow Pressure",
-        value: 0.0,
-        min: 0.0,
-        max: 1.0,
-        screenInterface: "knob",
-    },
+    // bowPressure: {
+    //     name: "bowPressure",
+    //     label: "Bow Pressure",
+    //     value: 0.01,
+    //     min: 0.0,
+    //     max: 0.1,
+    //     screenInterface: "knob",
+    // },
     bowMotion: {
         name: "bowMotion",
         label: "Bow Motion",
-        value: 0.5,
+        value: 0.9,
         min: 0.01,
         max: 1.0,
-        screenInterface: "knob",
+        screenInterface: "intspinner",
     },
     bowRate: {
         name: "bowRate",
         label: "Bow Rate",
-        value: 0.2,
+        value: 0.01,
         min: 0.0,
         max: 1.0,
         screenInterface: "float",
@@ -34,28 +34,36 @@ const bandedWGPresets = {
         max: 1,
         screenInterface: "knob",
     }, // rate in seconds
-    integrationConstant: {
-        name: "integrationConstant",
-        label: "Integration Constant",
-        value: 0.5,
-        min: 0.01,
-        max: 1.0,
-        screenInterface: "knob",
-    }, // freq in hZ
-    modesGain: {
-        name: "modesGain",
-        label: "Modes Gain",
-        value: 0.2,
+    // integrationConstant: {
+    //     name: "integrationConstant",
+    //     label: "Integration Constant",
+    //     value: 0.5,
+    //     min: 0.01,
+    //     max: 1.0,
+    //     screenInterface: "knob",
+    // }, // freq in hZ
+    // modesGain: {
+    //     name: "modesGain",
+    //     label: "Modes Gain",
+    //     value: 2.0,
+    //     min: 0.0,
+    //     max: 4.0,
+    //     screenInterface: "knob",
+    // },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 16.0,
         min: 0.0,
-        max: 1.0,
+        max: 32.0,
         screenInterface: "knob",
     },
     preset: { // 0 -> uniform bar / 1 -> Tuned Bar / 2 -> Glass Harmonica  3 -> Tibetan Bowl
         name: "preset",
         label: "Preset",
-        value: 0.0,
-        min: 0.0,
-        max: 3.0,
+        value: 2,
+        min: 0,
+        max: 3,
         screenInterface: "intspinner",
     },
     pluck: {
@@ -69,27 +77,27 @@ const bandedWGPresets = {
     startBowing: {
         name: "startBowing",
         label: "Start Bowing",
-        value: 1.0,
-        min: 0.0,
-        max: 1.0,
-        screenInterface: "knob",
-    },
-    stopBowing: {
-        name: "stopBowing",
-        label: "Stop Bowing",
-        value: 0.0,
-        min: 0.0,
-        max: 1.0,
-        screenInterface: "knob",
-    },
-    noteOn: {
-        name: "noteOn",
-        label: "Note On",
-        value: 0,
+        value: 1,
         min: 0,
-        max: 1,
+        max: 7,
         screenInterface: "intspinner",
     },
+    // stopBowing: {
+    //     name: "stopBowing",
+    //     label: "Stop Bowing",
+    //     value: 0,
+    //     min: 0,
+    //     max: 7,
+    //     screenInterface: "intspinner",
+    // },
+    // noteOn: {
+    //     name: "noteOn",
+    //     label: "Note On",
+    //     value: 1,
+    //     min: 1,
+    //     max: 1,
+    //     screenInterface: "intspinner",
+    // },
 
     // reverb: {
     //     name: "reverb",

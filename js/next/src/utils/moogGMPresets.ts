@@ -154,7 +154,7 @@ const moogGMPresets = {
     pitchMod: {
         name: "pitchMod",
         label: "Pitch Mod",
-        value: 9.5,
+        value: 0.5,
         min: 0,
         max: 100,
         screenInterface: "knob",
