@@ -124,7 +124,7 @@ const moogGMPresets = {
         label: "Release",
         value: 1,
         min: 0,
-        max: 1000,
+        max: 2000,
         screenInterface: "knob",
     }, // adsr release (0-100)
     limiterAttack: {

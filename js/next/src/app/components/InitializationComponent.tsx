@@ -101,6 +101,8 @@ export default function InitializationComponent() {
     const osc1WinEnvOn = useRef<any>(false);
     const osc1PowerADSROn = useRef<any>(false);
     const osc1ExpEnvOn = useRef<any>(false);
+    const osc1WPDiodeLadderOn = useRef<any>(false);
+
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
         Osc1: [],
@@ -212,7 +214,19 @@ export default function InitializationComponent() {
         stk1: {},
         sampler: {},
         audioIn: {},
-    })
+    });
+    const wpDiodeLadderFinalHelper = useRef<any>({
+        osc1: {
+            cutoff: 1,
+            nlp_type: 1,
+            nonlinear: 0,
+            saturation: 0.1
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
 
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
 
@@ -712,7 +726,37 @@ export default function InitializationComponent() {
             }
         }
         spork ~ playExpEnvWindow(expenv_${source}, whole/${Math.pow(2, T60)}, ${radius}, whole/${Math.pow(2,value)});
-    `
+    `;
+
+    const wpDiodeLadderString = (source: string, cutoff: number, nlp_type: number, nonlinear: number, saturation: number) => {
+        const nlp_str = nlp_type === 1 ? 'true' : 'false';
+        const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
+        console.log('saturation? ', saturation);
+        return `
+        fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int nlp_type, int nonlinear, float saturation) {
+            SinOsc sin => blackhole;
+            SinOsc sinb => blackhole;
+      
+            0.3 => sin.gain;
+            40 => sin.freq;
+            cutoff => sinb.freq;
+            // 0.0125 => sinb.freq;
+            17 => win.resonance;
+            nonlinear => win.nonlinear;
+            nlp_type => win.nlp_type;
+            saturation => win.saturation;
+            
+            0.5 => win.gain;
+
+            while(true){
+                4 * sinb.last() => sin.freq;
+                40 + (Math.pow((sinb.last())/2.0,2) * 17000) => win.cutoff;
+                1::samp => now;
+            }
+        }
+   
+        spork ~ playWpDiodeLadderWindow(wpdiodeladder_${source}, ${cutoff}, ${nlp_str}, ${nonlinear_str}, ${saturation});
+    `};
 
     const osc1FXToString = () => {
 
@@ -731,10 +775,12 @@ export default function InitializationComponent() {
                     osc1PowerADSROn.current = true;
                  } else if (o1.type === "ExpEnv") {
                     osc1ExpEnvOn.current = true;
+                 } else if (o1.type === "WPDiodeLadder") {
+                    osc1WPDiodeLadderOn.current = true;
                  }
 
                 
-                // TODO => All of ExpEnv
+         
                 // TODO => All of WPDiodeLadder
                 // TODO => All of WPKorg35
                 // TODO => Modulation loop on Modulate
@@ -791,6 +837,17 @@ export default function InitializationComponent() {
                             expEnvFinalHelper.current.osc1.radius = preset.value;
                         } else if (preset.name === "value") {
                             expEnvFinalHelper.current.osc1.value = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_diodeladder")) {
+                        if (preset.name === "cutoff") {
+                            wpDiodeLadderFinalHelper.current.osc1.cutoff = preset.value;
+                        } else if (preset.name === "nlp_type") {
+                            wpDiodeLadderFinalHelper.current.osc1.nlp_type = preset.value;
+                        } else if (preset.name === "nonlinear") {
+                            wpDiodeLadderFinalHelper.current.osc1.nonlinear = preset.value;
+                        } else if (preset.name === "saturation") {
+                            wpDiodeLadderFinalHelper.current.osc1.saturation = preset.value;
                         }
                     }
 
@@ -944,19 +1001,22 @@ export default function InitializationComponent() {
             const winFuncDeclarationOsc1 = osc1WinEnvOn.current ? ' WinFuncEnv winfuncenv_o1 =>' : '';
             const powerADSRDeclarationOsc1 = osc1PowerADSROn.current ? ' PowerADSR poweradsr_o1 =>' : '';
             const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>': '';
+            const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>': '';
 
             console.log('fucking sanity: ', winFuncEnvFinalHelper.current);
             const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
             const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
             const expEnvCodeStringOsc1 = osc1ExpEnvOn.current ? expEnvString('o1', expEnvFinalHelper.current.osc1.T60, expEnvFinalHelper.current.osc1.radius, expEnvFinalHelper.current.osc1.value) : '';
+            const wpDiodeLadderCodeStringOsc1 = osc1WPDiodeLadderOn.current ? wpDiodeLadderString('o1', wpDiodeLadderFinalHelper.current.osc1.cutoff, wpDiodeLadderFinalHelper.current.osc1.nlp_type, wpDiodeLadderFinalHelper.current.osc1.nonlinear, wpDiodeLadderFinalHelper.current.osc1.saturation ) : '';
 
-            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} outlet;`;
+            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} outlet;`;
             
             console.log('%cWHAT IS CHUCK OUTLET? ', 'color: limegreen;', osc1ChuckToOutlet);
 
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             const osc2ChuckToOutlet: string = ` SawOsc saw2 => lpf;`;
+            
             // const winFuncString = (source: string) => `winfuncenv_${source}.setHann(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_${source}, whole/${1}, whole/${1}); }`;
 
             const finalOsc1Code = Object.values(finalOsc1FxStringToChuck.current).length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',','') : '';
@@ -987,6 +1047,7 @@ export default function InitializationComponent() {
                     ${winFuncCodeStringOsc1}
                     ${powerADSRCodeStringOsc1}
                     ${expEnvCodeStringOsc1}
+                    ${wpDiodeLadderCodeStringOsc1}
 
                     // 880 => sintest.freq;
                     Noise noiseSource => lpf;
@@ -1426,6 +1487,7 @@ export default function InitializationComponent() {
                                 notesToPlay[i] + 24 => voice.keyOn;
                             }
                             duration / notesToPlay.size() => now;
+                            1 => voice.keyOff;
                         }
                         duration => now;
                         1 => voice.keyOff;
@@ -1492,7 +1554,9 @@ export default function InitializationComponent() {
                     // 1 => voice.keyOff;
                     <<< "****** ", Machine.numShreds() >>>;
                     count++;
-                }                
+         
+                }  
+                          
             `);
 
         } else {
