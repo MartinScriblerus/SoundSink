@@ -102,6 +102,11 @@ export default function InitializationComponent() {
     const osc1PowerADSROn = useRef<any>(false);
     const osc1ExpEnvOn = useRef<any>(false);
     const osc1WPDiodeLadderOn = useRef<any>(false);
+    const osc1WPKorg35On = useRef<any>(false);
+    const osc1ModulateOn = useRef<any>(false);
+    const osc1DelayOn = useRef<any>(false);
+    const osc1DelayAOn = useRef<any>(false);
+    const osc1DelayLOn = useRef<any>(false);
 
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
@@ -214,13 +219,70 @@ export default function InitializationComponent() {
         stk1: {},
         sampler: {},
         audioIn: {},
-    });
+    });  
     const wpDiodeLadderFinalHelper = useRef<any>({
         osc1: {
             cutoff: 1,
+            resonance: 17,
             nlp_type: 1,
             nonlinear: 0,
             saturation: 0.1
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
+    const wpKorg35FinalHelper = useRef<any>({
+        osc1: {
+            cutoff: 1,
+            resonance: 2,
+            nonlinear: 0,
+            saturation: 0.1
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
+    const modulateFinalHelper = useRef<any>({
+        osc1: {
+            vibratoRate: 6.0,
+            vibratoGain: 0.2,
+            randomGain: 0.2,
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
+    const delayFinalHelper = useRef<any>({
+        osc1: {
+            delay: 500,
+            max: 500,
+            lines: 3,
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
+    const delayAFinalHelper = useRef<any>({
+        osc1: {
+            delay: 500,
+            max: 500,
+            lines: 3,
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
+    const delayLFinalHelper = useRef<any>({
+        osc1: {
+            delay: 500,
+            max: 500,
+            lines: 3,
         },
         osc2: {},
         stk1: {},
@@ -387,12 +449,8 @@ export default function InitializationComponent() {
                 ? 
                     Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])
                 : 
-                    // currentScreen.current !== 'fx_'
-                    // ?
-                        // Object.values(stkFX.current.presets).map((i:any) => [i.label, i])
-                        Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
-                    // : 
-                    //     Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])                
+                    Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
+               
     
         console.log('VIZ FX CURR AT END OF TEST: ', visibleFXKnobs.current);
     }, [test]);
@@ -418,21 +476,6 @@ export default function InitializationComponent() {
         selectedEffect.current = msg[0].source;
         setClickFXChain(true);
         setFXChainKey(msg.map((l:any) => l.source + "_"));
-
-
-        
-        // visibleFXKnobs.current = Object.values(fxFX.current).map((i:any) => [i.label, i]);
-    //     const theOne = allFxPersistent.current.filter((fx: any) => fx.var === msg[0].source && fx)
-    //     console.log('###1: ', theOne[0].label);
-    //     console.log('###2: ', visibleFXKnobs.current);
-    //     console.log('###3: ', fxFX.current)
-    //     const gotIt: any = Array.from(theOne[0].presets);
-    //     // visibleFXKnobs.current = [];
-    //    const test = gotIt.map((preset: any) => ([preset.label, preset]));
-    //     console.log('#### COMPARE TO 2: ', test);
-        // updateCurrentFXScreen();
-        // setNeedsUpdate(true);
-        // setTest(!test);
     }
 
     const handleFXGroupChange = (e: any) => {        
@@ -728,35 +771,150 @@ export default function InitializationComponent() {
         spork ~ playExpEnvWindow(expenv_${source}, whole/${Math.pow(2, T60)}, ${radius}, whole/${Math.pow(2,value)});
     `;
 
-    const wpDiodeLadderString = (source: string, cutoff: number, nlp_type: number, nonlinear: number, saturation: number) => {
+    const wpDiodeLadderString = (source: string, cutoff: number, resonance: number, nlp_type: number, nonlinear: number, saturation: number) => {
         const nlp_str = nlp_type === 1 ? 'true' : 'false';
         const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
-        console.log('saturation? ', saturation);
         return `
-        fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int nlp_type, int nonlinear, float saturation) {
-            SinOsc sin => blackhole;
+        fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int resonance, int nlp_type, int nonlinear, float saturation) {
+            saw2 => blackhole;
             SinOsc sinb => blackhole;
       
-            0.3 => sin.gain;
-            40 => sin.freq;
+            0.04 => saw2.gain;
+            40 => saw2.freq;
             cutoff => sinb.freq;
             // 0.0125 => sinb.freq;
-            17 => win.resonance;
+            resonance => win.resonance;
             nonlinear => win.nonlinear;
             nlp_type => win.nlp_type;
             saturation => win.saturation;
             
-            0.5 => win.gain;
+            0.3 => win.gain;
 
             while(true){
-                4 * sinb.last() => sin.freq;
-                40 + (Math.pow((sinb.last())/2.0,2) * 17000) => win.cutoff;
+                4 * sinb.last() => saw2.freq;
+                40 + (Math.pow((sinb.last())/2.0,2) * (resonance * 1000)) => win.cutoff;
                 1::samp => now;
             }
         }
    
-        spork ~ playWpDiodeLadderWindow(wpdiodeladder_${source}, ${cutoff}, ${nlp_str}, ${nonlinear_str}, ${saturation});
+        spork ~ playWpDiodeLadderWindow(wpdiodeladder_${source}, ${cutoff}, ${resonance}, ${nlp_str}, ${nonlinear_str}, ${saturation});
     `};
+
+    const wpKorg35String = (source: string, cutoff: number, resonance: number, nonlinear: number, saturation: number) => {
+        const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
+      
+        return `
+        fun void playWpKorg35Window(WPKorg35 @ win, float cutoff, int resonance, int nonlinear, float saturation) {
+            saw2 => blackhole;
+            SinOsc sinb => blackhole;
+      
+            0.004 => saw2.gain;
+            40 => saw2.freq;
+            cutoff => sinb.freq;
+            // 0.0125 => sinb.freq;
+            resonance => win.resonance;
+            nonlinear => win.nonlinear;
+            saturation => win.saturation;
+            
+            0.1 => win.gain;
+
+            while(true){
+                4 * sinb.last() => saw2.freq;
+                40 + (Math.pow((sinb.last())/2.0,2) * (resonance * 1000)) => win.cutoff;
+                1::samp => now;
+            }
+        }
+   
+        spork ~ playWpKorg35Window(wpkorg35_${source}, ${cutoff}, ${resonance}, ${nonlinear_str}, ${saturation});
+        `
+    };
+
+    const modulateString = (source: string, vibratoRate: number, vibratoGain: number, randomGain: number) => {
+        console.log('#### ', source, vibratoRate, vibratoGain, randomGain);
+        
+        return `
+
+        fun void playModWindow(Modulate @ win, float vibratoRate, float vibratoGain, float randomGain) {
+            // multiply
+            3 => hpf.op;
+    
+            // set freq
+            // 220 => testSin.freq;
+    
+            // set rate in hz
+            win.vibratoRate( vibratoRate );
+            // set gain
+            win.vibratoGain( vibratoGain );
+            // set random gain
+            win.randomGain( randomGain );
+    
+            // infinite time loop
+            while( true )
+            {
+                1::second => now;
+            }
+        }
+        spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
+
+
+
+
+        `;
+    };
+
+
+
+    // const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.lines}]; for (0 => int i; i < ${delayFinalHelper.current.osc1.lines}; i++) {   hpf => delay_o1[i] => dac;    delay[i] => delay[i]; 0.6 => delay[i].gain; (0.8 + i*0.3) :: second => delay[i].max => delay[i].delay; }` : '';
+    // const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.lines}]; for (0 => int i; i < ${delayAFinalHelper.current.osc1.lines}; i++) {   hpf => delayA_o1[i] => dac;    delayA[i] => delayA[i]; 0.6 => delayA[i].gain; (0.8 + i*0.3) :: second => delayA[i].max => delayA[i].delay; }` : '';
+    // const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.lines}]; for (0 => int i; i < ${delayLFinalHelper.current.osc1.lines}; i++) {   hpf => delayL_o1[i] => dac;    delayL[i] => delayL[i]; 0.6 => delayL[i].gain; (0.8 + i*0.3) :: second => delayL[i].max => delayL[i].delay; }` : '';
+
+    const delayString = (source: string, delay: number, lines: number) => {
+        return `
+        fun void playDelayWindow(Delay @ win[], float delay, int lines) {
+            for (0 => int i; i < ${lines}; i++) 
+            { 
+                hpf => win[i] => dac;  
+                win[i] => win[i]; 
+                0.6 => win[i].gain; 
+                (0.8 + i*0.3) * 1000 :: ms => win[i].max => win[i].delay;
+            }
+        }
+        spork ~ playDelayWindow(${source}, ${delay}, ${lines});
+        `;
+    };
+
+    const delayAString = (source: string, delay: number, lines: number) => {
+        return ` 
+        fun void playDelayAWindow(DelayA @ win[], float delay, int lines) {
+            for (0 => int i; i < ${lines}; i++) 
+            { 
+                hpf => win[i] => dac;  
+                win[i] => win[i]; 
+                0.6 => win[i].gain; 
+                (0.8 + i*0.3) :: second => win[i].max => win[i].delay;
+            }
+        }
+        spork ~ playDelayAWindow(${source}, ${delay}, ${lines});
+        `;
+    };
+
+    const delayLString = (source: string, delay: number, lines: number) => {
+        return `
+        fun void playDelayLWindow(DelayL @ win[], float delay, int lines) {
+        
+            for (0 => int i; i < ${lines}; i++) 
+            { 
+                hpf => win[i] => dac;  
+                win[i] => OneZero filter_${source} => win[i]; 
+                0.6 => win[i].gain; (0.8 + i*0.3) :: second => win[i].max => win[i].delay; 
+            }
+        }
+        spork ~ playDelayLWindow(${source}, ${delay}, ${lines});
+        
+        `;
+
+            
+    };
 
     const osc1FXToString = () => {
 
@@ -777,15 +935,21 @@ export default function InitializationComponent() {
                     osc1ExpEnvOn.current = true;
                  } else if (o1.type === "WPDiodeLadder") {
                     osc1WPDiodeLadderOn.current = true;
-                 }
+                 } else if (o1.type === "WPKorg35") {
+                    osc1WPKorg35On.current = true;
+                 } else if (o1.type === "Modulate") {
+                    osc1ModulateOn.current = true;
+                 } else if (o1.type === "Delay") {
+                    osc1DelayOn.current = true;
+                 } else if (o1.type === "DelayA") {
+                    osc1DelayAOn.current = true;
+                 } else if (o1.type === "DelayL") {
+                    osc1DelayLOn.current = true;
+                 } 
 
                 
-         
-                // TODO => All of WPDiodeLadder
-                // TODO => All of WPKorg35
-                // TODO => Modulation loop on Modulate
                 // TODO => All of Delay Lines Implementation
-                // TODO => Ascending/Descending Pitch & EQ + Feedback effects on Spectacle
+                // FIX SPECTACLE AND EXPDELAY
                 // TODO => Basic Implementation of Sampler Interface / Play Logic
                 // TODO => All of SndBuf Implementation
                 // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
@@ -802,7 +966,7 @@ export default function InitializationComponent() {
                     osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${o1.type} ${o1.var}_o1 `)
                 }
             }
-     
+
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
             Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async(preset: any, idx: number) => {
@@ -848,32 +1012,67 @@ export default function InitializationComponent() {
                             wpDiodeLadderFinalHelper.current.osc1.nonlinear = preset.value;
                         } else if (preset.name === "saturation") {
                             wpDiodeLadderFinalHelper.current.osc1.saturation = preset.value;
+                        } else if (preset.name === "resonance") {
+                            wpDiodeLadderFinalHelper.current.osc1.resonance = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_wpkorg35")) {
+                        if (preset.name === "cutoff") {
+                            wpDiodeLadderFinalHelper.current.osc1.cutoff = preset.value;
+                        } else if (preset.name === "resonance") {
+                            wpDiodeLadderFinalHelper.current.osc1.resonance = preset.value;
+                        } else if (preset.name === "nonlinear") {
+                            wpDiodeLadderFinalHelper.current.osc1.nonlinear = preset.value;
+                        } else if (preset.name === "saturation") {
+                            wpDiodeLadderFinalHelper.current.osc1.saturation = preset.value;
                         }
                     }
 
+                    if (preset.type.includes("mod")) {
+                        if (preset.name === "vibratoRate") {
+                            modulateFinalHelper.current.osc1.vibratoRate = preset.value;
+                        } else if (preset.name === "vibratoGain") {
+                            modulateFinalHelper.current.osc1.vibratoGain = preset.value;
+                        } else if (preset.name === "randomGain") {
+                            modulateFinalHelper.current.osc1.randomGain = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_delay_")) {
+                        if (preset.name === "delay") {
+                            delayFinalHelper.current.osc1.delay = preset.value;
+                        } else if (preset.name === "lines") {
+                            delayFinalHelper.current.osc1.lines = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_delayA")) {
+                        if (preset.name === "delay") {
+                            delayAFinalHelper.current.osc1.delay = preset.value;
+                        } else if (preset.name === "lines") {
+                            delayAFinalHelper.current.osc1.lines = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_delayL")) {
+                        if (preset.name === "delay") {
+                            delayLFinalHelper.current.osc1.delay = preset.value;
+                        } else if (preset.name === "lines") {
+                            delayLFinalHelper.current.osc1.lines = preset.value;
+                        }
+                    } else {
+                        // alert('in the else!')
+                    }
                 } else {
                     const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
                     let formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${preset.value}${addDurMs}`: `${preset.value}`;
-                    const thePreset: any = Object.values(o1.presets)[idx];
-                    console.log('THE PRESET (obj vals of o1.presets at idx=> ): ', thePreset);
-                    console.log('%c?????? ', 'color: beige;', preset);
 
-                    
                     if (osc1FXString.current !== '') {
                         if (finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name) !== -1) {
                             const theIndex = finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name);
-                            console.log("OY OY OY ", finalOsc1FxStringToChuck.current);
                             finalOsc1FxStringToChuck.current[theIndex].string = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
                         } 
                         else {    
                             finalOsc1FxStringToChuck.current.push({name: preset.name, string: `${formattedValue} => ${o1.var}_o1.${preset.name};`}); 
                         }
-
-                        console.log('%cPRESET final: ', 'color: limegreen;', finalOsc1FxStringToChuck.current);
-                        console.log('%cPRESET VAR / NAME: ', 'color: limegreen;', o1.var, preset.name);
-  
                     } else {
-                       
                         osc1FXString.current = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
                     }
                     console.log('%cCHECK OSC1 STRING CURRENT: ', 'color: aqua;', osc1FXString.current);
@@ -1002,17 +1201,27 @@ export default function InitializationComponent() {
             const powerADSRDeclarationOsc1 = osc1PowerADSROn.current ? ' PowerADSR poweradsr_o1 =>' : '';
             const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>': '';
             const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>': '';
-
-            console.log('fucking sanity: ', winFuncEnvFinalHelper.current);
+            const WPKorg35DeclarationOsc1 = osc1WPKorg35On.current ? 'saw2 => WPKorg35 wpkorg35_o1 => dac;' : '';
+            const modulateDeclarationOsc1 = osc1ModulateOn.current ? 'hpf => Modulate mod_o1 => dac;' : '';
+            const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.delay}];` : '';
+            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayFinalHelper.current.osc1.delay}];`  : '';
+            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayFinalHelper.current.osc1.delay}];`  : '';
+            
             const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
             const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
             const expEnvCodeStringOsc1 = osc1ExpEnvOn.current ? expEnvString('o1', expEnvFinalHelper.current.osc1.T60, expEnvFinalHelper.current.osc1.radius, expEnvFinalHelper.current.osc1.value) : '';
-            const wpDiodeLadderCodeStringOsc1 = osc1WPDiodeLadderOn.current ? wpDiodeLadderString('o1', wpDiodeLadderFinalHelper.current.osc1.cutoff, wpDiodeLadderFinalHelper.current.osc1.nlp_type, wpDiodeLadderFinalHelper.current.osc1.nonlinear, wpDiodeLadderFinalHelper.current.osc1.saturation ) : '';
+            const wpDiodeLadderCodeStringOsc1 = osc1WPDiodeLadderOn.current ? wpDiodeLadderString('o1', wpDiodeLadderFinalHelper.current.osc1.cutoff, wpDiodeLadderFinalHelper.current.osc1.resonance, wpDiodeLadderFinalHelper.current.osc1.nlp_type, wpDiodeLadderFinalHelper.current.osc1.nonlinear, wpDiodeLadderFinalHelper.current.osc1.saturation ) : '';
+            const wpKorg35CodeStringOsc1 = osc1WPKorg35On.current ? wpKorg35String('o1', wpKorg35FinalHelper.current.osc1.cutoff, wpKorg35FinalHelper.current.osc1.resonance, wpKorg35FinalHelper.current.osc1.nonlinear, wpKorg35FinalHelper.current.osc1.saturation ) : '';
+            const modulateCodeStringOsc1 = osc1ModulateOn.current ? modulateString('o1', modulateFinalHelper.current.osc1.vibratoRate, modulateFinalHelper.current.osc1.vibratoGain, modulateFinalHelper.current.osc1.randomGain) : '';
+
+            // DELAY LINES
+            const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('delay_o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines) : '';
+            const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('delayA_o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines) : '';
+            const delayLCodeStringOsc1 = osc1DelayLOn.current ? delayLString('delayL_o1', delayLFinalHelper.current.osc1.delay, delayLFinalHelper.current.osc1.lines) : '';
+            ////////////////////////////
 
             const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} outlet;`;
             
-            console.log('%cWHAT IS CHUCK OUTLET? ', 'color: limegreen;', osc1ChuckToOutlet);
-
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             const osc2ChuckToOutlet: string = ` SawOsc saw2 => lpf;`;
@@ -1021,7 +1230,6 @@ export default function InitializationComponent() {
 
             const finalOsc1Code = Object.values(finalOsc1FxStringToChuck.current).length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',','') : '';
          
-            console.log('WTF WTF WTF ', finalOsc1Code);
             aChuck.runCode(`
             
             ((60.0 / ${bpm})) => float secLenBeat;
@@ -1042,12 +1250,14 @@ export default function InitializationComponent() {
        
                     // saw1 ${osc1FXStringToChuck.current} => dac;
                    ${osc2ChuckToOutlet}
-
+                   ${WPKorg35DeclarationOsc1} 
             
                     ${winFuncCodeStringOsc1}
                     ${powerADSRCodeStringOsc1}
                     ${expEnvCodeStringOsc1}
                     ${wpDiodeLadderCodeStringOsc1}
+                    ${wpKorg35CodeStringOsc1}
+
 
                     // 880 => sintest.freq;
                     Noise noiseSource => lpf;
@@ -1089,7 +1299,7 @@ export default function InitializationComponent() {
                     pitchLfo => sqr2;
 
                     ${parseInt(moogGrandmotherEffects.current.limiterAttack.value)}::ms => limiter.attackTime;
-                    ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(2)} => limiter.thresh;
+                    ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(4)} => limiter.thresh;
 
                     0.1 => saw1.gain => saw2.gain;
                     0.45 => tri1.gain => tri2.gain;
@@ -1313,7 +1523,6 @@ export default function InitializationComponent() {
 
                     fun void stk1(float note)
                     {
-                        <<< "YO NOTE HERE: " + note >>>;
                        ${stk1Code}
                     }
 
@@ -1365,11 +1574,20 @@ export default function InitializationComponent() {
                 }
 
                 SynthVoice voice ${osc1FXStringToChuck.current} => HPF hpf => dac;
+       
+                ${modulateDeclarationOsc1}
+                ${modulateCodeStringOsc1}
 
                 
-                
-                
+                ${delayDeclarationOsc1}
+                ${delayADeclarationOsc1}
+                ${delayLDeclarationOsc1}
 
+                ${delayCodeStringOsc1}
+                ${delayACodeStringOsc1}
+                ${delayLCodeStringOsc1}
+
+                
                 ${osc1FxStringNeedsBlackhole.current}
 
                 // ${osc1FXString.current}
@@ -1473,12 +1691,12 @@ export default function InitializationComponent() {
 
 
                 fun void PlaySynthNotes(int notesToPlay[], dur duration) {
-                    ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(2)} => voice.env;
+                    ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
                     ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
 
     
                     while (true) {
-                        // ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(2)} => voice.env;
+                        // ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
                         // ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
                         count % (notesToPlay.size()) => int osc1Idx;
                         <<< notesToPlay[osc1Idx] >>>;
@@ -1541,7 +1759,7 @@ export default function InitializationComponent() {
                 <<< count >>>; 
                 spork ~ PlaySTK(stkNotes, whole);           
                 
-                spork ~ PlaySamplePattern(0, sample1Notes, whole);
+                // spork ~ PlaySamplePattern(0, sample1Notes, whole);
                 // spork ~ PlaySamplePattern(0, sample2Notes, whole);
                 
                 spork ~ PlaySynthNotes(notes, whole);
@@ -1708,6 +1926,9 @@ export default function InitializationComponent() {
         })();
     }, [uploadedFile, uploadedFile.length])
 
+    // AUDIO IN
+    // ========================================================
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const playMicThroughChuck = async () => {
         if(typeof window === 'undefined') return;
         if (!aChuck) return;
@@ -1751,6 +1972,8 @@ export default function InitializationComponent() {
 
         playMicThroughChuck();
     };
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ========================================================
 
     useEffect(() => {
         // console.log('in useeffect');
@@ -1784,6 +2007,9 @@ export default function InitializationComponent() {
         };
     }, [windowListenerRef, recreateBabylon]);
     
+    // SLIDER CONTROL KNOB
+    // ========================================================
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const handleUpdateSliderVal = (obj: any, value: any) => {
         if (currentScreen.current === '') {
             // console.log('SANE CHECK ', obj, value);
@@ -1826,7 +2052,12 @@ export default function InitializationComponent() {
             currentFX.current[`${obj.name}`].value = value;
         }
     };
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ========================================================
 
+    // TIMING (BPM / SIGNATURE)
+    // ========================================================
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const handleChangeBPM = (newBpm: number) => {
         if (newBpm) {
             setBpm(Number(newBpm));
@@ -1847,6 +2078,8 @@ export default function InitializationComponent() {
         }
         setChuckUpdateNeeded(true);
     }
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // ========================================================
 
     const handleTurnKnob = () => {
         console.log('WHAT R STKVALS? ', currentFX.current);

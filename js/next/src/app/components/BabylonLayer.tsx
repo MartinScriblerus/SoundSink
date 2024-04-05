@@ -173,7 +173,7 @@ function BabylonScene(props: {
                 
                                 // const parseConvertScale:number = +Number(typeNormalizedNum);
                                 const parseConvertScale:number = +Number(handleExponentialVal);
-                                game.header[i][j].text = `${visibleFXKnobs[effectsIndex][0]}: ${parseConvertScale.toFixed(2)}`;
+                                game.header[i][j].text = `${visibleFXKnobs[effectsIndex][0]}: ${parseConvertScale.toFixed(4)}`;
                                 
                                 handleUpdateSliderVal(visibleFXKnobs[effectsIndex][1], parseConvertScale);
                                 if (!prevKnobVals.current.i.j) value = parseConvertScale;
@@ -203,12 +203,12 @@ function BabylonScene(props: {
                                     typeof visibleFXKnobs[effectsIndex][0][1] && 
                                     typeof visibleFXKnobs[effectsIndex][0][1].value === 'number'
                                     ?
-                                        `${visibleFXKnobs[effectsIndex][0][0]}: ${visibleFXKnobs[effectsIndex][0][1].value.toFixed(2)}`    
+                                        `${visibleFXKnobs[effectsIndex][0][0]}: ${visibleFXKnobs[effectsIndex][0][1].value.toFixed(4)}`    
                                     :
-                                        `${visibleFXKnobs[effectsIndex][0]}: ${visibleFXKnobs[effectsIndex][1].value ? visibleFXKnobs[effectsIndex][1].value.toFixed(2) : 0.00}`
+                                        `${visibleFXKnobs[effectsIndex][0]}: ${visibleFXKnobs[effectsIndex][1].value ? visibleFXKnobs[effectsIndex][1].value.toFixed(4) : 0.00}`
 
                                 : 
-                                    `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(2)}`;
+                                    `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(4)}`;
                     
                             // handleResetNeedsUpdate();
                             if (game.scene && game.engine?.scenes[0] && game.engine?.scenes[0].meshes.length < 1) {

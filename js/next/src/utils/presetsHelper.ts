@@ -442,7 +442,7 @@ export const getFX1Preset = (fxVal: string) => {
             type: stkIdentifierModulate,
             var: stkVariableModulate,
         })
-    } else if (fxVal === 'g') {
+    } else if (fxVal === 'gain') {
         theFX1Fx.push({
             presets: gainPresets,
             type: stkIdentifierGain,

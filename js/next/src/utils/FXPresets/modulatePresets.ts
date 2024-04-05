@@ -1,5 +1,5 @@
-// export const stkVariableModulate = "mod";
-// export const stkIdentifierModulate = "Modulate";
+export const stkVariableModulate = "mod";
+export const stkIdentifierModulate = "Modulate";
 
 // // Establishing PATTERNS here... 
 //     // 1.) types split by *** snake case *** require function syntax for getter
@@ -23,31 +23,31 @@ const modulatePresets = {
     vibratoRate: {
         name: "vibratoRate",
         label: "Vibr Rate",
-        value: 0,
-        min: 0,
-        max: 1,
+        value: 6.3,
+        min: 0.1,
+        max: 12.0,
         screenInterface: "knob",
-        type: "float",
+        type: "float_needsFun_mod",
         group: 2,
     },
     vibratoGain: {
         name: "vibratoGain",
         label: "Vibr Gain",
-        value: 0,
+        value: 0.2,
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float",
+        type: "float_needsFun_mod",
         group: 2,
     },
     randomGain: {
         name: "randomGain",
         label: "Random Gain",
-        value: 0,
+        value: 0.2,
         min: 0,
         max: 1,
         screenInterface: "knob",
-        type: "float",
+        type: "float_needsFun_mod",
         group: 2,
     }
 };

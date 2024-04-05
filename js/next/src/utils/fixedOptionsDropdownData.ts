@@ -52,7 +52,7 @@ export const fxGroupOptions: Array<FixedSimpleLabel> = [
     effects: [
       {
         effectLabel: "Gain",
-        effectVar: "g"
+        effectVar: "gain"
       },
       {
         effectLabel: "Bitcrusher",
@@ -170,7 +170,7 @@ export const fxGroupOptions: Array<FixedSimpleLabel> = [
       },
       {
         effectLabel: "WPKorg35",
-        effectVar: "wpKorg35"
+        effectVar: "wpkorg35"
       },
     ],
   }, 
