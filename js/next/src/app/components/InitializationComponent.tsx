@@ -108,6 +108,7 @@ export default function InitializationComponent() {
     const osc1DelayAOn = useRef<any>(false);
     const osc1DelayLOn = useRef<any>(false);
     const osc1ExpDelayOn = useRef<any>(false);
+    const osc1EllipticOn = useRef<any>(false);
 
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
@@ -313,6 +314,20 @@ export default function InitializationComponent() {
         sampler: {},
         audioIn: {},
     });
+    const ellipticFinalHelper = useRef<any>({
+        osc1: {
+            filterLow: 500,
+            filterMid: 600,
+            filterHigh: 650,
+            atten: 80.0,
+            ripple: 10.0,
+            filterMode:0
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    })
 
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
 
@@ -884,6 +899,26 @@ export default function InitializationComponent() {
         `;
     };
 
+    const ellipticString = (source: string, filterLow: number, filterMid: number, filterHigh: number, atten: number, ripple: number, filterMode: number) => {
+        console.log('get elliptic vals: ', source, filterLow, filterMid, filterHigh, ripple, atten, filterMode);
+        return `
+        fun void playEllipticWindow(Elliptic @ win, float lower, float middle, float upper, float atten, float ripple, int filterMode) {
+            
+            atten => win.atten;
+            ripple => win.ripple;
+
+            if (filterMode == 0) {
+                win.bpf(upper,middle,lower);
+            } else if (filterMode == 1) {
+                win.lpf(lower, upper);
+            } else if (filterMode == 2) {
+                win.hpf(upper, lower);
+            }
+            2 :: second => now;
+        }
+        spork ~ playEllipticWindow(elliptic_${source}, ${filterLow}, ${filterMid}, ${filterHigh}, ${atten}, ${ripple}, ${filterMode});
+        `;
+    }
 
     const delayString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
         const convertedSyncDelay = Math.pow(2, syncDelay);
@@ -947,21 +982,23 @@ export default function InitializationComponent() {
     };
 
     const expDelayString = (source: string, ampcurve: number, durcurve: number, delay: number, mix: number, reps: number, gain: number) => {
+        const convertedSyncDelay = Math.pow(2,delay)
         return `
         fun void playExpDelayWindow(ExpDelay @ win, float ampcurve, float durcurve, float delay, float mix, int reps, float gain) {
-            whole/delay => win.max => win.delay;
-            <<< "SANITY ", whole/delay >>>;
-            reps * 0.7 => win.gain;
+
             while (true)
             {
+                whole/delay => win.max => win.delay;
+
+                reps * 0.7 => win.gain;
                 durcurve => win.durcurve;
                 ampcurve => win.ampcurve;
                 reps => win.reps;
                 
-                4::second => now;
+                6000::ms => now;
             }
         }
-        spork ~ playExpDelayWindow(expDelay_${source}, ${ampcurve}, ${durcurve}, ${Math.pow(2,delay)}, ${mix}, ${reps}, ${gain});
+        spork ~ playExpDelayWindow(expDelay_${source}, ${ampcurve}, ${durcurve}, ${convertedSyncDelay}, ${mix}, ${reps}, ${gain});
         `;
     };
 
@@ -996,9 +1033,9 @@ export default function InitializationComponent() {
                     osc1DelayLOn.current = true;
                  } else if (o1.type === "ExpDelay") {
                     osc1ExpDelayOn.current = true;
+                 } else if (o1.type === "Elliptic") {
+                    osc1EllipticOn.current = true;
                  }
-
-                
                 // TODO => All of Delay Lines Implementation
                 // FIX SPECTACLE / EXPDELAY
                 // TODO => Basic Implementation of Sampler Interface / Play Logic
@@ -1078,7 +1115,6 @@ export default function InitializationComponent() {
                             wpDiodeLadderFinalHelper.current.osc1.saturation = preset.value;
                         }
                     }
-
                     if (preset.type.includes("mod")) {
                         if (preset.name === "vibratoRate") {
                             modulateFinalHelper.current.osc1.vibratoRate = preset.value;
@@ -1128,7 +1164,22 @@ export default function InitializationComponent() {
                             expDelayFinalHelper.current.osc1.reps = preset.value;
                         } 
                     } 
-                    
+                    if (o1.type === "Elliptic") {
+                        if (preset.name === "lowFilter") {
+                            ellipticFinalHelper.current.osc1.lowFilter = preset.value;
+                        } else if (preset.name === "midFilter") {
+                            ellipticFinalHelper.current.osc1.midFilter = preset.value;
+                        } else if (preset.name === "highFilter") {
+                            ellipticFinalHelper.current.osc1.highFilter = preset.value;
+                        } else if (preset.name === "atten") {
+                            ellipticFinalHelper.current.osc1.atten = preset.value;
+                        } else if (preset.name === "ripple") {
+                            ellipticFinalHelper.current.osc1.ripple = preset.value;
+                        } else if (preset.name === "filterMode") {
+                            ellipticFinalHelper.current.osc1.filterMode = preset.value;
+                        } 
+                    }
+
                     else {
                         // alert('in the else!')
                     }
@@ -1275,6 +1326,7 @@ export default function InitializationComponent() {
             const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>': '';
             const WPKorg35DeclarationOsc1 = osc1WPKorg35On.current ? 'saw2 => WPKorg35 wpkorg35_o1 => dac;' : '';
             const modulateDeclarationOsc1 = osc1ModulateOn.current ? 'hpf => Modulate mod_o1 => dac;' : '';
+            const ellipticDeclarationOsc1 = osc1EllipticOn.current ? ' Elliptic elliptic_o1 =>' : '';
             const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.delay}];` : '';
             const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.delay}];`  : '';
             const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.delay}];`  : '';
@@ -1286,6 +1338,11 @@ export default function InitializationComponent() {
             const wpDiodeLadderCodeStringOsc1 = osc1WPDiodeLadderOn.current ? wpDiodeLadderString('o1', wpDiodeLadderFinalHelper.current.osc1.cutoff, wpDiodeLadderFinalHelper.current.osc1.resonance, wpDiodeLadderFinalHelper.current.osc1.nlp_type, wpDiodeLadderFinalHelper.current.osc1.nonlinear, wpDiodeLadderFinalHelper.current.osc1.saturation ) : '';
             const wpKorg35CodeStringOsc1 = osc1WPKorg35On.current ? wpKorg35String('o1', wpKorg35FinalHelper.current.osc1.cutoff, wpKorg35FinalHelper.current.osc1.resonance, wpKorg35FinalHelper.current.osc1.nonlinear, wpKorg35FinalHelper.current.osc1.saturation ) : '';
             const modulateCodeStringOsc1 = osc1ModulateOn.current ? modulateString('o1', modulateFinalHelper.current.osc1.vibratoRate, modulateFinalHelper.current.osc1.vibratoGain, modulateFinalHelper.current.osc1.randomGain) : '';
+            const ellipticCodeStringOsc1 = osc1EllipticOn.current ? ellipticString('o1', ellipticFinalHelper.current.osc1.filterLow, ellipticFinalHelper.current.osc1.filterMid, ellipticFinalHelper.current.osc1.filterHigh, ellipticFinalHelper.current.osc1.atten, ellipticFinalHelper.current.osc1.ripple, ellipticFinalHelper.current.osc1.filterMode) : '';
+            
+
+            
+
 
             // DELAY LINES
             const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
@@ -1294,7 +1351,7 @@ export default function InitializationComponent() {
             const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
             ////////////////////////////
 
-            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
+            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
             
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
@@ -1328,12 +1385,14 @@ export default function InitializationComponent() {
                    ${osc2ChuckToOutlet}
                    ${WPKorg35DeclarationOsc1} 
             
+                    ${ellipticCodeStringOsc1}
                     ${winFuncCodeStringOsc1}
                     ${powerADSRCodeStringOsc1}
                     ${expEnvCodeStringOsc1}
                     ${wpDiodeLadderCodeStringOsc1}
                     ${wpKorg35CodeStringOsc1}
                     ${expDelayCodeStringOsc1}
+                   
 
 
                     // 880 => sintest.freq;
