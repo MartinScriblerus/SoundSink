@@ -259,8 +259,11 @@ export default function InitializationComponent() {
     const delayFinalHelper = useRef<any>({
         osc1: {
             delay: 500,
-            max: 500,
+            syncDelay: 1,
             lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
         },
         osc2: {},
         stk1: {},
@@ -270,8 +273,11 @@ export default function InitializationComponent() {
     const delayAFinalHelper = useRef<any>({
         osc1: {
             delay: 500,
-            max: 500,
+            syncDelay: 1,
             lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
         },
         osc2: {},
         stk1: {},
@@ -281,8 +287,11 @@ export default function InitializationComponent() {
     const delayLFinalHelper = useRef<any>({
         osc1: {
             delay: 500,
-            max: 500,
+            syncDelay: 1,
             lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
         },
         osc2: {},
         stk1: {},
@@ -317,8 +326,6 @@ export default function InitializationComponent() {
     const osc2FXString = useRef<any>('');
     const audioInFXString = useRef<any>('');
     const samplerFXString = useRef<any>('');
-
-
 
     const osc1FXStringToChuck = useRef<any>('');
     const osc2FXStringToChuck = useRef<any>('');
@@ -863,57 +870,65 @@ export default function InitializationComponent() {
     };
 
 
-
-    // const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.lines}]; for (0 => int i; i < ${delayFinalHelper.current.osc1.lines}; i++) {   hpf => delay_o1[i] => dac;    delay[i] => delay[i]; 0.6 => delay[i].gain; (0.8 + i*0.3) :: second => delay[i].max => delay[i].delay; }` : '';
-    // const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.lines}]; for (0 => int i; i < ${delayAFinalHelper.current.osc1.lines}; i++) {   hpf => delayA_o1[i] => dac;    delayA[i] => delayA[i]; 0.6 => delayA[i].gain; (0.8 + i*0.3) :: second => delayA[i].max => delayA[i].delay; }` : '';
-    // const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.lines}]; for (0 => int i; i < ${delayLFinalHelper.current.osc1.lines}; i++) {   hpf => delayL_o1[i] => dac;    delayL[i] => delayL[i]; 0.6 => delayL[i].gain; (0.8 + i*0.3) :: second => delayL[i].max => delayL[i].delay; }` : '';
-
-    const delayString = (source: string, delay: number, lines: number) => {
+    const delayString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
+        const convertedSyncDelay = Math.pow(2, syncDelay);
         return `
-        fun void playDelayWindow(Delay @ win[], float delay, int lines) {
+        fun void playDelayWindow(Delay @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
             for (0 => int i; i < ${lines}; i++) 
             { 
                 hpf => win[i] => dac;  
-                win[i] => win[i]; 
+                win[i] => OneZero filter_delay_${source} => win[i]; 
+                zero => filter_delay_${source}.zero;
+                b0 => filter_delay_${source}.b0;
+                b1 => filter_delay_${source}.b1;
                 0.6 => win[i].gain; 
-                (0.8 + i*0.3) * 1000 :: ms => win[i].max => win[i].delay;
+                // (((1 + i*0.3) * 1000)) :: ms => win[i].max => win[i].delay;
+                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
+                
             }
         }
-        spork ~ playDelayWindow(${source}, ${delay}, ${lines});
+        spork ~ playDelayWindow(delay_${source}, ${delay}, ${lines}, ${convertedSyncDelay }, ${zero}, ${b0}, ${b1});
         `;
     };
 
-    const delayAString = (source: string, delay: number, lines: number) => {
-        return ` 
-        fun void playDelayAWindow(DelayA @ win[], float delay, int lines) {
+    const delayAString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
+        const convertedSyncDelay = Math.pow(2, syncDelay);
+        return `
+        fun void playDelayAWindow(DelayA @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
             for (0 => int i; i < ${lines}; i++) 
             { 
                 hpf => win[i] => dac;  
-                win[i] => win[i]; 
+                win[i] => OneZero filter_delayA_${source} => win[i]; 
+                zero => filter_delayA_${source}.zero;
+                b0 => filter_delayA_${source}.b0;
+                b1 => filter_delayA_${source}.b1;
                 0.6 => win[i].gain; 
-                (0.8 + i*0.3) :: second => win[i].max => win[i].delay;
+                // (((1 + i*0.3) * 1000)) :: ms => win[i].max => win[i].delay;
+                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
             }
         }
-        spork ~ playDelayAWindow(${source}, ${delay}, ${lines});
+        spork ~ playDelayAWindow(delayA_${source}, ${delay}, ${lines}, ${convertedSyncDelay }, ${zero}, ${b0}, ${b1});
         `;
     };
 
-    const delayLString = (source: string, delay: number, lines: number) => {
+    const delayLString = (source: string, delay: number,lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
+        const convertedSyncDelay = Math.pow(2, syncDelay);
         return `
-        fun void playDelayLWindow(DelayL @ win[], float delay, int lines) {
-        
+        fun void playDelayLWindow(DelayL @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
             for (0 => int i; i < ${lines}; i++) 
             { 
                 hpf => win[i] => dac;  
-                win[i] => OneZero filter_${source} => win[i]; 
-                0.6 => win[i].gain; (0.8 + i*0.3) :: second => win[i].max => win[i].delay; 
+                win[i] => OneZero filter_delayL_${source} => win[i];
+                zero => filter_delayL_${source}.zero;
+                b0 => filter_delayL_${source}.b0;
+                b1 => filter_delayL_${source}.b1;
+                0.6 => win[i].gain; 
+                // (((1 + i*0.3) * 1000)) :: ms => win[i].max => win[i].delay;
+                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
             }
         }
-        spork ~ playDelayLWindow(${source}, ${delay}, ${lines});
-        
+        spork ~ playDelayLWindow(delayL_${source}, ${delay}, ${lines}, ${convertedSyncDelay }, ${zero}, ${b0}, ${b1});
         `;
-
-            
     };
 
     const osc1FXToString = () => {
@@ -1037,25 +1052,32 @@ export default function InitializationComponent() {
                             modulateFinalHelper.current.osc1.randomGain = preset.value;
                         }
                     }
-                    if (preset.type.includes("_delay_")) {
+                    if (o1.type === "Delay") {
                         if (preset.name === "delay") {
                             delayFinalHelper.current.osc1.delay = preset.value;
                         } else if (preset.name === "lines") {
                             delayFinalHelper.current.osc1.lines = preset.value;
+                        } else if (preset.name === "syncDelay") {
+                            delayFinalHelper.current.osc1.syncDelay = preset.value;
                         }
                     }
-                    if (preset.type.includes("_delayA")) {
+                    if ((o1.type === "DelayA")) {
                         if (preset.name === "delay") {
                             delayAFinalHelper.current.osc1.delay = preset.value;
                         } else if (preset.name === "lines") {
                             delayAFinalHelper.current.osc1.lines = preset.value;
+                        } else if (preset.name === "syncDelay") {
+                            delayAFinalHelper.current.osc1.syncDelay = preset.value;
                         }
                     }
-                    if (preset.type.includes("_delayL")) {
+
+                    if ((o1.type === "DelayL")) {
                         if (preset.name === "delay") {
                             delayLFinalHelper.current.osc1.delay = preset.value;
                         } else if (preset.name === "lines") {
                             delayLFinalHelper.current.osc1.lines = preset.value;
+                        } else if (preset.name === "syncDelay") {
+                            delayLFinalHelper.current.osc1.syncDelay = preset.value;
                         }
                     } else {
                         // alert('in the else!')
@@ -1204,8 +1226,8 @@ export default function InitializationComponent() {
             const WPKorg35DeclarationOsc1 = osc1WPKorg35On.current ? 'saw2 => WPKorg35 wpkorg35_o1 => dac;' : '';
             const modulateDeclarationOsc1 = osc1ModulateOn.current ? 'hpf => Modulate mod_o1 => dac;' : '';
             const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.delay}];` : '';
-            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayFinalHelper.current.osc1.delay}];`  : '';
-            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayFinalHelper.current.osc1.delay}];`  : '';
+            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.delay}];`  : '';
+            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.delay}];`  : '';
             
             const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
             const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
@@ -1215,9 +1237,9 @@ export default function InitializationComponent() {
             const modulateCodeStringOsc1 = osc1ModulateOn.current ? modulateString('o1', modulateFinalHelper.current.osc1.vibratoRate, modulateFinalHelper.current.osc1.vibratoGain, modulateFinalHelper.current.osc1.randomGain) : '';
 
             // DELAY LINES
-            const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('delay_o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines) : '';
-            const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('delayA_o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines) : '';
-            const delayLCodeStringOsc1 = osc1DelayLOn.current ? delayLString('delayL_o1', delayLFinalHelper.current.osc1.delay, delayLFinalHelper.current.osc1.lines) : '';
+            const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
+            const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
+            const delayLCodeStringOsc1 = osc1DelayLOn.current ? delayLString('o1', delayLFinalHelper.current.osc1.delay, delayLFinalHelper.current.osc1.lines, delayLFinalHelper.current.osc1.syncDelay, delayLFinalHelper.current.osc1.zero, delayLFinalHelper.current.osc1.b0, delayLFinalHelper.current.osc1.b1) : '';
             ////////////////////////////
 
             const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} outlet;`;
@@ -1748,7 +1770,7 @@ export default function InitializationComponent() {
                     }
                 }
 
-                [1,4] @=> int notes[];
+                [1] @=> int notes[];
                 [1,3,3,1] @=> int sample1Notes[];
                 [1, 4, 1, 3] @=> int sample2Notes[];
                 [1,4] @=> int sample3Notes[];
@@ -1844,16 +1866,16 @@ export default function InitializationComponent() {
         const getStk1String: any = await stkFXToString();
         // const getOsc1String: any = await osc1FXToString();
         // ********************************************** THIS ONE BELOW WILL NEED THE UPDATES TO STK2 
-        const getStk2String: any = await stkFXToString();
+        // const getStk2String: any = await stkFXToString();
         console.log('stk string before running chuck: ', getStk1String);
         // console.log('osc1 string before running chuck!!!! ', getOsc1String);
 
         const bodyIR1 = getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;`: '';
-        const bodyIR2 = getStk2String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk2String[2]}.bodyIR;` : '';
+       // const bodyIR2 = getStk2String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk2String[2]}.bodyIR;` : '';
         // const isBowing = getStk1String[2] === 'wg' ? 'wg.startBowing(1);' : '';
 
         if (osc1FXString.current.length < 1) {
-            await osc1FXToString();
+            osc1FXToString();
         }
         // tk tk getOsc1String
         const OSC_1_Code = osc1FXString.current;
@@ -1879,25 +1901,25 @@ export default function InitializationComponent() {
      
         ` : '';
 
-        // TODO 2nd STK NOT YET IMPLEMENTED
-        // ++++++++++++++++++++++++++++++++++++++++++++
-        if (stkValsRef.current.length === 2) {                
-            const STK_2_Code = getStk2String ? `
-                if(note > 127)
-                {
-                    127 => note;
-                }
-                if(note < 0)
-                {
-                    0 => note;
-                }
-                ${bodyIR2}
-                ${getStk2String[0]}
-                Std.mtof(note + 32) => ${getStk2String[2]}.freq;
-                1 => ${getStk2String[2]}.noteOn;
-            ` : '';
-            setStk2Code(STK_2_Code);
-        }
+        // // TODO 2nd STK NOT YET IMPLEMENTED
+        // // ++++++++++++++++++++++++++++++++++++++++++++
+        // if (stkValsRef.current.length === 2) {                
+        //     const STK_2_Code = getStk2String ? `
+        //         if(note > 127)
+        //         {
+        //             127 => note;
+        //         }
+        //         if(note < 0)
+        //         {
+        //             0 => note;
+        //         }
+        //         ${bodyIR2}
+        //         ${getStk2String[0]}
+        //         Std.mtof(note + 32) => ${getStk2String[2]}.freq;
+        //         1 => ${getStk2String[2]}.noteOn;
+        //     ` : '';
+        //     setStk2Code(STK_2_Code);
+        // }
         setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
         
