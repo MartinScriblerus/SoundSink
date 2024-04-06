@@ -109,6 +109,7 @@ export default function InitializationComponent() {
     const osc1DelayLOn = useRef<any>(false);
     const osc1ExpDelayOn = useRef<any>(false);
     const osc1EllipticOn = useRef<any>(false);
+    const osc1SpectacleOn = useRef<any>(false);
 
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
@@ -327,7 +328,25 @@ export default function InitializationComponent() {
         stk1: {},
         sampler: {},
         audioIn: {},
-    })
+    });
+    const spectacleFinalHelper = useRef<any>({
+        osc1: {
+            bands: 5,
+            delay: 3,
+            eq: 0,
+            feedback: 0,
+            fftlen: 3,
+            freqMax: 4100,
+            freqMin: 100,
+            mix: 0.8,
+            overlap: 3,
+            table: 2,
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
 
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
 
@@ -479,7 +498,7 @@ export default function InitializationComponent() {
             ? 
                 currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
                 ?
-                    Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
+                Object.values(gotFX[theFXIdx]) && Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
                 :
                     Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
             : (stkValsRef.current.length > 1 && currentScreen.current === 'stk2')
@@ -1002,8 +1021,50 @@ export default function InitializationComponent() {
         `;
     };
 
-    const osc1FXToString = () => {
+    const spectacleString = (source: string, bands: number, delay: number, eq: number, feedback: number, fftlen: number, freqMax: number, freqMin: number, mix: number, overlap: number, table: number) => {
+        const convertedFFT = Math.pow(2, fftlen);
+        const convertedBands = Math.pow(2, bands);
+        const convertedDelay = Math.pow(2, bands);
+        return `
+        fun void playSpectacleWindow(Spectacle @ win, int bands, float delay, float eq, float feedback, int fft, float freqMax, float freqMin, float mix, int overlap, int table) {
+            
+            0.8 => win.mix;
+            win.range(freqMin,freqMax);
+            bands => win.bands; 
 
+            1.3 => win.gain;
+
+            if (table == 0) {
+                win.table("delay", "descending");
+            } else if (table == 1) {
+                win.table("eq", "descending");
+            } else if (table == 2) {
+                win.table("feedback", "descending");
+            } else if (table == 3) {
+                win.table("delay", "random");
+            } else if (table == 4) {
+                win.table("eq", "random");
+            } else if (table == 5) {
+                win.table("feedback", "random");
+            } else if (table == 6) {
+                win.table("delay", "ascending");
+            } else if (table == 7) {
+                win.table("eq", "ascending");
+            } else if (table == 8) {
+                win.table("feedback", "ascending");
+            }
+
+            whole * delay => now;
+            eq => win.eq;
+            feedback => win.feedback;
+        }
+        spork ~ playSpectacleWindow(spectacle_${source}, ${convertedBands}, ${convertedDelay}, ${eq}, ${feedback}, ${convertedFFT}, ${freqMax}, ${freqMin}, ${mix}, ${overlap}, ${table});
+        `;
+        
+    };
+
+    const osc1FXToString = () => {
+    
         // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
         // =================================================================
         Object.values(allFxPersistent.current.Osc1).map((o1: any) => {
@@ -1035,9 +1096,10 @@ export default function InitializationComponent() {
                     osc1ExpDelayOn.current = true;
                  } else if (o1.type === "Elliptic") {
                     osc1EllipticOn.current = true;
+                 } else if (o1.type === "Spectacle") {
+                    osc1SpectacleOn.current = true;
                  }
-                // TODO => All of Delay Lines Implementation
-                // FIX SPECTACLE / EXPDELAY
+                
                 // TODO => Basic Implementation of Sampler Interface / Play Logic
                 // TODO => All of SndBuf Implementation
                 // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
@@ -1054,10 +1116,11 @@ export default function InitializationComponent() {
                     osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${o1.type} ${o1.var}_o1 `)
                 }
             }
-
+    
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
             Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async(preset: any, idx: number) => {
+           
                 // ******** TODO change to read type directly from o1.type
                 if (preset.type.includes("_needsFun")) {
                     if (preset.type.includes("_winFuncEnv")) {
@@ -1177,6 +1240,30 @@ export default function InitializationComponent() {
                             ellipticFinalHelper.current.osc1.ripple = preset.value;
                         } else if (preset.name === "filterMode") {
                             ellipticFinalHelper.current.osc1.filterMode = preset.value;
+                        } 
+                    }
+                    if (o1.type === "Spectacle") {
+                        console.log('OY PREET ', preset)
+                        if (preset.name === "bands") {
+                            spectacleFinalHelper.current.osc1.bands;
+                        } else if (preset.name === "delay") {
+                            spectacleFinalHelper.current.osc1.delay;
+                        } else if (preset.name === "eq") {
+                            spectacleFinalHelper.current.osc1.eq;
+                        } else if (preset.name === "feedback") {
+                            spectacleFinalHelper.current.osc1.feedback;
+                        } else if (preset.name === "fftlen") {
+                            spectacleFinalHelper.current.osc1.fftlen;
+                        } else if (preset.name === "freqMax") {
+                            spectacleFinalHelper.current.osc1.freqMax;
+                        } else if (preset.name === "freqMin") {
+                            spectacleFinalHelper.current.osc1.freqMin;
+                        } else if (preset.name === "mix") {
+                            spectacleFinalHelper.current.osc1.mix;
+                        } else if (preset.name === "overlap") {
+                            spectacleFinalHelper.current.osc1.overlap;
+                        } else if (preset.name === "table") {
+                            spectacleFinalHelper.current.osc1.table;
                         } 
                     }
 
@@ -1331,6 +1418,7 @@ export default function InitializationComponent() {
             const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.delay}];`  : '';
             const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.delay}];`  : '';
             const expDelayDeclarationOsc1 = osc1ExpDelayOn.current ? ' ExpDelay expDelay_o1 =>': '';
+            const spectacleDeclarationOsc1 = osc1SpectacleOn.current ? ' => Spectacle spectacle_o1 ': '';
             
             const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
             const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
@@ -1339,16 +1427,14 @@ export default function InitializationComponent() {
             const wpKorg35CodeStringOsc1 = osc1WPKorg35On.current ? wpKorg35String('o1', wpKorg35FinalHelper.current.osc1.cutoff, wpKorg35FinalHelper.current.osc1.resonance, wpKorg35FinalHelper.current.osc1.nonlinear, wpKorg35FinalHelper.current.osc1.saturation ) : '';
             const modulateCodeStringOsc1 = osc1ModulateOn.current ? modulateString('o1', modulateFinalHelper.current.osc1.vibratoRate, modulateFinalHelper.current.osc1.vibratoGain, modulateFinalHelper.current.osc1.randomGain) : '';
             const ellipticCodeStringOsc1 = osc1EllipticOn.current ? ellipticString('o1', ellipticFinalHelper.current.osc1.filterLow, ellipticFinalHelper.current.osc1.filterMid, ellipticFinalHelper.current.osc1.filterHigh, ellipticFinalHelper.current.osc1.atten, ellipticFinalHelper.current.osc1.ripple, ellipticFinalHelper.current.osc1.filterMode) : '';
-            
-
-            
-
+            const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
+            const spectacleCodeStringOsc1 = osc1SpectacleOn.current ? spectacleString('o1', spectacleFinalHelper.current.osc1.bands, spectacleFinalHelper.current.osc1.delay, spectacleFinalHelper.current.osc1.eq, spectacleFinalHelper.current.osc1.feedback, spectacleFinalHelper.current.osc1.fftlen, spectacleFinalHelper.current.osc1.freqMax, spectacleFinalHelper.current.osc1.freqMin, spectacleFinalHelper.current.osc1.mix, spectacleFinalHelper.current.osc1.overlap, spectacleFinalHelper.current.osc1.table) : '';
 
             // DELAY LINES
             const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
             const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
             const delayLCodeStringOsc1 = osc1DelayLOn.current ? delayLString('o1', delayLFinalHelper.current.osc1.delay, delayLFinalHelper.current.osc1.lines, delayLFinalHelper.current.osc1.syncDelay, delayLFinalHelper.current.osc1.zero, delayLFinalHelper.current.osc1.b0, delayLFinalHelper.current.osc1.b1) : '';
-            const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
+
             ////////////////////////////
 
             const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
@@ -1382,8 +1468,8 @@ export default function InitializationComponent() {
                     ${osc1ChuckToOutlet}
        
                     // saw1 ${osc1FXStringToChuck.current} => dac;
-                   ${osc2ChuckToOutlet}
-                   ${WPKorg35DeclarationOsc1} 
+                    ${osc2ChuckToOutlet}
+                    ${WPKorg35DeclarationOsc1} 
             
                     ${ellipticCodeStringOsc1}
                     ${winFuncCodeStringOsc1}
@@ -1392,8 +1478,8 @@ export default function InitializationComponent() {
                     ${wpDiodeLadderCodeStringOsc1}
                     ${wpKorg35CodeStringOsc1}
                     ${expDelayCodeStringOsc1}
-                   
-
+                    
+                    
 
                     // 880 => sintest.freq;
                     Noise noiseSource => lpf;
@@ -1707,7 +1793,7 @@ export default function InitializationComponent() {
    
                 }
 
-                SynthVoice voice ${osc1FXStringToChuck.current} => HPF hpf => dac;
+                SynthVoice voice ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
        
                 ${modulateDeclarationOsc1}
                 ${modulateCodeStringOsc1}
@@ -1721,6 +1807,7 @@ export default function InitializationComponent() {
                 ${delayACodeStringOsc1}
                 ${delayLCodeStringOsc1}
 
+                ${spectacleCodeStringOsc1}
                 
                 ${osc1FxStringNeedsBlackhole.current}
 
@@ -1954,6 +2041,8 @@ export default function InitializationComponent() {
 
         const buffersToChuck: any = {};
 
+        console.log('fucking kill me: ', osc1FXString.current.length);
+
         const uploadedFilesArrsGenericCode: any = {};
         console.log('GETTING FILES TO PROCESS? ', filesToProcess.current);
         filesToProcess.current.forEach(async(name: any) => {
@@ -2036,9 +2125,9 @@ export default function InitializationComponent() {
         setOsc1Code(OSC_1_Code);
         
         
-        console.log('%cSTK_1_Code !!!!!!! ', 'orange', stk1Code);
-        // console.log('STK_2_Code %%%%%%% ', stk2Code);
-        console.log('%cOSC_1_Code %%%%%%% ', 'color: orange;', osc1Code);
+        // console.log('%cSTK_1_Code !!!!!!! ', 'orange', stk1Code);
+        // // console.log('STK_2_Code %%%%%%% ', stk2Code);
+        // console.log('%cOSC_1_Code %%%%%%% ', 'color: orange;', osc1Code);
 
         runMainChuckCode(aChuck, getStk1String);
 

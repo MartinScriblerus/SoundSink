@@ -23,9 +23,9 @@ const multicombPresets = {
     maxfreq: {
         name: "maxfreq",
         label: "Max Freq",
-        value: 880,
+        value: 440,
         min: 0,
-        max: 1200,
+        max: 880,
         screenInterface: "knob",
         type: "float_float",
         group: 5,
@@ -35,7 +35,7 @@ const multicombPresets = {
         label: "Min Freq",
         value: 220,
         min: 0,
-        max: 220,
+        max: 440,
         screenInterface: "knob",
         type: "float_float",
         group: 5,
@@ -53,9 +53,9 @@ const multicombPresets = {
     revtime: { // # of comb filters (default 5)
         name: "revtime",
         label: "Rev Time",
-        value: 0, // default 1000::ms
+        value: 0.5, // default 1000::ms
         min: 0,
-        max: 2000,
+        max: 1,
         screenInterface: "knob",
         type: "dur_dur",
         group: 5,
