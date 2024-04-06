@@ -82,7 +82,7 @@ export const fxGroupOptions: Array<FixedSimpleLabel> = [
       },
       {
         effectLabel: "ExpDelay",
-        effectVar: "expdelay"
+        effectVar: "expDelay"
       },
       {
         effectLabel: "Echo",
@@ -236,7 +236,7 @@ export const fxOptions: readonly FXOption[] = [
   { value: 'delayA', label: 'Fract Delay', color: 'rgb(158/255, 210/255, 162/255)' },
   { value: 'delayL', label: 'Fract Linear Delay', color: 'rgb(158/255, 210/255, 162/255)' },
   { value: 'echo', label: 'Echo', color: 'rgb(158/255, 210/255, 162/255)' },
-  { value: 'expdelay', label: 'Expon Delay', color: 'rgb(158/255, 210/255, 162/255)'},
+  { value: 'expDelay', label: 'Expon Delay', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'ambPan3', label: 'Ambisonic Pan', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'elliptic', label: 'Elliptic Filter', color: 'rgb(158/255, 210/255, 162/255)'},
   { value: 'expenv', label: 'Expon Env', color: 'rgb(158/255, 210/255, 162/255)'},

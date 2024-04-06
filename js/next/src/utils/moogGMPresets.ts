@@ -87,14 +87,22 @@ const moogGMPresets = {
         max: 100,
         screenInterface: "knob",
     }, // offset the two voice oscs (in semitones)
-    syncMode: {
-        name: "syncMode",
-        label: "Sync Mode",
-        value: 2,
-        min: 0,
-        max: 2,
-        screenInterface: "switch_3_1_2_3",
-    },  // 0 = sync freq to input, 1 = sync phase to input, 2 = fm synth
+    noise: {
+        name: "noise",
+        label: "Noise",
+        value: 0.1,
+        min: 0.001,
+        max: 100,
+        screenInterface: "knob",
+    }, // noise level (0-100)
+    // syncMode: {
+    //     name: "syncMode",
+    //     label: "Sync Mode",
+    //     value: 2,
+    //     min: 0,
+    //     max: 2,
+    //     screenInterface: "switch_3_1_2_3",
+    // },  // 0 = sync freq to input, 1 = sync phase to input, 2 = fm synth
     adsrAttack: {
         name: "adsrAttack",
         label: "Attack",
@@ -167,14 +175,6 @@ const moogGMPresets = {
         max: 100,
         screenInterface: "knob",
     }, // cutoff modulation (0-100)
-    // noise: {
-    //     name: "noise",
-    //     label: "Noise",
-    //     value: 0,
-    //     min: 0,
-    //     max: 100,
-    //     screenInterface: "knob",
-    // }, // noise level (0-100)
     // filterEnv: {
     //     name: "filterEnv",
     //     label: "Filt Env",

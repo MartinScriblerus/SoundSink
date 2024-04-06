@@ -520,7 +520,7 @@ export const getFX1Preset = (fxVal: string) => {
             var: stkVariableElliptic
         });
     } 
-    else if (fxVal === 'expdelay') {
+    else if (fxVal === 'expDelay') {
         theFX1Fx.push({
             presets: expDelayPresets,
             type: stkIdentifierExpDelay, //

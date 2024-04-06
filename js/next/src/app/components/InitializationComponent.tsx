@@ -107,6 +107,7 @@ export default function InitializationComponent() {
     const osc1DelayOn = useRef<any>(false);
     const osc1DelayAOn = useRef<any>(false);
     const osc1DelayLOn = useRef<any>(false);
+    const osc1ExpDelayOn = useRef<any>(false);
 
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
@@ -292,6 +293,20 @@ export default function InitializationComponent() {
             zero: 0.5,
             b0: 0.5,
             b1: 0.2,
+        },
+        osc2: {},
+        stk1: {},
+        sampler: {},
+        audioIn: {},
+    });
+    const expDelayFinalHelper = useRef<any>({
+        osc1: {
+            ampcurve: 2.0,
+            durcurve: 2.0,
+            delay: 0,
+            mix: 0.5,
+            reps: 4,
+            gain: 1.0,
         },
         osc2: {},
         stk1: {},
@@ -931,6 +946,25 @@ export default function InitializationComponent() {
         `;
     };
 
+    const expDelayString = (source: string, ampcurve: number, durcurve: number, delay: number, mix: number, reps: number, gain: number) => {
+        return `
+        fun void playExpDelayWindow(ExpDelay @ win, float ampcurve, float durcurve, float delay, float mix, int reps, float gain) {
+            whole/delay => win.max => win.delay;
+            <<< "SANITY ", whole/delay >>>;
+            reps * 0.7 => win.gain;
+            while (true)
+            {
+                durcurve => win.durcurve;
+                ampcurve => win.ampcurve;
+                reps => win.reps;
+                
+                4::second => now;
+            }
+        }
+        spork ~ playExpDelayWindow(expDelay_${source}, ${ampcurve}, ${durcurve}, ${Math.pow(2,delay)}, ${mix}, ${reps}, ${gain});
+        `;
+    };
+
     const osc1FXToString = () => {
 
         // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
@@ -960,11 +994,13 @@ export default function InitializationComponent() {
                     osc1DelayAOn.current = true;
                  } else if (o1.type === "DelayL") {
                     osc1DelayLOn.current = true;
-                 } 
+                 } else if (o1.type === "ExpDelay") {
+                    osc1ExpDelayOn.current = true;
+                 }
 
                 
                 // TODO => All of Delay Lines Implementation
-                // FIX SPECTACLE AND EXPDELAY
+                // FIX SPECTACLE / EXPDELAY
                 // TODO => Basic Implementation of Sampler Interface / Play Logic
                 // TODO => All of SndBuf Implementation
                 // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
@@ -1070,7 +1106,6 @@ export default function InitializationComponent() {
                             delayAFinalHelper.current.osc1.syncDelay = preset.value;
                         }
                     }
-
                     if ((o1.type === "DelayL")) {
                         if (preset.name === "delay") {
                             delayLFinalHelper.current.osc1.delay = preset.value;
@@ -1079,7 +1114,22 @@ export default function InitializationComponent() {
                         } else if (preset.name === "syncDelay") {
                             delayLFinalHelper.current.osc1.syncDelay = preset.value;
                         }
-                    } else {
+                    }
+                    if (o1.type === "ExpDelay") {
+                        if (preset.name === "ampcurve") {
+                            expDelayFinalHelper.current.osc1.ampcurve = preset.value;
+                        } else if (preset.name === "durcurve") {
+                            expDelayFinalHelper.current.osc1.durcurve = preset.value;
+                        } else if (preset.name === "delay") {
+                            delayLFinalHelper.current.osc1.delay = preset.value;
+                        } else if (preset.name === "mix") {
+                            expDelayFinalHelper.current.osc1.mix = preset.value;
+                        } else if (preset.name === "reps") {
+                            expDelayFinalHelper.current.osc1.reps = preset.value;
+                        } 
+                    } 
+                    
+                    else {
                         // alert('in the else!')
                     }
                 } else {
@@ -1228,6 +1278,7 @@ export default function InitializationComponent() {
             const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.delay}];` : '';
             const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.delay}];`  : '';
             const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.delay}];`  : '';
+            const expDelayDeclarationOsc1 = osc1ExpDelayOn.current ? ' ExpDelay expDelay_o1 =>': '';
             
             const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
             const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
@@ -1240,9 +1291,10 @@ export default function InitializationComponent() {
             const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
             const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
             const delayLCodeStringOsc1 = osc1DelayLOn.current ? delayLString('o1', delayLFinalHelper.current.osc1.delay, delayLFinalHelper.current.osc1.lines, delayLFinalHelper.current.osc1.syncDelay, delayLFinalHelper.current.osc1.zero, delayLFinalHelper.current.osc1.b0, delayLFinalHelper.current.osc1.b1) : '';
+            const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
             ////////////////////////////
 
-            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} outlet;`;
+            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
             
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
@@ -1252,6 +1304,8 @@ export default function InitializationComponent() {
 
             const finalOsc1Code = Object.values(finalOsc1FxStringToChuck.current).length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',','') : '';
          
+            // bring back sync mode on this eventually -> // ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
+
             aChuck.runCode(`
             
             ((60.0 / ${bpm})) => float secLenBeat;
@@ -1279,20 +1333,19 @@ export default function InitializationComponent() {
                     ${expEnvCodeStringOsc1}
                     ${wpDiodeLadderCodeStringOsc1}
                     ${wpKorg35CodeStringOsc1}
+                    ${expDelayCodeStringOsc1}
 
 
                     // 880 => sintest.freq;
                     Noise noiseSource => lpf;
-
+                    0 => noiseSource.gain;
+                    
                     ${connectorStk1DirectToDac}
              
               
                     // ${osc1FXStringToChuck.current}
       
                                      
-
-                    0 => noiseSource.gain;
-
                     TriOsc tri1, tri2;
                     SqrOsc sqr1, sqr2;
 
@@ -1311,8 +1364,8 @@ export default function InitializationComponent() {
                     0.5 => filterLfo.gain;
                     0.5 => pitchLfo.gain;
 
+                    2 => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
 
-                    ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
                     pitchLfo => saw1;
                     pitchLfo => saw2;
                     pitchLfo => tri1;
@@ -1631,7 +1684,7 @@ export default function InitializationComponent() {
                 0.5 => voice.filterLfo.gain;
                 ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
                 880 => voice.filterEnv;
-                0 => voice.noise;
+                ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice.noise;
 
                 0 => int count;
 
