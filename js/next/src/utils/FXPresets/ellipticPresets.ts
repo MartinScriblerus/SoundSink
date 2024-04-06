@@ -53,9 +53,9 @@ const ellipticPresets = {
     atten: {
         name: "atten",
         label: "Attenuation",
-        value: 0.02,
+        value: 80.00,
         min: 0.0,
-        max: 20.0,
+        max: 100.0,
         screenInterface: "knob",
         type: "float_needsFun",
         group: 5,
@@ -63,9 +63,9 @@ const ellipticPresets = {
     ripple: {
         name: "ripple",
         label: "Ripple",
-        value: 0.02, // measured in dB—default 0.2
+        value: 10.00, // measured in dB—default 0.2
         min: 0.00,
-        max: 80.0,
+        max: 12.0,
         screenInterface: "knob",
         type: "float_needsFun",
         group: 5,
