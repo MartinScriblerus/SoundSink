@@ -1,39 +1,12 @@
-const nCol = 8;
-const nRow = 2;
+const nCol = 16;
+const nRow = 4;
 const alphabet: Array<any> = [];
 let counter = 0;
 Array.from(Array(64)).forEach(()=>{
   counter += 1;
   alphabet.push(counter);
 });
-// const alphabet = [
-//   "1",
-//   "2",
-//   "3",
-//   "4",
-//   "5",
-//   "6",
-//   "7",
-//   "8",
-//   "9",
-//   "10",
-//   "11",
-//   "12",
-//   "1",
-//   "N",
-//   "O",
-//   "P",
-//   "Q",
-//   "R",
-//   "S",
-//   "T",
-//   "U",
-//   "V",
-//   "W",
-//   "X",
-//   "Y",
-//   "Z",
-// ];
+
 
 type HeatmapData = { x: string; y: string; value: number }[];
 

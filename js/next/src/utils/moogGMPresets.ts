@@ -108,7 +108,7 @@ const moogGMPresets = {
         label: "Attack",
         value: 1,
         min: 0,
-        max: 4000,
+        max: 2000,
         screenInterface: "knob",
     }, // adsr attack (0-100) amount over time
     adsrDecay: {

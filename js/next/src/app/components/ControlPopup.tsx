@@ -4,8 +4,9 @@ import BPMModule from './BPMModule';
 import Button from '@mui/material/Button';
 import CalendarViewMonthIcon from '@mui/icons-material/CalendarViewMonth';
 import { Heatmap } from '@/utils/VizHelpers/Heatmap';
-import { heatmapData } from '@/utils/VizHelpers/heatmapData';
-import MingusPopup from './MingusPopup';
+import { heatmapData } from './../../utils/VizHelpers/heatmapData';
+// utils/VizHelpers/';
+import MingusPopup from './MingusPopup'
 import { Box, SelectChangeEvent } from '@mui/material';
 import { Inter } from 'next/font/google'
 

@@ -55,6 +55,7 @@ interface Props {
   currentScreen: string;
   lastFileUpload: string;
   updateFileUploads: () => void;
+  babylonGame: any;
 }
 
 export default function FXRouting(props: Props) {
@@ -83,7 +84,8 @@ export default function FXRouting(props: Props) {
     currentScreen,
     playUploadedFile,
     lastFileUpload,
-    updateFileUploads
+    updateFileUploads,
+    babylonGame
   } = props;
 
   // const [visibleFXCols, setVisibleFXCols] = useState<number>(0);
@@ -200,6 +202,7 @@ export default function FXRouting(props: Props) {
               handleClickName={handleClickName}
               updateCheckedFXList={updateCheckedFXList}
               handleUpdateFXChain={handleUpdateFXChain}
+
             />
           </Box>
         </Box>

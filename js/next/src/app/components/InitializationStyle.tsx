@@ -16,7 +16,9 @@ import axios, { AxiosResponse } from 'axios';
 import dynamic from 'next/dynamic';
 import { Inter } from 'next/font/google'
 import { getBaseUrl } from '@/utils/siteHelpers';
-
+import { Html, Head, Main, NextScript } from 'next/document'
+import Script from 'next/script'
+ 
 const DynamicComponentWithNoSSR = dynamic(
   () => import('./InitializationComponent'),
   { ssr: false }

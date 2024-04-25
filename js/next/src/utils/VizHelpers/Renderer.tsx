@@ -66,7 +66,7 @@ export const Renderer = ({
         height={yScale.bandwidth()}
         opacity={1}
         fill={colorScale(d.value)}
-        rx={5}
+        // rx={5}
         stroke={"white"}
         onMouseEnter={(e) => {
           setHoveredCell({

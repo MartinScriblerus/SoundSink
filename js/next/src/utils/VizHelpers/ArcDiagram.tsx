@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import * as d3 from "d3";
+
 import React, {useState, useEffect, useRef} from "react";
+import D3DraggableTree from "./D3DraggableTree";
 const COLORS = ["#e0ac2b", "#e85252", "#6689c6", "#9a6fb0", "#a53253"];
 const MARGIN = { top: 20, right: 100, bottom: 20, left: 160 };
 const TEXT_TO_NODE_PADDING = -16;
@@ -216,7 +218,8 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
 
   return (
     <Box ref={parentContainer}>
-      {svgFXChain}
+      {/* {svgFXChain} */}
+      <D3DraggableTree />
     </Box>
   );
 };

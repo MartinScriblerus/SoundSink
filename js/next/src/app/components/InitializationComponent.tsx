@@ -7,12 +7,12 @@ import React, { useState, useEffect, useDeferredValue, useRef, useMemo } from 'r
 import BabylonLayer from './BabylonLayer';
 import * as BABYLON from 'babylonjs';
 import 'babylonjs-loaders';
-import { Chuck } from 'webchuck';
+import { Chuck, HID } from 'webchuck';
 
 import moogGMPresets from '../../utils/moogGMPresets';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
 import MoogGrandmotherEffects from '../../interfaces/audioInterfaces';
-import {BabylonGame} from '../../interfaces/gameInterfaces';
+import { BabylonGame } from '../../interfaces/gameInterfaces';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import axios from 'axios';
 import ControlPopup from './ControlPopup';
@@ -25,10 +25,15 @@ import FXRouting from './FXRouting';
 import { getBaseUrl } from '@/utils/siteHelpers';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
+import StopCircleIcon from '@mui/icons-material/StopCircle';
 import { useForm } from "react-hook-form";
 import FileManager from './FileManager';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import { convertEnvSetting } from '@/utils/FXHelpers/winFuncEnvHelper';
+import { LineChartWrapper } from '@/utils/VizHelpers/LineChartWrapper';
+import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+import { init } from 'node_modules/next/dist/compiled/@vercel/og/satori';
+import { virtualKeyMapping } from '@/utils/KeyHelpers/virtualKeyMapping';
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
@@ -39,29 +44,29 @@ function useWindowSize() {
     // Initialize state with undefined width/height so server and client renders match
     // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
     const [windowSize, setWindowSize] = useState<any>({
-      width: undefined,
-      height: undefined,
+        width: undefined,
+        height: undefined,
     });
-  
+
     useEffect(() => {
-      // only execute all the code below in client side
-      // Handler to call on window resize
-      function handleResize() {
-        // Set window width/height to state
-        setWindowSize({
-          width: window.innerWidth,
-          height: window.innerHeight,
-        });
-      }
-      
-      // Add event listener
-      window.addEventListener("resize", handleResize);
-       
-      // Call handler right away so state gets updated with initial window size
-      handleResize();
-      
-      // Remove event listener on cleanup
-      return () => window.removeEventListener("resize", handleResize);
+        // only execute all the code below in client side
+        // Handler to call on window resize
+        function handleResize() {
+            // Set window width/height to state
+            setWindowSize({
+                width: window.innerWidth,
+                height: window.innerHeight,
+            });
+        }
+
+        // Add event listener
+        window.addEventListener("resize", handleResize);
+
+        // Call handler right away so state gets updated with initial window size
+        handleResize();
+
+        // Remove event listener on cleanup
+        return () => window.removeEventListener("resize", handleResize);
     }, []); // Empty array ensures that effect is only run on mount
     return windowSize;
 }
@@ -96,7 +101,7 @@ interface MixingBoard {
 export default function InitializationComponent() {
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
-    const [lastChuckMessage, setLastChuckMessage] = useState<string>("");
+    const [lastChuckMessage, setLastChuckMessage] = useState<any>("");
 
     const osc1WinEnvOn = useRef<any>(false);
     const osc1PowerADSROn = useRef<any>(false);
@@ -137,8 +142,9 @@ export default function InitializationComponent() {
     const [audioScale, setAudioScale] = useState('Major');
     const [audioChord, setAudioChord] = useState('M');
     const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
+    const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState('Sampler');
     const [showFiles, setShowFiles] = useState<boolean>(false);
-   
+
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
     const [clickFXChain, setClickFXChain] = useState<boolean>(false);
@@ -155,6 +161,33 @@ export default function InitializationComponent() {
     const [denominatorSignature, setDenominatorSignature] = useState(4);
 
     const [uploadedFile, setUploadedFile] = useState<any>({});
+
+
+
+    const [centroid, setCentroid] = useState<any>([
+        {source: "", value: ""}
+    ]);
+    const [flux, setFlux] = useState<any>([{source: "", value: ""}]);
+    const [rMS, setRMS] = useState<any>({source: "", value: ""});
+    const [mFCCEnergy, setMFCCEnergy] = useState<any>({source: "", value: ""});
+    const [mFCCVals, setMFCCVals] = useState<any>({source: "", value: []});
+    const [rollOff50, setRollOff50] = useState<any>({source: "", value: ""});
+    const [rollOff85, setRollOff85] = useState<any>({source: "", value: ""});
+    const [chroma, setChroma] = useState<any>({source: "", value: []});
+    const [xCross, setXCross] = useState<any>({source: "", value: ""});
+    const [dct, setDCT] = useState<any>({source: "", value: []});
+    const [featureFreq, setFeatureFreq] = useState<any>({source: "", value: ""});
+    const [featureGain, setFeatureGain] = useState<any>({source: "", value: ""});
+    const [kurtosis, setKurtosis] = useState<any>({source: "", value: ""});
+    const [sFM, setSFM] = useState<any>({source: "", value: ""});
+    const [sampleRate, setSampleRate] = useState<any>(0);
+    const [amplitude, setAmplitude] = useState<any>({source: "", value: ""});
+    const [timeNow, setTimeNow] = useState<any>(0);
+
+
+    const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
+
+
 
     const filesChuckToSynth = useRef<string>('');
     const filesChuckToDac = useRef<string>('');
@@ -182,7 +215,7 @@ export default function InitializationComponent() {
     const fx1Var = useRef<string | undefined>('');
     const fx1Group = useRef<string | undefined>('');
     const checkedFXList = useRef<FXOption[]>([]);
-   
+
     const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
     const osc1FxStringNeedsBlackhole = useRef<string>('');
     const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
@@ -222,7 +255,7 @@ export default function InitializationComponent() {
         stk1: {},
         sampler: {},
         audioIn: {},
-    });  
+    });
     const wpDiodeLadderFinalHelper = useRef<any>({
         osc1: {
             cutoff: 1,
@@ -322,7 +355,7 @@ export default function InitializationComponent() {
             filterHigh: 650,
             atten: 80.0,
             ripple: 10.0,
-            filterMode:0
+            filterMode: 0
         },
         osc2: {},
         stk1: {},
@@ -351,16 +384,17 @@ export default function InitializationComponent() {
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
 
 
-    
+
 
     const [windowWidth, setWindowWidth] = useState<any>(0);
     const [windowHeight, setWindowHeight] = useState<any>(0);
-    
+
     // currentFX are the ones we are actively editing
     const currentFX = useRef<any>();
 
     const uploadedFilesToChuckString = useRef<any>('');
     const uploadedFilesCodeString = useRef<string>('');
+    const analysisBlocksDeclarations = useRef<string>('');
 
     // default to the oscillator FX (default oscillator screen happens above)
     if (!currentFX.current) {
@@ -382,31 +416,31 @@ export default function InitializationComponent() {
     const samplerFXStringToChuck = useRef<any>('');
 
     const finalOsc1Obj = useRef<any>({});
-    
+
     // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
     const visibleFXKnobs = useRef<Array<any>>();
-    
+
 
     const blobURLRef = useRef<any>();
 
 
     const testArrBuffFile = useRef<any>();
 
-    const onSubmit = async(files: any) => {
+    const onSubmit = async (files: any) => {
         const file = files.file[0];
         const fileName = file.name;
         const fileDataBuffer: any = await file.arrayBuffer();
         const fileData: any = new Uint8Array(fileDataBuffer);
-        const blob = new Blob([fileDataBuffer], {type: "audio/wav"});
+        const blob = new Blob([fileDataBuffer], { type: "audio/wav" });
         testArrBuffFile.current = fileData;
-        const fileBlob = new File( [ blob ], `${file.name.replace(' ','_')}`, { type: "audio/wav"} );
+        const fileBlob = new File([blob], `${file.name.replace(' ', '_')}`, { type: "audio/wav" });
         let arrayBuffer;
         const fileReader = new FileReader();
-        fileReader.onload = async function(event: any) {
-            arrayBuffer = event.target.result;         
-            const formattedName = file.name.replaceAll(' ','_').replaceAll('-','');
-            if (filesToProcess.current.map((i:any) => i.name).indexOf(fileName) === -1) {
-                filesToProcess.current.push({'name': formattedName, 'data': fileData, 'processed': false})
+        fileReader.onload = async function (event: any) {
+            arrayBuffer = event.target.result;
+            const formattedName = file.name.replaceAll(' ', '_').replaceAll('-', '');
+            if (filesToProcess.current.map((i: any) => i.name).indexOf(fileName) === -1) {
+                filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false })
             }
             // const formData = new FormData();
             // const eightBit: any = new Uint8Array(arrayBuffer) 
@@ -415,26 +449,26 @@ export default function InitializationComponent() {
             //     filesToProcess.current.push(formattedName);
             // }
         }
-        fileReader.readAsArrayBuffer(fileBlob);     
+        fileReader.readAsArrayBuffer(fileBlob);
     }
 
 
     const submitMingus = async () => {
         console.log("DO WE HAVE AUDIOKEY??? ", audioKey);
         console.log("TEST HERE 1$");
-        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, {audioKey, audioScale, octave}, {
+        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, { audioKey, audioScale, octave }, {
             headers: {
-              'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             }
-        }).then(({data}) => {
+        }).then(({ data }) => {
             console.log("TEST SCALES HERE 1# ", data);
             //return setMingusKeyboardData(data);
         });
-        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, {audioChord, audioKey}, {
+        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, { audioChord, audioKey }, {
             headers: {
-              'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             }
-        }).then(({data}) => {
+        }).then(({ data }) => {
             console.log("TEST CHORDS 1# ", data);
             // return mingusChordsData.current = data;
             return data;
@@ -460,12 +494,12 @@ export default function InitializationComponent() {
             });
         });
         console.log('visibleFXKNOBS: ', visibleFXKnobs.current);
-        
+
         let newVals: any = [];
-   
+
         visibleFXKnobs.current.map((fxK: any) => newVals.push([fxK, fxK.label]))
-        
-        const availableFX: any =  visibleStkAndFX.filter((i: any) => i.fxType === 'fx');
+
+        const availableFX: any = visibleStkAndFX.filter((i: any) => i.fxType === 'fx');
         setNeedsUpdate(true);
         console.log('ummmmmmm what are availableFX: ', availableFX);
         if (availableFX.length > 0 && availableFX[0].var) {
@@ -473,13 +507,14 @@ export default function InitializationComponent() {
             // currentFX.current = fxFX.current;
 
             currentFX.current = [];
-            visibleFXKnobs.current = availableFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i:any) => [i.label, i])));
+            visibleFXKnobs.current = availableFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i: any) => [i.label, i])));
             selectedEffect.current = currentFX.current[0].var;
             // this is where we decide which fx get pushed down into the fxChain
+
             availableFX.map((fx: any) => {
-                if(fx.var && allFxPersistent.current[`${fxRadioValue}`].map((f:any) => f.var).indexOf(fx.var) === -1) {
+                if (fx.var && allFxPersistent.current[`${fxRadioValue}`].map((f: any) => f.var).indexOf(fx.var) === -1) {
                     allFxPersistent.current[`${fxRadioValue}`].push(fx);
-                    allFxPersistent.current[`${fxRadioValue}`].filter((v:any) => v.var && v);
+                    allFxPersistent.current[`${fxRadioValue}`].filter((v: any) => v.var && v);
                 }
             })
             currentScreen.current = '';
@@ -488,26 +523,26 @@ export default function InitializationComponent() {
 
         const gotFX: any = fxFX.current.length > 0 && fxFX.current.filter((fx: any) => fx.visible === true && fx);
 
-        const theFXIdx = gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) >= 0 
-        ? 
-            gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) 
-        : 
+        const theFXIdx = gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) >= 0
+            ?
+            gotFX.map((f: any) => f.var).indexOf(selectedEffect.current)
+            :
             gotFX.length - 1;
         // console.log(`theFXIdx ${theFXIdx}`)
-        visibleFXKnobs.current = !currentFX.current.presets 
-            ? 
-                currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
+        visibleFXKnobs.current = !currentFX.current.presets
+            ?
+            currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
                 ?
                 Object.values(gotFX[theFXIdx]) && Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
                 :
-                    Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
+                Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
             : (stkValsRef.current.length > 1 && currentScreen.current === 'stk2')
-                ? 
-                    Object.values(stkFX2.current.presets).map((i:any) => [i.label, i])
-                : 
-                    Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]) 
-               
-    
+                ?
+                Object.values(stkFX2.current.presets).map((i: any) => [i.label, i])
+                :
+                Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
+
+
         console.log('VIZ FX CURR AT END OF TEST: ', visibleFXKnobs.current);
     }, [test]);
 
@@ -519,6 +554,10 @@ export default function InitializationComponent() {
         setNeedsUpdate(true);
     }, [fxRadioValue]);
 
+    useEffect(() => {
+        console.log(`WTF?? ${analysisSourceRadioValue.toLowerCase()}`);
+    },[analysisSourceRadioValue]);
+
     const fxChainNeedsUpdate = (msg: any) => {
         console.log("MSG MSG MSG ", msg[0].source);
         selectedEffect.current = msg[0].source;
@@ -527,15 +566,19 @@ export default function InitializationComponent() {
         if (effectToSwitchDisplay.length > 0) {
             console.log('12345 ', effectToSwitchDisplay);
             fxFX.current = effectToSwitchDisplay;
-            
+
         }
         selectedEffect.current = msg[0].source;
         setClickFXChain(true);
-        setFXChainKey(msg.map((l:any) => l.source + "_"));
+        setFXChainKey(msg.map((l: any) => l.source + "_"));
     }
 
-    const handleFXGroupChange = (e: any) => {        
-        if (fxValsRef.current.indexOf(e.target.value) === -1 && fxValsRef.current.indexOf(e.target.value) === -1) { 
+    const handleChangeAnalysisSource = (e: any) => {
+        setAnalysisSourceRadioValue(e.target.value);
+    };
+
+    const handleFXGroupChange = (e: any) => {
+        if (fxValsRef.current.indexOf(e.target.value) === -1 && fxValsRef.current.indexOf(e.target.value) === -1) {
             fxValsRef.current.push(e.target.value);
             checkedFXList.current.push(e.target.value);
         } else {
@@ -546,20 +589,19 @@ export default function InitializationComponent() {
         }
     };
 
-
     const updateStkKnobs = (knobVals: STKOption[]) => {
         stkValsRef.current = [];
         console.log("WHAT ARE KNOBVALS? ", stkValsRef.current);
         if (knobVals[0] && Object.values(knobVals[0]).length > 0 && knobVals.length > 1) {
             knobVals.map(
                 // (kv: any) => {
-                    (kv:any) => { 
-                        stkValsRef.current.push(kv);
+                (kv: any) => {
+                    stkValsRef.current.push(kv);
                     // }
                 })
-        
+
         } else {
-            knobVals.forEach((kv:any) => { 
+            knobVals.forEach((kv: any) => {
                 stkValsRef.current.push(kv);
             })
         }
@@ -576,10 +618,10 @@ export default function InitializationComponent() {
             knobsCountTemp = currentFX.current.length
         }
         setFxKnobsCount(knobsCountTemp);
-        console.log('#### Current FX current: ', currentFX.current);    
-        updateCurrentFXScreen();  
+        console.log('#### Current FX current: ', currentFX.current);
+        updateCurrentFXScreen();
     }
-  
+
 
     // console.log('preloadedFiles on PAGE: ', preloadedFiles);
     const babylonGame = useRef<BabylonGame | any>();
@@ -610,79 +652,79 @@ export default function InitializationComponent() {
     }
 
     const updateCurrentFXScreen = () => {
- 
+
         console.log('FX SCREEN!: ', currentScreen.current);
         console.log('GANME TO RECREATE! ', babylonGame.current);
         if (!babylonGame.current || !babylonGame.current.engine) {
             return;
         }
-    
-        if (currentScreen.current === 'fx_' && stkValsRef.current.length > 0 ) {
+
+        if (currentScreen.current === 'fx_' && stkValsRef.current.length > 0) {
             stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
             currentFX.current = stkFX.current;
             currentScreen.current = 'stk';
-            visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
+            visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
         } else if (currentScreen.current === '') {
             // currentScreen.current = 'stk';
             if (doReturnToSynth.current === true) {
-            // currentFX.current = moogGrandmotherEffects.current;
-            // visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-            currentScreen.current = 'synth';
-            currentFX.current = []; 
-            currentFX.current = moogGrandmotherEffects.current;
-            fxFX.current = [];
-            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-            doReturnToSynth.current = false;
-            setFxKnobsCount(visibleFXKnobs.current.length);  
-            doReturnToSynth.current = false; 
-            }             
+                // currentFX.current = moogGrandmotherEffects.current;
+                // visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
+                currentScreen.current = 'synth';
+                currentFX.current = [];
+                currentFX.current = moogGrandmotherEffects.current;
+                fxFX.current = [];
+                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
+                doReturnToSynth.current = false;
+                setFxKnobsCount(visibleFXKnobs.current.length);
+                doReturnToSynth.current = false;
+            }
         }
-  
-// tk
+
+        // tk
         if (currentScreen.current === 'synth') {
             try {
                 stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
                 currentFX.current = stkFX.current;
                 currentScreen.current = 'stk';
-                visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i:any) => [i.label, i]);
-            } catch (e: any) {}
-        } 
+                visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
+            } catch (e: any) { }
+        }
         else if (currentScreen.current === '') {
 
             if (doReturnToSynth.current === true) {
                 currentScreen.current = 'synth';
-                currentFX.current = []; 
+                currentFX.current = [];
                 currentFX.current = moogGrandmotherEffects.current;
                 fxFX.current = [];
-                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
+                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
                 doReturnToSynth.current = false;
             }
         }
         else if (currentScreen.current === 'stk' || currentScreen.current === 'fx_') {
             currentScreen.current = 'synth';
-            currentFX.current = []; 
+            currentFX.current = [];
             currentFX.current = moogGrandmotherEffects.current;
             fxFX.current = [];
-            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
+            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
             console.log('what are current FX in stk? ', fxFX.current);
-        } 
+        }
         else {
             console.log('what are current FX in stk? ', fxFX.current);
             currentScreen.current = '';
             currentFX.current = fxFX.current;
-            visibleFXKnobs.current = Object.values(fxFX.current).map((i:any) => [i.label, i]);
+            visibleFXKnobs.current = Object.values(fxFX.current).map((i: any) => [i.label, i]);
         }
         babylonGame.current.engine.dispose();
         babylonGame.current = undefined;
         setBabylonKey(`${babylonKey}1`);
         setRecreateBabylon(!recreateBabylon);
-        babylonGame.current = null;   
-             
+        babylonGame.current = null;
+
         return currentScreen.current;
     };
 
     const updateCheckedFXList = (e: any) => {
-        if (checkedFXList.current.indexOf(e.target.value) === -1) { 
+        if (checkedFXList.current.indexOf(e.target.value) === -1) {
             checkedFXList.current.push(e.target.value);
         } else {
             const index = checkedFXList.current.indexOf(e.target.value);
@@ -693,14 +735,14 @@ export default function InitializationComponent() {
 
         const allFx: any = [];
         fxGroupOptions.map((i: any) => {
-            if(allFx.indexOf(i.effects) === -1) {
+            if (allFx.indexOf(i.effects) === -1) {
                 allFx.push(i.effects);
             }
         });
 
         console.log("DOES ALLFX DO WHAT WE WANT? ", allFx);
         allFx.flat().forEach((fx: any) => {
-            if (fxFX.current.filter((fx:any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
+            if (fxFX.current.filter((fx: any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
                 fxFX.current.push({
                     presets: getFX1Preset(fx.effectVar)[0].presets,
                     type: fx.effectLabel,
@@ -710,9 +752,9 @@ export default function InitializationComponent() {
                 });
             }
         });
-        
+
         fxFX.current.forEach((c: any) => {
-            const isChecked = checkedFXList.current.indexOf(c.var); 
+            const isChecked = checkedFXList.current.indexOf(c.var);
             if (isChecked !== -1) {
                 c.visible = true;
             } else {
@@ -755,39 +797,39 @@ export default function InitializationComponent() {
         console.log('BABYLON KEY: ', babylonKey);
         setNeedsUpdate(true);
     }, [babylonKey]);
-    
+
     useEffect(() => {
         setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
-    },[moogGrandmotherEffects])
+    }, [moogGrandmotherEffects])
 
 
     // THIS METHOD TURNS A PRESET INTO CHUCK CODE (only set up for stk1)
     const stkFXToString = () => {
         console.log('stkFXTo *** STRING ***: ', stkFX.current);
-        if (!stkFX.current || !stkFX.current.presets) return '';   
-        
+        if (!stkFX.current || !stkFX.current.presets || stkFX.current.length < 1) return '';
+
         stk1Type.current = stkFX.current.type;
         stk1Var.current = stkFX.current.var;
 
         // *********************************** STK2 WILL NEED UPDATING!!!
-        if (stkFX2.current && stkFX2.current.length > 1) {
-            stk2Type.current = stkFX2.current.type;
-            stk2Var.current = stkFX2.current.var + '2';
-        }
+        // if (stkFX2.current && stkFX2.current.length > 1) {
+        //     stk2Type.current = stkFX2.current.type;
+        //     stk2Var.current = stkFX2.current.var + '2';
+        // }
         // ***********************************
 
-        Object.values(stkFX.current.presets).map((preset: any) => {
+        stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
             console.log('STK PRESET: ', preset); // preset.name
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
             stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
         });
 
-        stkFX2.current && stkFX2.current.presets && Object.values(stkFX2.current.presets).map((preset: any) => {
-            const alreadyInChuckDynamicScript: boolean = (stkFX2String.current && stkFX2String.current.indexOf(`${stkFX2.current.var}.${preset.name};`) !== -1);
-            stkFX2String.current = stkFX2String.current && !alreadyInChuckDynamicScript ? `${stkFX2String.current} ${preset.value} => ${stkFX2.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX2.current.var}.${preset.name}; `;
-            return stkFX2String.current;
-        });
-        console.log('are we appending to stkFXString? ', stkFXString.current);
+        // stkFX2.current && stkFX2.current.presets && Object.values(stkFX2.current.presets).map((preset: any) => {
+        //     const alreadyInChuckDynamicScript: boolean = (stkFX2String.current && stkFX2String.current.indexOf(`${stkFX2.current.var}.${preset.name};`) !== -1);
+        //     stkFX2String.current = stkFX2String.current && !alreadyInChuckDynamicScript ? `${stkFX2String.current} ${preset.value} => ${stkFX2.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX2.current.var}.${preset.name}; `;
+        //     return stkFX2String.current;
+        // });
+        // console.log('are we appending to stkFXString? ', stkFXString.current);
         return [stkFXString.current, stkFX.current.type, stkFX.current.var];
     }
 
@@ -824,7 +866,7 @@ export default function InitializationComponent() {
                 value => now;
             }
         }
-        spork ~ playExpEnvWindow(expenv_${source}, whole/${Math.pow(2, T60)}, ${radius}, whole/${Math.pow(2,value)});
+        spork ~ playExpEnvWindow(expenv_${source}, whole/${Math.pow(2, T60)}, ${radius}, whole/${Math.pow(2, value)});
     `;
 
     const wpDiodeLadderString = (source: string, cutoff: number, resonance: number, nlp_type: number, nonlinear: number, saturation: number) => {
@@ -858,7 +900,7 @@ export default function InitializationComponent() {
 
     const wpKorg35String = (source: string, cutoff: number, resonance: number, nonlinear: number, saturation: number) => {
         const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
-      
+
         return `
         fun void playWpKorg35Window(WPKorg35 @ win, float cutoff, int resonance, int nonlinear, float saturation) {
             saw2 => blackhole;
@@ -887,7 +929,7 @@ export default function InitializationComponent() {
 
     const modulateString = (source: string, vibratoRate: number, vibratoGain: number, randomGain: number) => {
         console.log('#### ', source, vibratoRate, vibratoGain, randomGain);
-        
+
         return `
 
         fun void playModWindow(Modulate @ win, float vibratoRate, float vibratoGain, float randomGain) {
@@ -911,10 +953,6 @@ export default function InitializationComponent() {
             }
         }
         spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
-
-
-
-
         `;
     };
 
@@ -956,7 +994,7 @@ export default function InitializationComponent() {
                 
             }
         }
-        spork ~ playDelayWindow(delay_${source}, ${delay}, ${lines}, ${convertedSyncDelay }, ${zero}, ${b0}, ${b1});
+        spork ~ playDelayWindow(delay_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
         `;
     };
 
@@ -976,11 +1014,11 @@ export default function InitializationComponent() {
                 ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
             }
         }
-        spork ~ playDelayAWindow(delayA_${source}, ${delay}, ${lines}, ${convertedSyncDelay }, ${zero}, ${b0}, ${b1});
+        spork ~ playDelayAWindow(delayA_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
         `;
     };
 
-    const delayLString = (source: string, delay: number,lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
+    const delayLString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
         const convertedSyncDelay = Math.pow(2, syncDelay);
         return `
         fun void playDelayLWindow(DelayL @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
@@ -996,12 +1034,12 @@ export default function InitializationComponent() {
                 ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
             }
         }
-        spork ~ playDelayLWindow(delayL_${source}, ${delay}, ${lines}, ${convertedSyncDelay }, ${zero}, ${b0}, ${b1});
+        spork ~ playDelayLWindow(delayL_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
         `;
     };
 
     const expDelayString = (source: string, ampcurve: number, durcurve: number, delay: number, mix: number, reps: number, gain: number) => {
-        const convertedSyncDelay = Math.pow(2,delay)
+        const convertedSyncDelay = Math.pow(2, delay)
         return `
         fun void playExpDelayWindow(ExpDelay @ win, float ampcurve, float durcurve, float delay, float mix, int reps, float gain) {
 
@@ -1060,46 +1098,46 @@ export default function InitializationComponent() {
         }
         spork ~ playSpectacleWindow(spectacle_${source}, ${convertedBands}, ${convertedDelay}, ${eq}, ${feedback}, ${convertedFFT}, ${freqMax}, ${freqMin}, ${mix}, ${overlap}, ${table});
         `;
-        
+
     };
 
     const osc1FXToString = () => {
-    
+
         // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
         // =================================================================
         Object.values(allFxPersistent.current.Osc1).map((o1: any) => {
             if (osc1FXStringToChuck.current.indexOf(`${o1.var}_o1`) === -1) {
                 if (o1.type === "PitchTrack") {
-                    if (osc1FxStringToChuckNeedsBlackhole.current.map((i:any) => i.name).indexOf(`${o1.var}`) === -1) {  
-                        osc1FxStringToChuckNeedsBlackhole.current.push({name: `${o1.var}`, string: `=> ${o1.type} ${o1.var}_o1 => blackhole;`});
+                    if (osc1FxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${o1.var}`) === -1) {
+                        osc1FxStringToChuckNeedsBlackhole.current.push({ name: `${o1.var}`, string: `=> ${o1.type} ${o1.var}_o1 => blackhole;` });
                     }
                     return;
                 } else if (o1.type === "WinFuncEnv") {
                     osc1WinEnvOn.current = true;
-                 } else if (o1.type === "PowerADSR") {
+                } else if (o1.type === "PowerADSR") {
                     osc1PowerADSROn.current = true;
-                 } else if (o1.type === "ExpEnv") {
+                } else if (o1.type === "ExpEnv") {
                     osc1ExpEnvOn.current = true;
-                 } else if (o1.type === "WPDiodeLadder") {
+                } else if (o1.type === "WPDiodeLadder") {
                     osc1WPDiodeLadderOn.current = true;
-                 } else if (o1.type === "WPKorg35") {
+                } else if (o1.type === "WPKorg35") {
                     osc1WPKorg35On.current = true;
-                 } else if (o1.type === "Modulate") {
+                } else if (o1.type === "Modulate") {
                     osc1ModulateOn.current = true;
-                 } else if (o1.type === "Delay") {
+                } else if (o1.type === "Delay") {
                     osc1DelayOn.current = true;
-                 } else if (o1.type === "DelayA") {
+                } else if (o1.type === "DelayA") {
                     osc1DelayAOn.current = true;
-                 } else if (o1.type === "DelayL") {
+                } else if (o1.type === "DelayL") {
                     osc1DelayLOn.current = true;
-                 } else if (o1.type === "ExpDelay") {
+                } else if (o1.type === "ExpDelay") {
                     osc1ExpDelayOn.current = true;
-                 } else if (o1.type === "Elliptic") {
+                } else if (o1.type === "Elliptic") {
                     osc1EllipticOn.current = true;
-                 } else if (o1.type === "Spectacle") {
+                } else if (o1.type === "Spectacle") {
                     osc1SpectacleOn.current = true;
-                 }
-                
+                }
+
                 // TODO => Basic Implementation of Sampler Interface / Play Logic
                 // TODO => All of SndBuf Implementation
                 // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
@@ -1111,16 +1149,16 @@ export default function InitializationComponent() {
 
                 // AFTER ALL OF THIS, WE CAN LEVEL OUT (OR MAKE FACTORY OF FX CODE FOR ALL SOURCES)
                 // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
-                 
-                 else {
+
+                else {
                     osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${o1.type} ${o1.var}_o1 `)
                 }
             }
-    
+
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
-            Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async(preset: any, idx: number) => {
-           
+            Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async (preset: any, idx: number) => {
+
                 // ******** TODO change to read type directly from o1.type
                 if (preset.type.includes("_needsFun")) {
                     if (preset.type.includes("_winFuncEnv")) {
@@ -1131,7 +1169,7 @@ export default function InitializationComponent() {
                         } else if (preset.name === "envSetting") {
                             winFuncEnvFinalHelper.current.osc1.envSetting = convertEnvSetting(preset.value);
                         } else {
-                        }   
+                        }
                     }
                     if (preset.type.includes("_powerADSR")) {
                         // add quantization / feedback etc later
@@ -1225,8 +1263,8 @@ export default function InitializationComponent() {
                             expDelayFinalHelper.current.osc1.mix = preset.value;
                         } else if (preset.name === "reps") {
                             expDelayFinalHelper.current.osc1.reps = preset.value;
-                        } 
-                    } 
+                        }
+                    }
                     if (o1.type === "Elliptic") {
                         if (preset.name === "lowFilter") {
                             ellipticFinalHelper.current.osc1.lowFilter = preset.value;
@@ -1240,7 +1278,7 @@ export default function InitializationComponent() {
                             ellipticFinalHelper.current.osc1.ripple = preset.value;
                         } else if (preset.name === "filterMode") {
                             ellipticFinalHelper.current.osc1.filterMode = preset.value;
-                        } 
+                        }
                     }
                     if (o1.type === "Spectacle") {
                         console.log('OY PREET ', preset)
@@ -1264,7 +1302,7 @@ export default function InitializationComponent() {
                             spectacleFinalHelper.current.osc1.overlap;
                         } else if (preset.name === "table") {
                             spectacleFinalHelper.current.osc1.table;
-                        } 
+                        }
                     }
 
                     else {
@@ -1272,15 +1310,15 @@ export default function InitializationComponent() {
                     }
                 } else {
                     const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
-                    let formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${preset.value}${addDurMs}`: `${preset.value}`;
+                    let formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${preset.value}${addDurMs}` : `${preset.value}`;
 
                     if (osc1FXString.current !== '') {
                         if (finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name) !== -1) {
                             const theIndex = finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name);
                             finalOsc1FxStringToChuck.current[theIndex].string = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
-                        } 
-                        else {    
-                            finalOsc1FxStringToChuck.current.push({name: preset.name, string: `${formattedValue} => ${o1.var}_o1.${preset.name};`}); 
+                        }
+                        else {
+                            finalOsc1FxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${o1.var}_o1.${preset.name};` });
                         }
                     } else {
                         osc1FXString.current = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
@@ -1322,24 +1360,24 @@ export default function InitializationComponent() {
             if (samplerFXStringToChuck.current.indexOf(`${s1.var}_s1`) === -1) {
                 samplerFXStringToChuck.current = samplerFXStringToChuck.current.concat(`=> ${s1.type} ${s1.var}_s1 `)
             }
-            
+
             Object.values(s1.presets).length > 0 && Object.values(s1.presets).map((preset: any, idx: number) => {
                 const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
-                const formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${parseInt(preset.value)}${addDurMs}`: `${preset.value}`;
+                const formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${parseInt(preset.value)}${addDurMs}` : `${preset.value}`;
                 // const thePreset: any = Object.values(s1.presets)[idx];
                 if (samplerFXString.current !== '') {
                     if (finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name) !== -1) {
                         const theIndex = finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name);
                         finalSamplerFxStringToChuck.current[theIndex].string = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
                     } else {
-                        finalSamplerFxStringToChuck.current.push({name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};`}); 
+                        finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};` });
                     }
                     samplerFXString.current.indexOf(`${formattedValue} => ${s1.var}_s1.${preset.name};`)
                     const t: string = samplerFXString.current;
-                    const sub =  ` => ${s1.var}_s1.${preset.name};`;
+                    const sub = ` => ${s1.var}_s1.${preset.name};`;
                     let lastIndexOfValue: any = t.indexOf(sub);
                     const lastCharOfVal = t[lastIndexOfValue];
-                    
+
                     formerValSub.current = lastCharOfVal;
                     console.log('FORMER VAL SUB: ', formerValSub.current);
                     let chartWindowIndex: any;
@@ -1362,8 +1400,10 @@ export default function InitializationComponent() {
     }
 
     const initChuck = async () => {
-        if(typeof window === 'undefined') return;
-        const theChuck: any = await Chuck.init(serverFilesToPreload, undefined, 2);  
+        if (typeof window === 'undefined') return;
+        const theChuck: any = await Chuck.init(serverFilesToPreload, undefined, 2);
+        const hid = await HID.init(theChuck); // Initialize HID with mouse and keyboard
+        hid.enableKeyboard();
         if (theChuck.context?.state === "suspended") {
             const theChuckContext: any = theChuck.context;
             theChuckContext.resume();
@@ -1372,59 +1412,94 @@ export default function InitializationComponent() {
     };
 
 
-   // console.log('!!!!! ', allFxPersistent.current.length, Object.values(allFxPersistent.current.Osc1[0].presets));
-    if (allFxPersistent.current.Osc1[0] && Object.values(allFxPersistent.current.Osc1[0].presets).length > 0) {
-        osc1FXToString();
-    }
-    if (allFxPersistent.current.Osc2[0] && Object.values(allFxPersistent.current.Osc2[0].presets).length > 0) {
-        osc2FXToString();
-    }
-    if (allFxPersistent.current.AudioIn[0] && Object.values(allFxPersistent.current.AudioIn[0].presets).length > 0) {
-        audioInFXToString();
-    }
-    if (allFxPersistent.current.Sampler[0] && Object.values(allFxPersistent.current.Sampler[0].presets).length > 0) {
-        samplerFXToString();
-    }
+    useEffect(() => {
+        // console.log('!!!!! ', allFxPersistent.current.length, Object.values(allFxPersistent.current.Osc1[0].presets));
+        if (allFxPersistent.current.Osc1[0] && Object.values(allFxPersistent.current.Osc1[0].presets).length > 0) {
+            osc1FXToString();
+        }
+        if (allFxPersistent.current.Osc2[0] && Object.values(allFxPersistent.current.Osc2[0].presets).length > 0) {
+            osc2FXToString();
+        }
+        if (allFxPersistent.current.AudioIn[0] && Object.values(allFxPersistent.current.AudioIn[0].presets).length > 0) {
+            audioInFXToString();
+        }
+        if (allFxPersistent.current.Sampler[0] && Object.values(allFxPersistent.current.Sampler[0].presets).length > 0) {
+            samplerFXToString();
+        }
+
+    }, [chuckUpdateNeeded])
 
     const shredCount = useRef<number>(0);
 
+ 
+
+
+    const stopChuckInstance = () => {
+        chuckHook && chuckHook?.clearChuckInstance();
+    }
+
     const runMainChuckCode = async (aChuck: Chuck, getStk1String: any) => {
+
         if (chuckUpdateNeeded === false) {
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
 
-            filesToProcess.current.map((f: any, idx: number)  => {
-                if (f.processed === false) {
-                    aChuck.createFile("", f.name, f.data);
-                    alert(`${f.name} created`);
-                    f.processed = true;
-                    uploadedFilesToChuckString.current = uploadedFilesToChuckString.current.concat(`SndBuf buf_${idx} => dac; `); // f.name.split('.')[0]
-                    uploadedFilesCodeString.current = uploadedFilesCodeString.current.concat(`"${f.name}" => buf_${idx}.read; `); // f.name.split('.')[0]
-                }
-            });
+            console.log('WHAT IS SHRED COUNT? ', shredCount.current);
+            console.log('FILES TO PROCESS: ', filesToProcess);
 
-            const connector1Stk = getStk1String.length ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
-            // const connector2Stk = getStk2String.length ? `=> ${getStk2String[1]} ${getStk2String[2]}` : '';
-            
-            const connectorStk1DirectToDac = getStk1String && useStkDirect ? `${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; winfuncenv_stk1.setHann(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_stk1, whole/${16}, whole/${16}); }` : ``;
+            const allAnalysisBlocksCodeGen: string | any = 
+            // filesToProcess.current && filesToProcess.current.length > 0
+                // ?
+                // filesToProcess.current.map((f: any, idx: number) => {
+                //     if (f.processed === false) {
+                //         aChuck.createFile("", f.name, f.data);
+                //         alert(`${f.name} created`);
+                //         f.processed = true;
+                //         uploadedFilesToChuckString.current = f.name && f.name.length > 0 ? uploadedFilesToChuckString.current.concat(`SndBuf buf_${idx} => dac; "${f.name}" => buf_${idx}.read;`) : ``; // f.name.split('.')[0]
+                //         if (f.name && f.name.length > 0) {
+                //             const blockConstruct = analysisBlockDeclarationConstructor(`SndBuf`, `buf_${idx}`);
+                //             const paramConstruct = analysisBlockParameterConstructor(`SndBuf`, `buf_${idx}`);
+                //             const upchuckAndAnalysisConstruct = filesToProcess.current.length > 0 && analysisBlockUpchuckAndAnalysisConstructor(`SndBuf`, `buf_${idx}`);
+                //             alert('SANITY!!! ' + blockConstruct + paramConstruct + upchuckAndAnalysisConstruct)
+                //             return blockConstruct + paramConstruct + upchuckAndAnalysisConstruct;
+                //         }
+                //     }
+                // })
+                // : 
+                [''];
 
+
+            console.log('STK STRING HERE: ', getStk1String);
+            const connector1Stk = getStk1String && getStk1String.length ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
+
+            const connectorStk1DirectToDac = getStk1String && useStkDirect ? `
+                ${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; 
+                winfuncenv_stk1.setHann(); 
+                for (int i; i < 250; i++) { 
+                    spork ~ playWindow(winfuncenv_stk1, whole/${16}, whole/${16}); 
+                }` : ``;
+
+
+            // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // HANDLING CHUGINS & COMPLEX TIME-BASED EFFECTS
+            // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             const winFuncDeclarationOsc1 = osc1WinEnvOn.current ? ' WinFuncEnv winfuncenv_o1 =>' : '';
             const powerADSRDeclarationOsc1 = osc1PowerADSROn.current ? ' PowerADSR poweradsr_o1 =>' : '';
-            const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>': '';
-            const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>': '';
+            const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>' : '';
+            const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>' : '';
             const WPKorg35DeclarationOsc1 = osc1WPKorg35On.current ? 'saw2 => WPKorg35 wpkorg35_o1 => dac;' : '';
             const modulateDeclarationOsc1 = osc1ModulateOn.current ? 'hpf => Modulate mod_o1 => dac;' : '';
             const ellipticDeclarationOsc1 = osc1EllipticOn.current ? ' Elliptic elliptic_o1 =>' : '';
             const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.delay}];` : '';
-            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.delay}];`  : '';
-            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.delay}];`  : '';
-            const expDelayDeclarationOsc1 = osc1ExpDelayOn.current ? ' ExpDelay expDelay_o1 =>': '';
-            const spectacleDeclarationOsc1 = osc1SpectacleOn.current ? ' => Spectacle spectacle_o1 ': '';
-            
+            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.delay}];` : '';
+            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.delay}];` : '';
+            const expDelayDeclarationOsc1 = osc1ExpDelayOn.current ? ' ExpDelay expDelay_o1 =>' : '';
+            const spectacleDeclarationOsc1 = osc1SpectacleOn.current ? ' => Spectacle spectacle_o1 ' : '';
+
             const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
             const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
             const expEnvCodeStringOsc1 = osc1ExpEnvOn.current ? expEnvString('o1', expEnvFinalHelper.current.osc1.T60, expEnvFinalHelper.current.osc1.radius, expEnvFinalHelper.current.osc1.value) : '';
-            const wpDiodeLadderCodeStringOsc1 = osc1WPDiodeLadderOn.current ? wpDiodeLadderString('o1', wpDiodeLadderFinalHelper.current.osc1.cutoff, wpDiodeLadderFinalHelper.current.osc1.resonance, wpDiodeLadderFinalHelper.current.osc1.nlp_type, wpDiodeLadderFinalHelper.current.osc1.nonlinear, wpDiodeLadderFinalHelper.current.osc1.saturation ) : '';
-            const wpKorg35CodeStringOsc1 = osc1WPKorg35On.current ? wpKorg35String('o1', wpKorg35FinalHelper.current.osc1.cutoff, wpKorg35FinalHelper.current.osc1.resonance, wpKorg35FinalHelper.current.osc1.nonlinear, wpKorg35FinalHelper.current.osc1.saturation ) : '';
+            const wpDiodeLadderCodeStringOsc1 = osc1WPDiodeLadderOn.current ? wpDiodeLadderString('o1', wpDiodeLadderFinalHelper.current.osc1.cutoff, wpDiodeLadderFinalHelper.current.osc1.resonance, wpDiodeLadderFinalHelper.current.osc1.nlp_type, wpDiodeLadderFinalHelper.current.osc1.nonlinear, wpDiodeLadderFinalHelper.current.osc1.saturation) : '';
+            const wpKorg35CodeStringOsc1 = osc1WPKorg35On.current ? wpKorg35String('o1', wpKorg35FinalHelper.current.osc1.cutoff, wpKorg35FinalHelper.current.osc1.resonance, wpKorg35FinalHelper.current.osc1.nonlinear, wpKorg35FinalHelper.current.osc1.saturation) : '';
             const modulateCodeStringOsc1 = osc1ModulateOn.current ? modulateString('o1', modulateFinalHelper.current.osc1.vibratoRate, modulateFinalHelper.current.osc1.vibratoGain, modulateFinalHelper.current.osc1.randomGain) : '';
             const ellipticCodeStringOsc1 = osc1EllipticOn.current ? ellipticString('o1', ellipticFinalHelper.current.osc1.filterLow, ellipticFinalHelper.current.osc1.filterMid, ellipticFinalHelper.current.osc1.filterHigh, ellipticFinalHelper.current.osc1.atten, ellipticFinalHelper.current.osc1.ripple, ellipticFinalHelper.current.osc1.filterMode) : '';
             const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
@@ -1437,28 +1512,429 @@ export default function InitializationComponent() {
 
             ////////////////////////////
 
+
+
+
+            // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            // HANDLING CHUCK UGEN => DAC DECLARATIONS 
+            // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
             const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
-            
+
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             const osc2ChuckToOutlet: string = ` SawOsc saw2 => lpf;`;
-            
-            // const winFuncString = (source: string) => `winfuncenv_${source}.setHann(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_${source}, whole/${1}, whole/${1}); }`;
 
-            const finalOsc1Code = Object.values(finalOsc1FxStringToChuck.current).length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',','') : '';
-         
+
+            const finalOsc1Code = Object.values(finalOsc1FxStringToChuck.current).length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
+
             // bring back sync mode on this eventually -> // ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
+            //  allAnalysisBlocks.current.forEach((block: any) => allAnalysisBlocksCodeGen.concat(block.code));
 
+            console.log("FUUUUUUUCK GETTING FINAL OSC CODE? ", finalOsc1Code);
+
+
+            console.log('OOOOF FILES TO PROCESS ', filesToProcess.current);
+
+            const filesArray = filesToProcess.current.map((f: any) => f.name) || [];
+            
             aChuck.runCode(`
             
+
+            // webchuck keyboard device
+            0 => int device;
+            
+            // HID input and HID message
+            Hid hid;
+            HidMsg msg;
+            
+            // open keyboard device
+            if( !hid.openKeyboard( device ) ) me.exit();
+            <<< "keyboard '" + hid.name() + "' ready", "" >>>;
+
             ((60.0 / ${bpm})) => float secLenBeat;
             (secLenBeat * 1000)::ms => dur beat;
+   
             ((secLenBeat * 1000) * 2)::ms => dur whole;
             (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
              
-
-            ${uploadedFilesToChuckString.current}
+            // ${uploadedFilesToChuckString.current}
             // ${uploadedFilesCodeString.current}
+
+
+
+
+            private class UniversalAnalyzer {
+                FeatureCollector combo => blackhole;
+                FFT fft;
+                Flux flux;
+                RMS rms;
+                MFCC mfcc;
+                Centroid centroid;
+                RollOff rolloff;
+                Chroma chroma;
+                Kurtosis kurtosis;
+                DCT dct;
+                Flip flip;
+                ZeroX zerox;
+                SFM sfm;
+                "" => string mfccString;
+                "" => string chromaString; 
+                string the_sfm;
+                
+                private class TrackingFile
+                {
+                    static float the_freq;
+                    static float the_gain;
+                    
+                    static float the_kurtosis;
+                    static Event @ the_event;
+                }
+
+                fun void declarationCode(UGen @ source) {
+                    source => fft;
+                    // a thing for collecting multiple features into one vector
+                    
+                    // add spectral feature: Centroid
+                    fft =^ centroid =^ combo;
+                    // add spectral feature: Flux
+                    fft =^ flux =^ combo;
+                    // add spectral feature: RMS
+                    fft =^ rms =^ combo;
+                    // add spectral feature: MFCC
+                    fft =^ mfcc =^ combo;
+                    fft =^ rolloff =^ combo;
+                    fft =^ chroma =^ combo;
+                    fft =^ kurtosis => blackhole;
+                    source => dct => blackhole;
+                    source => flip =^ zerox => blackhole;
+                
+                    fft =^ sfm => blackhole;
+                    //-----------------------------------------------------------------------------
+                    // setting analysis parameters -- also should match what was used during extration
+                    //-----------------------------------------------------------------------------
+                    // set flip size (N)
+    
+                    // output in [-1,1]
+                    // calculate sample rate
+                    second/samp => float srate;
+    
+                    // set number of coefficients in MFCC (how many we get out)
+                    // 13 is a commonly used value; using less here for printing
+                    20 => mfcc.numCoeffs;
+                    // set number of mel filters in MFCC
+                    10 => mfcc.numFilters;
+    
+                    // do one .upchuck() so FeatureCollector knows how many total dimension
+                    combo.upchuck();
+        
+                    // get number of total feature dimensions
+                    combo.fvals().size() => int NUM_DIMENSIONS;
+    
+                    // set FFT size
+                    4096 => fft.size;
+                    // set window type and size
+                    Windowing.hann(fft.size()) => fft.window;
+                    // our hop size (how often to perform analysis)
+                    (fft.size()/2)::samp => dur HOP;
+                    // how many frames to aggregate before averaging?
+                    // (this does not need to match extraction; might play with this number) ***
+                    3 => int NUM_FRAMES;
+                    // how much time to aggregate features for each file
+                    fft.size()::samp * NUM_FRAMES => dur EXTRACT_TIME;
+        
+                    // initialize separately (due to a bug)
+                    // new Event @=> TrackingFile.the_event;
+    
+                    // analysis
+                    source => PoleZero dcblock => FFT fftTrack => blackhole;
+        
+                    // set to block DC
+                    .99 => dcblock.blockZero;
+                }
+
+                fun void upchuckRealTimeFeatures(
+                    FeatureCollector @ combo, 
+                    string mfccString, 
+                    MFCC @ mfcc, 
+                    string chromaString, 
+                    Chroma @ chroma, 
+                    Centroid @ centroid, 
+                    Flux @ flux, 
+                    RMS @ rms,
+                    RollOff @ rolloff,
+                    string sourceName
+                ) {
+                    combo.upchuck();
+               
+                    "" => mfccString;
+                    for (0 => int i; i < mfcc.fvals().cap(); i++) {
+                        if (i < mfcc.fvals().cap() - 1) {
+                            mfcc.fvals()[i] + ", "  +=> mfccString;
+                        } else {
+                            mfcc.fvals()[i] +=> mfccString;
+                        }
+                    }
+                
+                    "" => chromaString;
+                    for (0 => int i; i < chroma.fvals().cap() - 1; i++) {
+                        if (i < chroma.fvals().cap() - 2) {
+                            chroma.fvals()[i] + ", " +=> chromaString;
+                        } else {
+                            chroma.fvals()[i] +=> chromaString;
+                        }
+                    }
+                    
+                    if (count % 16 == 0) {
+                        <<< "FEATURES VALS: ", 
+                        centroid.fval(0) + " " 
+                        + flux.fval(0) + " " 
+                        + rms.fval(0) + " " 
+                        + mfccString + " " 
+                        + rolloff.fval(0) + " " 
+                        + chromaString + " "
+                        + sourceName >>>;
+                    }
+                }
+    
+                fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
+                    // window
+                    Windowing.hamming( win.size() ) => win.window;
+                    float finalObj[2];
+                
+                    0 => int count;
+                    // go for it
+                    while( true )
+                    {
+                        // take fft
+                        win.upchuck() @=> UAnaBlob blob;
+                        winKurtosis.upchuck();
+                        winSfm.upchuck();
+                        
+                        // find peak
+                        0 => float max; float where;
+                        for( int i; i < blob.fvals().size()/8; i++ )
+                        {
+                            // compare
+                            if( blob.fvals()[i] > max )
+                            {
+                                // save
+                                blob.fvals()[i] => max;
+                                i => where;
+                            }
+                        }
+                        
+                        // set freq
+                        (where / win.size() * (second / samp)) => this.TrackingFile.the_freq;
+                        // set gain
+                        (max / .5) => this.TrackingFile.the_gain;
+                        // clamp
+                        if( this.TrackingFile.the_gain > 1 )
+                            1 => this.TrackingFile.the_gain;
+                        // // fire!
+                        // this.TrackingFile.the_event.broadcast();
+                
+                        // hop
+                        // (win.size()/4)::samp => now;
+
+                        ((win.size()/4) * (second /samp)) * 1000 => float toMilliseconds;
+                        toMilliseconds :: ms => now;
+
+                        "" => string sfmString;
+                        
+                        for( int i; i < winSfm.fvals().size(); i++ )
+                        {
+                            Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
+                            sfmString + " " + tmp => sfmString;
+                            sfmString => this.the_sfm;
+                        }
+                
+                        winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
+                        // fire!
+                        this.TrackingFile.the_event.broadcast();
+                        // if (count % this.fft.size() == 0) {
+                        //     <<< "FREQ: ", winKurtosis.fval(0), sfmString >>>;
+                        // }
+                        count++;
+                    }
+                }
+                
+                fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
+                    // set parameters
+                    8 => winDct.size;
+                
+                    int div;
+                
+                    4096 => winFlip.size;
+                
+                    0 => int countCrossLog;
+                
+                    // control loop
+                    while( true )
+                    {
+                        // set srate
+                        second / samp => float srate;
+                        (winFlip.size() / srate) * 1000 => float toMilliseconds;
+                
+                        // winDct.size()/2 %=> div;
+                        winZerox.upchuck() @=> UAnaBlob blob;
+                
+                        winDct.size()/2 %=> div;
+                        winDct.upchuck();
+                
+                        // advance time
+                        (toMilliseconds)::ms => now;
+                        if (countCrossLog % this.fft.size() == 0) {
+                            <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
+                        }
+                        countCrossLog++;
+                    }
+                }
+    
+                fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
+                    <<< "SOURCE IS: ", source, mfccString >>>;
+                    
+                    while (true) {
+                        spork ~ this.upchuckRealTimeFeatures(
+                            this.combo, 
+                            this.mfccString, 
+                            this.mfcc, 
+                            this.chromaString, 
+                            this.chroma, 
+                            this.centroid, 
+                            this.flux, 
+                            this.rms,
+                            this.rolloff,
+                            sourceVarName
+                        );
+                        spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
+                        spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
+                        
+                        <<< "TIME: ", now >>>;
+                        <<< "FREQ: ", 
+                            this.TrackingFile.the_freq, 
+                            this.TrackingFile.the_gain, 
+                            this.the_sfm, 
+                            this.TrackingFile.the_kurtosis,
+                            sourceVarName 
+                        >>>;
+                        
+                        // beat => now;
+                        whole / 16 => now; 
+                    }
+                }
+            }
+
+   
+
+            private class TrackingFile
+            {
+                static float the_freq;
+                static float the_gain;
+                static Event @ the_event;
+            }
+
+
+            fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
+                // window
+                Windowing.hamming( win.size() ) => win.window;
+                float finalObj[2];
+            
+                0 => int count;
+                "" => string sfmString;
+
+                // go for it
+                while( true )
+                {
+                    // take fft
+                    win.upchuck() @=> UAnaBlob blob;
+                    winKurtosis.upchuck();
+                    winSfm.upchuck();
+                    
+                    // find peak
+                    0 => float max; float where;
+                    <<< "FVALS LEN## ", blob.fvals()[0] >>>;
+                    for( int i; i < blob.fvals().size()/8; i++ )
+                    {
+                        // compare
+                        if( blob.fvals()[i] > max )
+                        {
+                            // save
+                            blob.fvals()[i] => max;
+                            i => where;
+                        }
+                    }
+                    
+                    // set freq
+                    (where / win.size() * (second / samp)) => TrackingFile.the_freq;
+                    // set gain
+                    (max / .5) => TrackingFile.the_gain;
+                    // clamp
+                    if( TrackingFile.the_gain > 1 )
+                        1 => TrackingFile.the_gain;
+                    // fire!
+                    TrackingFile.the_event.broadcast();
+            
+                    // hop
+                    (win.size()/4)::samp => now;
+            
+                    // "" => string sfmString;
+                    
+                    for( int i; i < winSfm.fvals().size(); i++ )
+                    {
+                        Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
+                        sfmString + " " + tmp => sfmString;
+                    }
+            
+                    // if (count % 4 == 0) {
+                        <<< "FREQ: ", TrackingFile.the_freq, TrackingFile.the_gain, winKurtosis.fval(0), sfmString, sourceVarName >>>;
+                    // }
+                    count++;
+                }
+            }
+            
+            fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
+                // set parameters
+                8 => winDct.size;
+            
+                int div;
+            
+                4096 => winFlip.size;
+            
+                0 => int countCrossLog;
+            
+                // control loop
+                while( true )
+                {
+                    // set srate
+                    second / samp => float srate;
+                    (winFlip.size() / srate) * 1000 => float toMilliseconds;
+            
+                    // winDct.size()/2 %=> div;
+                    winZerox.upchuck() @=> UAnaBlob blob;
+            
+                    winDct.size()/2 %=> div;
+                    winDct.upchuck();
+            
+                    // advance time
+                    (toMilliseconds)::ms => now;
+                    // if (countCrossLog % 4 == 0) {
+                        <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
+                    // }
+                    countCrossLog++;
+                }
+            }
+
+
+
+            ${allAnalysisBlocksCodeGen[0]}
+
+     
+
+
+
+
+
 
 
 
@@ -1469,8 +1945,9 @@ export default function InitializationComponent() {
        
                     // saw1 ${osc1FXStringToChuck.current} => dac;
                     ${osc2ChuckToOutlet}
-                    ${WPKorg35DeclarationOsc1} 
-            
+
+                    // declarations for complex effects
+                    ${WPKorg35DeclarationOsc1}          
                     ${ellipticCodeStringOsc1}
                     ${winFuncCodeStringOsc1}
                     ${powerADSRCodeStringOsc1}
@@ -1478,19 +1955,12 @@ export default function InitializationComponent() {
                     ${wpDiodeLadderCodeStringOsc1}
                     ${wpKorg35CodeStringOsc1}
                     ${expDelayCodeStringOsc1}
-                    
-                    
 
-                    // 880 => sintest.freq;
                     Noise noiseSource => lpf;
                     0 => noiseSource.gain;
                     
                     ${connectorStk1DirectToDac}
-             
-              
-                    // ${osc1FXStringToChuck.current}
-      
-                                     
+                                    
                     TriOsc tri1, tri2;
                     SqrOsc sqr1, sqr2;
 
@@ -1521,9 +1991,9 @@ export default function InitializationComponent() {
                     ${parseInt(moogGrandmotherEffects.current.limiterAttack.value)}::ms => limiter.attackTime;
                     ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(4)} => limiter.thresh;
 
-                    0.1 => saw1.gain => saw2.gain;
-                    0.45 => tri1.gain => tri2.gain;
-                    0.3 => sqr1.gain => sqr2.gain;
+                    0.06 => saw1.gain => saw2.gain;
+                    0.28 => tri1.gain => tri2.gain;
+                    0.12 => sqr1.gain => sqr2.gain;
 
                     10.0 => float filterCutoff;
                     filterCutoff => lpf.freq;
@@ -1789,8 +2259,6 @@ export default function InitializationComponent() {
                     //     }
                     //     0.02 * (amount / 100) => rev.mix;
                     // }
-
-   
                 }
 
                 SynthVoice voice ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
@@ -1811,10 +2279,7 @@ export default function InitializationComponent() {
                 
                 ${osc1FxStringNeedsBlackhole.current}
 
-                // ${osc1FXString.current}
-
                 ${finalOsc1Code}
-
 
                 ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
                 
@@ -1834,34 +2299,41 @@ export default function InitializationComponent() {
 
                 0 => int count;
 
-                 
-    
-        
 
 
+
+
+                SndBuf buffers[4] => dac;
                 
+                // ${filesArray} @=> string filesArr[];
+                string files[4];
 
-                SndBuf kick => dac;
-                SndBuf snare => dac;
-                SndBuf cHat => dac;
-                SndBuf oHat => dac;
 
-                me.dir() + "DR-55Kick.wav" => string kickFilename;
-                me.dir() + "DR-55Snare.wav" => string snareFilename;
-                me.dir() + "DR-55Hat.wav" => string cHatFilename;
-                me.dir() + "DR-55Pop.wav" => string oHatFilename;
+                me.dir() + "DR-55Kick.wav" => files[0];
+                me.dir() + "DR-55Snare.wav" => files[1];
+                me.dir() + "DR-55Hat.wav" => files[2];
+                me.dir() + "DR-55Pop.wav" => files[3];
 
-                kickFilename => kick.read;
-                snareFilename => snare.read;
-                cHatFilename => cHat.read;
-                oHatFilename => oHat.read;
+                files[0] => buffers[0].read;
+                files[1] => buffers[1].read;
+                files[2] => buffers[2].read;
+                files[3] => buffers[3].read;
+
+                UniversalAnalyzer uA;
+                uA.declarationCode(buffers[3]);
+                files[3].find('.') || 0 => int handleDotWav;
+                files[3] => string fileName;
+                if (handleDotWav) {
+                    fileName.replace(handleDotWav, "_");
+                } 
+                // spork ~ uA.getAnalysisForSource(buffers[3], fileName);
 
                 fun void SilenceAllBuffers()
                 {
-                    kick.samples() => kick.pos;
-                    snare.samples() => snare.pos;
-                    oHat.samples() => oHat.pos;
-                    cHat.samples() => cHat.pos;
+                    buffers[0].samples() => buffers[0].pos;
+                    buffers[1].samples() => buffers[1].pos;
+                    buffers[2].samples() => buffers[2].pos;
+                    buffers[3].samples() => buffers[3].pos;
                 }
 
                 bar => now;
@@ -1881,22 +2353,22 @@ export default function InitializationComponent() {
                 {
                     if(select == 0)
                     {
-                        0 => kick.pos; 
-                        0 => cHat.pos;
+                        0 => buffers[0].pos; 
+                        0 => buffers[2].pos;
                     }
                     if(select == 1)
                     {
-                        0 => oHat.pos;
+                        0 => buffers[2].pos;
                     }
                     if(select == 2)
                     {
-                        0 => kick.pos; 
-                        0 => cHat.pos;
-                        0 => snare.pos;
+                        0 => buffers[0].pos; 
+                        0 => buffers[2].pos;
+                        0 => buffers[1].pos;
                     }
                     if(select == 3)
                     {
-                        0 => snare.pos;
+                        0 => buffers[3].pos;
                     }
                     duration => now;
                     SilenceAllBuffers();
@@ -1907,18 +2379,14 @@ export default function InitializationComponent() {
 
 
 
-
-                
-
-
-                fun void PlaySynthNotes(int notesToPlay[], dur duration) {
+                fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
                     ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
                     ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
-
-    
+                    myEvent => now;
+                    UniversalAnalyzer uA;
+                    uA.declarationCode(voice);
+                    // spork ~ uA.getAnalysisForSource(voice, "voice");
                     while (true) {
-                        // ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
-                        // ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
                         count % (notesToPlay.size()) => int osc1Idx;
                         <<< notesToPlay[osc1Idx] >>>;
                         for (0 => int i; i < notesToPlay.size(); i++) {
@@ -1931,6 +2399,7 @@ export default function InitializationComponent() {
                         duration => now;
                         1 => voice.keyOff;
                     }
+                    
                     
                 }
 
@@ -1951,18 +2420,24 @@ export default function InitializationComponent() {
                 }
 
                 
-                fun void PlaySamples(string codeString) {
-                    ${uploadedFilesCodeString.current}
+                fun void PlaySamples(int samplesArrayPos, int notesToPlay[], dur whole) {
+                    <<< "SHIT2! ", ${filesToProcess.current.length} >>>;
+                    // while (${filesToProcess.current.length} > 0) { 
+                    //     // spork ~ testGetAnalysis();
+
+                    //     whole/8 => now;
+                    // }
                 }
 
-                fun void PlaySamplePattern(int samplesArrayPos, int notesToPlay[], dur duration) {                
+                fun void PlaySamplePattern(Event myEvent, int samplesArrayPos, int notesToPlay[], dur duration) {                
                     // count % (notesToPlay.size()) => int sampler1Idx;
-                    
+
                     <<< samplesArrayPos >>>;
+                    myEvent => now;
                     while (true) {
                         count % (notesToPlay.size()) => int sampler1Idx;
                         for (0 => int i; i < notesToPlay.size(); i++) {
-                            <<< "NOTE!!! ", notesToPlay[i] >>>;
+                            // <<< "NOTE!!! ", notesToPlay[i] >>>;
                             spork ~ Drum(notesToPlay[i], duration);
                             duration/notesToPlay.size() => now;
                         }   
@@ -1971,27 +2446,73 @@ export default function InitializationComponent() {
 
                 [1] @=> int notes[];
                 [1,3,3,1] @=> int sample1Notes[];
+                [1,1,1,1] @=> int sample1TestNotes[];
                 [1, 4, 1, 3] @=> int sample2Notes[];
                 [1,4] @=> int sample3Notes[];
                 [1,-1,4,-1,5,-1] @=> int stkNotes[];
 
-                            
+                
+                Event myEvent;
+                
                   
                 <<< count >>>; 
                 spork ~ PlaySTK(stkNotes, whole);           
                 
-                // spork ~ PlaySamplePattern(0, sample1Notes, whole);
+
+                // if (${filesToProcess.current && filesToProcess.current.length > 0}) {
+                //     <<< "SHIT! ", ${filesToProcess.current.length} >>>;
+                //     spork ~ PlaySamples(0, sample1TestNotes, whole);
+                // }
+
+
+                spork ~ PlaySamplePattern(myEvent, 0, sample1Notes, whole);
                 // spork ~ PlaySamplePattern(0, sample2Notes, whole);
                 
-                spork ~ PlaySynthNotes(notes, whole);
+                spork ~ PlaySynthNotes(myEvent, notes, whole/4);
                 
                 // spork ~ playWindow(winfuncenv_o1, whole/2, whole/2);
-                                        
+                       
+                // spork ~ testGetAnalysis();
+
                 while(${!chuckUpdateNeeded}) {
-                    
-                    beat => now; 
-                    // 1 => voice.keyOff;
-                    <<< "****** ", Machine.numShreds() >>>;
+                             
+                    myEvent.broadcast();
+                    beat - (now % beat) => now;
+
+
+
+                    // wait for HID event
+                    hid => now;
+                
+                    // get HID message
+                    while( hid.recv( msg ) )
+                    {
+                        if( msg.isButtonDown() ) {
+                            // print key (debugging)
+                            <<< "[key]", msg.key, "(ascii)", msg.which >>>;
+                            
+
+
+                            ${virtualKeyMapping(48, 1)}
+
+                            // // Play notes
+                            // if ( msg.which >= '1' && msg.which <= '9') {
+                            //     // convert ascii representation to notes array index
+                            //     // gets MIDI value and applies octave shift
+                            //     // convert MIDI to freq
+                            //     Std.mtof( notes[msg.which-'1'] ) => float freq; 
+                            //     <<< "FREQ!!!! ", freq >>>;
+                            // }
+  
+                        } else if (msg.isButtonUp()) {
+                            ${virtualKeyMapping(48, 0)}
+                        }
+                        else  {
+                            <<< "IN HID ELSE!" >>>;
+                        }
+                    }
+                   
+                    <<< "NumShreds: ", Machine.numShreds() >>>;
                     count++;
          
                 }  
@@ -2009,7 +2530,7 @@ export default function InitializationComponent() {
 
 
     const runChuck = async () => {
-        if(typeof window === 'undefined') return;
+        if (typeof window === 'undefined') return;
         if (!aChuck) return;
         console.log("aChuck!?!?!?!?!?!? : ", await aChuck);
 
@@ -2021,61 +2542,49 @@ export default function InitializationComponent() {
         // gather score information & instruments
         // get an array of all files we want to load
         // ****************************************************************
-        
-        
+
+
         aChuck.chuckPrint = (message) => {
+            console.log('WHAT IS MSG? ', message);
             setLastChuckMessage(message);
             if (aChuck) {
                 (async () => {
                     shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
                     console.log('shred count!!!: ', shredCount);
                     if (shredCount.current > 4) {
-           
+
                     }
                 })
             }
         }
-        
+
         console.log("running chuck now... ", chuckUpdateNeeded);
         // console.log("CHECK CURRENT FX ************** ", currentFX.current);
 
         const buffersToChuck: any = {};
 
-        console.log('fucking kill me: ', osc1FXString.current.length);
-
         const uploadedFilesArrsGenericCode: any = {};
-        console.log('GETTING FILES TO PROCESS? ', filesToProcess.current);
-        filesToProcess.current.forEach(async(name: any) => {
-            console.log("##### ", name);
-        });
 
-        Object.keys(uploadedFilesArrsGenericCode).forEach((buf: any, idx: number) => {
+
+        uploadedFilesArrsGenericCode && Object.keys(uploadedFilesArrsGenericCode).length > 0 && Object.keys(uploadedFilesArrsGenericCode).forEach((buf: any, idx: number) => {
             if (idx !== Object.keys(uploadedFilesArrsGenericCode).length - 1) {
-                filesChuckToDac.current = filesChuckToDac.current + `SndBuf buffer_${buf} => `;
+                filesChuckToDac.current = filesToProcess.current.length > 0 ? filesChuckToDac.current + `SndBuf buffer_${buf} => ` : filesChuckToDac.current;
             } else {
-                filesChuckToDac.current = filesChuckToDac.current + `SndBuf buffer_${buf} => dac;`;
+                filesChuckToDac.current = filesToProcess.current.length > 0 ? filesChuckToDac.current + `SndBuf buffer_${buf} => dac;` : filesChuckToDac.current;
             }
         });
 
-        Object.values(uploadedFilesArrsGenericCode).forEach((codeString: any) => {
+        uploadedFilesArrsGenericCode && Object.keys(uploadedFilesArrsGenericCode).length > 0 && Object.values(uploadedFilesArrsGenericCode).forEach((codeString: any) => {
             filesGenericCodeString.current = filesGenericCodeString.current + codeString;
         });
-        // console.log('TO CHUK AUDIO FILE: ', filesChuckToDac.current);
-        console.log('%cTO CHUCK AUDIO CODE ', 'color: orange;', filesGenericCodeString.current);
-        // console.log('TEST? ', test);
-        
+
         const getStk1String: any = await stkFXToString();
-        // const getOsc1String: any = await osc1FXToString();
-        // ********************************************** THIS ONE BELOW WILL NEED THE UPDATES TO STK2 
-        // const getStk2String: any = await stkFXToString();
-        console.log('stk string before running chuck: ', getStk1String);
-        // console.log('osc1 string before running chuck!!!! ', getOsc1String);
 
-        const bodyIR1 = getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;`: '';
-       // const bodyIR2 = getStk2String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk2String[2]}.bodyIR;` : '';
-        // const isBowing = getStk1String[2] === 'wg' ? 'wg.startBowing(1);' : '';
+        console.log('Get stk1 string: ', getStk1String);
 
-        if (osc1FXString.current.length < 1) {
+        const bodyIR1 = getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;` : '';
+
+        if (osc1FXString.current && osc1FXString.current.length < 1) {
             osc1FXToString();
         }
         // tk tk getOsc1String
@@ -2102,61 +2611,26 @@ export default function InitializationComponent() {
      
         ` : '';
 
-        // // TODO 2nd STK NOT YET IMPLEMENTED
-        // // ++++++++++++++++++++++++++++++++++++++++++++
-        // if (stkValsRef.current.length === 2) {                
-        //     const STK_2_Code = getStk2String ? `
-        //         if(note > 127)
-        //         {
-        //             127 => note;
-        //         }
-        //         if(note < 0)
-        //         {
-        //             0 => note;
-        //         }
-        //         ${bodyIR2}
-        //         ${getStk2String[0]}
-        //         Std.mtof(note + 32) => ${getStk2String[2]}.freq;
-        //         1 => ${getStk2String[2]}.noteOn;
-        //     ` : '';
-        //     setStk2Code(STK_2_Code);
-        // }
         setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
-        
-        
-        // console.log('%cSTK_1_Code !!!!!!! ', 'orange', stk1Code);
-        // // console.log('STK_2_Code %%%%%%% ', stk2Code);
-        // console.log('%cOSC_1_Code %%%%%%% ', 'color: orange;', osc1Code);
+
 
         runMainChuckCode(aChuck, getStk1String);
 
     }
 
-    useEffect(() => { runChuck()}, [chuckUpdateNeeded]);
-    
-    useEffect(() => {
-        (async() => {
-            // await aChuck?.createFile("", uploadedFile[0], uploadedFile[1]);
-            await aChuck?.runCode(`SndBuf buffer => NRev nrTest => dac;
+    useEffect(() => { runChuck() }, [chuckUpdateNeeded]);
 
-            0.8 => nrTest.mix;
-            ${uploadedFiles.current[0].name} => buffer;
-            buffer.samples() => buffer.pos;
-            
-            0 => buffer.pos;
-            buffer.length() => now;`); 
-        })();
-    }, [uploadedFile, uploadedFile.length])
 
     // AUDIO IN
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const playMicThroughChuck = async () => {
-        if(typeof window === 'undefined') return;
+        if (typeof window === 'undefined') return;
         if (!aChuck) return;
         await aChuck.runCode(`
         adc => Gain g => NRev r => dac;
+        
         0.2 => g.gain;
         0.9 => r.mix;
         // 20 => sat.drive;
@@ -2172,7 +2646,7 @@ export default function InitializationComponent() {
     // This mic button should be able to save a file and pass it into ChucK as file and/or stream
     const chuckMicButton = function () {
         console.log('ChucK Mic Button Clicked');
-        if(typeof window === 'undefined') return;
+        if (typeof window === 'undefined') return;
 
         navigator.mediaDevices
             .getUserMedia({
@@ -2209,12 +2683,12 @@ export default function InitializationComponent() {
             babylonGame.current.engine = new BABYLON.Engine(
                 babylonGame.current.canvas,
                 true, // antialias
-                {preserveDrawingBuffer: true, stencil: true }, //engineOptions
+                { preserveDrawingBuffer: true, stencil: true }, //engineOptions
                 false // adaptToDeviceRatio
             );
 
             babylonGame.current.knob = {};
-            babylonGame.current.header = {}; 
+            babylonGame.current.header = {};
         };
         const resize = () => {
             babylonGame.current?.scene?.getEngine().resize();
@@ -2222,33 +2696,33 @@ export default function InitializationComponent() {
 
         if (windowListenerRef.current) {
             windowListenerRef.current.addEventListener("resize", resize);
-        }      
+        }
         return () => {
             if (windowListenerRef.current) {
                 windowListenerRef.current.removeEventListener("resize", resize);
             }
         };
     }, [windowListenerRef, recreateBabylon]);
-    
+
     // SLIDER CONTROL KNOB
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const handleUpdateSliderVal = (obj: any, value: any) => {
         if (currentScreen.current === '') {
             // console.log('SANE CHECK ', obj, value);
-            let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i:any) => i.presets)).filter((i: any, idx: number) => i.var === obj.name && i)[0];
-           
+            let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i.var === obj.name && i)[0];
+
             if (!index || index.length < 1) {
                 console.log('this should replace... ', allFxPersistent.current[`${fxRadioValue}`].length - 1);
                 index = allFxPersistent.current[`${fxRadioValue}`].length - 1;
             }
-          
+
             if (allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`]) {
                 allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`].value = value;
             } else {
             }
         }
-        
+
         // moogGrandmotherEffects.current[`${obj.name}`].value = value;
         if (currentScreen.current === 'stk') {
             console.log('SLIDER OBJ NAME: ', obj.name);
@@ -2262,7 +2736,7 @@ export default function InitializationComponent() {
             console.log('SLIDER OBJ NAME: ', obj.name);
             console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
-        } 
+        }
         else if (currentScreen.current === '') {
             console.log('curr fx $$$$$$ ', currentFX.current);
             console.log('curr fx obj $$$$$$ ', obj.name);
@@ -2336,7 +2810,7 @@ export default function InitializationComponent() {
         if (!chuckHook) {
             return;
         }
-        const theFile = e ? e: lastFileUpload;
+        const theFile = e ? e : lastFileUpload;
         // if (!uploadedFileName) return;
         console.log('%cwhat is the uploaded file? ', 'color: beige;', theFile);
         chuckHook.loadFile(`./src/tmp/${theFile}`);
@@ -2351,11 +2825,116 @@ export default function InitializationComponent() {
         // console.log('ran chuck code');
     };
 
+    const parsedLastChuckMessage = useRef<any>()
+
+    const initialTimeNow = useRef<number>();
+    const initialSampNow = useRef<number>();
+
     useEffect(() => {
-        console.log("Last ChucK msg: ", lastChuckMessage);
-        if (lastChuckMessage.includes('rerunChuck')) {
+        // console.log("Last ChucK msg: ", lastChuckMessage);
+        if (lastChuckMessage && lastChuckMessage.includes('rerunChuck')) {
             setChuckUpdateNeeded(true);
             // runChuck
+        }
+
+
+        if (lastChuckMessage && lastChuckMessage.includes('FEATURES')) {
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(2);
+            console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current);
+            const source = parsedLastChuckMessage.current[35].replace(/\W/g, '');
+            setCentroid((i: any) => {
+                if(source) { 
+                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4))}
+                }
+                return i;
+            });
+            setFlux((i: any) => {
+                if(source) { 
+                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4))}
+                }
+                return i;
+            });
+            setRMS((i: any) => {
+                if(source) { 
+                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(4))}
+                }
+                return i;
+            });
+            setMFCCEnergy((i: any) => {
+                if(source) { 
+                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[3]).toFixed(4))}
+                }
+                return i;            
+            });
+            setMFCCVals((i: any) => parsedLastChuckMessage.current.slice(4, 23).map((i: any) => {
+                if(source) { 
+                    return {...i, source: source, value: Number(parseFloat(i).toFixed(4))}
+                }
+                return i;
+            }));
+            setRollOff50((i: any) => { 
+                if(source) { 
+                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[24]).toFixed(4))}
+                }
+                return i;    
+            });
+            setRollOff85((i: any) => {
+                    if(source) { 
+                        return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[25]).toFixed(4))}
+                    }
+                    return i;
+            });
+            setChroma((i: any) => parsedLastChuckMessage.current.slice(26, parsedLastChuckMessage.current.length - 2).map((i: any) => Number(parseFloat(i).toFixed(4))));
+        }
+        if (lastChuckMessage.includes('XCROSS')) {
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+            setXCross(Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4)));
+            setDCT(parsedLastChuckMessage.current.slice(1, 4).map((i: any) => Number(parseFloat(i).toFixed(4))));
+            // console.log('to Milliseconds: ', parsedLastChuckMessage.current[5]);
+            setSampleRate(Number(parseFloat(parsedLastChuckMessage.current[5])));
+        }
+        if (lastChuckMessage && lastChuckMessage.includes('FREQ')) {
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+            const source = parsedLastChuckMessage.current[parsedLastChuckMessage.current.length - 2].replace(/\W/g, '');
+            console.log('FUCKING SANITY: ', parsedLastChuckMessage.current, source);
+            setFeatureFreq((i: any) => {
+                if(source) { 
+                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4))}
+                }
+                return i;
+        });
+            setFeatureGain(
+                (i: any) => {
+                    if(source) { 
+                        return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4))}
+                    }
+                    return i;
+            });
+            setKurtosis(
+                (i: any) => {
+                    if(source) { 
+                        return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(4))}
+                    }
+                    return i;
+            });
+            // setSFM(parsedLastChuckMessage.current.slice(3, parsedLastChuckMessage.current.length - 1).map(
+            //     (i: any) => {
+            //         if(source) { 
+            //             return {...i, source: source, value: Number(parseFloat(i).toFixed(4))}
+            //         }
+            //         return i;
+            // }));
+        }
+        if (lastChuckMessage.includes('TIME')) {
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+
+            if (!initialTimeNow.current) {
+                initialTimeNow.current = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
+                initialSampNow.current = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
+                setTimeNow(0);
+            } else {
+                setTimeNow((Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4)) - initialTimeNow.current) / 44100);
+            }
         }
     }, [lastChuckMessage]);
 
@@ -2364,110 +2943,139 @@ export default function InitializationComponent() {
         setShowFiles(!showFiles);
     };
 
+    const closeAnalysisPopup = () => {
+        setIsAnalysisPopupOpen(!isAnalysisPopupOpen);
+    };
+
     return (
         <ThemeProvider theme={theme}>
-            <Box sx={{height: size.width, width: size.width, boxSizing: 'border-box', display: 'flex', flexDirection: 'row'}}>
-            {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
-                <Box key={babylonKey} sx={{left: '0', display: 'flex', flexDirection: 'row'}}>
-
-               
-                {/* <Box sx={{height: '100vh', width: '100vw'}}>
-                    <LineChartWrapper />
-                </Box> */}
-
-       
-
-                    <FXRouting
-                        key={fXChainKey + fxRadioValue} 
-                        fxChainNeedsUpdate={fxChainNeedsUpdate} 
-                        fxData={allFxPersistent.current[`${fxRadioValue}`]} 
-                        width={size.width} 
-                        height={size.height}
-                        handleShowFX={handleShowFX}
-                        showFX={showFX}
-                        fxValsRef={fxFX.current} 
-                        handleFXGroupChange={handleFXGroupChange}
-                        updateCheckedFXList={updateCheckedFXList} 
-                        fxGroupsArrayList={fxGroupOptions} 
-                        checkedFXList={checkedFXList.current}
-                        fxFX={fxFX.current}
-                        handleClickName={handleClickName}
-                        setClickFXChain={setClickFXChain}
-                        clickFXChain={clickFXChain}
-                        updateFXInputRadio={updateFXInputRadio}
-                        fxRadioValue={fxRadioValue}
-                        updateStkKnobs={updateStkKnobs}
-                        setStkValues={setStkValues}
-                        stkValues={stkValues}
-                        updateCurrentFXScreen={updateCurrentFXScreen}
-                        currentScreen={currentScreen.current}
-                        playUploadedFile={playUploadedFile}
-                        lastFileUpload={lastFileUpload}
-                        updateFileUploads={updateFileUploads}
-                    />
-                    <FileManager 
-                        onSubmit={onSubmit}
-                        
-                    />
-                    <BabylonLayer
-                        game={babylonGame.current}
-                        handleUpdateSliderVal={handleUpdateSliderVal}
-                        fxKnobsCount={fxKnobsCount}
-                        needsUpdate={needsUpdate}
-                        handleResetNeedsUpdate={() => setNeedsUpdate(false)}
-                        // effects={moogGrandmotherEffects.current}
-                        effects={currentFX.current}
-                        visibleFXKnobs={visibleFXKnobs.current}
-                        chuckUpdateNeeded={chuckUpdateNeeded}
-                        handleTurnKnob={handleTurnKnob}
-                        runChuck={runChuck}
-                    />
+            <Box sx={{ height: size.width, boxSizing: "border-box", width: size.width, display: 'flex', flexDirection: 'row' }}>
+                {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
+                    <Box key={babylonKey} sx={{ left: '0', display: 'flex', flexDirection: 'row' }}>
 
 
-                    <Box 
-                        sx={{
-                            left: '0px', 
-                            position: 'absolute',
-                            top: '0px',
-                            paddingLeft: '12px',
-                            width: '100%',
-                            paddingTop: '12px',
-                            paddingBottom: '12px',
-                            background: 'transparent',
-                            display: 'flex',
-                        }}
-                    >
-                        {!chuckHook && (<Button style={{color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)'}} sx={{minWidth: '72px', paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon/>}>St</Button>)}
-                        {chuckHook && (<Button style={{color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)'}} sx={{minWidth: '72px', paddingLeft: '24px', maxHeight: '40px'}} variant="contained" id="runChuckButton" onClick={runChuck} endIcon={<PlayCircleFilledIcon/>}>Pl</Button>)}
-                        {chuckHook && (<Button style={{color: 'rgba(0,0,0,1)', background: 'rgba(232, 82,82, 1)', backgroundColor: 'rgba(232, 82,82, 1)'}} sx={{backgroundColor: 'rgba(232, 82,82, 1)', background: 'rgba(232, 82,82, 1)', minWidth: '72px', marginLeft: '8px', maxHeight: '40px'}} variant="contained" id="micStartRecordButton" onClick={chuckMicButton}>Rc</Button>)}
+                        <Box sx={{ height: "80%", bottom: "10%", top: "10%", left: "10%", width: "80%", right: "10%", position: "absolute", pointerEvents: "none" }}>
+                            {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
+                            {timeNow && isAnalysisPopupOpen &&
+                                <LineChartWrapper
+                                    centroid={centroid}
+                                    flux={flux}
+                                    rms={rMS}
+                                    mfccEnergy={mFCCEnergy}
+                                    mfccVals={mFCCVals}
+                                    rollOff50={rollOff50}
+                                    rollOff85={rollOff85}
+                                    chroma={chroma}
+                                    xCross={xCross}
+                                    dct={dct}
+                                    featureFreq={featureFreq}
+                                    featureGain={featureGain}
+                                    kurtosis={kurtosis}
+                                    sfm={sFM}
+                                    sampleRate={sampleRate}
+                                    timeNow={timeNow}
+                                    closeAnalysisPopup={closeAnalysisPopup}
+                                    handleChangeAnalysisSource={handleChangeAnalysisSource}
+                                    analysisSourceRadioValue={analysisSourceRadioValue}
+                                />}
+                        </Box>
 
-                        <Button sx={{color: 'rgba(228,225,209,1)', position: 'absolute', borderColor: 'rgba(228,225,209,1)', left: '0px', minWidth: '72px', marginLeft: '12px', top: '232px', maxHeight: '40px'}} variant="outlined" onClick={handleShowFiles} endIcon={<Inventory2Icon />}>FP</Button>
-                        <ControlPopup 
-                            bpm={bpm} 
-                            handleChangeBPM={handleChangeBPM} 
-                            handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                            beatsNumerator={beatsNumerator}
-                            beatsDenominator={beatsDenominator}
-                            handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                            submitMingus={submitMingus}
-                            audioKey={audioKey}
-                            octave={octave}
-                            audioScale={audioScale}
-                            audioChord={audioChord}
-                            handleChangeChord={handleChangeChord}
-                            handleChangeScale={handleChangeScale}
+
+
+                        <FXRouting
+                            key={fXChainKey + fxRadioValue}
+                            fxChainNeedsUpdate={fxChainNeedsUpdate}
+                            fxData={allFxPersistent.current[`${fxRadioValue}`]}
+                            width={size.width}
+                            height={size.height}
                             handleShowFX={handleShowFX}
                             showFX={showFX}
-                            showFiles={showFiles}
-                            handleShowFiles={handleShowFiles}
-                            // uploadedFilesCodeString={uploadedFilesCodeString.current} 
-                            // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
-                            filesToProcess={filesToProcess.current}
+                            fxValsRef={fxFX.current}
+                            handleFXGroupChange={handleFXGroupChange}
+                            updateCheckedFXList={updateCheckedFXList}
+                            fxGroupsArrayList={fxGroupOptions}
+                            checkedFXList={checkedFXList.current}
+                            fxFX={fxFX.current}
+                            handleClickName={handleClickName}
+                            setClickFXChain={setClickFXChain}
+                            clickFXChain={clickFXChain}
+                            updateFXInputRadio={updateFXInputRadio}
+                            fxRadioValue={fxRadioValue}
+                            updateStkKnobs={updateStkKnobs}
+                            setStkValues={setStkValues}
+                            stkValues={stkValues}
+                            updateCurrentFXScreen={updateCurrentFXScreen}
+                            currentScreen={currentScreen.current}
+                            playUploadedFile={playUploadedFile}
+                            lastFileUpload={lastFileUpload}
+                            updateFileUploads={updateFileUploads}
+                            babylonGame={babylonGame.current}
                         />
-                        <ToggleFXView handleReturnToSynth={handleReturnToSynth}/> 
+                        <FileManager
+                            onSubmit={onSubmit}
+
+                        />
+                        <BabylonLayer
+                            game={babylonGame.current}
+                            handleUpdateSliderVal={handleUpdateSliderVal}
+                            fxKnobsCount={fxKnobsCount}
+                            needsUpdate={needsUpdate}
+                            handleResetNeedsUpdate={() => setNeedsUpdate(false)}
+                            // effects={moogGrandmotherEffects.current}
+                            effects={currentFX.current}
+                            visibleFXKnobs={visibleFXKnobs.current}
+                            chuckUpdateNeeded={chuckUpdateNeeded}
+                            handleTurnKnob={handleTurnKnob}
+                            runChuck={runChuck}
+                        />
+
+
+                        <Box
+                            sx={{
+                                left: '0px',
+                                position: 'absolute',
+                                top: '0px',
+                                paddingLeft: '12px',
+                                width: '100%',
+                                paddingTop: '12px',
+                                paddingBottom: '12px',
+                                background: 'transparent',
+                                display: 'flex',
+                            }}
+                        >
+                            {!chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px' }} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon />}>In</Button>)}
+                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px' }} variant="contained" id="runChuckButton" onClick={runChuck} endIcon={<PlayCircleFilledIcon />}>Pl</Button>)}
+                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={stopChuckInstance} endIcon={<StopCircleIcon />}>St</Button>)}
+                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(232, 82,82, 1)', backgroundColor: 'rgba(232, 82,82, 1)' }} sx={{ backgroundColor: 'rgba(232, 82,82, 1)', background: 'rgba(232, 82,82, 1)', minWidth: '72px', marginLeft: '8px', maxHeight: '40px' }} variant="contained" id="micStartRecordButton" onClick={chuckMicButton}>Rc</Button>)}
+                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={closeAnalysisPopup} endIcon={<AutoGraphIcon />}>An</Button>)}
+
+                            <Button sx={{ color: 'rgba(228,225,209,1)', position: 'absolute', borderColor: 'rgba(228,225,209,1)', left: '0px', minWidth: '72px', marginLeft: '12px', top: '232px', maxHeight: '40px' }} variant="outlined" onClick={handleShowFiles} endIcon={<Inventory2Icon />}>FP</Button>
+                            <ControlPopup
+                                bpm={bpm}
+                                handleChangeBPM={handleChangeBPM}
+                                handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                beatsNumerator={beatsNumerator}
+                                beatsDenominator={beatsDenominator}
+                                handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                submitMingus={submitMingus}
+                                audioKey={audioKey}
+                                octave={octave}
+                                audioScale={audioScale}
+                                audioChord={audioChord}
+                                handleChangeChord={handleChangeChord}
+                                handleChangeScale={handleChangeScale}
+                                handleShowFX={handleShowFX}
+                                showFX={showFX}
+                                showFiles={showFiles}
+                                handleShowFiles={handleShowFiles}
+                                // uploadedFilesCodeString={uploadedFilesCodeString.current} 
+                                // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
+                                filesToProcess={filesToProcess.current}
+                            />
+                            <ToggleFXView handleReturnToSynth={handleReturnToSynth} />
+                        </Box>
                     </Box>
-                </Box>
-            )}
+                )}
             </Box>
         </ThemeProvider>
     )
