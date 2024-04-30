@@ -125,42 +125,6 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                         label="Audio In" />
                 </RadioGroup>
             </Box>
-
-            {/* /////// FILE MANAGER */}
-            {/* <Box className={'fx-popup-left-row'}>
-                <FormLabel 
-                    sx={{
-                        fontSize:'28px',
-                        fontWeight:'300',
-                        color: 'rgba(147, 206, 214, 1) !important'
-                    }} 
-                    id="file-manager-controlled-radio-buttons-group"
-                >
-                    File Manager
-                </FormLabel>
-
-                <Button
-                    variant="contained"
-                    component="label"
-                    sx={{marginTop: '4px', marginBottom: '8px', color: 'rgba(0,0,0,0.94)', background: 'rgba(144, 204, 212, 1)'}}
-                    >
-                    Upload File
-
-
-  
-        
-        <form onSubmit={handleSubmit(onSubmit)}>
-                    <input
-                        type={"file"}
-                        // onChange={"form.submit()"}
-                        {...register("file") } 
-                        
-                        hidden={true}
-                    />
-        </form>
-</Button>
-                <Box>No File Found</Box>
-            </Box> */}
         </Box>
     );
 }

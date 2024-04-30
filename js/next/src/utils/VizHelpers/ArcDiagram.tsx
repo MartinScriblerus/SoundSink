@@ -71,6 +71,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
     handleClickName(e.target.id.split('_')[0], 'remove');
   }
   const handleSwitchFX = (id: any) => {
+    console.log("handle FX switch (ID): ", id);
     updateCheckedFXList({target: {value: id}});
   };
 

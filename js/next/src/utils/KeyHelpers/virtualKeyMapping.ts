@@ -3,272 +3,330 @@ export const virtualKeyMapping = (rootNote: number, msgDownOrUp: number) => {
     return `
     ${msgDownOrUp} => int msgDownOrUp;
 
-    
+ 
+
+    oCp.notes @=> int notesArrHid[];
+
     if ( msg.which == 9 ) {
         if (msgDownOrUp == 0) {
-            <<< "TAB UP! ", ${rootNote + 0} >>>;
+            ${0} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "TAB DOWN! ", ${rootNote + 0} >>>;
+            <<< "TAB DOWN! ", ${0} >>>;
+            oCp.notes << ${0};
+            oCp.notes => oCp.playNotes;
         }
     }
-    if ( msg.which == 50 ) {
-        if (msgDownOrUp == 0) {
-            <<< "GOT 0 UP!" >>>;
-        } else if (msgDownOrUp == 1) {
-            <<< "GOT 0 DOWN!" >>>;
-        }
-    }
+
     if ( msg.which == 49 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT 1 UP! ", ${rootNote + 1} >>>;
+            ${1} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT 1 DOWN! ", ${rootNote + 1} >>>;
+            <<< "TAB DOWN! ", ${1} >>>;
+            oCp.notes << ${1};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 50 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT 2 UP! ", ${rootNote + 3} >>>;
+            ${3} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT 2 DOWN! ", ${rootNote + 3} >>>;
+            <<< "TAB DOWN! ", ${3} >>>;
+            oCp.notes << ${3};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 52 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT 4 UP! ", ${rootNote + 6} >>>;
+            ${6} => oCp.releaseNotes;
+
         } else if (msgDownOrUp == 1) {
-            <<< "GOT 4 DOWN! ", ${rootNote + 6} >>>;
+            <<< "TAB DOWN! ", ${6} >>>;
+            oCp.notes << ${6};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 53 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT 5 UP! ", ${rootNote + 8} >>>;
+            ${8} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT 5 DOWN! ", ${rootNote + 8} >>>;
+            <<< "TAB DOWN! ", ${8} >>>;
+            oCp.notes << ${8};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 54 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT 6 UP! ", ${rootNote + 10} >>>;
+            ${10} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT 6 DOWN! ", ${rootNote + 10} >>>;
+            <<< "TAB DOWN! ", ${10} >>>;
+            oCp.notes << ${10};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 56 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT 8 UP! ", ${rootNote + 13} >>>;
+            ${13} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT 8 DOWN! ", ${rootNote + 13} >>>;
+            <<< "TAB DOWN! ", ${13} >>>;
+            oCp.notes << ${13};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 57 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT 9 UP! ", ${rootNote + 15} >>>;
+            ${15} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT 9 DOWN! ", ${rootNote + 15} >>>;
+            <<< "TAB DOWN! ", ${15} >>>;
+            oCp.notes << ${15};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 81 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT Q UP! ", ${rootNote + 2} >>>;
+            ${2} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT Q DOWN! ", ${rootNote + 2} >>>;
+            <<< "TAB DOWN! ", ${2} >>>;
+            oCp.notes << ${2};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 87 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT W UP! ", ${rootNote + 4} >>>;
+            ${4} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT W DOWN! ", ${rootNote + 4} >>>;
+            <<< "TAB DOWN! ", ${4} >>>;
+            oCp.notes << ${4};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 69 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT E UP! ", ${rootNote + 5} >>>;
+            ${5} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT E DOWN! ", ${rootNote + 5} >>>;
+            <<< "TAB DOWN! ", ${5} >>>;
+            oCp.notes << ${5};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 82 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT R UP! ", ${rootNote + 7} >>>;
+            ${7} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT R DOWN! ", ${rootNote + 7} >>>;
+            <<< "TAB DOWN! ", ${7} >>>;
+            oCp.notes << ${7};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 84 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT T UP! ", ${rootNote + 9} >>>;
+            ${9} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT T DOWN! ", ${rootNote + 9} >>>;
+            <<< "TAB DOWN! ", ${9} >>>;
+            oCp.notes << ${9};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 89 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT Y UP! ", ${rootNote + 11} >>>;
+            ${11} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT Y DOWN! ", ${rootNote + 11} >>>;
+            <<< "TAB DOWN! ", ${11} >>>;
+            oCp.notes << ${11};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 85 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT U UP! ", ${rootNote + 12} >>>;
+            ${12} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT U DOWN! ", ${rootNote + 12} >>>;
+            <<< "TAB DOWN! ", ${12} >>>;
+            oCp.notes << ${12};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 73 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT I UP! ", ${rootNote + 14} >>>;
+            ${14} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT I DOWN! ", ${rootNote + 14} >>>;
+            <<< "TAB DOWN! ", ${14} >>>;
+            oCp.notes << ${14};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 79 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT O UP! ", ${rootNote + 16} >>>;
+            ${16} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT O DOWN! ", ${rootNote + 16} >>>;
+            <<< "TAB DOWN! ", ${16} >>>;
+            oCp.notes << ${16};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 80 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT P UP! ", ${rootNote + 17} >>>;
+            ${17} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT P DOWN! ", ${rootNote + 17} >>>;
+            <<< "TAB DOWN! ", ${17} >>>;
+            oCp.notes << ${17};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 90 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT Z UP! ", ${rootNote + 19} >>>;
+            ${19} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT Z DOWN! ", ${rootNote + 19} >>>;
+            <<< "TAB DOWN! ", ${19} >>>;
+            oCp.notes << ${19};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 88 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT X UP! ", ${rootNote + 21} >>>;
+            ${21} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT X DOWN! ", ${rootNote + 21} >>>;
+            <<< "TAB DOWN! ", ${21} >>>;
+            oCp.notes << ${21};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 67 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT C UP! ", ${rootNote + 23} >>>;
+            ${23} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT C DOWN! ", ${rootNote + 23} >>>;
+            <<< "TAB DOWN! ", ${23} >>>;
+            oCp.notes << ${23};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 86 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT V UP! ", ${rootNote + 24} >>>;
+            ${24} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT V DOWN! ", ${rootNote + 24} >>>;
+            <<< "TAB DOWN! ", ${24} >>>;
+            oCp.notes << ${24};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 66 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT B UP! ", ${rootNote + 26} >>>;
+            ${26} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT B DOWN! ", ${rootNote + 26} >>>;
+            <<< "TAB DOWN! ", ${26} >>>;
+            oCp.notes << ${26};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 78 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT N UP! ", ${rootNote + 28} >>>;
+            ${28} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT N DOWN! ", ${rootNote + 28} >>>;
+            <<< "TAB DOWN! ", ${28} >>>;
+            oCp.notes << ${28};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 77 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT M UP! ", ${rootNote + 29} >>>;
+            ${29} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT M DOWN! ", ${rootNote + 29} >>>;
+            <<< "TAB DOWN! ", ${29} >>>;
+            oCp.notes << ${29};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 188 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT , UP! ", ${rootNote + 31} >>>;
+            ${31} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT , DOWN! ", ${rootNote + 31} >>>;
+            <<< "TAB DOWN! ", ${31} >>>;
+            oCp.notes << ${31};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 190 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT . UP! ", ${rootNote + 33} >>>;
+            ${33} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT . DOWN! ", ${rootNote + 33} >>>;
+            <<< "TAB DOWN! ", ${33} >>>;
+            oCp.notes << ${33};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 191 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT / UP! ", ${rootNote + 35} >>>;
+            ${35} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT / DOWN! ", ${rootNote + 35} >>>;
+            <<< "TAB DOWN! ", ${35} >>>;
+            oCp.notes << ${35};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 16 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT Shift UP! ", ${rootNote + 36} >>>;
+            ${36} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT Shift DOWN! ", ${rootNote + 36} >>>;
+            <<< "TAB DOWN! ", ${36} >>>;
+            oCp.notes << ${36};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 65 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT A UP! ", ${rootNote + 18} >>>;
+            ${18} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT A DOWN! ", ${rootNote + 18} >>>;
+            <<< "TAB DOWN! ", ${18} >>>;
+            oCp.notes << ${18};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 83 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT S UP! ", ${rootNote + 20} >>>;
+            ${20} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT S DOWN! ", ${rootNote + 20} >>>;
+            <<< "TAB DOWN! ", ${20} >>>;
+            oCp.notes << ${20};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 68 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT D UP! ", ${rootNote + 22} >>>;
+            ${22} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT D DOWN! ", ${rootNote + 22} >>>;
+            <<< "TAB DOWN! ", ${22} >>>;
+            oCp.notes << ${22};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 71 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT G UP! ", ${rootNote + 25} >>>;
+            ${25} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT G DOWN! ", ${rootNote + 25} >>>;
+            <<< "TAB DOWN! ", ${25} >>>;
+            oCp.notes << ${25};
+            oCp.notes => oCp.playNotes;
         }
     }
     if ( msg.which == 72 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT H UP! ", ${rootNote + 27} >>>;
+            ${27} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT H DOWN! ", ${rootNote + 27} >>>;
+            <<< "TAB DOWN! ", ${27} >>>;
+            oCp.notes << ${27};
+            oCp.notes => oCp.playNotes;
         }
     }
-    if ( msg.which == 75 ) {
-        if (msgDownOrUp == 0) {
-            <<< "GOT K UP! ", ${rootNote + 30} >>>;
-        } else if (msgDownOrUp == 1) {
-            <<< "GOT K DOWN! ", ${rootNote + 30} >>>;
-        }
-    }
-    if ( msg.which == 76 ) {
-        if (msgDownOrUp == 0) {
-            <<< "GOT L UP! ", ${rootNote + 32} >>>;
-        } else if (msgDownOrUp == 1) {
-            <<< "GOT L DOWN! ", ${rootNote + 32} >>>;
-        }
-    }
+   
     if ( msg.which == 186 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT ; UP! ", ${rootNote + 34} >>>;
+            <<< "GOT L UP! ", ${33} >>>;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT ; DOWN! ", ${rootNote + 34} >>>;
+            <<< "GOT L DOWN! ", ${33} >>>;
         }
     }
-    `
+
+
+
+
+
+    `;
 }

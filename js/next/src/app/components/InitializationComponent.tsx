@@ -134,6 +134,8 @@ export default function InitializationComponent() {
     const [beatsDenominator, setBeatsDenominator] = useState(4);
     const { register, handleSubmit } = useForm();
     const [datas, setDatas] = useState<any>([]);
+    const [numNotesDown, setNumNotesDown] = useState<number>(0);
+    const [theNotesDown, setTheNotesDown] = useState<Array<any>>([]);
 
     const [stkValues, setStkValues] = useState<STKOption[]>([]);
     const [stk2Values, setStk2Values] = useState<STKOption[]>();
@@ -478,6 +480,12 @@ export default function InitializationComponent() {
     const handleClickName = (e: any, op: string) => {
         console.log('TEST CLICK ', e, op);
     };
+
+
+    useEffect(() => { 
+        console.log("we rerunning chuck?@@?!?");
+        runChuck() }, [chuckUpdateNeeded]);
+
 
     useEffect(() => {
         const stksAndFX: any = [stkFX.current, ...Object.values(fxFX.current)];
@@ -1315,7 +1323,9 @@ export default function InitializationComponent() {
                     if (osc1FXString.current !== '') {
                         if (finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name) !== -1) {
                             const theIndex = finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name);
+                            console.log("hey the index: ", theIndex);
                             finalOsc1FxStringToChuck.current[theIndex].string = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
+                            console.log("hey final osc1 is here: ", finalOsc1FxStringToChuck.current[theIndex]);
                         }
                         else {
                             finalOsc1FxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${o1.var}_o1.${preset.name};` });
@@ -1413,20 +1423,20 @@ export default function InitializationComponent() {
 
 
     useEffect(() => {
-        // console.log('!!!!! ', allFxPersistent.current.length, Object.values(allFxPersistent.current.Osc1[0].presets));
-        if (allFxPersistent.current.Osc1[0] && Object.values(allFxPersistent.current.Osc1[0].presets).length > 0) {
+        console.log('!!!!! ', allFxPersistent.current, Object.values(allFxPersistent.current.Osc1));
+        if (allFxPersistent.current.Osc1 && allFxPersistent.current.Osc1[0] && Object.values(allFxPersistent.current.Osc1[0].presets).length > 0) {
             osc1FXToString();
         }
-        if (allFxPersistent.current.Osc2[0] && Object.values(allFxPersistent.current.Osc2[0].presets).length > 0) {
+        if (allFxPersistent.current.Osc2 && allFxPersistent.current.Osc2[0] > 0 && Object.values(allFxPersistent.current.Osc2[0].presets).length > 0) {
             osc2FXToString();
         }
-        if (allFxPersistent.current.AudioIn[0] && Object.values(allFxPersistent.current.AudioIn[0].presets).length > 0) {
+        if (allFxPersistent.current.AudioIn &&  allFxPersistent.current.AudioIn[0] > 0 && allFxPersistent.current.AudioIn[0] && Object.values(allFxPersistent.current.AudioIn[0].presets).length > 0) {
             audioInFXToString();
         }
-        if (allFxPersistent.current.Sampler[0] && Object.values(allFxPersistent.current.Sampler[0].presets).length > 0) {
+        if (allFxPersistent.current.Sampler && allFxPersistent.current.Sampler[0] > 0 && Object.values(allFxPersistent.current.Sampler[0].presets).length > 0) {
             samplerFXToString();
         }
-
+        if (chuckUpdateNeeded) {setChuckUpdateNeeded(false)}
     }, [chuckUpdateNeeded])
 
     const shredCount = useRef<number>(0);
@@ -1435,43 +1445,23 @@ export default function InitializationComponent() {
 
 
     const stopChuckInstance = () => {
-        chuckHook && chuckHook?.clearChuckInstance();
+        // chuckHook && chuckHook?.clearChuckInstance();
+        chuckHook && chuckHook.runCode(`Machine.removeAllShreds();`);
+        chuckHook && chuckHook.runCode(`Machine.resetShredID();`);
     }
 
     const runMainChuckCode = async (aChuck: Chuck, getStk1String: any) => {
-
+        // if (chuckUpdateNeeded !== false) {setChuckUpdateNeeded(true)}
         if (chuckUpdateNeeded === false) {
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
 
             console.log('WHAT IS SHRED COUNT? ', shredCount.current);
             console.log('FILES TO PROCESS: ', filesToProcess);
 
-            const allAnalysisBlocksCodeGen: string | any = 
-            // filesToProcess.current && filesToProcess.current.length > 0
-                // ?
-                // filesToProcess.current.map((f: any, idx: number) => {
-                //     if (f.processed === false) {
-                //         aChuck.createFile("", f.name, f.data);
-                //         alert(`${f.name} created`);
-                //         f.processed = true;
-                //         uploadedFilesToChuckString.current = f.name && f.name.length > 0 ? uploadedFilesToChuckString.current.concat(`SndBuf buf_${idx} => dac; "${f.name}" => buf_${idx}.read;`) : ``; // f.name.split('.')[0]
-                //         if (f.name && f.name.length > 0) {
-                //             const blockConstruct = analysisBlockDeclarationConstructor(`SndBuf`, `buf_${idx}`);
-                //             const paramConstruct = analysisBlockParameterConstructor(`SndBuf`, `buf_${idx}`);
-                //             const upchuckAndAnalysisConstruct = filesToProcess.current.length > 0 && analysisBlockUpchuckAndAnalysisConstructor(`SndBuf`, `buf_${idx}`);
-                //             alert('SANITY!!! ' + blockConstruct + paramConstruct + upchuckAndAnalysisConstruct)
-                //             return blockConstruct + paramConstruct + upchuckAndAnalysisConstruct;
-                //         }
-                //     }
-                // })
-                // : 
-                [''];
-
-
             console.log('STK STRING HERE: ', getStk1String);
-            const connector1Stk = getStk1String && getStk1String.length ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
+            const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
 
-            const connectorStk1DirectToDac = getStk1String && useStkDirect ? `
+            const connectorStk1DirectToDac = getStk1String && getStk1String.length > 0 && useStkDirect ? `
                 ${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; 
                 winfuncenv_stk1.setHann(); 
                 for (int i; i < 250; i++) { 
@@ -1505,6 +1495,7 @@ export default function InitializationComponent() {
             const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
             const spectacleCodeStringOsc1 = osc1SpectacleOn.current ? spectacleString('o1', spectacleFinalHelper.current.osc1.bands, spectacleFinalHelper.current.osc1.delay, spectacleFinalHelper.current.osc1.eq, spectacleFinalHelper.current.osc1.feedback, spectacleFinalHelper.current.osc1.fftlen, spectacleFinalHelper.current.osc1.freqMax, spectacleFinalHelper.current.osc1.freqMin, spectacleFinalHelper.current.osc1.mix, spectacleFinalHelper.current.osc1.overlap, spectacleFinalHelper.current.osc1.table) : '';
 
+            console.log('sanity check exp delay: ', expDelayCodeStringOsc1);
             // DELAY LINES
             const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
             const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
@@ -1531,991 +1522,927 @@ export default function InitializationComponent() {
             // bring back sync mode on this eventually -> // ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
             //  allAnalysisBlocks.current.forEach((block: any) => allAnalysisBlocksCodeGen.concat(block.code));
 
-            console.log("FUUUUUUUCK GETTING FINAL OSC CODE? ", finalOsc1Code);
+            // console.log("FUUUUUUUCK GETTING FINAL OSC CODE? ", finalOsc1Code);
 
 
-            console.log('OOOOF FILES TO PROCESS ', filesToProcess.current);
+            // console.log('OOOOF FILES TO PROCESS ', filesToProcess.current);
 
             const filesArray = filesToProcess.current.map((f: any) => f.name) || [];
-            
+            console.log("****sanity check osc1 declaration: ", chuckUpdateNeeded, "FUYC ", osc1ChuckToOutlet);
+
+
+      
+        // if (chuckUpdateNeeded === false) {     
             aChuck.runCode(`
             
+ 
 
-            // webchuck keyboard device
-            0 => int device;
-            
-            // HID input and HID message
-            Hid hid;
-            HidMsg msg;
-            
-            // open keyboard device
-            if( !hid.openKeyboard( device ) ) me.exit();
-            <<< "keyboard '" + hid.name() + "' ready", "" >>>;
+// webchuck keyboard device
+0 => int device;
 
-            ((60.0 / ${bpm})) => float secLenBeat;
-            (secLenBeat * 1000)::ms => dur beat;
-   
-            ((secLenBeat * 1000) * 2)::ms => dur whole;
-            (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
-             
-            // ${uploadedFilesToChuckString.current}
-            // ${uploadedFilesCodeString.current}
+// HID input and HID message
+Hid hid;
+HidMsg msg;
 
+<<< hid >>>;
+// open keyboard device
+if( !hid.openKeyboard( device ) ) me.exit();
+<<< "keyboard '" + hid.name() + "' ready", "" >>>;
 
+((60.0 / ${bpm})) => float secLenBeat;
+(secLenBeat * 1000)::ms => dur beat;
 
-
-            private class UniversalAnalyzer {
-                FeatureCollector combo => blackhole;
-                FFT fft;
-                Flux flux;
-                RMS rms;
-                MFCC mfcc;
-                Centroid centroid;
-                RollOff rolloff;
-                Chroma chroma;
-                Kurtosis kurtosis;
-                DCT dct;
-                Flip flip;
-                ZeroX zerox;
-                SFM sfm;
-                "" => string mfccString;
-                "" => string chromaString; 
-                string the_sfm;
-                
-                private class TrackingFile
-                {
-                    static float the_freq;
-                    static float the_gain;
-                    
-                    static float the_kurtosis;
-                    static Event @ the_event;
-                }
-
-                fun void declarationCode(UGen @ source) {
-                    source => fft;
-                    // a thing for collecting multiple features into one vector
-                    
-                    // add spectral feature: Centroid
-                    fft =^ centroid =^ combo;
-                    // add spectral feature: Flux
-                    fft =^ flux =^ combo;
-                    // add spectral feature: RMS
-                    fft =^ rms =^ combo;
-                    // add spectral feature: MFCC
-                    fft =^ mfcc =^ combo;
-                    fft =^ rolloff =^ combo;
-                    fft =^ chroma =^ combo;
-                    fft =^ kurtosis => blackhole;
-                    source => dct => blackhole;
-                    source => flip =^ zerox => blackhole;
-                
-                    fft =^ sfm => blackhole;
-                    //-----------------------------------------------------------------------------
-                    // setting analysis parameters -- also should match what was used during extration
-                    //-----------------------------------------------------------------------------
-                    // set flip size (N)
+((secLenBeat * 1000) * 2)::ms => dur whole;
+(secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
     
-                    // output in [-1,1]
-                    // calculate sample rate
-                    second/samp => float srate;
+// ${uploadedFilesToChuckString.current}
+// ${uploadedFilesCodeString.current}
+
+
+
+private class UniversalAnalyzer {
+    FeatureCollector combo => blackhole;
+    FFT fft;
+    Flux flux;
+    RMS rms;
+    MFCC mfcc;
+    Centroid centroid;
+    RollOff rolloff;
+    Chroma chroma;
+    Kurtosis kurtosis;
+    DCT dct;
+    Flip flip;
+    ZeroX zerox;
+    SFM sfm;
+    "" => string mfccString;
+    "" => string chromaString; 
+    string the_sfm;
     
-                    // set number of coefficients in MFCC (how many we get out)
-                    // 13 is a commonly used value; using less here for printing
-                    20 => mfcc.numCoeffs;
-                    // set number of mel filters in MFCC
-                    10 => mfcc.numFilters;
-    
-                    // do one .upchuck() so FeatureCollector knows how many total dimension
-                    combo.upchuck();
+    private class TrackingFile
+    {
+        static float the_freq;
+        static float the_gain;
         
-                    // get number of total feature dimensions
-                    combo.fvals().size() => int NUM_DIMENSIONS;
-    
-                    // set FFT size
-                    4096 => fft.size;
-                    // set window type and size
-                    Windowing.hann(fft.size()) => fft.window;
-                    // our hop size (how often to perform analysis)
-                    (fft.size()/2)::samp => dur HOP;
-                    // how many frames to aggregate before averaging?
-                    // (this does not need to match extraction; might play with this number) ***
-                    3 => int NUM_FRAMES;
-                    // how much time to aggregate features for each file
-                    fft.size()::samp * NUM_FRAMES => dur EXTRACT_TIME;
+        static float the_kurtosis;
+        static Event @ the_event;
+    }
+
+    fun void declarationCode(UGen @ source) {
+        source => fft;
+        // a thing for collecting multiple features into one vector
         
-                    // initialize separately (due to a bug)
-                    // new Event @=> TrackingFile.the_event;
+        // add spectral feature: Centroid
+        fft =^ centroid =^ combo;
+        // add spectral feature: Flux
+        fft =^ flux =^ combo;
+        // add spectral feature: RMS
+        fft =^ rms =^ combo;
+        // add spectral feature: MFCC
+        fft =^ mfcc =^ combo;
+        fft =^ rolloff =^ combo;
+        fft =^ chroma =^ combo;
+        fft =^ kurtosis => blackhole;
+        source => dct => blackhole;
+        source => flip =^ zerox => blackhole;
     
-                    // analysis
-                    source => PoleZero dcblock => FFT fftTrack => blackhole;
-        
-                    // set to block DC
-                    .99 => dcblock.blockZero;
-                }
+        fft =^ sfm => blackhole;
+        //-----------------------------------------------------------------------------
+        // setting analysis parameters -- also should match what was used during extration
+        //-----------------------------------------------------------------------------
+        // set flip size (N)
 
-                fun void upchuckRealTimeFeatures(
-                    FeatureCollector @ combo, 
-                    string mfccString, 
-                    MFCC @ mfcc, 
-                    string chromaString, 
-                    Chroma @ chroma, 
-                    Centroid @ centroid, 
-                    Flux @ flux, 
-                    RMS @ rms,
-                    RollOff @ rolloff,
-                    string sourceName
-                ) {
-                    combo.upchuck();
-               
-                    "" => mfccString;
-                    for (0 => int i; i < mfcc.fvals().cap(); i++) {
-                        if (i < mfcc.fvals().cap() - 1) {
-                            mfcc.fvals()[i] + ", "  +=> mfccString;
-                        } else {
-                            mfcc.fvals()[i] +=> mfccString;
-                        }
-                    }
-                
-                    "" => chromaString;
-                    for (0 => int i; i < chroma.fvals().cap() - 1; i++) {
-                        if (i < chroma.fvals().cap() - 2) {
-                            chroma.fvals()[i] + ", " +=> chromaString;
-                        } else {
-                            chroma.fvals()[i] +=> chromaString;
-                        }
-                    }
-                    
-                    if (count % 16 == 0) {
-                        <<< "FEATURES VALS: ", 
-                        centroid.fval(0) + " " 
-                        + flux.fval(0) + " " 
-                        + rms.fval(0) + " " 
-                        + mfccString + " " 
-                        + rolloff.fval(0) + " " 
-                        + chromaString + " "
-                        + sourceName >>>;
-                    }
-                }
+        // output in [-1,1]
+        // calculate sample rate
+        second/samp => float srate;
+
+        // set number of coefficients in MFCC (how many we get out)
+        // 13 is a commonly used value; using less here for printing
+        20 => mfcc.numCoeffs;
+        // set number of mel filters in MFCC
+        10 => mfcc.numFilters;
+
+        // do one .upchuck() so FeatureCollector knows how many total dimension
+        combo.upchuck();
+
+        // get number of total feature dimensions
+        combo.fvals().size() => int NUM_DIMENSIONS;
+
+        // set FFT size
+        4096 => fft.size;
+        // set window type and size
+        Windowing.hann(fft.size()) => fft.window;
+        // our hop size (how often to perform analysis)
+        (fft.size()/2)::samp => dur HOP;
+        // how many frames to aggregate before averaging?
+        // (this does not need to match extraction; might play with this number) ***
+        3 => int NUM_FRAMES;
+        // how much time to aggregate features for each file
+        fft.size()::samp * NUM_FRAMES => dur EXTRACT_TIME;
+
+        // initialize separately (due to a bug)
+        // new Event @=> TrackingFile.the_event;
+
+        // analysis
+        source => PoleZero dcblock => FFT fftTrack => blackhole;
+
+        // set to block DC
+        .99 => dcblock.blockZero;
+    }
+
+    fun void upchuckRealTimeFeatures(
+        FeatureCollector @ combo, 
+        string mfccString, 
+        MFCC @ mfcc, 
+        string chromaString, 
+        Chroma @ chroma, 
+        Centroid @ centroid, 
+        Flux @ flux, 
+        RMS @ rms,
+        RollOff @ rolloff,
+        string sourceName
+    ) {
+        combo.upchuck();
     
-                fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
-                    // window
-                    Windowing.hamming( win.size() ) => win.window;
-                    float finalObj[2];
-                
-                    0 => int count;
-                    // go for it
-                    while( true )
-                    {
-                        // take fft
-                        win.upchuck() @=> UAnaBlob blob;
-                        winKurtosis.upchuck();
-                        winSfm.upchuck();
-                        
-                        // find peak
-                        0 => float max; float where;
-                        for( int i; i < blob.fvals().size()/8; i++ )
-                        {
-                            // compare
-                            if( blob.fvals()[i] > max )
-                            {
-                                // save
-                                blob.fvals()[i] => max;
-                                i => where;
-                            }
-                        }
-                        
-                        // set freq
-                        (where / win.size() * (second / samp)) => this.TrackingFile.the_freq;
-                        // set gain
-                        (max / .5) => this.TrackingFile.the_gain;
-                        // clamp
-                        if( this.TrackingFile.the_gain > 1 )
-                            1 => this.TrackingFile.the_gain;
-                        // // fire!
-                        // this.TrackingFile.the_event.broadcast();
-                
-                        // hop
-                        // (win.size()/4)::samp => now;
-
-                        ((win.size()/4) * (second /samp)) * 1000 => float toMilliseconds;
-                        toMilliseconds :: ms => now;
-
-                        "" => string sfmString;
-                        
-                        for( int i; i < winSfm.fvals().size(); i++ )
-                        {
-                            Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
-                            sfmString + " " + tmp => sfmString;
-                            sfmString => this.the_sfm;
-                        }
-                
-                        winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
-                        // fire!
-                        this.TrackingFile.the_event.broadcast();
-                        // if (count % this.fft.size() == 0) {
-                        //     <<< "FREQ: ", winKurtosis.fval(0), sfmString >>>;
-                        // }
-                        count++;
-                    }
-                }
-                
-                fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
-                    // set parameters
-                    8 => winDct.size;
-                
-                    int div;
-                
-                    4096 => winFlip.size;
-                
-                    0 => int countCrossLog;
-                
-                    // control loop
-                    while( true )
-                    {
-                        // set srate
-                        second / samp => float srate;
-                        (winFlip.size() / srate) * 1000 => float toMilliseconds;
-                
-                        // winDct.size()/2 %=> div;
-                        winZerox.upchuck() @=> UAnaBlob blob;
-                
-                        winDct.size()/2 %=> div;
-                        winDct.upchuck();
-                
-                        // advance time
-                        (toMilliseconds)::ms => now;
-                        if (countCrossLog % this.fft.size() == 0) {
-                            <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
-                        }
-                        countCrossLog++;
-                    }
-                }
-    
-                fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
-                    <<< "SOURCE IS: ", source, mfccString >>>;
-                    
-                    while (true) {
-                        spork ~ this.upchuckRealTimeFeatures(
-                            this.combo, 
-                            this.mfccString, 
-                            this.mfcc, 
-                            this.chromaString, 
-                            this.chroma, 
-                            this.centroid, 
-                            this.flux, 
-                            this.rms,
-                            this.rolloff,
-                            sourceVarName
-                        );
-                        spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
-                        spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
-                        
-                        <<< "TIME: ", now >>>;
-                        <<< "FREQ: ", 
-                            this.TrackingFile.the_freq, 
-                            this.TrackingFile.the_gain, 
-                            this.the_sfm, 
-                            this.TrackingFile.the_kurtosis,
-                            sourceVarName 
-                        >>>;
-                        
-                        // beat => now;
-                        whole / 16 => now; 
-                    }
-                }
+        "" => mfccString;
+        for (0 => int i; i < mfcc.fvals().cap(); i++) {
+            if (i < mfcc.fvals().cap() - 1) {
+                mfcc.fvals()[i] + ", "  +=> mfccString;
+            } else {
+                mfcc.fvals()[i] +=> mfccString;
             }
+        }
+    
+        "" => chromaString;
+        for (0 => int i; i < chroma.fvals().cap() - 1; i++) {
+            if (i < chroma.fvals().cap() - 2) {
+                chroma.fvals()[i] + ", " +=> chromaString;
+            } else {
+                chroma.fvals()[i] +=> chromaString;
+            }
+        }
+        
+        if (count % 16 == 0) {
+            <<< "FEATURES VALS: ", 
+            centroid.fval(0) + " " 
+            + flux.fval(0) + " " 
+            + rms.fval(0) + " " 
+            + mfccString + " " 
+            + rolloff.fval(0) + " " 
+            + chromaString + " "
+            + sourceName >>>;
+        }
+    }
 
-   
-
-            private class TrackingFile
+    fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
+        // window
+        Windowing.hamming( win.size() ) => win.window;
+        float finalObj[2];
+    
+        0 => int count;
+        // go for it
+        while( true )
+        {
+            // take fft
+            win.upchuck() @=> UAnaBlob blob;
+            winKurtosis.upchuck();
+            winSfm.upchuck();
+            
+            // find peak
+            0 => float max; float where;
+            for( int i; i < blob.fvals().size()/8; i++ )
             {
-                static float the_freq;
-                static float the_gain;
-                static Event @ the_event;
-            }
-
-
-            fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
-                // window
-                Windowing.hamming( win.size() ) => win.window;
-                float finalObj[2];
-            
-                0 => int count;
-                "" => string sfmString;
-
-                // go for it
-                while( true )
+                // compare
+                if( blob.fvals()[i] > max )
                 {
-                    // take fft
-                    win.upchuck() @=> UAnaBlob blob;
-                    winKurtosis.upchuck();
-                    winSfm.upchuck();
-                    
-                    // find peak
-                    0 => float max; float where;
-                    <<< "FVALS LEN## ", blob.fvals()[0] >>>;
-                    for( int i; i < blob.fvals().size()/8; i++ )
-                    {
-                        // compare
-                        if( blob.fvals()[i] > max )
-                        {
-                            // save
-                            blob.fvals()[i] => max;
-                            i => where;
-                        }
-                    }
-                    
-                    // set freq
-                    (where / win.size() * (second / samp)) => TrackingFile.the_freq;
-                    // set gain
-                    (max / .5) => TrackingFile.the_gain;
-                    // clamp
-                    if( TrackingFile.the_gain > 1 )
-                        1 => TrackingFile.the_gain;
-                    // fire!
-                    TrackingFile.the_event.broadcast();
-            
-                    // hop
-                    (win.size()/4)::samp => now;
-            
-                    // "" => string sfmString;
-                    
-                    for( int i; i < winSfm.fvals().size(); i++ )
-                    {
-                        Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
-                        sfmString + " " + tmp => sfmString;
-                    }
-            
-                    // if (count % 4 == 0) {
-                        <<< "FREQ: ", TrackingFile.the_freq, TrackingFile.the_gain, winKurtosis.fval(0), sfmString, sourceVarName >>>;
-                    // }
-                    count++;
+                    // save
+                    blob.fvals()[i] => max;
+                    i => where;
                 }
             }
             
-            fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
-                // set parameters
-                8 => winDct.size;
+            // set freq
+            (where / win.size() * (second / samp)) => this.TrackingFile.the_freq;
+            // set gain
+            (max / .5) => this.TrackingFile.the_gain;
+            // clamp
+            if( this.TrackingFile.the_gain > 1 )
+                1 => this.TrackingFile.the_gain;
+            // // fire!
+            // this.TrackingFile.the_event.broadcast();
+    
+            // hop
+            // (win.size()/4)::samp => now;
+
+            ((win.size()/4) * (second /samp)) * 1000 => float toMilliseconds;
+            toMilliseconds :: ms => now;
+
+            "" => string sfmString;
             
-                int div;
+            for( int i; i < winSfm.fvals().size(); i++ )
+            {
+                Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
+                sfmString + " " + tmp => sfmString;
+                sfmString => this.the_sfm;
+            }
+    
+            winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
+            // fire!
+            this.TrackingFile.the_event.broadcast();
+            // if (count % this.fft.size() == 0) {
+            //     <<< "FREQ: ", winKurtosis.fval(0), sfmString >>>;
+            // }
+            count++;
+        }
+    }
+    
+    fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
+        // set parameters
+        8 => winDct.size;
+    
+        int div;
+    
+        4096 => winFlip.size;
+    
+        0 => int countCrossLog;
+    
+        // control loop
+        while( true )
+        {
+            // set srate
+            second / samp => float srate;
+            (winFlip.size() / srate) * 1000 => float toMilliseconds;
+    
+            // winDct.size()/2 %=> div;
+            winZerox.upchuck() @=> UAnaBlob blob;
+    
+            winDct.size()/2 %=> div;
+            winDct.upchuck();
+    
+            // advance time
+            (toMilliseconds)::ms => now;
+            if (countCrossLog % this.fft.size() == 0) {
+                <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
+            }
+            countCrossLog++;
+        }
+    }
+
+    fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
+        <<< "SOURCE IS: ", source, mfccString >>>;
+        
+        while (true) {
+            spork ~ this.upchuckRealTimeFeatures(
+                this.combo, 
+                this.mfccString, 
+                this.mfcc, 
+                this.chromaString, 
+                this.chroma, 
+                this.centroid, 
+                this.flux, 
+                this.rms,
+                this.rolloff,
+                sourceVarName
+            );
+            spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
+            spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
             
-                4096 => winFlip.size;
+            <<< "TIME: ", now >>>;
+            <<< "FREQ: ", 
+                this.TrackingFile.the_freq, 
+                this.TrackingFile.the_gain, 
+                this.the_sfm, 
+                this.TrackingFile.the_kurtosis,
+                sourceVarName 
+            >>>;
             
-                0 => int countCrossLog;
-            
-                // control loop
-                while( true )
-                {
-                    // set srate
-                    second / samp => float srate;
-                    (winFlip.size() / srate) * 1000 => float toMilliseconds;
-            
-                    // winDct.size()/2 %=> div;
-                    winZerox.upchuck() @=> UAnaBlob blob;
-            
-                    winDct.size()/2 %=> div;
-                    winDct.upchuck();
-            
-                    // advance time
-                    (toMilliseconds)::ms => now;
-                    // if (countCrossLog % 4 == 0) {
-                        <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
-                    // }
-                    countCrossLog++;
+            // beat => now;
+            whole / 16 => now; 
+        }
+    }
+}
+
+
+
+
+
+class SynthVoice extends Chugraph
+    {
+        // SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter => outlet;
+        ${osc1ChuckToOutlet}
+
+        // saw1 ${osc1FXStringToChuck.current} => dac;
+        ${osc2ChuckToOutlet}
+
+        // declarations for complex effects
+        ${WPKorg35DeclarationOsc1}          
+        ${ellipticCodeStringOsc1}
+        ${winFuncCodeStringOsc1}
+        ${powerADSRCodeStringOsc1}
+        ${expEnvCodeStringOsc1}
+        ${wpDiodeLadderCodeStringOsc1}
+        ${wpKorg35CodeStringOsc1}
+        ${expDelayCodeStringOsc1}
+
+        Noise noiseSource => lpf;
+        0 => noiseSource.gain;
+        
+        ${connectorStk1DirectToDac}
+                        
+        TriOsc tri1, tri2;
+        SqrOsc sqr1, sqr2;
+
+        SinOsc SinLfo;
+        SawOsc SawLfo;
+        SqrOsc SqrLfo;
+        SinLfo => Gain pitchLfo => blackhole;
+        SinLfo => Gain filterLfo => blackhole;
+
+        fun void SetLfoFreq(float frequency)
+        {
+            frequency => SinLfo.freq => SawLfo.freq => SqrLfo.freq;
+        }
+
+        6.0 => SetLfoFreq;
+        0.5 => filterLfo.gain;
+        0.5 => pitchLfo.gain;
+
+        2 => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
+
+        pitchLfo => saw1;
+        pitchLfo => saw2;
+        pitchLfo => tri1;
+        pitchLfo => tri2;
+        pitchLfo => sqr1;
+        pitchLfo => sqr2;
+
+        ${parseInt(moogGrandmotherEffects.current.limiterAttack.value)}::ms => limiter.attackTime;
+        ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(4)} => limiter.thresh;
+
+        0.06 => saw1.gain => saw2.gain;
+        0.28 => tri1.gain => tri2.gain;
+        0.12 => sqr1.gain => sqr2.gain;
+
+        10.0 => float filterCutoff;
+        filterCutoff => lpf.freq;
+
+
+        ${parseInt(moogGrandmotherEffects.current.adsrAttack.value)}::ms => adsr.attackTime;
+        ${parseInt(moogGrandmotherEffects.current.adsrDecay.value)}::ms => adsr.decayTime;
+        ${moogGrandmotherEffects.current.adsrSustain.value} => float susLevel; 
+        susLevel => adsr.sustainLevel;
+        ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
+        ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
+        880 => float filterEnv;
+
+        1 => float osc2Detune;
+        0 => int oscOffset;
+
+        fun void SetOsc1Freq(float frequency)
+        {
+            frequency => tri1.freq => sqr1.freq => saw1.freq; 
+        }
+
+        fun void SetOsc2Freq(float frequency)
+        {
+            frequency => tri2.freq => sqr2.freq => saw2.freq; 
+        }
+
+        fun void keyOn(int noteNumber)
+        {
+            Std.mtof(offset + noteNumber) => SetOsc1Freq;
+            Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
+            1 => adsr.keyOn;
+            spork ~ filterEnvelope();
+        }
+
+        fun void ChooseOsc1(int oscType)
+        {
+            if(oscType == 0)
+            {
+                tri1 =< lpf;
+                saw1 =< lpf;
+                sqr1 =< lpf;
+            }
+            if(oscType == 1)
+            {
+                tri1 => lpf;
+                saw1 =< lpf;
+                sqr1 =< lpf;
+            }
+            if(oscType == 2)
+            {
+                tri1 =< lpf;
+                saw1 => lpf;
+                sqr1 =< lpf;
+            }
+            if(oscType == 3)
+            {
+                tri1 =< lpf;
+                saw1 =< lpf;
+                sqr1 => lpf;
+            }
+        }
+
+        fun void ChooseOsc2(int oscType)
+        {
+            if(oscType == 0)
+            {
+                tri2 =< lpf;
+                saw2 =< lpf;
+                sqr2 =< lpf;
+            }
+            if(oscType == 1)
+            {
+                tri2 => lpf;
+                saw2 =< lpf;
+                sqr2 =< lpf;
+            }
+            if(oscType == 2)
+            {
+                tri2 =< lpf;
+                saw2 => lpf;
+                sqr2 =< lpf;
+            }
+            if(oscType == 3)
+            {
+                tri2 =< lpf;
+                saw2 =< lpf;
+                sqr2 => lpf;
+            }
+            if(oscType == 4)
+            {
+                tri2 =< lpf;
+                saw2 =< lpf;
+                sqr2 =< lpf;
+            }
+        }
+
+        fun void ChooseLfo(int oscType)
+        {
+            if(oscType == 0)
+            {
+                SinLfo =< filterLfo;
+                SinLfo =< pitchLfo;
+                SawLfo =< filterLfo;
+                SawLfo =< pitchLfo;
+                SqrLfo =< filterLfo;
+                SqrLfo =< pitchLfo;
+            }
+            if(oscType == 1)
+            {
+                SinLfo => filterLfo;
+                SinLfo => pitchLfo;
+                SawLfo =< filterLfo;
+                SawLfo =< pitchLfo;
+                SqrLfo =< filterLfo;
+                SqrLfo =< pitchLfo;
+            }
+            if(oscType == 2)
+            {
+                SinLfo =< filterLfo;
+                SinLfo =< pitchLfo;
+                SawLfo => filterLfo;
+                SawLfo => pitchLfo;
+                SqrLfo =< filterLfo;
+                SqrLfo =< pitchLfo;
+            }
+            if(oscType == 3)
+            {
+                SinLfo =< filterLfo;
+                SinLfo =< pitchLfo;
+                SawLfo =< filterLfo;
+                SawLfo =< pitchLfo;
+                SqrLfo => filterLfo;
+                SqrLfo => pitchLfo;
+            }
+        }
+
+        fun void keyOff(int noteNumber)
+        {
+            noteNumber => adsr.keyOff;
+        }
+
+        fun void filterEnvelope()
+        {
+            filterCutoff => float startFreq;
+            while((adsr.state() != 0 && adsr.value() == 0) == false)
+            {
+                (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
+                adsr.releaseTime() => now;  
+            }
+        }
+
+        fun void cutoff(float amount)
+        {
+            if(amount > 100)
+            {
+                100 => amount;
+            }
+            if(amount < 0)
+            {
+                0 => amount;
+            }
+            (amount / 100) * 5000 => filterCutoff;
+            10::ms => now;
+        }
+
+        fun void rez(float amount)
+        {
+            if(amount > 100)
+            {
+                100 => amount;
+            }
+            if(amount < 0)
+            {
+                0 => amount;
+            }
+            20 * (amount / 100) + 0.3 => lpf.Q;
+        }
+
+        fun void env(float amount)
+        {
+            if(amount > 100)
+            {
+                100 => amount;
+            }
+            if(amount < 0)
+            {
+                0 => amount;
+            }
+            5000 * (amount / 100) => filterEnv;
+        }
+
+        fun void detune(float amount)
+        {
+            if(amount > 100)
+            {
+                100 => amount;
+            }
+            if(amount < 0)
+            {
+                0 => amount;
+            }
+            5 * (amount / 100) => osc2Detune;
+        }
+
+        fun void pitchMod(float amount)
+        {
+            if(amount > 100)
+            {
+                100 => amount;
+            }
+            if(amount < 1)
+            {
+                0 => amount;
+            }
+            84 * (amount / 100) => pitchLfo.gain;
+        }
+
+        fun void stk1(float note)
+        {
+            ${stk1Code}
+        }
+
+        fun void stk2(float note)
+        {
+            ${stk2Code}
+        }
+
+        fun void cutoffMod(float amount)
+        {
+            if(amount > 100)
+            {
+                100 => amount;
+            }
+            if(amount < 1)
+            {
+                0 => amount;
+            }
+            500 * (amount / 100) => filterLfo.gain;
+        }
+
+        fun void noise(float amount)
+        {
+            if(amount > 100)
+            {
+                100 => amount;
+            }
+            if(amount < 1)
+            {
+                0 => amount;
+            }
+            1.0 * (amount / 100) => noiseSource.gain;
+        }
+
+        // fun void reverb(float amount)
+        // {
+        //     if(amount > 100)
+        //     {
+        //         100 => amount;
+        //     }
+        //     if(amount < 1)
+        //     {
+        //         0 => amount;
+        //     }
+        //     0.02 * (amount / 100) => rev.mix;
+        // }
+    }
+
+    SynthVoice voice ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
+
+    ${modulateDeclarationOsc1}
+    ${modulateCodeStringOsc1}
+
+    
+    ${delayDeclarationOsc1}
+    ${delayADeclarationOsc1}
+    ${delayLDeclarationOsc1}
+
+    ${delayCodeStringOsc1}
+    ${delayACodeStringOsc1}
+    ${delayLCodeStringOsc1}
+
+    ${spectacleCodeStringOsc1}
+    
+    ${osc1FxStringNeedsBlackhole.current}
+
+    ${finalOsc1Code}
+
+    ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
+    
+    ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice.cutoff;
+    ${moogGrandmotherEffects.current.rez.value} => voice.rez;
+    ${parseInt(moogGrandmotherEffects.current.env.value)} => voice.env;
+    ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice.ChooseOsc1;
+    ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice.ChooseOsc2;
+    ${moogGrandmotherEffects.current.detune.value} => voice.detune;
+    ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice.oscOffset;
+    ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice.pitchMod;
+    ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice.ChooseLfo;
+    0.5 => voice.filterLfo.gain;
+    ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
+    880 => voice.filterEnv;
+    ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice.noise;
+
+    0 => int count;
+
+
+
+
+
+    SndBuf buffers[4] => dac;
+    
+    // ${filesArray} @=> string filesArr[];
+    string files[4];
+
+
+    me.dir() + "DR-55Kick.wav" => files[0];
+    me.dir() + "DR-55Snare.wav" => files[1];
+    me.dir() + "DR-55Hat.wav" => files[2];
+    me.dir() + "DR-55Pop.wav" => files[3];
+
+    files[0] => buffers[0].read;
+    files[1] => buffers[1].read;
+    files[2] => buffers[2].read;
+    files[3] => buffers[3].read;
+
+    UniversalAnalyzer uA;
+    uA.declarationCode(buffers[3]);
+    files[3].find('.') || 0 => int handleDotWav;
+    files[3] => string fileName;
+    if (handleDotWav) {
+        fileName.replace(handleDotWav, "_");
+    } 
+    // spork ~ uA.getAnalysisForSource(buffers[3], fileName);
+
+    fun void SilenceAllBuffers()
+    {
+        buffers[0].samples() => buffers[0].pos;
+        buffers[1].samples() => buffers[1].pos;
+        buffers[2].samples() => buffers[2].pos;
+        buffers[3].samples() => buffers[3].pos;
+    }
+
+    bar => now;
+
+    fun void playWindow(WinFuncEnv @ win, dur attack, dur release) {
+        win.attackTime(attack);
+        win.releaseTime(release);
+        while (true) {
+            win.keyOn();
+            attack => now;
+            win.keyOff();
+            release => now;
+        }
+    }
+
+    fun void Drum(int select, dur duration)
+    {
+        if(select == 0)
+        {
+            0 => buffers[0].pos; 
+            0 => buffers[2].pos;
+        }
+        if(select == 1)
+        {
+            0 => buffers[2].pos;
+        }
+        if(select == 2)
+        {
+            0 => buffers[0].pos; 
+            0 => buffers[2].pos;
+            0 => buffers[1].pos;
+        }
+        if(select == 3)
+        {
+            0 => buffers[3].pos;
+        }
+        duration => now;
+        SilenceAllBuffers();
+        me.exit();
+    }
+
+    SilenceAllBuffers();
+
+
+
+    fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
+        
+        // for (0 => int i; i < notesToPlay.cap(); i++) {
+        //     if (notesToPlay.cap() > 0) {
+        //         getNotesArr + ", " + notesToPlay[i] => getNotesArr;
+        //     }
+        // }
+        
+        // <<< "NOTESDOWN ", 
+        //     notesToPlay.cap(), 
+        //     getNotesArr 
+        // >>>;
+        ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
+        ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
+        myEvent => now;
+        UniversalAnalyzer uA;
+        uA.declarationCode(voice);
+        // spork ~ uA.getAnalysisForSource(voice, "voice");
+        while (${chuckUpdateNeeded === false}) {
+            "" => string getNotesArr;
+            for (0 => int i; i < notesToPlay.cap(); i++) {
+                if (getNotesArr.length() > 0) {
+                    getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
+                } else {
+                    Std.itoa(notesToPlay[i]) => getNotesArr;
                 }
             }
-
-
-
-            ${allAnalysisBlocksCodeGen[0]}
-
-     
-
-
-
-
-
-
-
-
-            class SynthVoice extends Chugraph
-                {
-                    // SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter => outlet;
-                    ${osc1ChuckToOutlet}
-       
-                    // saw1 ${osc1FXStringToChuck.current} => dac;
-                    ${osc2ChuckToOutlet}
-
-                    // declarations for complex effects
-                    ${WPKorg35DeclarationOsc1}          
-                    ${ellipticCodeStringOsc1}
-                    ${winFuncCodeStringOsc1}
-                    ${powerADSRCodeStringOsc1}
-                    ${expEnvCodeStringOsc1}
-                    ${wpDiodeLadderCodeStringOsc1}
-                    ${wpKorg35CodeStringOsc1}
-                    ${expDelayCodeStringOsc1}
-
-                    Noise noiseSource => lpf;
-                    0 => noiseSource.gain;
-                    
-                    ${connectorStk1DirectToDac}
-                                    
-                    TriOsc tri1, tri2;
-                    SqrOsc sqr1, sqr2;
-
-                    SinOsc SinLfo;
-                    SawOsc SawLfo;
-                    SqrOsc SqrLfo;
-                    SinLfo => Gain pitchLfo => blackhole;
-                    SinLfo => Gain filterLfo => blackhole;
-
-                    fun void SetLfoFreq(float frequency)
-                    {
-                        frequency => SinLfo.freq => SawLfo.freq => SqrLfo.freq;
-                    }
-
-                    6.0 => SetLfoFreq;
-                    0.5 => filterLfo.gain;
-                    0.5 => pitchLfo.gain;
-
-                    2 => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
-
-                    pitchLfo => saw1;
-                    pitchLfo => saw2;
-                    pitchLfo => tri1;
-                    pitchLfo => tri2;
-                    pitchLfo => sqr1;
-                    pitchLfo => sqr2;
-
-                    ${parseInt(moogGrandmotherEffects.current.limiterAttack.value)}::ms => limiter.attackTime;
-                    ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(4)} => limiter.thresh;
-
-                    0.06 => saw1.gain => saw2.gain;
-                    0.28 => tri1.gain => tri2.gain;
-                    0.12 => sqr1.gain => sqr2.gain;
-
-                    10.0 => float filterCutoff;
-                    filterCutoff => lpf.freq;
-
-
-                    ${parseInt(moogGrandmotherEffects.current.adsrAttack.value)}::ms => adsr.attackTime;
-                    ${parseInt(moogGrandmotherEffects.current.adsrDecay.value)}::ms => adsr.decayTime;
-                    ${moogGrandmotherEffects.current.adsrSustain.value} => float susLevel; 
-                    susLevel => adsr.sustainLevel;
-                    ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
-                    ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
-                    880 => float filterEnv;
-
-                    1 => float osc2Detune;
-                    0 => int oscOffset;
-
-                    fun void SetOsc1Freq(float frequency)
-                    {
-                        frequency => tri1.freq => sqr1.freq => saw1.freq; 
-                    }
-
-                    fun void SetOsc2Freq(float frequency)
-                    {
-                        frequency => tri2.freq => sqr2.freq => saw2.freq; 
-                    }
-
-                    fun void keyOn(int noteNumber)
-                    {
-                        Std.mtof(offset + noteNumber) => SetOsc1Freq;
-                        Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
-                        1 => adsr.keyOn;
-                        spork ~ filterEnvelope();
-                    }
-
-                    fun void ChooseOsc1(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            tri1 =< lpf;
-                            saw1 =< lpf;
-                            sqr1 =< lpf;
-                        }
-                        if(oscType == 1)
-                        {
-                            tri1 => lpf;
-                            saw1 =< lpf;
-                            sqr1 =< lpf;
-                        }
-                        if(oscType == 2)
-                        {
-                            tri1 =< lpf;
-                            saw1 => lpf;
-                            sqr1 =< lpf;
-                        }
-                        if(oscType == 3)
-                        {
-                            tri1 =< lpf;
-                            saw1 =< lpf;
-                            sqr1 => lpf;
-                        }
-                    }
-
-                    fun void ChooseOsc2(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            tri2 =< lpf;
-                            saw2 =< lpf;
-                            sqr2 =< lpf;
-                        }
-                        if(oscType == 1)
-                        {
-                            tri2 => lpf;
-                            saw2 =< lpf;
-                            sqr2 =< lpf;
-                        }
-                        if(oscType == 2)
-                        {
-                            tri2 =< lpf;
-                            saw2 => lpf;
-                            sqr2 =< lpf;
-                        }
-                        if(oscType == 3)
-                        {
-                            tri2 =< lpf;
-                            saw2 =< lpf;
-                            sqr2 => lpf;
-                        }
-                        if(oscType == 4)
-                        {
-                            tri2 =< lpf;
-                            saw2 =< lpf;
-                            sqr2 =< lpf;
-                        }
-                    }
-
-                    fun void ChooseLfo(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            SinLfo =< filterLfo;
-                            SinLfo =< pitchLfo;
-                            SawLfo =< filterLfo;
-                            SawLfo =< pitchLfo;
-                            SqrLfo =< filterLfo;
-                            SqrLfo =< pitchLfo;
-                        }
-                        if(oscType == 1)
-                        {
-                            SinLfo => filterLfo;
-                            SinLfo => pitchLfo;
-                            SawLfo =< filterLfo;
-                            SawLfo =< pitchLfo;
-                            SqrLfo =< filterLfo;
-                            SqrLfo =< pitchLfo;
-                        }
-                        if(oscType == 2)
-                        {
-                            SinLfo =< filterLfo;
-                            SinLfo =< pitchLfo;
-                            SawLfo => filterLfo;
-                            SawLfo => pitchLfo;
-                            SqrLfo =< filterLfo;
-                            SqrLfo =< pitchLfo;
-                        }
-                        if(oscType == 3)
-                        {
-                            SinLfo =< filterLfo;
-                            SinLfo =< pitchLfo;
-                            SawLfo =< filterLfo;
-                            SawLfo =< pitchLfo;
-                            SqrLfo => filterLfo;
-                            SqrLfo => pitchLfo;
-                        }
-                    }
-
-                    fun void keyOff(int noteNumber)
-                    {
-                        noteNumber => adsr.keyOff;
-                    }
-
-                    fun void filterEnvelope()
-                    {
-                        filterCutoff => float startFreq;
-                        while((adsr.state() != 0 && adsr.value() == 0) == false)
-                        {
-                            (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
-                            adsr.releaseTime() => now;  
-                        }
-                    }
-
-                    fun void cutoff(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        (amount / 100) * 5000 => filterCutoff;
-                        10::ms => now;
-                    }
-
-                    fun void rez(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        20 * (amount / 100) + 0.3 => lpf.Q;
-                    }
-
-                    fun void env(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        5000 * (amount / 100) => filterEnv;
-                    }
-
-                    fun void detune(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        5 * (amount / 100) => osc2Detune;
-                    }
-
-                    fun void pitchMod(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        84 * (amount / 100) => pitchLfo.gain;
-                    }
-
-                    fun void stk1(float note)
-                    {
-                       ${stk1Code}
-                    }
-
-                    fun void stk2(float note)
-                    {
-                        ${stk2Code}
-                    }
-
-                    fun void cutoffMod(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        500 * (amount / 100) => filterLfo.gain;
-                    }
-
-                    fun void noise(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        1.0 * (amount / 100) => noiseSource.gain;
-                    }
-
-                    // fun void reverb(float amount)
-                    // {
-                    //     if(amount > 100)
-                    //     {
-                    //         100 => amount;
-                    //     }
-                    //     if(amount < 1)
-                    //     {
-                    //         0 => amount;
-                    //     }
-                    //     0.02 * (amount / 100) => rev.mix;
-                    // }
+            
+            <<< "NOTESDOWN ", 
+                notesToPlay.cap(), 
+                getNotesArr 
+            >>>;
+            count % (notesToPlay.size()) => int osc1Idx;
+            // <<< notesToPlay[osc1Idx] >>>;
+            for (0 => int i; i < notesToPlay.size(); i++) {
+                if (notesToPlay[i] != -1) {
+                    notesToPlay[i] => voice.keyOn;
                 }
+                duration / notesToPlay.size() => now;
+                // 1 => voice.keyOff;
+            }
+            // duration - (now % duration)  => now;
+            1 => voice.keyOff;
+        }
+        
+        
+    }
 
-                SynthVoice voice ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
-       
-                ${modulateDeclarationOsc1}
-                ${modulateCodeStringOsc1}
-
-                
-                ${delayDeclarationOsc1}
-                ${delayADeclarationOsc1}
-                ${delayLDeclarationOsc1}
-
-                ${delayCodeStringOsc1}
-                ${delayACodeStringOsc1}
-                ${delayLCodeStringOsc1}
-
-                ${spectacleCodeStringOsc1}
-                
-                ${osc1FxStringNeedsBlackhole.current}
-
-                ${finalOsc1Code}
-
-                ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
-                
-                ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice.cutoff;
-                ${moogGrandmotherEffects.current.rez.value} => voice.rez;
-                ${parseInt(moogGrandmotherEffects.current.env.value)} => voice.env;
-                ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice.ChooseOsc1;
-                ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice.ChooseOsc2;
-                ${moogGrandmotherEffects.current.detune.value} => voice.detune;
-                ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice.oscOffset;
-                ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice.pitchMod;
-                ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice.ChooseLfo;
-                0.5 => voice.filterLfo.gain;
-                ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
-                880 => voice.filterEnv;
-                ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice.noise;
-
-                0 => int count;
-
-
-
-
-
-                SndBuf buffers[4] => dac;
-                
-                // ${filesArray} @=> string filesArr[];
-                string files[4];
-
-
-                me.dir() + "DR-55Kick.wav" => files[0];
-                me.dir() + "DR-55Snare.wav" => files[1];
-                me.dir() + "DR-55Hat.wav" => files[2];
-                me.dir() + "DR-55Pop.wav" => files[3];
-
-                files[0] => buffers[0].read;
-                files[1] => buffers[1].read;
-                files[2] => buffers[2].read;
-                files[3] => buffers[3].read;
-
-                UniversalAnalyzer uA;
-                uA.declarationCode(buffers[3]);
-                files[3].find('.') || 0 => int handleDotWav;
-                files[3] => string fileName;
-                if (handleDotWav) {
-                    fileName.replace(handleDotWav, "_");
-                } 
-                // spork ~ uA.getAnalysisForSource(buffers[3], fileName);
-
-                fun void SilenceAllBuffers()
-                {
-                    buffers[0].samples() => buffers[0].pos;
-                    buffers[1].samples() => buffers[1].pos;
-                    buffers[2].samples() => buffers[2].pos;
-                    buffers[3].samples() => buffers[3].pos;
+    fun void PlaySTK(int notesToPlay[], dur duration){
+        // count % (notesToPlay.size()) => int stk1Idx;
+        while (true) {
+            count % (notesToPlay.size()) => int stk1Idx;
+            
+            for (0 => int i; i < notesToPlay.cap(); i++) {
+                // <<< notesToPlay[i] >>>;
+                if (notesToPlay[i] != -1) {
+                    notesToPlay[i] + 24 => voice.stk1;
                 }
+                duration / notesToPlay.size() => now;
+            }
+        }
+    }
 
-                bar => now;
+    
+    fun void PlaySamples(int samplesArrayPos, int notesToPlay[], dur whole) {
+        <<< "SHIT2! ", ${filesToProcess.current.length} >>>;
+        // while (${filesToProcess.current.length} > 0) { 
+        //     // spork ~ testGetAnalysis();
 
-                fun void playWindow(WinFuncEnv @ win, dur attack, dur release) {
-                    win.attackTime(attack);
-                    win.releaseTime(release);
-                    while (true) {
-                        win.keyOn();
-                        attack => now;
-                        win.keyOff();
-                        release => now;
-                    }
-                }
+        //     whole/8 => now;
+        // }
+    }
 
-                fun void Drum(int select, dur duration)
-                {
-                    if(select == 0)
-                    {
-                        0 => buffers[0].pos; 
-                        0 => buffers[2].pos;
-                    }
-                    if(select == 1)
-                    {
-                        0 => buffers[2].pos;
-                    }
-                    if(select == 2)
-                    {
-                        0 => buffers[0].pos; 
-                        0 => buffers[2].pos;
-                        0 => buffers[1].pos;
-                    }
-                    if(select == 3)
-                    {
-                        0 => buffers[3].pos;
-                    }
-                    duration => now;
-                    SilenceAllBuffers();
-                    me.exit();
-                }
+    fun void PlaySamplePattern(Event myEvent, int samplesArrayPos, int notesToPlay[], dur duration) {                
+        // count % (notesToPlay.size()) => int sampler1Idx;
 
-                SilenceAllBuffers();
+        // <<< samplesArrayPos >>>;
+        myEvent => now;
+        while (true) {
+            count % (notesToPlay.size()) => int sampler1Idx;
+            for (0 => int i; i < notesToPlay.size(); i++) {
+                // <<< "NOTE!!! ", notesToPlay[i] >>>;
+                spork ~ Drum(notesToPlay[i], duration);
+                duration/notesToPlay.size() => now;
+            }   
+        }
+    }
+
+    [[1,3],[2,4]] @=> int notesArr[][];
+    [1] @=> int notes[];
+    [1,3,3,1] @=> int sample1Notes[];
+    [1,1,1,1] @=> int sample1TestNotes[];
+    [1, 4, 1, 3] @=> int sample2Notes[];
+    [1,4] @=> int sample3Notes[];
+    [1,-1,4,-1,5,-1] @=> int stkNotes[];
+
+    
+    Event myEvent;
+    
+    private class ChordProvider {
+        Osc sinT[10];
+        [0] @=> static int notes[];
+        fun void playNotes(int notes[]) {
+            <<< "Effin notes: ", notes.cap() >>>;
+        }
+        fun void releaseNotes (int note) {
+            if (notes.cap() > 1) {
+                notes.popFront();
+            }
+        }
+    }
+        
+    ChordProvider oCp;
+
+    // <<< count >>>; 
+    // spork ~ PlaySTK(stkNotes, whole);           
+    
+
+    // if (${filesToProcess.current && filesToProcess.current.length > 0}) {
+    //     <<< "SHIT! ", ${filesToProcess.current.length} >>>;
+    //     spork ~ PlaySamples(0, sample1TestNotes, whole);
+    // }
 
 
+    spork ~ PlaySamplePattern(myEvent, 0, sample1Notes, whole);
+    // spork ~ PlaySamplePattern(0, sample2Notes, whole);
+    
 
-                fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
-                    ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
-                    ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
-                    myEvent => now;
-                    UniversalAnalyzer uA;
-                    uA.declarationCode(voice);
-                    // spork ~ uA.getAnalysisForSource(voice, "voice");
-                    while (true) {
-                        count % (notesToPlay.size()) => int osc1Idx;
-                        <<< notesToPlay[osc1Idx] >>>;
-                        for (0 => int i; i < notesToPlay.size(); i++) {
-                            if (notesToPlay[i] != -1) {
-                                notesToPlay[i] + 24 => voice.keyOn;
-                            }
-                            duration / notesToPlay.size() => now;
-                            1 => voice.keyOff;
-                        }
-                        duration => now;
-                        1 => voice.keyOff;
-                    }
-                    
-                    
-                }
 
-                fun void PlaySTK(int notesToPlay[], dur duration){
+    spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/4);
+    
+    // spork ~ playWindow(winfuncenv_o1, whole/2, whole/2);
+            
+    // spork ~ testGetAnalysis();
+    
 
-                    // count % (notesToPlay.size()) => int stk1Idx;
-                    while (true) {
-                        count % (notesToPlay.size()) => int stk1Idx;
-                      
-                        for (0 => int i; i < notesToPlay.cap(); i++) {
-                            <<< notesToPlay[i] >>>;
-                            if (notesToPlay[i] != -1) {
-                                notesToPlay[i] + 24 => voice.stk1;
-                            }
-                            duration / notesToPlay.size() => now;
-                        }
-                    }
-                }
+    while(${chuckUpdateNeeded === false}) {
+        
+        // wait for HID event
+        hid => now;
 
-                
-                fun void PlaySamples(int samplesArrayPos, int notesToPlay[], dur whole) {
-                    <<< "SHIT2! ", ${filesToProcess.current.length} >>>;
-                    // while (${filesToProcess.current.length} > 0) { 
-                    //     // spork ~ testGetAnalysis();
+        // get HID message
+        while( hid.recv( msg ) )
+        {
+            if( msg.isButtonDown() ) {
+                // print key (debugging)
+                <<< "[key]", msg.key, "(ascii)", msg.which >>>;
+                ${virtualKeyMapping(48, 1)}
 
-                    //     whole/8 => now;
-                    // }
-                }
 
-                fun void PlaySamplePattern(Event myEvent, int samplesArrayPos, int notesToPlay[], dur duration) {                
-                    // count % (notesToPlay.size()) => int sampler1Idx;
-
-                    <<< samplesArrayPos >>>;
-                    myEvent => now;
-                    while (true) {
-                        count % (notesToPlay.size()) => int sampler1Idx;
-                        for (0 => int i; i < notesToPlay.size(); i++) {
-                            // <<< "NOTE!!! ", notesToPlay[i] >>>;
-                            spork ~ Drum(notesToPlay[i], duration);
-                            duration/notesToPlay.size() => now;
-                        }   
-                    }
-                }
-
-                [1] @=> int notes[];
-                [1,3,3,1] @=> int sample1Notes[];
-                [1,1,1,1] @=> int sample1TestNotes[];
-                [1, 4, 1, 3] @=> int sample2Notes[];
-                [1,4] @=> int sample3Notes[];
-                [1,-1,4,-1,5,-1] @=> int stkNotes[];
-
-                
-                Event myEvent;
-                
-                  
-                <<< count >>>; 
-                spork ~ PlaySTK(stkNotes, whole);           
-                
-
-                // if (${filesToProcess.current && filesToProcess.current.length > 0}) {
-                //     <<< "SHIT! ", ${filesToProcess.current.length} >>>;
-                //     spork ~ PlaySamples(0, sample1TestNotes, whole);
+            } else if (msg.isButtonUp()) {
+                ${virtualKeyMapping(48, 0)}
+                //     for (0 => int n; n < oCp.notes.cap(); n++) {
+                //     if (oCp.notes[n] == ${48}){
+                //         <<< "REMOVING N!!! ", n >>>;
+                //         oCp.notes.popOut(n);
+                //     }
+                //     <<< "TAB UP1! ", ${48} >>>;
                 // }
+            }
+            else  {
+                <<< "IN HID ELSE!" >>>;
+            }
+        }
 
+        
+        myEvent.broadcast();
+        beat - (now % beat) => now;
 
-                spork ~ PlaySamplePattern(myEvent, 0, sample1Notes, whole);
-                // spork ~ PlaySamplePattern(0, sample2Notes, whole);
+        
+        
+        <<< "NumShreds: ", Machine.numShreds() >>>;
+        count++;
+
+    }  
                 
-                spork ~ PlaySynthNotes(myEvent, notes, whole/4);
-                
-                // spork ~ playWindow(winfuncenv_o1, whole/2, whole/2);
-                       
-                // spork ~ testGetAnalysis();
 
-                while(${!chuckUpdateNeeded}) {
-                             
-                    myEvent.broadcast();
-                    beat - (now % beat) => now;
-
-
-
-                    // wait for HID event
-                    hid => now;
-                
-                    // get HID message
-                    while( hid.recv( msg ) )
-                    {
-                        if( msg.isButtonDown() ) {
-                            // print key (debugging)
-                            <<< "[key]", msg.key, "(ascii)", msg.which >>>;
-                            
-
-
-                            ${virtualKeyMapping(48, 1)}
-
-                            // // Play notes
-                            // if ( msg.which >= '1' && msg.which <= '9') {
-                            //     // convert ascii representation to notes array index
-                            //     // gets MIDI value and applies octave shift
-                            //     // convert MIDI to freq
-                            //     Std.mtof( notes[msg.which-'1'] ) => float freq; 
-                            //     <<< "FREQ!!!! ", freq >>>;
-                            // }
-  
-                        } else if (msg.isButtonUp()) {
-                            ${virtualKeyMapping(48, 0)}
-                        }
-                        else  {
-                            <<< "IN HID ELSE!" >>>;
-                        }
-                    }
-                   
-                    <<< "NumShreds: ", Machine.numShreds() >>>;
-                    count++;
-         
-                }  
                           
             `);
 
@@ -2524,15 +2451,17 @@ export default function InitializationComponent() {
             aChuck.runCode(`Machine.resetShredID();`);
             const shredCount = await aChuck.runCode(`Machine.numShreds();`);
             console.log('Shred Count in ELSE: ', await shredCount);
-            setChuckUpdateNeeded(false);
+            // setChuckUpdateNeeded(false);
+
         }
     }
 
 
     const runChuck = async () => {
         if (typeof window === 'undefined') return;
-        if (!aChuck) return;
         console.log("aChuck!?!?!?!?!?!? : ", await aChuck);
+        if (!aChuck) return;
+      
 
         // ****************************************************************
         // Props for main ChucK file
@@ -2559,6 +2488,9 @@ export default function InitializationComponent() {
         }
 
         console.log("running chuck now... ", chuckUpdateNeeded);
+        if (chuckUpdateNeeded) {
+            setChuckUpdateNeeded(false);
+        }
         // console.log("CHECK CURRENT FX ************** ", currentFX.current);
 
         const buffersToChuck: any = {};
@@ -2578,19 +2510,22 @@ export default function InitializationComponent() {
             filesGenericCodeString.current = filesGenericCodeString.current + codeString;
         });
 
+
+        // if (osc1FXString.current && osc1FXString.current.length < 1) {
+        //     osc1FXToString();
+        // }
+        // tk tk getOsc1String
+        const OSC_1_Code = osc1FXString.current;
+        
+        if (osc1FXString.current && osc1FXString.current.length < 1) return;
+
         const getStk1String: any = await stkFXToString();
 
         console.log('Get stk1 string: ', getStk1String);
 
-        const bodyIR1 = getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;` : '';
+        const bodyIR1 = getStk1String && getStk1String.length > 0 && getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;` : '';
 
-        if (osc1FXString.current && osc1FXString.current.length < 1) {
-            osc1FXToString();
-        }
-        // tk tk getOsc1String
-        const OSC_1_Code = osc1FXString.current;
-
-        const STK_1_Code = getStk1String ? `
+        const STK_1_Code = getStk1String && getStk1String.length > 0 ? `
             if(note > 127)
             {
                 127 => note;
@@ -2611,6 +2546,7 @@ export default function InitializationComponent() {
      
         ` : '';
 
+        console.log("HOLY SHIT WHAT IS STK1 THEN OSC1 CODE? ", STK_1_Code, STK_1_Code, OSC_1_Code);
         setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
 
@@ -2619,7 +2555,7 @@ export default function InitializationComponent() {
 
     }
 
-    useEffect(() => { runChuck() }, [chuckUpdateNeeded]);
+    // useEffect(() => { runChuck() }, [chuckUpdateNeeded]);
 
 
     // AUDIO IN
@@ -2725,11 +2661,13 @@ export default function InitializationComponent() {
 
         // moogGrandmotherEffects.current[`${obj.name}`].value = value;
         if (currentScreen.current === 'stk') {
+            alert("WE SHOULDN'T BE HERE 1... ");
             console.log('SLIDER OBJ NAME: ', obj.name);
             console.log('STK PRESETS FOR OBJ ', stkFX.current.presets[`${obj.name}`]);
             stkFX.current.presets[`${obj.name}`].value = value;
         } else if (currentScreen.current === 'stk2') {
-            console.log('SLIDER OBJ NAME: ', obj.name);
+            alert("WE SHOULDN'T BE HERE 2... ");
+            console.log('SLIDER OBJ NAME IN STK2: ', obj.name);
             console.log('STK2 PRESETS FOR OBJ ', stkFX2.current.presets[`${obj.name}`]);
             stkFX2.current.presets[`${obj.name}`].value = value;
         } else if (currentScreen.current === 'synth') {
@@ -2738,11 +2676,12 @@ export default function InitializationComponent() {
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
         }
         else if (currentScreen.current === '') {
+            console.log("WHY ARE WE ON THIS SCREEN??? ");
             console.log('curr fx $$$$$$ ', currentFX.current);
             console.log('curr fx obj $$$$$$ ', obj.name);
         }
         else if (currentScreen.current.indexOf(`fx_`) !== -1) {
-            console.log('fxFX.current in : ', fxFX.current);
+            console.log('FX ARE KINDA SHIT: fxFX.current in : ', fxFX.current);
             console.log('SLIDER OBJ NAME: ', obj.name);
             currentFX.current = fxFX.current[0].presets;
             console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
@@ -2779,7 +2718,8 @@ export default function InitializationComponent() {
     // ========================================================
 
     const handleTurnKnob = () => {
-        console.log('WHAT R STKVALS? ', currentFX.current);
+        console.log("HITTING THIS KNOB STUFF?")
+        // console.log('WHAT R STKVALS? ', currentFX.current);
         setChuckUpdateNeeded(true);
     }
 
@@ -2831,12 +2771,24 @@ export default function InitializationComponent() {
     const initialSampNow = useRef<number>();
 
     useEffect(() => {
-        // console.log("Last ChucK msg: ", lastChuckMessage);
-        if (lastChuckMessage && lastChuckMessage.includes('rerunChuck')) {
-            setChuckUpdateNeeded(true);
-            // runChuck
-        }
+        console.log("HEYO THE NOTES DOWN NOW IN USEEFFECT: ", theNotesDown);
+        console.log("HEYO NUM NOTES DOWN NOW IN USEEFFECT: ", numNotesDown);
+    }, [numNotesDown, theNotesDown]);
 
+    useEffect(() => {
+        // console.log("Last ChucK msg: ", lastChuckMessage);
+        // if (lastChuckMessage && lastChuckMessage.includes('rerunChuck')) {
+        //     setChuckUpdateNeeded(true);
+        //     // runChuck
+        // }
+
+        if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+            console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current);
+            setNumNotesDown(parsedLastChuckMessage.current[0]);
+            const theNotesDown = [parsedLastChuckMessage.current.slice(1).filter((i: any) => i.length > 0 && i)];
+            setTheNotesDown(theNotesDown);
+        }
 
         if (lastChuckMessage && lastChuckMessage.includes('FEATURES')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(2);
@@ -2896,7 +2848,6 @@ export default function InitializationComponent() {
         if (lastChuckMessage && lastChuckMessage.includes('FREQ')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
             const source = parsedLastChuckMessage.current[parsedLastChuckMessage.current.length - 2].replace(/\W/g, '');
-            console.log('FUCKING SANITY: ', parsedLastChuckMessage.current, source);
             setFeatureFreq((i: any) => {
                 if(source) { 
                     return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4))}
