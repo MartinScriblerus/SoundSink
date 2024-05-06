@@ -52,6 +52,8 @@ app.get('/', (request: Request, response: any) => {
     response.json({'data': allAlreadyUploaded[0]});
 });
 
+
+
 // app.get('/uploads', (request: any, response: any) => {
 //   // return path;
 // });
@@ -62,11 +64,10 @@ app.get('/', (request: Request, response: any) => {
 //   response.send({'data': request.files[0].filename})
 // });
 
-// app.post('/upload_files', upload.any('file'), (request: any, response: any) => {
-//     console.log('hey req: ', request);
-    
-//     response.send({ message: 'Successfully uploaded files', fileName: request.files[0].filename })
-// })
+app.post('/upload_files', upload.any('file'), (request: any, response: any) => {
+    console.log('hey req: ', request);
+    response.send({ message: 'Successfully uploaded files', fileName: request.files[0].filename })
+})
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)

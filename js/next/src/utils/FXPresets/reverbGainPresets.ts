@@ -146,7 +146,7 @@ export const gainPresets = {
     gain: {
         name: "gain",
         label: "Gain",
-        value: 0.25,
+        value: 0.08,
         min: 0,
         max: 1,
         screenInterface: "knob",

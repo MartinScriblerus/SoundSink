@@ -17,7 +17,7 @@ for (let x = 0; x < nCol; x++) {
     heatmapData.push({
       x: alphabet[x],
       y: alphabet[y],
-      value: Math.random() * 40,
+      value: x % 4 === 2 ? 0 : y * (x % 4),
     });
   }
 }

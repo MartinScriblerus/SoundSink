@@ -54,7 +54,7 @@ interface Props {
   updateCurrentFXScreen: () => void;
   currentScreen: string;
   lastFileUpload: string;
-  updateFileUploads: () => void;
+  updateFileUploads: (e: any) => void;
   babylonGame: any;
 }
 

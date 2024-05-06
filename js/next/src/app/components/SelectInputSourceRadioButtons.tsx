@@ -18,7 +18,7 @@ interface Props {
     currentScreen: string;
     playUploadedFile: (name: string) => void;
     lastFileUpload: string;
-    updateFileUploads: () => void;
+    updateFileUploads: (e: any) => void;
 }
 
 const SelectInputSourceRadioButtons = (props: Props) => {

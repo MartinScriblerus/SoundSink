@@ -34,7 +34,7 @@ const moogGMPresets = {
     cutoff: {
         name: "cutoff",
         label: "Cutoff",
-        value: 50,
+        value: 30,
         min: 0,
         max: 100,
         screenInterface: "knob",
@@ -42,7 +42,7 @@ const moogGMPresets = {
     rez: {
         name: "rez",
         label: "Rez",
-        value: 50,
+        value: 64,
         min: 0,
         max: 100,
         screenInterface: "knob",
@@ -122,7 +122,7 @@ const moogGMPresets = {
     adsrSustain: {
         name: "adsrSustain",
         label: "Sustain",
-        value: 0.01, // should this be a float?
+        value: 0.05, // should this be a float?
         min: 0,
         max: 0.5,
         screenInterface: "knob",
@@ -130,7 +130,7 @@ const moogGMPresets = {
     adsrRelease: {
         name: "adsrRelease",
         label: "Release",
-        value: 1,
+        value: 1800,
         min: 0,
         max: 2000,
         screenInterface: "knob",

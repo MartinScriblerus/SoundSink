@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LineChart } from "./LineChart";
 import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
@@ -89,7 +89,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   
   const value = ""
 
-  useEffect(() => {
+  useMemo(() => {
     // console.log('EEEESH PROPS: ', props);
 
     // EFFECTS W TIME ON X-AXIS
@@ -258,43 +258,48 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
       </Box>
 
       <Box>
-        <RadioGroup
-          aria-labelledby="demo2-controlled-radio-buttons-group"
-          name="controlled-radio-buttons-group2"
-          value={analysisSourceRadioValue}
-          sx={{color: "rgba(147, 206, 214, 1)", pointerEvents: "all", backgroundColor: "rgba(0, 0, 0,0.91)"}}
-          onChange={handleChangeAnalysisSource}
-        >
-          <FormControlLabel 
-              sx={{
-                  color: 'rgba(228,225,209,1)'
-              }} 
-              value="Osc" 
-              control={<Radio />} 
-              label="Osc" />
-          <FormControlLabel 
-              sx={{
-                  color: 'rgba(228,225,209,1)'
-              }} 
-              value="STK" 
-              control={<Radio />} 
-              label="STK" />
-          <FormControlLabel 
-              sx={{
-                  color: 'rgba(228,225,209,1)'
-              }} 
-              value="Sampler" 
-              control={<Radio />} 
-              label="Sampler" 
-          />
-          <FormControlLabel 
-              sx={{
-                  color: 'rgba(228,225,209,1)'
-              }} 
-              value="AudioIn" 
-              control={<Radio />} 
-              label="Audio In" />
-          </RadioGroup>
+        <Box>
+        
+        </Box>
+        <Box>
+          <RadioGroup
+            aria-labelledby="demo2-controlled-radio-buttons-group"
+            name="controlled-radio-buttons-group2"
+            value={analysisSourceRadioValue}
+            sx={{color: "rgba(147, 206, 214, 1)", pointerEvents: "all", backgroundColor: "rgba(0, 0, 0,0.91)"}}
+            onChange={handleChangeAnalysisSource}
+          >
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)'
+                }} 
+                value="Osc" 
+                control={<Radio />} 
+                label="Osc" />
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)'
+                }} 
+                value="STK" 
+                control={<Radio />} 
+                label="STK" />
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)'
+                }} 
+                value="Sampler" 
+                control={<Radio />} 
+                label="Sampler" 
+            />
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)'
+                }} 
+                value="AudioIn" 
+                control={<Radio />} 
+                label="Audio In" />
+            </RadioGroup>
+        </Box>
       </Box>
     </Box>
   );

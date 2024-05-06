@@ -2,7 +2,9 @@
 
 import Image from 'next/image'
 import styles from './page.module.css';
-import { Box, Button, FormControl, Grid, TextField } from '@mui/material';
+import { Box, Button, FormControl, Grid, TextField, Typography } from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import React, { useState, useEffect, useDeferredValue, useRef, useMemo } from 'react'
 import BabylonLayer from './BabylonLayer';
 import * as BABYLON from 'babylonjs';
@@ -20,7 +22,7 @@ import FixedOptionsDropdown from './FixedOptionsSelect';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { FXOption, STKOption, fxGroupOptions, fxOptions } from '../../utils/fixedOptionsDropdownData';
 import ToggleFXView from './ToggleFXView';
-import { getSTK1Preset, getSTK2Preset, getFX1Preset, tableIntToStringHelper } from '@/utils/presetsHelper';
+import { getSTK1Preset, getFX1Preset } from '@/utils/presetsHelper';
 import FXRouting from './FXRouting';
 import { getBaseUrl } from '@/utils/siteHelpers';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -34,6 +36,7 @@ import { LineChartWrapper } from '@/utils/VizHelpers/LineChartWrapper';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import { init } from 'node_modules/next/dist/compiled/@vercel/og/satori';
 import { virtualKeyMapping } from '@/utils/KeyHelpers/virtualKeyMapping';
+import BPMModule from './BPMModule';
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
@@ -129,23 +132,22 @@ export default function InitializationComponent() {
     const [fXChainKey, setFXChainKey] = useState<string>('');
     const [needsUpdate, setNeedsUpdate] = useState<boolean>(false);
     const [chuckUpdateNeeded, setChuckUpdateNeeded] = useState(false);
-    const [bpm, setBpm] = useState<number>(60.00);
+    const [bpm, setBpm] = useState<number>(120.00);
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
-    const { register, handleSubmit } = useForm();
+    const { register, handleSubmit, watch } = useForm();
     const [datas, setDatas] = useState<any>([]);
     const [numNotesDown, setNumNotesDown] = useState<number>(0);
     const [theNotesDown, setTheNotesDown] = useState<Array<any>>([]);
 
     const [stkValues, setStkValues] = useState<STKOption[]>([]);
-    const [stk2Values, setStk2Values] = useState<STKOption[]>();
     const [octave, setOctave] = useState('4');
     const [audioKey, setAudioKey] = useState('C');
     const [audioScale, setAudioScale] = useState('Major');
     const [audioChord, setAudioChord] = useState('M');
     const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
     const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState('Sampler');
-    const [showFiles, setShowFiles] = useState<boolean>(false);
+    const [showBPM, setShowBPM] = useState<boolean>(false);
 
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
@@ -154,13 +156,17 @@ export default function InitializationComponent() {
     const doReturnToSynth = useRef<boolean>(false);
 
     const [stk1Code, setStk1Code] = useState<string>('');
-    const [stk2Code, setStk2Code] = useState<string>('');
     const [osc1Code, setOsc1Code] = useState<string>('');
     const [osc1CodeToChuck, setOsc1CodeToChuck] = useState<string>('');
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
     const [tActive, setTActive] = useState<any>(false);
     const [numeratorSignature, setNumeratorSignature] = useState(4);
     const [denominatorSignature, setDenominatorSignature] = useState(4);
+
+    const [currentNumerCount, setCurrentNumerCount] = useState<number>(0);
+    const [currentNumerCountColToDisplay, setCurrentNumerCountColToDisplay] = useState<number>(0);
+    const [currentDenomCount, setCurrentDenomCount] = useState<number>(0);
+    const [currentPatternCount, setCurrentPatternCount] = useState<number>(0);
 
     const [uploadedFile, setUploadedFile] = useState<any>({});
 
@@ -201,11 +207,9 @@ export default function InitializationComponent() {
     const [showFX, setShowFX] = useState<boolean>(false);
     const stkValsRef = useRef<STKOption[]>([]);
     const stkFX = useRef<any>([]);
-    const stkFX2 = useRef<any>();
+
     const stk1Type = useRef<string | undefined>('');
     const stk1Var = useRef<string | undefined>('');
-    const stk2Type = useRef<string | undefined>('');
-    const stk2Var = useRef<string | undefined>('');
     const [useStkDirect, setUseDtkDirect] = useState<boolean>(true);
 
     const filesToProcess = useRef<Array<any>>([]);
@@ -217,6 +221,10 @@ export default function InitializationComponent() {
     const fx1Var = useRef<string | undefined>('');
     const fx1Group = useRef<string | undefined>('');
     const checkedFXList = useRef<FXOption[]>([]);
+
+    const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
+
+    const getFile = useForm();
 
     const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
     const osc1FxStringNeedsBlackhole = useRef<string>('');
@@ -385,11 +393,13 @@ export default function InitializationComponent() {
 
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
 
+    console.log("HEYOOOOOOOOO ", filesToProcess.current);
 
 
 
     const [windowWidth, setWindowWidth] = useState<any>(0);
     const [windowHeight, setWindowHeight] = useState<any>(0);
+    const [metronomeOn, setMetronomeOn] = useState<any>(1);
 
     // currentFX are the ones we are actively editing
     const currentFX = useRef<any>();
@@ -429,6 +439,7 @@ export default function InitializationComponent() {
     const testArrBuffFile = useRef<any>();
 
     const onSubmit = async (files: any) => {
+        if (files.length === 0) return;
         const file = files.file[0];
         const fileName = file.name;
         const fileDataBuffer: any = await file.arrayBuffer();
@@ -441,19 +452,16 @@ export default function InitializationComponent() {
         fileReader.onload = async function (event: any) {
             arrayBuffer = event.target.result;
             const formattedName = file.name.replaceAll(' ', '_').replaceAll('-', '');
-            if (filesToProcess.current.map((i: any) => i.name).indexOf(fileName) === -1) {
+            console.log("FILE NAME: ", formattedName, fileData);
+            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1) {                
                 filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false })
             }
-            // const formData = new FormData();
-            // const eightBit: any = new Uint8Array(arrayBuffer) 
-            // formData.append(formattedName, eightBit)
-            // if (filesToProcess.current.indexOf(formattedName) === -1) {
-            //     filesToProcess.current.push(formattedName);
-            // }
+            if (chuckHook) {
+                setChuckUpdateNeeded(true);
+            }
         }
         fileReader.readAsArrayBuffer(fileBlob);
     }
-
 
     const submitMingus = async () => {
         console.log("DO WE HAVE AUDIOKEY??? ", audioKey);
@@ -480,11 +488,6 @@ export default function InitializationComponent() {
     const handleClickName = (e: any, op: string) => {
         console.log('TEST CLICK ', e, op);
     };
-
-
-    useEffect(() => { 
-        console.log("we rerunning chuck?@@?!?");
-        runChuck() }, [chuckUpdateNeeded]);
 
 
     useEffect(() => {
@@ -544,10 +547,7 @@ export default function InitializationComponent() {
                 Object.values(gotFX[theFXIdx]) && Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
                 :
                 Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
-            : (stkValsRef.current.length > 1 && currentScreen.current === 'stk2')
-                ?
-                Object.values(stkFX2.current.presets).map((i: any) => [i.label, i])
-                :
+            : 
                 Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
 
 
@@ -565,6 +565,10 @@ export default function InitializationComponent() {
     useEffect(() => {
         console.log(`WTF?? ${analysisSourceRadioValue.toLowerCase()}`);
     },[analysisSourceRadioValue]);
+
+    useEffect(() => {
+        console.log("NEW CHECKED FX LIST!!! ", checkedEffectsListHook);
+    },[checkedEffectsListHook]);
 
     const fxChainNeedsUpdate = (msg: any) => {
         console.log("MSG MSG MSG ", msg[0].source);
@@ -589,11 +593,12 @@ export default function InitializationComponent() {
         if (fxValsRef.current.indexOf(e.target.value) === -1 && fxValsRef.current.indexOf(e.target.value) === -1) {
             fxValsRef.current.push(e.target.value);
             checkedFXList.current.push(e.target.value);
+            setCheckedEffectsListHook((x: any) => [...x, e.target.value]);
         } else {
             const index = fxValsRef.current.indexOf(e.target.value);
             fxValsRef.current.splice(index, 1);
             const indexChecked = checkedFXList.current.indexOf(e.target.value);
-            checkedFXList.current.slice(indexChecked, 1);
+            checkedFXList.current.slice(indexChecked, 1); 
         }
     };
 
@@ -615,13 +620,10 @@ export default function InitializationComponent() {
         }
         console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', stkValsRef.current);
         if (stkValsRef.current && stkValsRef.current.length === 1) stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
-        if (stkValsRef.current && stkValsRef.current.length === 2) stkFX2.current = getSTK2Preset(stkValsRef.current[1].value);
 
         let knobsCountTemp;
         if (currentScreen.current === 'stk') {
             knobsCountTemp = stkFX.current.presets;
-        } else if (currentScreen.current === 'stk2') {
-            knobsCountTemp = stkFX2.current.presets;
         } else {
             knobsCountTemp = currentFX.current.length
         }
@@ -734,9 +736,11 @@ export default function InitializationComponent() {
     const updateCheckedFXList = (e: any) => {
         if (checkedFXList.current.indexOf(e.target.value) === -1) {
             checkedFXList.current.push(e.target.value);
+            setCheckedEffectsListHook((x: any) => [...x, e.target.value]);
         } else {
             const index = checkedFXList.current.indexOf(e.target.value);
             checkedFXList.current.splice(index, 1);
+            setCheckedEffectsListHook((x: any) => x.filter((y: any) => y !== e.target.value && y));
         }
 
         console.log("Checked List Current in Update: ", checkedFXList.current);
@@ -814,19 +818,12 @@ export default function InitializationComponent() {
     // THIS METHOD TURNS A PRESET INTO CHUCK CODE (only set up for stk1)
     const stkFXToString = () => {
         console.log('stkFXTo *** STRING ***: ', stkFX.current);
-        if (!stkFX.current || !stkFX.current.presets || stkFX.current.length < 1) return '';
+        if (!stkFX.current || stkFX.current.length < 1) return '';
 
         stk1Type.current = stkFX.current.type;
         stk1Var.current = stkFX.current.var;
 
-        // *********************************** STK2 WILL NEED UPDATING!!!
-        // if (stkFX2.current && stkFX2.current.length > 1) {
-        //     stk2Type.current = stkFX2.current.type;
-        //     stk2Var.current = stkFX2.current.var + '2';
-        // }
-        // ***********************************
-
-        stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
+        stkFX.current && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
             console.log('STK PRESET: ', preset); // preset.name
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
             stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
@@ -936,7 +933,7 @@ export default function InitializationComponent() {
     };
 
     const modulateString = (source: string, vibratoRate: number, vibratoGain: number, randomGain: number) => {
-        console.log('#### ', source, vibratoRate, vibratoGain, randomGain);
+        console.log('#### FUCKIN HERE', source, vibratoRate, vibratoGain, randomGain);
 
         return `
 
@@ -957,17 +954,18 @@ export default function InitializationComponent() {
             // infinite time loop
             while( true )
             {
-                1::second => now;
+                spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
+                whole / 4 => now;
             }
         }
-        spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
+        // spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
         `;
     };
 
     const ellipticString = (source: string, filterLow: number, filterMid: number, filterHigh: number, atten: number, ripple: number, filterMode: number) => {
         console.log('get elliptic vals: ', source, filterLow, filterMid, filterHigh, ripple, atten, filterMode);
         return `
-        fun void playEllipticWindow(Elliptic @ win, float lower, float middle, float upper, float atten, float ripple, int filterMode) {
+        fun void playEllipticWindow(Elliptic @ win, dur beat, float lower, float middle, float upper, float atten, float ripple, int filterMode) {
             
             atten => win.atten;
             ripple => win.ripple;
@@ -979,9 +977,9 @@ export default function InitializationComponent() {
             } else if (filterMode == 2) {
                 win.hpf(upper, lower);
             }
-            2 :: second => now;
+            whole / 4 - (now % whole/4) => now;
         }
-        spork ~ playEllipticWindow(elliptic_${source}, ${filterLow}, ${filterMid}, ${filterHigh}, ${atten}, ${ripple}, ${filterMode});
+        spork ~ playEllipticWindow(elliptic_${source}, beat, ${filterLow}, ${filterMid}, ${filterHigh}, ${atten}, ${ripple}, ${filterMode});
         `;
     }
 
@@ -1038,8 +1036,7 @@ export default function InitializationComponent() {
                 b0 => filter_delayL_${source}.b0;
                 b1 => filter_delayL_${source}.b1;
                 0.6 => win[i].gain; 
-                // (((1 + i*0.3) * 1000)) :: ms => win[i].max => win[i].delay;
-                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
+                ((whole/16)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
             }
         }
         spork ~ playDelayLWindow(delayL_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
@@ -1375,6 +1372,8 @@ export default function InitializationComponent() {
                 const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
                 const formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${parseInt(preset.value)}${addDurMs}` : `${preset.value}`;
                 // const thePreset: any = Object.values(s1.presets)[idx];
+                console.log("EEEESH WTF 1: ", samplerFXString);
+                console.log("EEEESH WTF 2: ", finalSamplerFxStringToChuck.current);
                 if (samplerFXString.current !== '') {
                     if (finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name) !== -1) {
                         const theIndex = finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name);
@@ -1441,7 +1440,12 @@ export default function InitializationComponent() {
 
     const shredCount = useRef<number>(0);
 
- 
+       useEffect(() => {
+        console.log('HERE YOOOOO! ')
+        const subscription = watch(() => handleSubmit(onSubmit)())
+        console.log('SUBSCRIPTION: ', subscription);
+        return () => subscription.unsubscribe();
+    }, [handleSubmit, watch, register]);
 
 
     const stopChuckInstance = () => {
@@ -1452,11 +1456,19 @@ export default function InitializationComponent() {
 
     const runMainChuckCode = async (aChuck: Chuck, getStk1String: any) => {
         // if (chuckUpdateNeeded !== false) {setChuckUpdateNeeded(true)}
-        if (chuckUpdateNeeded === false) {
+        // if (chuckUpdateNeeded === false) {
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
 
             console.log('WHAT IS SHRED COUNT? ', shredCount.current);
             console.log('FILES TO PROCESS: ', filesToProcess);
+
+            filesToProcess.current.map(async (i: any) => {
+                const filename: string = i.name;
+                const filedata: Uint8Array | string = i.data;
+                aChuck && aChuck?.createFile("", filename, filedata);
+                console.log("ACHUCK IS HERE: ", aChuck);
+
+            });
 
             console.log('STK STRING HERE: ', getStk1String);
             const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
@@ -1529,930 +1541,1007 @@ export default function InitializationComponent() {
 
             const filesArray = filesToProcess.current.map((f: any) => f.name) || [];
             console.log("****sanity check osc1 declaration: ", chuckUpdateNeeded, "FUYC ", osc1ChuckToOutlet);
+     
 
 
-      
-        // if (chuckUpdateNeeded === false) {     
-            aChuck.runCode(`
+
+
+
+
+
+
+
+
+
+            console.log("WHAT THE FUCK IS FILE ARRAY? ", filesArray);
+
+
+            const chuckCode = `
             
- 
-
-// webchuck keyboard device
-0 => int device;
-
-// HID input and HID message
-Hid hid;
-HidMsg msg;
-
-<<< hid >>>;
-// open keyboard device
-if( !hid.openKeyboard( device ) ) me.exit();
-<<< "keyboard '" + hid.name() + "' ready", "" >>>;
-
-((60.0 / ${bpm})) => float secLenBeat;
-(secLenBeat * 1000)::ms => dur beat;
-
-((secLenBeat * 1000) * 2)::ms => dur whole;
-(secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
-    
-// ${uploadedFilesToChuckString.current}
-// ${uploadedFilesCodeString.current}
-
-
-
-private class UniversalAnalyzer {
-    FeatureCollector combo => blackhole;
-    FFT fft;
-    Flux flux;
-    RMS rms;
-    MFCC mfcc;
-    Centroid centroid;
-    RollOff rolloff;
-    Chroma chroma;
-    Kurtosis kurtosis;
-    DCT dct;
-    Flip flip;
-    ZeroX zerox;
-    SFM sfm;
-    "" => string mfccString;
-    "" => string chromaString; 
-    string the_sfm;
-    
-    private class TrackingFile
-    {
-        static float the_freq;
-        static float the_gain;
-        
-        static float the_kurtosis;
-        static Event @ the_event;
-    }
-
-    fun void declarationCode(UGen @ source) {
-        source => fft;
-        // a thing for collecting multiple features into one vector
-        
-        // add spectral feature: Centroid
-        fft =^ centroid =^ combo;
-        // add spectral feature: Flux
-        fft =^ flux =^ combo;
-        // add spectral feature: RMS
-        fft =^ rms =^ combo;
-        // add spectral feature: MFCC
-        fft =^ mfcc =^ combo;
-        fft =^ rolloff =^ combo;
-        fft =^ chroma =^ combo;
-        fft =^ kurtosis => blackhole;
-        source => dct => blackhole;
-        source => flip =^ zerox => blackhole;
-    
-        fft =^ sfm => blackhole;
-        //-----------------------------------------------------------------------------
-        // setting analysis parameters -- also should match what was used during extration
-        //-----------------------------------------------------------------------------
-        // set flip size (N)
-
-        // output in [-1,1]
-        // calculate sample rate
-        second/samp => float srate;
-
-        // set number of coefficients in MFCC (how many we get out)
-        // 13 is a commonly used value; using less here for printing
-        20 => mfcc.numCoeffs;
-        // set number of mel filters in MFCC
-        10 => mfcc.numFilters;
-
-        // do one .upchuck() so FeatureCollector knows how many total dimension
-        combo.upchuck();
-
-        // get number of total feature dimensions
-        combo.fvals().size() => int NUM_DIMENSIONS;
-
-        // set FFT size
-        4096 => fft.size;
-        // set window type and size
-        Windowing.hann(fft.size()) => fft.window;
-        // our hop size (how often to perform analysis)
-        (fft.size()/2)::samp => dur HOP;
-        // how many frames to aggregate before averaging?
-        // (this does not need to match extraction; might play with this number) ***
-        3 => int NUM_FRAMES;
-        // how much time to aggregate features for each file
-        fft.size()::samp * NUM_FRAMES => dur EXTRACT_TIME;
-
-        // initialize separately (due to a bug)
-        // new Event @=> TrackingFile.the_event;
-
-        // analysis
-        source => PoleZero dcblock => FFT fftTrack => blackhole;
-
-        // set to block DC
-        .99 => dcblock.blockZero;
-    }
-
-    fun void upchuckRealTimeFeatures(
-        FeatureCollector @ combo, 
-        string mfccString, 
-        MFCC @ mfcc, 
-        string chromaString, 
-        Chroma @ chroma, 
-        Centroid @ centroid, 
-        Flux @ flux, 
-        RMS @ rms,
-        RollOff @ rolloff,
-        string sourceName
-    ) {
-        combo.upchuck();
-    
-        "" => mfccString;
-        for (0 => int i; i < mfcc.fvals().cap(); i++) {
-            if (i < mfcc.fvals().cap() - 1) {
-                mfcc.fvals()[i] + ", "  +=> mfccString;
-            } else {
-                mfcc.fvals()[i] +=> mfccString;
-            }
-        }
-    
-        "" => chromaString;
-        for (0 => int i; i < chroma.fvals().cap() - 1; i++) {
-            if (i < chroma.fvals().cap() - 2) {
-                chroma.fvals()[i] + ", " +=> chromaString;
-            } else {
-                chroma.fvals()[i] +=> chromaString;
-            }
-        }
-        
-        if (count % 16 == 0) {
-            <<< "FEATURES VALS: ", 
-            centroid.fval(0) + " " 
-            + flux.fval(0) + " " 
-            + rms.fval(0) + " " 
-            + mfccString + " " 
-            + rolloff.fval(0) + " " 
-            + chromaString + " "
-            + sourceName >>>;
-        }
-    }
-
-    fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
-        // window
-        Windowing.hamming( win.size() ) => win.window;
-        float finalObj[2];
-    
-        0 => int count;
-        // go for it
-        while( true )
-        {
-            // take fft
-            win.upchuck() @=> UAnaBlob blob;
-            winKurtosis.upchuck();
-            winSfm.upchuck();
             
-            // find peak
-            0 => float max; float where;
-            for( int i; i < blob.fvals().size()/8; i++ )
-            {
-                // compare
-                if( blob.fvals()[i] > max )
-                {
-                    // save
-                    blob.fvals()[i] => max;
-                    i => where;
-                }
-            }
+            // webchuck keyboard device
+            0 => int device;
             
-            // set freq
-            (where / win.size() * (second / samp)) => this.TrackingFile.the_freq;
-            // set gain
-            (max / .5) => this.TrackingFile.the_gain;
-            // clamp
-            if( this.TrackingFile.the_gain > 1 )
-                1 => this.TrackingFile.the_gain;
-            // // fire!
-            // this.TrackingFile.the_event.broadcast();
-    
-            // hop
-            // (win.size()/4)::samp => now;
-
-            ((win.size()/4) * (second /samp)) * 1000 => float toMilliseconds;
-            toMilliseconds :: ms => now;
-
-            "" => string sfmString;
+            // HID input and HID message
+            Hid hid;
+            HidMsg msg;
             
-            for( int i; i < winSfm.fvals().size(); i++ )
-            {
-                Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
-                sfmString + " " + tmp => sfmString;
-                sfmString => this.the_sfm;
-            }
-    
-            winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
-            // fire!
-            this.TrackingFile.the_event.broadcast();
-            // if (count % this.fft.size() == 0) {
-            //     <<< "FREQ: ", winKurtosis.fval(0), sfmString >>>;
-            // }
-            count++;
-        }
-    }
-    
-    fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
-        // set parameters
-        8 => winDct.size;
-    
-        int div;
-    
-        4096 => winFlip.size;
-    
-        0 => int countCrossLog;
-    
-        // control loop
-        while( true )
-        {
-            // set srate
-            second / samp => float srate;
-            (winFlip.size() / srate) * 1000 => float toMilliseconds;
-    
-            // winDct.size()/2 %=> div;
-            winZerox.upchuck() @=> UAnaBlob blob;
-    
-            winDct.size()/2 %=> div;
-            winDct.upchuck();
-    
-            // advance time
-            (toMilliseconds)::ms => now;
-            if (countCrossLog % this.fft.size() == 0) {
-                <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
-            }
-            countCrossLog++;
-        }
-    }
-
-    fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
-        <<< "SOURCE IS: ", source, mfccString >>>;
-        
-        while (true) {
-            spork ~ this.upchuckRealTimeFeatures(
-                this.combo, 
-                this.mfccString, 
-                this.mfcc, 
-                this.chromaString, 
-                this.chroma, 
-                this.centroid, 
-                this.flux, 
-                this.rms,
-                this.rolloff,
-                sourceVarName
-            );
-            spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
-            spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
+            <<< hid >>>;
+            // open keyboard device
+            if( !hid.openKeyboard( device ) ) me.exit();
+            <<< "keyboard '" + hid.name() + "' ready", "" >>>;
             
-            <<< "TIME: ", now >>>;
-            <<< "FREQ: ", 
-                this.TrackingFile.the_freq, 
-                this.TrackingFile.the_gain, 
-                this.the_sfm, 
-                this.TrackingFile.the_kurtosis,
-                sourceVarName 
-            >>>;
+            ((60.0 / ${bpm})) => float secLenBeat;
+            (secLenBeat * 1000)::ms => dur beat;
             
-            // beat => now;
-            whole / 16 => now; 
-        }
-    }
-}
-
-
-
-
-
-class SynthVoice extends Chugraph
-    {
-        // SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter => outlet;
-        ${osc1ChuckToOutlet}
-
-        // saw1 ${osc1FXStringToChuck.current} => dac;
-        ${osc2ChuckToOutlet}
-
-        // declarations for complex effects
-        ${WPKorg35DeclarationOsc1}          
-        ${ellipticCodeStringOsc1}
-        ${winFuncCodeStringOsc1}
-        ${powerADSRCodeStringOsc1}
-        ${expEnvCodeStringOsc1}
-        ${wpDiodeLadderCodeStringOsc1}
-        ${wpKorg35CodeStringOsc1}
-        ${expDelayCodeStringOsc1}
-
-        Noise noiseSource => lpf;
-        0 => noiseSource.gain;
-        
-        ${connectorStk1DirectToDac}
-                        
-        TriOsc tri1, tri2;
-        SqrOsc sqr1, sqr2;
-
-        SinOsc SinLfo;
-        SawOsc SawLfo;
-        SqrOsc SqrLfo;
-        SinLfo => Gain pitchLfo => blackhole;
-        SinLfo => Gain filterLfo => blackhole;
-
-        fun void SetLfoFreq(float frequency)
-        {
-            frequency => SinLfo.freq => SawLfo.freq => SqrLfo.freq;
-        }
-
-        6.0 => SetLfoFreq;
-        0.5 => filterLfo.gain;
-        0.5 => pitchLfo.gain;
-
-        2 => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
-
-        pitchLfo => saw1;
-        pitchLfo => saw2;
-        pitchLfo => tri1;
-        pitchLfo => tri2;
-        pitchLfo => sqr1;
-        pitchLfo => sqr2;
-
-        ${parseInt(moogGrandmotherEffects.current.limiterAttack.value)}::ms => limiter.attackTime;
-        ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(4)} => limiter.thresh;
-
-        0.06 => saw1.gain => saw2.gain;
-        0.28 => tri1.gain => tri2.gain;
-        0.12 => sqr1.gain => sqr2.gain;
-
-        10.0 => float filterCutoff;
-        filterCutoff => lpf.freq;
-
-
-        ${parseInt(moogGrandmotherEffects.current.adsrAttack.value)}::ms => adsr.attackTime;
-        ${parseInt(moogGrandmotherEffects.current.adsrDecay.value)}::ms => adsr.decayTime;
-        ${moogGrandmotherEffects.current.adsrSustain.value} => float susLevel; 
-        susLevel => adsr.sustainLevel;
-        ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
-        ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
-        880 => float filterEnv;
-
-        1 => float osc2Detune;
-        0 => int oscOffset;
-
-        fun void SetOsc1Freq(float frequency)
-        {
-            frequency => tri1.freq => sqr1.freq => saw1.freq; 
-        }
-
-        fun void SetOsc2Freq(float frequency)
-        {
-            frequency => tri2.freq => sqr2.freq => saw2.freq; 
-        }
-
-        fun void keyOn(int noteNumber)
-        {
-            Std.mtof(offset + noteNumber) => SetOsc1Freq;
-            Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
-            1 => adsr.keyOn;
-            spork ~ filterEnvelope();
-        }
-
-        fun void ChooseOsc1(int oscType)
-        {
-            if(oscType == 0)
-            {
-                tri1 =< lpf;
-                saw1 =< lpf;
-                sqr1 =< lpf;
-            }
-            if(oscType == 1)
-            {
-                tri1 => lpf;
-                saw1 =< lpf;
-                sqr1 =< lpf;
-            }
-            if(oscType == 2)
-            {
-                tri1 =< lpf;
-                saw1 => lpf;
-                sqr1 =< lpf;
-            }
-            if(oscType == 3)
-            {
-                tri1 =< lpf;
-                saw1 =< lpf;
-                sqr1 => lpf;
-            }
-        }
-
-        fun void ChooseOsc2(int oscType)
-        {
-            if(oscType == 0)
-            {
-                tri2 =< lpf;
-                saw2 =< lpf;
-                sqr2 =< lpf;
-            }
-            if(oscType == 1)
-            {
-                tri2 => lpf;
-                saw2 =< lpf;
-                sqr2 =< lpf;
-            }
-            if(oscType == 2)
-            {
-                tri2 =< lpf;
-                saw2 => lpf;
-                sqr2 =< lpf;
-            }
-            if(oscType == 3)
-            {
-                tri2 =< lpf;
-                saw2 =< lpf;
-                sqr2 => lpf;
-            }
-            if(oscType == 4)
-            {
-                tri2 =< lpf;
-                saw2 =< lpf;
-                sqr2 =< lpf;
-            }
-        }
-
-        fun void ChooseLfo(int oscType)
-        {
-            if(oscType == 0)
-            {
-                SinLfo =< filterLfo;
-                SinLfo =< pitchLfo;
-                SawLfo =< filterLfo;
-                SawLfo =< pitchLfo;
-                SqrLfo =< filterLfo;
-                SqrLfo =< pitchLfo;
-            }
-            if(oscType == 1)
-            {
-                SinLfo => filterLfo;
-                SinLfo => pitchLfo;
-                SawLfo =< filterLfo;
-                SawLfo =< pitchLfo;
-                SqrLfo =< filterLfo;
-                SqrLfo =< pitchLfo;
-            }
-            if(oscType == 2)
-            {
-                SinLfo =< filterLfo;
-                SinLfo =< pitchLfo;
-                SawLfo => filterLfo;
-                SawLfo => pitchLfo;
-                SqrLfo =< filterLfo;
-                SqrLfo =< pitchLfo;
-            }
-            if(oscType == 3)
-            {
-                SinLfo =< filterLfo;
-                SinLfo =< pitchLfo;
-                SawLfo =< filterLfo;
-                SawLfo =< pitchLfo;
-                SqrLfo => filterLfo;
-                SqrLfo => pitchLfo;
-            }
-        }
-
-        fun void keyOff(int noteNumber)
-        {
-            noteNumber => adsr.keyOff;
-        }
-
-        fun void filterEnvelope()
-        {
-            filterCutoff => float startFreq;
-            while((adsr.state() != 0 && adsr.value() == 0) == false)
-            {
-                (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
-                adsr.releaseTime() => now;  
-            }
-        }
-
-        fun void cutoff(float amount)
-        {
-            if(amount > 100)
-            {
-                100 => amount;
-            }
-            if(amount < 0)
-            {
-                0 => amount;
-            }
-            (amount / 100) * 5000 => filterCutoff;
-            10::ms => now;
-        }
-
-        fun void rez(float amount)
-        {
-            if(amount > 100)
-            {
-                100 => amount;
-            }
-            if(amount < 0)
-            {
-                0 => amount;
-            }
-            20 * (amount / 100) + 0.3 => lpf.Q;
-        }
-
-        fun void env(float amount)
-        {
-            if(amount > 100)
-            {
-                100 => amount;
-            }
-            if(amount < 0)
-            {
-                0 => amount;
-            }
-            5000 * (amount / 100) => filterEnv;
-        }
-
-        fun void detune(float amount)
-        {
-            if(amount > 100)
-            {
-                100 => amount;
-            }
-            if(amount < 0)
-            {
-                0 => amount;
-            }
-            5 * (amount / 100) => osc2Detune;
-        }
-
-        fun void pitchMod(float amount)
-        {
-            if(amount > 100)
-            {
-                100 => amount;
-            }
-            if(amount < 1)
-            {
-                0 => amount;
-            }
-            84 * (amount / 100) => pitchLfo.gain;
-        }
-
-        fun void stk1(float note)
-        {
-            ${stk1Code}
-        }
-
-        fun void stk2(float note)
-        {
-            ${stk2Code}
-        }
-
-        fun void cutoffMod(float amount)
-        {
-            if(amount > 100)
-            {
-                100 => amount;
-            }
-            if(amount < 1)
-            {
-                0 => amount;
-            }
-            500 * (amount / 100) => filterLfo.gain;
-        }
-
-        fun void noise(float amount)
-        {
-            if(amount > 100)
-            {
-                100 => amount;
-            }
-            if(amount < 1)
-            {
-                0 => amount;
-            }
-            1.0 * (amount / 100) => noiseSource.gain;
-        }
-
-        // fun void reverb(float amount)
-        // {
-        //     if(amount > 100)
-        //     {
-        //         100 => amount;
-        //     }
-        //     if(amount < 1)
-        //     {
-        //         0 => amount;
-        //     }
-        //     0.02 * (amount / 100) => rev.mix;
-        // }
-    }
-
-    SynthVoice voice ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
-
-    ${modulateDeclarationOsc1}
-    ${modulateCodeStringOsc1}
-
-    
-    ${delayDeclarationOsc1}
-    ${delayADeclarationOsc1}
-    ${delayLDeclarationOsc1}
-
-    ${delayCodeStringOsc1}
-    ${delayACodeStringOsc1}
-    ${delayLCodeStringOsc1}
-
-    ${spectacleCodeStringOsc1}
-    
-    ${osc1FxStringNeedsBlackhole.current}
-
-    ${finalOsc1Code}
-
-    ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
-    
-    ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice.cutoff;
-    ${moogGrandmotherEffects.current.rez.value} => voice.rez;
-    ${parseInt(moogGrandmotherEffects.current.env.value)} => voice.env;
-    ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice.ChooseOsc1;
-    ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice.ChooseOsc2;
-    ${moogGrandmotherEffects.current.detune.value} => voice.detune;
-    ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice.oscOffset;
-    ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice.pitchMod;
-    ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice.ChooseLfo;
-    0.5 => voice.filterLfo.gain;
-    ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
-    880 => voice.filterEnv;
-    ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice.noise;
-
-    0 => int count;
-
-
-
-
-
-    SndBuf buffers[4] => dac;
-    
-    // ${filesArray} @=> string filesArr[];
-    string files[4];
-
-
-    me.dir() + "DR-55Kick.wav" => files[0];
-    me.dir() + "DR-55Snare.wav" => files[1];
-    me.dir() + "DR-55Hat.wav" => files[2];
-    me.dir() + "DR-55Pop.wav" => files[3];
-
-    files[0] => buffers[0].read;
-    files[1] => buffers[1].read;
-    files[2] => buffers[2].read;
-    files[3] => buffers[3].read;
-
-    UniversalAnalyzer uA;
-    uA.declarationCode(buffers[3]);
-    files[3].find('.') || 0 => int handleDotWav;
-    files[3] => string fileName;
-    if (handleDotWav) {
-        fileName.replace(handleDotWav, "_");
-    } 
-    // spork ~ uA.getAnalysisForSource(buffers[3], fileName);
-
-    fun void SilenceAllBuffers()
-    {
-        buffers[0].samples() => buffers[0].pos;
-        buffers[1].samples() => buffers[1].pos;
-        buffers[2].samples() => buffers[2].pos;
-        buffers[3].samples() => buffers[3].pos;
-    }
-
-    bar => now;
-
-    fun void playWindow(WinFuncEnv @ win, dur attack, dur release) {
-        win.attackTime(attack);
-        win.releaseTime(release);
-        while (true) {
-            win.keyOn();
-            attack => now;
-            win.keyOff();
-            release => now;
-        }
-    }
-
-    fun void Drum(int select, dur duration)
-    {
-        if(select == 0)
-        {
-            0 => buffers[0].pos; 
-            0 => buffers[2].pos;
-        }
-        if(select == 1)
-        {
-            0 => buffers[2].pos;
-        }
-        if(select == 2)
-        {
-            0 => buffers[0].pos; 
-            0 => buffers[2].pos;
-            0 => buffers[1].pos;
-        }
-        if(select == 3)
-        {
-            0 => buffers[3].pos;
-        }
-        duration => now;
-        SilenceAllBuffers();
-        me.exit();
-    }
-
-    SilenceAllBuffers();
-
-
-
-    fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
-        
-        // for (0 => int i; i < notesToPlay.cap(); i++) {
-        //     if (notesToPlay.cap() > 0) {
-        //         getNotesArr + ", " + notesToPlay[i] => getNotesArr;
-        //     }
-        // }
-        
-        // <<< "NOTESDOWN ", 
-        //     notesToPlay.cap(), 
-        //     getNotesArr 
-        // >>>;
-        ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
-        ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
-        myEvent => now;
-        UniversalAnalyzer uA;
-        uA.declarationCode(voice);
-        // spork ~ uA.getAnalysisForSource(voice, "voice");
-        while (${chuckUpdateNeeded === false}) {
-            "" => string getNotesArr;
-            for (0 => int i; i < notesToPlay.cap(); i++) {
-                if (getNotesArr.length() > 0) {
-                    getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
-                } else {
-                    Std.itoa(notesToPlay[i]) => getNotesArr;
-                }
-            }
-            
-            <<< "NOTESDOWN ", 
-                notesToPlay.cap(), 
-                getNotesArr 
-            >>>;
-            count % (notesToPlay.size()) => int osc1Idx;
-            // <<< notesToPlay[osc1Idx] >>>;
-            for (0 => int i; i < notesToPlay.size(); i++) {
-                if (notesToPlay[i] != -1) {
-                    notesToPlay[i] => voice.keyOn;
-                }
-                duration / notesToPlay.size() => now;
-                // 1 => voice.keyOff;
-            }
-            // duration - (now % duration)  => now;
-            1 => voice.keyOff;
-        }
-        
-        
-    }
-
-    fun void PlaySTK(int notesToPlay[], dur duration){
-        // count % (notesToPlay.size()) => int stk1Idx;
-        while (true) {
-            count % (notesToPlay.size()) => int stk1Idx;
-            
-            for (0 => int i; i < notesToPlay.cap(); i++) {
-                // <<< notesToPlay[i] >>>;
-                if (notesToPlay[i] != -1) {
-                    notesToPlay[i] + 24 => voice.stk1;
-                }
-                duration / notesToPlay.size() => now;
-            }
-        }
-    }
-
-    
-    fun void PlaySamples(int samplesArrayPos, int notesToPlay[], dur whole) {
-        <<< "SHIT2! ", ${filesToProcess.current.length} >>>;
-        // while (${filesToProcess.current.length} > 0) { 
-        //     // spork ~ testGetAnalysis();
-
-        //     whole/8 => now;
-        // }
-    }
-
-    fun void PlaySamplePattern(Event myEvent, int samplesArrayPos, int notesToPlay[], dur duration) {                
-        // count % (notesToPlay.size()) => int sampler1Idx;
-
-        // <<< samplesArrayPos >>>;
-        myEvent => now;
-        while (true) {
-            count % (notesToPlay.size()) => int sampler1Idx;
-            for (0 => int i; i < notesToPlay.size(); i++) {
-                // <<< "NOTE!!! ", notesToPlay[i] >>>;
-                spork ~ Drum(notesToPlay[i], duration);
-                duration/notesToPlay.size() => now;
-            }   
-        }
-    }
-
-    [[1,3],[2,4]] @=> int notesArr[][];
-    [1] @=> int notes[];
-    [1,3,3,1] @=> int sample1Notes[];
-    [1,1,1,1] @=> int sample1TestNotes[];
-    [1, 4, 1, 3] @=> int sample2Notes[];
-    [1,4] @=> int sample3Notes[];
-    [1,-1,4,-1,5,-1] @=> int stkNotes[];
-
-    
-    Event myEvent;
-    
-    private class ChordProvider {
-        Osc sinT[10];
-        [0] @=> static int notes[];
-        fun void playNotes(int notes[]) {
-            <<< "Effin notes: ", notes.cap() >>>;
-        }
-        fun void releaseNotes (int note) {
-            if (notes.cap() > 1) {
-                notes.popFront();
-            }
-        }
-    }
-        
-    ChordProvider oCp;
-
-    // <<< count >>>; 
-    // spork ~ PlaySTK(stkNotes, whole);           
-    
-
-    // if (${filesToProcess.current && filesToProcess.current.length > 0}) {
-    //     <<< "SHIT! ", ${filesToProcess.current.length} >>>;
-    //     spork ~ PlaySamples(0, sample1TestNotes, whole);
-    // }
-
-
-    spork ~ PlaySamplePattern(myEvent, 0, sample1Notes, whole);
-    // spork ~ PlaySamplePattern(0, sample2Notes, whole);
-    
-
-
-    spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/4);
-    
-    // spork ~ playWindow(winfuncenv_o1, whole/2, whole/2);
-            
-    // spork ~ testGetAnalysis();
-    
-
-    while(${chuckUpdateNeeded === false}) {
-        
-        // wait for HID event
-        hid => now;
-
-        // get HID message
-        while( hid.recv( msg ) )
-        {
-            if( msg.isButtonDown() ) {
-                // print key (debugging)
-                <<< "[key]", msg.key, "(ascii)", msg.which >>>;
-                ${virtualKeyMapping(48, 1)}
-
-
-            } else if (msg.isButtonUp()) {
-                ${virtualKeyMapping(48, 0)}
-                //     for (0 => int n; n < oCp.notes.cap(); n++) {
-                //     if (oCp.notes[n] == ${48}){
-                //         <<< "REMOVING N!!! ", n >>>;
-                //         oCp.notes.popOut(n);
-                //     }
-                //     <<< "TAB UP1! ", ${48} >>>;
-                // }
-            }
-            else  {
-                <<< "IN HID ELSE!" >>>;
-            }
-        }
-
-        
-        myEvent.broadcast();
-        beat - (now % beat) => now;
-
-        
-        
-        <<< "NumShreds: ", Machine.numShreds() >>>;
-        count++;
-
-    }  
+            ((secLenBeat * 1000) * 2)::ms => dur whole;
+            (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
                 
+            // ${uploadedFilesToChuckString.current}
+            // ${uploadedFilesCodeString.current}
+            
+            
+            
+            private class UniversalAnalyzer {
+                FeatureCollector combo => blackhole;
+                FFT fft;
+                Flux flux;
+                RMS rms;
+                MFCC mfcc;
+                Centroid centroid;
+                RollOff rolloff;
+                Chroma chroma;
+                Kurtosis kurtosis;
+                DCT dct;
+                Flip flip;
+                ZeroX zerox;
+                SFM sfm;
+                "" => string mfccString;
+                "" => string chromaString; 
+                string the_sfm;
+                
+                private class TrackingFile
+                {
+                    static float the_freq;
+                    static float the_gain;
+                    
+                    static float the_kurtosis;
+                    static Event @ the_event;
+                }
+            
+                fun void declarationCode(UGen @ source) {
+                    source => fft;
+                    // a thing for collecting multiple features into one vector
+                    
+                    // add spectral feature: Centroid
+                    fft =^ centroid =^ combo;
+                    // add spectral feature: Flux
+                    fft =^ flux =^ combo;
+                    // add spectral feature: RMS
+                    fft =^ rms =^ combo;
+                    // add spectral feature: MFCC
+                    fft =^ mfcc =^ combo;
+                    fft =^ rolloff =^ combo;
+                    fft =^ chroma =^ combo;
+                    fft =^ kurtosis => blackhole;
+                    source => dct => blackhole;
+                    source => flip =^ zerox => blackhole;
+                
+                    fft =^ sfm => blackhole;
+                    //-----------------------------------------------------------------------------
+                    // setting analysis parameters -- also should match what was used during extration
+                    //-----------------------------------------------------------------------------
+                    // set flip size (N)
+            
+                    // output in [-1,1]
+                    // calculate sample rate
+                    second/samp => float srate;
+            
+                    // set number of coefficients in MFCC (how many we get out)
+                    // 13 is a commonly used value; using less here for printing
+                    20 => mfcc.numCoeffs;
+                    // set number of mel filters in MFCC
+                    10 => mfcc.numFilters;
+            
+                    // do one .upchuck() so FeatureCollector knows how many total dimension
+                    combo.upchuck();
+            
+                    // get number of total feature dimensions
+                    combo.fvals().size() => int NUM_DIMENSIONS;
+            
+                    // set FFT size
+                    4096 => fft.size;
+                    // set window type and size
+                    Windowing.hann(fft.size()) => fft.window;
+                    // our hop size (how often to perform analysis)
+                    (fft.size()/2)::samp => dur HOP;
+                    // how many frames to aggregate before averaging?
+                    // (this does not need to match extraction; might play with this number) ***
+                    3 => int NUM_FRAMES;
+                    // how much time to aggregate features for each file
+                    fft.size()::samp * NUM_FRAMES => dur EXTRACT_TIME;
+            
+                    // initialize separately (due to a bug)
+                    // new Event @=> TrackingFile.the_event;
+            
+                    // analysis
+                    source => PoleZero dcblock => FFT fftTrack => blackhole;
+            
+                    // set to block DC
+                    .99 => dcblock.blockZero;
+                }
+            
+                fun void upchuckRealTimeFeatures(
+                    FeatureCollector @ combo, 
+                    string mfccString, 
+                    MFCC @ mfcc, 
+                    string chromaString, 
+                    Chroma @ chroma, 
+                    Centroid @ centroid, 
+                    Flux @ flux, 
+                    RMS @ rms,
+                    RollOff @ rolloff,
+                    string sourceName
+                ) {
+                    combo.upchuck();
+                
+                    "" => mfccString;
+                    for (0 => int i; i < mfcc.fvals().cap(); i++) {
+                        if (i < mfcc.fvals().cap() - 1) {
+                            mfcc.fvals()[i] + ", "  +=> mfccString;
+                        } else {
+                            mfcc.fvals()[i] +=> mfccString;
+                        }
+                    }
+                
+                    "" => chromaString;
+                    for (0 => int i; i < chroma.fvals().cap() - 1; i++) {
+                        if (i < chroma.fvals().cap() - 2) {
+                            chroma.fvals()[i] + ", " +=> chromaString;
+                        } else {
+                            chroma.fvals()[i] +=> chromaString;
+                        }
+                    }
+                    
+                    if (count % 16 == 0) {
+                        <<< "FEATURES VALS: ", 
+                        centroid.fval(0) + " " 
+                        + flux.fval(0) + " " 
+                        + rms.fval(0) + " " 
+                        + mfccString + " " 
+                        + rolloff.fval(0) + " " 
+                        + chromaString + " "
+                        + sourceName >>>;
+                    }
+                }
+            
+                fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
+                    // window
+                    Windowing.hamming( win.size() ) => win.window;
+                    float finalObj[2];
+                
+                    0 => int count;
+                    // go for it
+                    while( true )
+                    {
+                        // take fft
+                        win.upchuck() @=> UAnaBlob blob;
+                        winKurtosis.upchuck();
+                        winSfm.upchuck();
+                        
+                        // find peak
+                        0 => float max; float where;
+                        for( int i; i < blob.fvals().size()/8; i++ )
+                        {
+                            // compare
+                            if( blob.fvals()[i] > max )
+                            {
+                                // save
+                                blob.fvals()[i] => max;
+                                i => where;
+                            }
+                        }
+                        
+                        // set freq
+                        (where / win.size() * (second / samp)) => this.TrackingFile.the_freq;
+                        // set gain
+                        (max / .5) => this.TrackingFile.the_gain;
+                        // clamp
+                        if( this.TrackingFile.the_gain > 1 )
+                            1 => this.TrackingFile.the_gain;
+                        // // fire!
+                        // this.TrackingFile.the_event.broadcast();
+                
+                        // hop
+                        // (win.size()/4)::samp => now;
+            
+                        ((win.size()/4) * (second /samp)) * 1000 => float toMilliseconds;
+                        toMilliseconds :: ms => now;
+            
+                        "" => string sfmString;
+                        
+                        for( int i; i < winSfm.fvals().size(); i++ )
+                        {
+                            Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
+                            sfmString + " " + tmp => sfmString;
+                            sfmString => this.the_sfm;
+                        }
+                
+                        winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
+                        // fire!
+                        this.TrackingFile.the_event.broadcast();
+                        // if (count % this.fft.size() == 0) {
+                        //     <<< "FREQ: ", winKurtosis.fval(0), sfmString >>>;
+                        // }
+                        count++;
+                    }
+                }
+                
+                fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
+                    // set parameters
+                    8 => winDct.size;
+                
+                    int div;
+                
+                    4096 => winFlip.size;
+                
+                    0 => int countCrossLog;
+                
+                    // control loop
+                    while( true )
+                    {
+                        // set srate
+                        second / samp => float srate;
+                        (winFlip.size() / srate) * 1000 => float toMilliseconds;
+                
+                        // winDct.size()/2 %=> div;
+                        winZerox.upchuck() @=> UAnaBlob blob;
+                
+                        winDct.size()/2 %=> div;
+                        winDct.upchuck();
+                
+                        // advance time
+                        (toMilliseconds)::ms => now;
+                        if (countCrossLog % this.fft.size() == 0) {
+                            <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
+                        }
+                        countCrossLog++;
+                    }
+                }
+            
+                fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
+                    // <<< "SOURCE IS: ", source, mfccString >>>;
+                    
+                    while (${!chuckUpdateNeeded}) {
+                        spork ~ this.upchuckRealTimeFeatures(
+                            this.combo, 
+                            this.mfccString, 
+                            this.mfcc, 
+                            this.chromaString, 
+                            this.chroma, 
+                            this.centroid, 
+                            this.flux, 
+                            this.rms,
+                            this.rolloff,
+                            sourceVarName
+                        );
+                        spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
+                        spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
+                        
+                        <<< "TIME: ", now >>>;
+                        <<< "FREQ: ", 
+                            this.TrackingFile.the_freq, 
+                            this.TrackingFile.the_gain, 
+                            this.the_sfm, 
+                            this.TrackingFile.the_kurtosis,
+                            sourceVarName 
+                        >>>;
+                        
+                        // beat => now;
+                        whole / 4 => now; 
+                    }
+                }
+            }
+            
+            
+            
+            
+            
+            class SynthVoice extends Chugraph
+                {
+                    // SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter => outlet;
+                    ${osc1ChuckToOutlet}
+            
+                    // saw1 ${osc1FXStringToChuck.current} => dac;
+                    ${osc2ChuckToOutlet}
+            
+                    // declarations for complex effects
+                    ${WPKorg35DeclarationOsc1}          
+                    ${ellipticCodeStringOsc1}
+                    ${winFuncCodeStringOsc1}
+                    ${powerADSRCodeStringOsc1}
+                    ${expEnvCodeStringOsc1}
+                    ${wpDiodeLadderCodeStringOsc1}
+                    ${wpKorg35CodeStringOsc1}
+                    ${expDelayCodeStringOsc1}
+            
+                    Noise noiseSource => lpf;
+                    0 => noiseSource.gain;
+                    
+                    ${connectorStk1DirectToDac}
+                                    
+                    TriOsc tri1, tri2;
+                    SqrOsc sqr1, sqr2;
+            
+                    SinOsc SinLfo;
+                    SawOsc SawLfo;
+                    SqrOsc SqrLfo;
+                    SinLfo => Gain pitchLfo => blackhole;
+                    SinLfo => Gain filterLfo => blackhole;
+            
+                    fun void SetLfoFreq(float frequency)
+                    {
+                        frequency => SinLfo.freq => SawLfo.freq => SqrLfo.freq;
+                    }
+            
+                    6.0 => SetLfoFreq;
+                    0.5 => filterLfo.gain;
+                    0.5 => pitchLfo.gain;
+            
+                    2 => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
+            
+                    pitchLfo => saw1;
+                    pitchLfo => saw2;
+                    pitchLfo => tri1;
+                    pitchLfo => tri2;
+                    pitchLfo => sqr1;
+                    pitchLfo => sqr2;
+            
+                    ${parseInt(moogGrandmotherEffects.current.limiterAttack.value)}::ms => limiter.attackTime;
+                    ${parseFloat(moogGrandmotherEffects.current.limiterThreshold.value).toFixed(4)} => limiter.thresh;
+            
+                    0.06 => saw1.gain => saw2.gain;
+                    0.28 => tri1.gain => tri2.gain;
+                    0.12 => sqr1.gain => sqr2.gain;
+            
+                    10.0 => float filterCutoff;
+                    filterCutoff => lpf.freq;
+            
+            
+                    ${parseInt(moogGrandmotherEffects.current.adsrAttack.value)}::ms => adsr.attackTime;
+                    ${parseInt(moogGrandmotherEffects.current.adsrDecay.value)}::ms => adsr.decayTime;
+                    ${moogGrandmotherEffects.current.adsrSustain.value} => float susLevel; 
+                    susLevel => adsr.sustainLevel;
+                    ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
+                    ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
+                    880 => float filterEnv;
+            
+                    1 => float osc2Detune;
+                    0 => int oscOffset;
+            
+                    fun void SetOsc1Freq(float frequency)
+                    {
+                        frequency => tri1.freq => sqr1.freq => saw1.freq; 
+                    }
+            
+                    fun void SetOsc2Freq(float frequency)
+                    {
+                        frequency => tri2.freq => sqr2.freq => saw2.freq; 
+                    }
+            
+                    fun void keyOn(int noteNumber)
+                    {
+                        Std.mtof(offset + noteNumber) => SetOsc1Freq;
+                        Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
+                        1 => adsr.keyOn;
+                        spork ~ filterEnvelope();
+                    }
+            
+                    fun void ChooseOsc1(int oscType)
+                    {
+                        if(oscType == 0)
+                        {
+                            tri1 =< lpf;
+                            saw1 =< lpf;
+                            sqr1 =< lpf;
+                        }
+                        if(oscType == 1)
+                        {
+                            tri1 => lpf;
+                            saw1 =< lpf;
+                            sqr1 =< lpf;
+                        }
+                        if(oscType == 2)
+                        {
+                            tri1 =< lpf;
+                            saw1 => lpf;
+                            sqr1 =< lpf;
+                        }
+                        if(oscType == 3)
+                        {
+                            tri1 =< lpf;
+                            saw1 =< lpf;
+                            sqr1 => lpf;
+                        }
+                    }
+            
+                    fun void ChooseOsc2(int oscType)
+                    {
+                        if(oscType == 0)
+                        {
+                            tri2 =< lpf;
+                            saw2 =< lpf;
+                            sqr2 =< lpf;
+                        }
+                        if(oscType == 1)
+                        {
+                            tri2 => lpf;
+                            saw2 =< lpf;
+                            sqr2 =< lpf;
+                        }
+                        if(oscType == 2)
+                        {
+                            tri2 =< lpf;
+                            saw2 => lpf;
+                            sqr2 =< lpf;
+                        }
+                        if(oscType == 3)
+                        {
+                            tri2 =< lpf;
+                            saw2 =< lpf;
+                            sqr2 => lpf;
+                        }
+                        if(oscType == 4)
+                        {
+                            tri2 =< lpf;
+                            saw2 =< lpf;
+                            sqr2 =< lpf;
+                        }
+                    }
+            
+                    fun void ChooseLfo(int oscType)
+                    {
+                        if(oscType == 0)
+                        {
+                            SinLfo =< filterLfo;
+                            SinLfo =< pitchLfo;
+                            SawLfo =< filterLfo;
+                            SawLfo =< pitchLfo;
+                            SqrLfo =< filterLfo;
+                            SqrLfo =< pitchLfo;
+                        }
+                        if(oscType == 1)
+                        {
+                            SinLfo => filterLfo;
+                            SinLfo => pitchLfo;
+                            SawLfo =< filterLfo;
+                            SawLfo =< pitchLfo;
+                            SqrLfo =< filterLfo;
+                            SqrLfo =< pitchLfo;
+                        }
+                        if(oscType == 2)
+                        {
+                            SinLfo =< filterLfo;
+                            SinLfo =< pitchLfo;
+                            SawLfo => filterLfo;
+                            SawLfo => pitchLfo;
+                            SqrLfo =< filterLfo;
+                            SqrLfo =< pitchLfo;
+                        }
+                        if(oscType == 3)
+                        {
+                            SinLfo =< filterLfo;
+                            SinLfo =< pitchLfo;
+                            SawLfo =< filterLfo;
+                            SawLfo =< pitchLfo;
+                            SqrLfo => filterLfo;
+                            SqrLfo => pitchLfo;
+                        }
+                    }
+            
+                    fun void keyOff(int noteNumber)
+                    {
+                        noteNumber => adsr.keyOff;
+                    }
+            
+                    fun void filterEnvelope()
+                    {
+                        filterCutoff => float startFreq;
+                        while((adsr.state() != 0 && adsr.value() == 0) == false)
+                        {
+                            (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
+                            adsr.releaseTime() => now;  
+                        }
+                    }
+            
+                    fun void cutoff(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        (amount / 100) * 5000 => filterCutoff;
+                        10::ms => now;
+                    }
+            
+                    fun void rez(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        20 * (amount / 100) + 0.3 => lpf.Q;
+                    }
+            
+                    fun void env(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        5000 * (amount / 100) => filterEnv;
+                    }
+            
+                    fun void detune(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        5 * (amount / 100) => osc2Detune;
+                    }
+            
+                    fun void pitchMod(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 1)
+                        {
+                            0 => amount;
+                        }
+                        84 * (amount / 100) => pitchLfo.gain;
+                    }
+            
+                    fun void stk1(float note)
+                    {
+                        ${stk1Code}
+                    }
+                        
+                    fun void cutoffMod(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 1)
+                        {
+                            0 => amount;
+                        }
+                        500 * (amount / 100) => filterLfo.gain;
+                    }
+            
+                    fun void noise(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 1)
+                        {
+                            0 => amount;
+                        }
+                        1.0 * (amount / 100) => noiseSource.gain;
+                    }
+            
+                    // fun void reverb(float amount)
+                    // {
+                    //     if(amount > 100)
+                    //     {
+                    //         100 => amount;
+                    //     }
+                    //     if(amount < 1)
+                    //     {
+                    //         0 => amount;
+                    //     }
+                    //     0.02 * (amount / 100) => rev.mix;
+                    // }
+                }
+            
+                SynthVoice voice ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
+            
+                ${modulateDeclarationOsc1}
+                ${modulateCodeStringOsc1}
+            
+                
+                ${delayDeclarationOsc1}
+                ${delayADeclarationOsc1}
+                ${delayLDeclarationOsc1}
+            
+                ${delayCodeStringOsc1}
+                ${delayACodeStringOsc1}
+                ${delayLCodeStringOsc1}
+            
+                ${spectacleCodeStringOsc1}
+                
+                ${osc1FxStringNeedsBlackhole.current}
+            
+                ${finalOsc1Code}
+            
+                ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
+                
+                ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice.cutoff;
+                ${moogGrandmotherEffects.current.rez.value} => voice.rez;
+                ${parseInt(moogGrandmotherEffects.current.env.value)} => voice.env;
+                ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice.ChooseOsc1;
+                ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice.ChooseOsc2;
+                ${moogGrandmotherEffects.current.detune.value} => voice.detune;
+                ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice.oscOffset;
+                ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice.pitchMod;
+                ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice.ChooseLfo;
+                0.5 => voice.filterLfo.gain;
+                ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
+                880 => voice.filterEnv;
+                ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice.noise;
+            
+                0 => int count;
+            
+            
+            
+                SndBuf buffers[4] => dac;
+                SndBuf testing => dac;
+                
+                // ${filesArray} @=> string filesArr[];
+                string files[4];
+            
+        
+                me.dir() + "DR-55Kick.wav" => files[0];
+                me.dir() + "DR-55Snare.wav" => files[1];
+                me.dir() + "DR-55Hat.wav" => files[2];
+                me.dir() + "Conga.wav" => files[3];
 
-                          
-            `);
+                files[0] => buffers[0].read;
+                files[1] => buffers[1].read;
+                files[2] => buffers[2].read;
+                files[3] => buffers[3].read;
+
+
+            
+                // UniversalAnalyzer uA;
+                // "${analysisSourceRadioValue}" => string analysisSource;
+                // <<< "ANAL SOURCE 2 ", analysisSource >>>;
+                // if (analysisSource == "Sampler") { 
+                //     uA.declarationCode(testing);
+                //     files[3].find('.') || 0 => int handleDotWav;
+                //     files[3] => string fileName;
+                //     if (handleDotWav) {
+                //         fileName.replace(handleDotWav, "_");
+                //     } 
+                //     // spork ~ uA.getAnalysisForSource(testing, fileName);
+            
+                // }
+
+                fun void SilenceAllBuffers()
+                {
+                    buffers[0].samples() => buffers[0].pos;
+                    buffers[1].samples() => buffers[1].pos;
+                    buffers[2].samples() => buffers[2].pos;
+                    buffers[3].samples() => buffers[3].pos;
+
+                }
+            
+                bar => now;
+            
+                fun void playWindow(WinFuncEnv @ win, dur attack, dur release) {
+                    win.attackTime(attack);
+                    win.releaseTime(release);
+                    while (true) {
+                        win.keyOn();
+                        attack => now;
+                        win.keyOff();
+                        release => now;
+                    }
+                }
+            
+                fun void Drum(int select, dur duration)
+                {
+              
+                    if(select == 0)
+                    {
+                        buffers[0].samples() => buffers[0].pos; 
+                        0.5 => buffers[0].gain;
+                    }
+                    if(select == 1)
+                    {
+                        0 => buffers[1].pos;
+                        0.5 => buffers[0].gain;
+                    }
+                    if(select == 2)
+                    {
+                        // 0 => buffers[2].pos;
+
+                        "${filesToProcess.current.length > 0 ? filesToProcess.current[0].name : "Conga.wav"}" => string filename;
+                        filename => testing.read;
+        
+                        0.5 => testing.gain; 
+                        // testing.samples()/3 => testing.pos;
+                        0 => testing.pos;
+                        Math.random2f(0.98,1.0) => testing.rate;
+                        
+                    }
+                    if(select == 3)
+                    {
+                        0 => buffers[3].pos;
+                    }
+
+         
+
+                    duration => now;
+                    SilenceAllBuffers();
+                    me.exit();
+                    
+                   
+                }
+            
+                SilenceAllBuffers();
+            
+            
+            
+                fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
+                    
+ 
+                    ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
+                    ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
+                    myEvent => now;
+                    UniversalAnalyzer uA;
+                    // "${analysisSourceRadioValue}" => string analysisSource;
+                    // if (analysisSource == "Osc") { 
+                        // uA.declarationCode(voice);
+                        // spork ~ uA.getAnalysisForSource(voice, "voice");
+                    // }
+                    
+                    
+            
+                    while (${chuckUpdateNeeded === false}) {
+                        "" => string getNotesArr;
+            
+                        for (0 => int i; i < notesToPlay.cap(); i++) {
+                            if (getNotesArr.length() > 0) {
+                                getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
+                            } else {
+                                Std.itoa(notesToPlay[i]) => getNotesArr;
+                            }
+                        }
+                        
+                        <<< "NOTESDOWN ", 
+                            notesToPlay.cap(), 
+                            getNotesArr 
+                        >>>;
+                        count % (notesToPlay.size()) => int osc1Idx;
+                        // <<< notesToPlay[osc1Idx] >>>;
+                        if (notesToPlay.cap() > 1) {
+                            for (1 => int i; i < notesToPlay.size(); i++) {
+                                if (i == notesToPlay.cap() - 1) {
+                                    notesToPlay[i] => voice.keyOn;
+                                }
+                                duration => now;
+                                1 => voice.keyOff;
+                            }
+                            // duration - (now % duration)  => now;
+                            1 => voice.keyOff;
+                        }
+                        else {
+                            duration - (now % duration)  => now;
+                        }
+                    }
+                    me.exit();
+                    
+                }
+            
+                fun void PlaySTK(int notesToPlay[], dur duration){
+                    // count % (notesToPlay.size()) => int stk1Idx;
+                    while (true) {
+                        count % (notesToPlay.size()) => int stk1Idx;
+                        
+                        for (0 => int i; i < notesToPlay.cap(); i++) {
+                            // <<< notesToPlay[i] >>>;
+                            if (notesToPlay[i] != -1 && i == notesToPlay.cap()-1) {
+                                notesToPlay[i] => voice.stk1;
+                            }
+                            duration / notesToPlay.size() => now;
+                        }
+                    }
+                }
+            
+                
+                fun void PlaySamples(int samplesArrayPos, int notesToPlay[], dur whole) {
+                    <<< "SHIT2! ", ${filesToProcess.current.length} >>>;
+                    
+                }
+            
+                fun void PlaySamplePattern(
+                    Event mySampleEvent, 
+                    int samplesArrayPos[], 
+                    int notesToPlay[], 
+                    dur duration
+                ) {                
+                    // count % (notesToPlay.size()) => int sampler1Idx;
+            
+                    <<< "samples notes/pattern to play ", notesToPlay.cap() >>>; 
+                    <<< "samples arr pos", samplesArrayPos.cap() >>>;
+                    mySampleEvent => now;
+                    0 => int samplerCount;
+                    while (${!chuckUpdateNeeded}) {
+                        count % (notesToPlay.size()) => int sampler1Idx;
+                        // for (0 => int i; i < notesToPlay.size(); i++) {
+                        for (0 => int i; i < ${numeratorSignature * denominatorSignature}; i++) {
+                            // <<< "NOTE!!! ", notesToPlay[i] >>>;
+                            if (i % ${numeratorSignature} == 0) {
+                                spork ~ Drum(2, duration);
+                            } 
+                            if (${metronomeOn} == 1 && samplerCount % 4 == 0) {
+                                spork ~ Drum(3, duration);
+                            }
+                            if (samplerCount % 4 == 2) {
+                                spork ~ Drum(1, duration);
+                            }                                                      
+                            // if (samplerCount % 2 == 0) {
+                            //     spork ~ Drum(notesToPlay[2], duration);
+                            // }
+
+                      
+                            
+                        }   
+                        duration => now;
+                        <<< "NUM_COUNT ", samplerCount >>>;
+                        samplerCount++;
+                    }
+                }
+            
+                [[1,3],[2,4]] @=> int notesArr[][];
+                int notes[];
+                [3] @=> int sample1Notes[];
+                [1,1,1,1] @=> int sample1TestNotes[];
+                [1, 4, 1, 3] @=> int sample2Notes[];
+                [1,4] @=> int sample3Notes[];
+                [1,2] @=> int stkNotes[];
+            
+                
+                Event myEvent;
+                Event mySampleEvent;
+                
+                private class TimeProvider {
+                    0 => static int globalCount;
+                }   
+
+                TimeProvider oTp;
+
+                private class ChordProvider {
+                
+                    [0] @=> static int notes[];
+                    fun void playNotes(int notes[]) {
+                        <<< "Effin notes: ", notes.cap() >>>;
+                    }
+                    fun void releaseNotes (int note) {
+                        if (oCp.notes.cap() > 1) {
+                            for (0 => int i; i < oCp.notes.cap(); i++) {
+                                if (i < oCp.notes.cap()-2) {
+                                    oCp.notes.popFront();
+                                }
+                             
+                            }
+                        }
+                    }
+                }
+                    
+                ChordProvider oCp;
+                
+                spork ~ PlaySTK(oCp.notes, whole);           
+                
+                spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/4);
+                
+                spork ~ PlaySamplePattern(mySampleEvent, [0], [0,1,2,3], whole/4);
+     
+           
+                while(${chuckUpdateNeeded === false}) {
+                    
+                    // wait for HID event
+                    hid => now;
+            
+                    // get HID message
+                    while( hid.recv( msg ) )
+                    {
+                        if( msg.isButtonDown() ) {
+                            <<< "[key]", msg.key, "(ascii)", msg.which >>>;
+                            ${virtualKeyMapping(48, 1)}
+            
+            
+                        } else if (msg.isButtonUp()) {
+                            ${virtualKeyMapping(48, 0)}
+                        }
+                        else  {
+                            <<< "IN HID ELSE!" >>>;
+                        }
+                    }
+            
+                    
+                    mySampleEvent.broadcast();
+                    myEvent.broadcast();
+                    whole / 4 - (now % whole/4) => now;
+
+                    if (count < ${numeratorSignature * denominatorSignature} ) {
+                        count++;
+                        oTp.globalCount++;
+                    } else {
+                        0 => count;
+                        0 => oTp.globalCount;
+                    }
+
+
+                    
+                    <<< "NUM_COUNT: ", oTp.globalCount >>>;
+                    <<< "NumShreds: ", Machine.numShreds() >>>;
+                    // count++;
+            
+                }                            
+            `;
+
+
+
+
+
+
+
+
+
+
+
+        if (chuckUpdateNeeded === false) {    
+      
+            aChuck.runCode(chuckCode);
 
         } else {
-            aChuck.runCode(`Machine.removeAllShreds();`);
-            aChuck.runCode(`Machine.resetShredID();`);
-            const shredCount = await aChuck.runCode(`Machine.numShreds();`);
-            console.log('Shred Count in ELSE: ', await shredCount);
-            // setChuckUpdateNeeded(false);
 
+            const shredCount = await aChuck.runCode(`Machine.numShreds();`);
+            
+            console.log('Shred Count in ELSE: ', await shredCount);
+            aChuck.runCode('Machine.removeAllShreds();')
+            aChuck.runCode(`Machine.resetShredID();`);
+            // aChuck.runCode(chuckCode);
+            // runChuck();
+            // Array.from(new Array(shredCount)).forEach((s: any, i: number) => {
+            //     const shredActive: any = aChuck.isShredActive(i);
+            //     if (i < shredCount && shredActive) {
+            //         aChuck.runCode(`${i} => Machine.remove;`);
+            //     }
+            // });
+            
+
+
+
+
+
+
+
+
+            
         }
     }
 
@@ -2476,15 +2565,15 @@ class SynthVoice extends Chugraph
         aChuck.chuckPrint = (message) => {
             console.log('WHAT IS MSG? ', message);
             setLastChuckMessage(message);
-            if (aChuck) {
-                (async () => {
-                    shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
-                    console.log('shred count!!!: ', shredCount);
-                    if (shredCount.current > 4) {
+            // if (aChuck) {
+            //     (async () => {
+            //         shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
+            //         console.log('shred count!!!: ', shredCount);
+            //         if (shredCount.current > 4) {
 
-                    }
-                })
-            }
+            //         }
+            //     })
+            // }
         }
 
         console.log("running chuck now... ", chuckUpdateNeeded);
@@ -2500,8 +2589,10 @@ class SynthVoice extends Chugraph
 
         uploadedFilesArrsGenericCode && Object.keys(uploadedFilesArrsGenericCode).length > 0 && Object.keys(uploadedFilesArrsGenericCode).forEach((buf: any, idx: number) => {
             if (idx !== Object.keys(uploadedFilesArrsGenericCode).length - 1) {
+                console.log("FILES CHUCK TO DAC 1: ", filesChuckToDac);
                 filesChuckToDac.current = filesToProcess.current.length > 0 ? filesChuckToDac.current + `SndBuf buffer_${buf} => ` : filesChuckToDac.current;
             } else {
+                console.log("FILES CHUCK TO DAC 2: ", filesChuckToDac);
                 filesChuckToDac.current = filesToProcess.current.length > 0 ? filesChuckToDac.current + `SndBuf buffer_${buf} => dac;` : filesChuckToDac.current;
             }
         });
@@ -2540,13 +2631,13 @@ class SynthVoice extends Chugraph
             ${bodyIR1}
 
             Std.mtof(note + 32) => ${getStk1String[2]}.freq;
-
+            0.1 => ${getStk1String[2]}.gain;
             1 => ${getStk1String[2]}.noteOn;
 
      
         ` : '';
 
-        console.log("HOLY SHIT WHAT IS STK1 THEN OSC1 CODE? ", STK_1_Code, STK_1_Code, OSC_1_Code);
+        //console.log("HOLY SHIT WHAT IS STK1 THEN OSC1 CODE? ", STK_1_Code, STK_1_Code, OSC_1_Code);
         setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
 
@@ -2578,6 +2669,11 @@ class SynthVoice extends Chugraph
         }
         `);
     }
+
+    const handleClickUploadedFiles = (e: any) => {
+        console.log("WHY IS THIS NOT WORKING?: ", e.target.innerText);
+      }
+    
 
     // This mic button should be able to save a file and pass it into ChucK as file and/or stream
     const chuckMicButton = function () {
@@ -2661,15 +2757,9 @@ class SynthVoice extends Chugraph
 
         // moogGrandmotherEffects.current[`${obj.name}`].value = value;
         if (currentScreen.current === 'stk') {
-            alert("WE SHOULDN'T BE HERE 1... ");
             console.log('SLIDER OBJ NAME: ', obj.name);
             console.log('STK PRESETS FOR OBJ ', stkFX.current.presets[`${obj.name}`]);
             stkFX.current.presets[`${obj.name}`].value = value;
-        } else if (currentScreen.current === 'stk2') {
-            alert("WE SHOULDN'T BE HERE 2... ");
-            console.log('SLIDER OBJ NAME IN STK2: ', obj.name);
-            console.log('STK2 PRESETS FOR OBJ ', stkFX2.current.presets[`${obj.name}`]);
-            stkFX2.current.presets[`${obj.name}`].value = value;
         } else if (currentScreen.current === 'synth') {
             console.log('SLIDER OBJ NAME: ', obj.name);
             console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
@@ -2734,14 +2824,15 @@ class SynthVoice extends Chugraph
         }
     }
 
-    const updateFileUploads = () => {
-        console.log('%cDO WE GET CONTACT HERE ON FILE UPLOOAD? ', 'color: cyan');
+    const updateFileUploads = (e: any) => {
+
+        console.log('%cDO WE GET CONTACT HERE ON FILE UPLOOAD? ', 'color: cyan ', e);
         // const test = new Promise((resolve, reject) => {
-        //     resolve(axios.post(`${baseUrl}/api/upload_files`, {
+        //     resolve(axios.post(`${getBaseUrl}/api/upload_files`, {
         //         // headers: {
         //         //     'Content-Type': 'application/json',
         //         // },
-        //       }));
+        //     }));
         // });
         // console.log('123411! ', test);
     };
@@ -2753,7 +2844,7 @@ class SynthVoice extends Chugraph
         const theFile = e ? e : lastFileUpload;
         // if (!uploadedFileName) return;
         console.log('%cwhat is the uploaded file? ', 'color: beige;', theFile);
-        chuckHook.loadFile(`./src/tmp/${theFile}`);
+        // chuckHook.loadFile(`./src/tmp/${theFile}`);
         // chuckHook.loadFile("/readData.ck")
         // if (!tActive) { 
         //     chuckHook.runFileWithArgs("/readData.ck", `${bpm}:${numeratorSignature}:${denominatorSignature}:/${theFile}`);
@@ -2776,11 +2867,26 @@ class SynthVoice extends Chugraph
     }, [numNotesDown, theNotesDown]);
 
     useEffect(() => {
-        // console.log("Last ChucK msg: ", lastChuckMessage);
-        // if (lastChuckMessage && lastChuckMessage.includes('rerunChuck')) {
-        //     setChuckUpdateNeeded(true);
-        //     // runChuck
-        // }
+        if (Math.floor(currentNumerCount/(numeratorSignature)) === 0) return;
+        setCurrentDenomCount(Math.floor(currentNumerCount/(numeratorSignature)) % denominatorSignature);
+        setCurrentPatternCount(Math.floor(currentNumerCount/(numeratorSignature * denominatorSignature))); //
+    }, [currentNumerCount]);
+
+    useEffect(() => {
+
+
+        if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT")) {
+            const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
+
+            const removeComma: string = parseString[0].replace(/,\s*$/, "");
+            const countToNum: number = +removeComma && +removeComma;
+            if (Math.ceil(countToNum/numeratorSignature) !== 0) {
+                setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+                setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+            }
+            // setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+            // setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+        };
 
         if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
@@ -2890,13 +2996,22 @@ class SynthVoice extends Chugraph
     }, [lastChuckMessage]);
 
 
-    const handleShowFiles = (e: any) => {
-        setShowFiles(!showFiles);
+    const handleShowBPM = (e: any) => {
+        setShowBPM(!showBPM);
     };
 
     const closeAnalysisPopup = () => {
         setIsAnalysisPopupOpen(!isAnalysisPopupOpen);
     };
+
+    useEffect(() => {
+        console.log("CHUCK UPDATE NEEDED USE EFECT ", chuckUpdateNeeded);
+        if (chuckUpdateNeeded) {
+            setChuckUpdateNeeded(false);
+            runChuck();
+            
+        }
+    }, [chuckUpdateNeeded])
 
     return (
         <ThemeProvider theme={theme}>
@@ -2907,7 +3022,7 @@ class SynthVoice extends Chugraph
 
                         <Box sx={{ height: "80%", bottom: "10%", top: "10%", left: "10%", width: "80%", right: "10%", position: "absolute", pointerEvents: "none" }}>
                             {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
-                            {timeNow && isAnalysisPopupOpen &&
+                            {isAnalysisPopupOpen &&
                                 <LineChartWrapper
                                     centroid={centroid}
                                     flux={flux}
@@ -2964,7 +3079,9 @@ class SynthVoice extends Chugraph
                         />
                         <FileManager
                             onSubmit={onSubmit}
-
+                            handleSubmit={handleSubmit}
+                            register={register}
+                            watch={watch}
                         />
                         <BabylonLayer
                             game={babylonGame.current}
@@ -2990,17 +3107,38 @@ class SynthVoice extends Chugraph
                                 width: '100%',
                                 paddingTop: '12px',
                                 paddingBottom: '12px',
-                                background: 'transparent',
+                                background: 'rbga(0,0,0,.91)',
                                 display: 'flex',
+                                zIndex: 9999,
                             }}
                         >
-                            {!chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px' }} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon />}>In</Button>)}
-                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px' }} variant="contained" id="runChuckButton" onClick={runChuck} endIcon={<PlayCircleFilledIcon />}>Pl</Button>)}
-                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={stopChuckInstance} endIcon={<StopCircleIcon />}>St</Button>)}
-                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(232, 82,82, 1)', backgroundColor: 'rgba(232, 82,82, 1)' }} sx={{ backgroundColor: 'rgba(232, 82,82, 1)', background: 'rgba(232, 82,82, 1)', minWidth: '72px', marginLeft: '8px', maxHeight: '40px' }} variant="contained" id="micStartRecordButton" onClick={chuckMicButton}>Rc</Button>)}
-                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rgba(228,225,209,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={closeAnalysisPopup} endIcon={<AutoGraphIcon />}>An</Button>)}
+                            {!chuckHook && (<Button style={{ 
+                                background: 'rbga(0,0,0,.91)', 
+                                minWidth: '104px', 
+                                color: 'rgba(0,0,0,1)' }} 
+                                sx={{ 
+                                    minWidth: '76px', 
+                                    paddingLeft: '24px',
+                                    maxHeight: '40px',
+                                    color: 'rgba(0,0,0,.98)',
+                                    backgroundColor: 'rgba(158, 210, 162, 1)', 
+                                }} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon />}>In</Button>)}
+                            {chuckHook && (<Button style={{ background: 'rbga(0,0,0,.91)', minWidth: '104px', color: 'rgba(0,0,0,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px' }} variant="contained" id="runChuckButton" onClick={runChuck} endIcon={<PlayCircleFilledIcon />}>Pl</Button>)}
+                            {chuckHook && (<Button style={{ background: 'rbga(0,0,0,.91)', minWidth: '104px', color: 'rgba(0,0,0,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={stopChuckInstance} endIcon={<StopCircleIcon />}>St</Button>)}
+                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rbga(0,0,0,.91)' }} sx={{ backgroundColor: 'rgba(232, 82, 82, 1)', background: 'rgba(232, 82,82, 1)', minWidth: '104px', marginLeft: '8px', maxHeight: '40px' }} variant="contained" id="micStartRecordButton" onClick={chuckMicButton} endIcon={<KeyboardVoiceIcon />}>Rc</Button>)}
+                            {chuckHook && (<Button style={{ minWidth: '104px', color: 'rgba(0,0,0,1)', background: 'rbga(0,0,0,.91)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={closeAnalysisPopup} endIcon={<AutoGraphIcon />}>An</Button>)}
 
-                            <Button sx={{ color: 'rgba(228,225,209,1)', position: 'absolute', borderColor: 'rgba(228,225,209,1)', left: '0px', minWidth: '72px', marginLeft: '12px', top: '232px', maxHeight: '40px' }} variant="outlined" onClick={handleShowFiles} endIcon={<Inventory2Icon />}>FP</Button>
+                            <Button sx={{                     
+                                color: 'rgba(0,0,0,.98)',
+                                backgroundColor: 'rgba(147, 206, 214, 1)', 
+                                background: 'rbga(0,0,0,.91)', 
+                                position: 'absolute', 
+                                borderColor: 'rgba(228,225,209,1)', 
+                                left: '0px', 
+                                minWidth: '104px', 
+                                marginLeft: '12px', 
+                                top: '232px', 
+                                maxHeight: '40px' }} variant="outlined" onClick={handleShowBPM} endIcon={<AccessTimeIcon />}>BPM</Button>
                             <ControlPopup
                                 bpm={bpm}
                                 handleChangeBPM={handleChangeBPM}
@@ -3017,8 +3155,8 @@ class SynthVoice extends Chugraph
                                 handleChangeScale={handleChangeScale}
                                 handleShowFX={handleShowFX}
                                 showFX={showFX}
-                                showFiles={showFiles}
-                                handleShowFiles={handleShowFiles}
+                                showBPM={showBPM}
+                                handleShowBPM={handleShowBPM}
                                 // uploadedFilesCodeString={uploadedFilesCodeString.current} 
                                 // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
                                 filesToProcess={filesToProcess.current}
@@ -3027,6 +3165,48 @@ class SynthVoice extends Chugraph
                         </Box>
                     </Box>
                 )}
+                <Box sx={{ position: "absolute", color: "white", top: "12px", right: "12px"}}>
+                    {
+                        showBPM && (
+                    <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
+                        <BPMModule 
+                            bpm={bpm} 
+                            handleChangeBPM={handleChangeBPM}
+                            beatsNumerator={beatsNumerator}
+                            beatsDenominator={beatsDenominator}
+                            handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                            handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                        />
+                    </Box>)
+                    }
+                    <Box sx={{position: "relative", display: "flex", flexDirection: "column", textAlign: "center"}}>
+                        <Box sx={{position: "relative", display: "flex", flexDirection: "row", textAlign: "center", justifyContent: "center"}}>
+                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                {currentNumerCountColToDisplay} 
+                            </Typography>
+                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                {currentDenomCount}
+                            </Typography>
+                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                {currentPatternCount}
+                            </Typography>
+                        </Box>
+                    </Box>
+                    <Box sx={{
+                        backgroundColor: 'rgba(30,34,26,0.96)', 
+                        width:'100%', 
+                        display:'flex', 
+                        flexDirection: 'row',
+                        minHeight:'100%',
+                        // justifyContent: 'center',
+                        // alignItems: 'left'
+                    }} key={'handleClickUploadedFilesWrapper'}>
+                    
+                    {filesToProcess.current.map((file: any) => {
+                        return <Button sx={{left: '24px'}} key={`handleClickUploadedFilesBtn_${file.name}`} onClick={handleClickUploadedFiles}>{file.name}</Button>
+                    })}
+                  </Box>
+                </Box>
             </Box>
         </ThemeProvider>
     )

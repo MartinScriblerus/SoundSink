@@ -24,6 +24,10 @@ const serverFilesToPreload = [
       virtualFilename: "knob.wav"
     },
     {
+      serverFilename: "/Conga.wav",
+      virtualFilename: "Conga.wav"
+    },
+    {
       serverFilename: "/DR-55Hat.wav",
       virtualFilename: "DR-55Hat.wav"
     },

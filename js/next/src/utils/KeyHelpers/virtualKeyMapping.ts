@@ -12,7 +12,7 @@ export const virtualKeyMapping = (rootNote: number, msgDownOrUp: number) => {
             ${0} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
             <<< "TAB DOWN! ", ${0} >>>;
-            oCp.notes << ${0};
+            // oCp.notes << ${0};
             oCp.notes => oCp.playNotes;
         }
     }
@@ -22,7 +22,7 @@ export const virtualKeyMapping = (rootNote: number, msgDownOrUp: number) => {
             ${1} => oCp.releaseNotes;
         } else if (msgDownOrUp == 1) {
             <<< "TAB DOWN! ", ${1} >>>;
-            oCp.notes << ${1};
+            // oCp.notes << ${1};
             oCp.notes => oCp.playNotes;
         }
     }

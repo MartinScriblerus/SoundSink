@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { Unstable_Popup as BasePopup } from '@mui/base/Unstable_Popup';
-import BPMModule from './BPMModule';
+// import BPMModule from './BPMModule';
 import Button from '@mui/material/Button';
 import CalendarViewMonthIcon from '@mui/icons-material/CalendarViewMonth';
 import { Heatmap } from '@/utils/VizHelpers/Heatmap';
@@ -31,8 +31,8 @@ interface ControlProps {
     handleChangeChord: (event: SelectChangeEvent) => void;
     handleShowFX: (msg?: any) => void;
     showFX: boolean;
-    showFiles: boolean;
-    handleShowFiles: (e: any) => void;
+    showBPM: boolean;
+    handleShowBPM: (e: any) => void;
     filesToProcess: string[];
 }
 
@@ -53,15 +53,15 @@ export default function ControlPopup(props: ControlProps) {
     handleChangeChord,
     handleShowFX,
     showFX,
-    showFiles,
-    handleShowFiles,
+    showBPM,
+    handleShowBPM,
     filesToProcess,
   } = props;
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
-  const handleClickUploadedFiles = (e: any) => {
-    console.log("WHY IS THIS NOT WORKING?: ", e.target);
-  }
+  // const handleClickUploadedFiles = (e: any) => {
+  //   console.log("WHY IS THIS NOT WORKING?: ", e.target.innerText);
+  // }
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchor(anchor ? null : event.currentTarget);
@@ -75,8 +75,8 @@ export default function ControlPopup(props: ControlProps) {
   }, [showFX]);
 
   useEffect(() => {
-    console.log('showFiles is ', showFiles);
-  }, [showFiles])
+    console.log('showBPM is ', showBPM);
+  }, [showBPM])
 
   const open = Boolean(anchor);
   const id = open ? 'simple-popup' : undefined;
@@ -85,10 +85,11 @@ export default function ControlPopup(props: ControlProps) {
     <Box sx={{height: '100%', width: '100%', bottom: '60px'}}>
       <Button 
         sx={{
-          color: 'rgba(228,225,209,1)', 
           borderColor: 'rgba(228,225,209,1)', 
           position: 'absolute', 
-          minWidth: '48px', 
+          minWidth: '104px',
+          color: 'rgba(0,0,0,.98)',
+          backgroundColor: 'rgba(158, 210, 162, 1)',
           left: '12px', 
           top: '100px'
         }} 
@@ -97,39 +98,14 @@ export default function ControlPopup(props: ControlProps) {
         onClick={handleClick} 
         endIcon={<CalendarViewMonthIcon />}
       >
-        PT
+        Pat
       </Button>
 
       <BasePopup style={{display: "flex", transform: 'translate(0px,0px)', flexDirection: "column", left: '94px', right: '94px', top: '56px', position: 'absolute'}} width={window.innerWidth}  id={id} open={open} anchor={anchor}>
         <Box>
 
           <Box sx={{display: "flex", flexDirection: "row", width: "100%"}}>
-            <>
-              <BPMModule 
-                  bpm={bpm} 
-                  handleChangeBPM={handleChangeBPM}
-                  beatsNumerator={beatsNumerator}
-                  beatsDenominator={beatsDenominator}
-                  handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                  handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-              />
-                {showFiles === true && filesToProcess.length > 0
-                ? 
-                  <Box sx={{
-                    backgroundColor: 'rgba(30,34,26,0.96)', 
-                    width:'100%', 
-                    display:'flex', 
-                    flexDirection: 'row',
-                    minHeight:'100%',
-                    // justifyContent: 'center',
-                    // alignItems: 'left'
-                  }} key={'handleClickUploadedFilesWrapper'}>
-                    
-                    {filesToProcess.map((file: any) => {
-                      return <Button sx={{left: '24px'}} key={`handleClickUploadedFilesBtn_${file.name}`} onClick={handleClickUploadedFiles}>{file.name}</Button>
-                    })}
-                  </Box>
-                :
+            <>    
                   <Box 
                     sx={{
                       backgroundColor: 'rgba(30,34,26,0.96)', 
@@ -150,7 +126,7 @@ export default function ControlPopup(props: ControlProps) {
                         handleChangeChord={handleChangeChord}
                     />
                   </Box>
-                }
+                {/* } */}
                 {filesToProcess.length > 0 && <Button sx={{
                   color: 'rgba(228,225,209,1)', 
                   borderColor: 'rgba(228,225,209,1)', 
@@ -161,7 +137,7 @@ export default function ControlPopup(props: ControlProps) {
                 }} 
                 aria-describedby={id} 
                 variant="outlined" 
-                onClick={handleShowFiles} 
+                onClick={handleShowBPM} 
                 // startIcon={<Inventory2Icon />}
               >
                 <Inventory2Icon />
