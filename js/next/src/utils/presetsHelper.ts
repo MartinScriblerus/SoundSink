@@ -81,6 +81,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableSaxofony,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'clarinet') {
         theStk1Fx = {
@@ -89,6 +90,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableClarinet,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'stifkrp') {
         theStk1Fx = {
@@ -97,6 +99,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableStifKarp,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'sitar') {
         theStk1Fx = {
@@ -105,6 +108,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableSitar,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'moog') {
         theStk1Fx = {
@@ -113,6 +117,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableMoog,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'frenchhorn') {
         theStk1Fx = {
@@ -121,6 +126,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableFrencHrn,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'rhodey') {
         theStk1Fx = {
@@ -129,6 +135,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableRhodey,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'mandolin') {
         theStk1Fx = {
@@ -137,6 +144,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableMandolin,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'bandedWg') {
         theStk1Fx = {
@@ -145,6 +153,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableBandedWg,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'blowbotl') {
         theStk1Fx = {
@@ -153,6 +162,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableBlowBotl,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'blowhole') {
         theStk1Fx = {
@@ -161,6 +171,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableBlowHole,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'bowed') {
         theStk1Fx = {
@@ -169,6 +180,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableBowed,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'brass') {
         theStk1Fx = {
@@ -177,6 +189,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableBrass,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'flute') {
         theStk1Fx = {
@@ -185,6 +198,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableFlute,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'modalBar') {
         theStk1Fx = {
@@ -193,6 +207,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableModalBar,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'shakers') {
         theStk1Fx = {
@@ -201,6 +216,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableShakers,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'voiceForm') {
         theStk1Fx = {
@@ -209,6 +225,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableVoiceForm,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'beeThree') {
         theStk1Fx = {
@@ -217,6 +234,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableBeeThree,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'fmVoices') {
         theStk1Fx = {
@@ -225,6 +243,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableFMVoices,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'krstlChr') {
         theStk1Fx = {
@@ -233,6 +252,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableKrstlChr,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'percFlute') {
         theStk1Fx = {
@@ -241,6 +261,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariablePercFlut,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'tubeBell') {
         theStk1Fx = {
@@ -249,6 +270,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableTubeBell,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     } else if (stkVal === 'wurley') {
         theStk1Fx = {
@@ -257,6 +279,7 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableWurley,
             fxType: 'stk',
             visible: true,
+            checked: true
         };
     }
     else {

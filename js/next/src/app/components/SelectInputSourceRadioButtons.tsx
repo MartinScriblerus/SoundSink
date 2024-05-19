@@ -18,7 +18,7 @@ interface Props {
     currentScreen: string;
     playUploadedFile: (name: string) => void;
     lastFileUpload: string;
-    updateFileUploads: (e: any) => void;
+    // updateFileUploads: (e: any) => void;
 }
 
 const SelectInputSourceRadioButtons = (props: Props) => {
@@ -43,42 +43,21 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                 color: 'rgba(147, 206, 214, 1)',
                 height: '100%',
             }}>
-
-            <Box sx={{borderBottom: 'solid 1px rgba(147, 206, 214, 1)'}} className={'fx-popup-left-row'}>
                 <FormLabel 
                     sx={{
                         fontSize:'28px',
                         fontWeight:'300',
-                        color: 'rgba(147, 206, 214, 1) !important',
-                        borderBottom: 'solid 1px rgba(147, 206, 214, 1)'
-                    }} 
-                    id="stk-controlled-dropdown-label"
-                >
-                    STK Manager
-                </FormLabel>
-            
-                {<FixedOptionsDropdown 
-                    updateStkKnobs={
-                        (e: STKOption[]) => updateStkKnobs(e)
-                    } 
-                    stkValues={stkValues} 
-                    setStkValues={setStkValues} 
-                />}
-            </Box>
-            
-            {/* /////// FX to INPUT */}
-            <Box sx={{borderBottom: 'solid 1px rgba(147, 206, 214, 1)'}} className={'fx-popup-left-row'}>
-                <FormLabel 
-                    sx={{
-                        fontSize:'28px',
-                        fontWeight:'300',
+                        width: '100%',
+                        textAlign: 'center',
                         color: 'rgba(147, 206, 214, 1) !important',
                     }} 
                     id="demo-controlled-radio-buttons-group"
                 >
-                    FX to Input
+                    FX Input
                 </FormLabel>
-            
+
+            {/* /////// FX to INPUT */}
+            <Box sx={{borderTop: 'solid 1px rgba(147, 206, 214, 1)'}} className={'fx-popup-left-row'}>           
                 <RadioGroup
                     aria-labelledby="demo-controlled-radio-buttons-group"
                     name="controlled-radio-buttons-group"

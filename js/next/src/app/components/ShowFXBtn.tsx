@@ -13,11 +13,19 @@ type Props = {
 const ShowFXView = ({handleShowFX}: Props) => {
     return (
         <Stack direction="row" spacing={2}>
-            <Button sx={{
-                minWidth: '104px', 
-                color: 'rgba(0,0,0,.98)',
-                backgroundColor: 'rgba(147, 206, 214, 1)',
-                left: '12px'}} onClick={handleShowFX} variant="outlined" endIcon={<InputIcon />}>
+            <Button 
+                sx={{
+                    minWidth: '104px', 
+                    color: 'rgba(0,0,0,.98)',
+                    backgroundColor: 'rgba(147, 206, 214, 1)',
+                    left: '12px',
+                    '&:hover': {
+                        color: '#f5f5f5'
+                    }
+                }} 
+                onClick={handleShowFX} 
+                variant="outlined" 
+                endIcon={<InputIcon />}>
                 {/* Show FX */} FX
             </Button>
         </Stack>

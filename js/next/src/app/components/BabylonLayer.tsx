@@ -20,8 +20,20 @@ function BabylonScene(props: {
     chuckUpdateNeeded: boolean; 
     handleTurnKnob: () => void;
     runChuck: () => void;
+    showFX: any;
 }) {
-    const {game, handleUpdateSliderVal, fxKnobsCount, needsUpdate, handleResetNeedsUpdate, effects, visibleFXKnobs, chuckUpdateNeeded, handleTurnKnob, runChuck} = props;
+    const {game, 
+        handleUpdateSliderVal, 
+        fxKnobsCount, 
+        needsUpdate, 
+        handleResetNeedsUpdate, 
+        effects, 
+        visibleFXKnobs, 
+        chuckUpdateNeeded, 
+        handleTurnKnob, 
+        runChuck,
+        showFX
+    } = props;
 
     const theme = useTheme();
 
@@ -217,7 +229,7 @@ function BabylonScene(props: {
                                 // This is the effects knob: use this to handle "amount" based values (eg. 0.0–1.0 / 1–100)
                                 BABYLON.SceneLoader.ImportMesh("", "/", "knob3.glb", game.scene, function (newMeshes: any) {
                                     newMeshes[0].position.y = 6.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3.2);
-                                    newMeshes[0].position.x = 7.8 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.2);
+                                    newMeshes[0].position.x = 6.9 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.2);
                                     newMeshes[0].position.z = zPos;
 
 
@@ -309,10 +321,10 @@ function BabylonScene(props: {
 
     return (
     <ThemeProvider theme={theme}>
-        <div style={{position: 'absolute', left: '0', bottom: '0', zIndex: '6', width: '4rem', height: '4rem'}}>
+        {/* <div style={{position: 'absolute', left: '0', bottom: '0', zIndex: '6', width: '4rem', height: '4rem'}}>
             <button id="one" onClick={handleDebugLayer}> Babylon DevTools </button>
-        </div>
-        <canvas style={{background: 'transparent', width:'100vw', height:'100vh', overflow: 'hidden'}} id={`babylonCanvas`} ref={elem => game.canvas = elem}></canvas>
+        </div> */}
+        <canvas style={{display: showFX ? "visible":"none",background: 'transparent', width:'100vw', height:'100vh', overflow: 'hidden'}} id={`babylonCanvas`} ref={elem => game.canvas = elem}></canvas>
     </ThemeProvider>)
 }
 

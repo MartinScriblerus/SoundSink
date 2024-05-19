@@ -207,7 +207,7 @@ export const fxGroupOptions: Array<FixedSimpleLabel> = [
     ],
   },
   {
-    label: "Samples", 
+    label: "Sampler", 
     value: 8,
     effects: [
       {

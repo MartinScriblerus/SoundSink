@@ -19,8 +19,24 @@ const GroupedButtons = () => {
 
     return (
     <Box className="increment_decrement_signals">
-        <Button sx={{color: 'rgba(228,225,209,1)', borderColor: 'rgba(147,206,214, 1)'}}  onClick={handleIncrement}>+</Button>
-        <Button sx={{color: 'rgba(228,225,209,1)', borderColor: 'rgba(147,206,214, 1)'}}  onClick={handleDecrement}>-</Button>
+        <Button 
+            sx={{
+                color: 'rgba(228,225,209,1)', 
+                borderColor: 'rgba(147,206,214, 1)',
+                '&:hover': {
+                    color: '#f5f5f5'
+                  }
+            }}  
+            onClick={handleIncrement}>+</Button>
+        <Button 
+            sx={{
+                color: 'rgba(228,225,209,1)', 
+                borderColor: 'rgba(147,206,214, 1)',
+                '&:hover': {
+                    color: '#f5f5f5'
+                  }
+            }}  
+            onClick={handleDecrement}>-</Button>
     </Box>
     );
 

@@ -34,7 +34,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
   const d3FxChainSvg = useRef<any>(0);
   const parentContainer = useRef<any>(0) as any;
 
-  const allNodeNames = data.nodes.map((node: any) => {
+  const allNodeNames = Object.values(data.nodes).map((node: any) => {
     node.key =`${node.id}_nodeNames`;
     return node.id
   });
@@ -43,7 +43,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
       handleUpdateFXChain(fxRadioValue)
   }, [fxRadioValue]);
 
-  const allNodeGroups = [...new Set(data.nodes.map((node) => node.group))];
+  const allNodeGroups = [...new Set(Object.values(data.nodes).map((node) => node.group))];
 
   const yScale = d3.scalePoint().range([0, boundsHeight]).domain(allNodeNames);
   const xScale = d3.scalePoint().range([0, boundsWidth]).domain(allNodeNames);
@@ -76,14 +76,16 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
   };
 
   // console.log('DATA NODES LENGTH! ', data.nodes);
-  const allNodes = data.nodes.map((node: any, idx: number) => {
+  const allNodes = Object.values(data.nodes).map((node: any, idx: number) => {
 
     return (
       // <>
         <g style={{
+       
           marginTop: '48px', 
           height: `${height - 48}px`,
-          width: `${2 * boundsWidth}px`,
+          width: `${2 * width}px`,
+          background: "blue",
           // borderRight: '1px solid rgba(147, 206, 214, 1)'
         }} 
           key={node.id}>
@@ -177,7 +179,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
   //
   // Compute the links
   //
-  const allLinks = data.links.map((link, i) => {
+  const allLinks = Object.values(data.links).map((link, i) => {
     // console.log('%cLINK!!!! ', 'color: #EE4B2B', link);
     const yStart = yScale(link.source);
     const xStart = 0;
@@ -187,7 +189,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
     if (typeof yStart === "undefined" || typeof yEnd === "undefined") {
       return;
     }
-
+    console.log('wtf i???? ', i);
     return (
       <path
         key={i}
@@ -199,9 +201,9 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
     );
   });
 
-  const svgFXChain = <svg key={'fxSvg'} ref={d3FxChainSvg} width={width} height={height - 48}>
+  const svgFXChain = <svg key={`fxSvg${Math.random() * 1000}`} ref={d3FxChainSvg} width={width} height={height - 48}>
     <g 
-      key={'fxG'}
+      key={`fxG${Math.random() * 1000}`}
       width={boundsWidth}
       height={boundsHeight - 48}
       transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
@@ -218,7 +220,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
   }, [fxRadioValue])  
 
   return (
-    <Box ref={parentContainer}>
+    <Box sx={{position: "relative", height:"100%", background: "rgba(147, 206, 214, 1)"}} ref={parentContainer}>
       {/* {svgFXChain} */}
       <D3DraggableTree />
     </Box>

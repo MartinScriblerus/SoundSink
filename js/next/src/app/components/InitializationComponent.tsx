@@ -37,6 +37,9 @@ import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import { init } from 'node_modules/next/dist/compiled/@vercel/og/satori';
 import { virtualKeyMapping } from '@/utils/KeyHelpers/virtualKeyMapping';
 import BPMModule from './BPMModule';
+import STKManagerDropdown from './STKManagerDropdown';
+import DeblurIcon from '@mui/icons-material/Deblur';
+import CheckedFXRadioBtns from './CheckedFXRadioBtns';
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
@@ -119,6 +122,104 @@ export default function InitializationComponent() {
     const osc1EllipticOn = useRef<any>(false);
     const osc1SpectacleOn = useRef<any>(false);
 
+    const samplerWinEnvOn = useRef<any>(false);
+    const samplerPowerADSROn = useRef<any>(false);
+    const samplerExpEnvOn = useRef<any>(false);
+    const samplerWPDiodeLadderOn = useRef<any>(false);
+    const samplerWPKorg35On = useRef<any>(false);
+    const samplerModulateOn = useRef<any>(false);
+    const samplerDelayOn = useRef<any>(false);
+    const samplerDelayAOn = useRef<any>(false);
+    const samplerDelayLOn = useRef<any>(false);
+    const samplerExpDelayOn = useRef<any>(false);
+    const samplerEllipticOn = useRef<any>(false);
+    const samplerSpectacleOn = useRef<any>(false);
+
+    const reusableWinEnvOn = useRef<any>({
+        Osc1: false,
+        Osc2: false,
+        STK: false,
+        Sampler: false,
+        AudioIn: false,
+    });
+    const reusablePowerADSROn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableExpEnvOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableWPDiodeLadderOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableWPKorg35On = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableModulateOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableDelayOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableDelayAOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableDelayLOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableExpDelayOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableEllipticOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+    const reusableSpectacleOn = useRef<any>({
+        Osc1:false,
+        Osc2:false,
+        STK:false,
+        Sampler:false,
+        AudioIn:false,
+    });
+
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
         Osc1: [],
@@ -137,8 +238,8 @@ export default function InitializationComponent() {
     const [beatsDenominator, setBeatsDenominator] = useState(4);
     const { register, handleSubmit, watch } = useForm();
     const [datas, setDatas] = useState<any>([]);
-    const [numNotesDown, setNumNotesDown] = useState<number>(0);
-    const [theNotesDown, setTheNotesDown] = useState<Array<any>>([]);
+    // const [numNotesDown, setNumNotesDown] = useState<number>(0);
+    // const [theNotesDown, setTheNotesDown] = useState<Array<any>>([]);
 
     const [stkValues, setStkValues] = useState<STKOption[]>([]);
     const [octave, setOctave] = useState('4');
@@ -148,6 +249,7 @@ export default function InitializationComponent() {
     const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
     const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState('Sampler');
     const [showBPM, setShowBPM] = useState<boolean>(false);
+    const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
 
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
@@ -157,7 +259,21 @@ export default function InitializationComponent() {
 
     const [stk1Code, setStk1Code] = useState<string>('');
     const [osc1Code, setOsc1Code] = useState<string>('');
+    const [reusableCode, setReusableCode] = useState<any>({
+            Osc1: "",
+            Osc2: "",
+            STK: "",
+            Sampler: "",
+            AudioIn: "",
+    });
     const [osc1CodeToChuck, setOsc1CodeToChuck] = useState<string>('');
+    const [reusableCodeToChuck, setReusableCodeToChuck] = useState<any>({
+            Osc1: "",
+            Osc2: "",
+            STK: "",
+            Sampler: "",
+            AudioIn: "",
+    });
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
     const [tActive, setTActive] = useState<any>(false);
     const [numeratorSignature, setNumeratorSignature] = useState(4);
@@ -191,7 +307,32 @@ export default function InitializationComponent() {
     const [sampleRate, setSampleRate] = useState<any>(0);
     const [amplitude, setAmplitude] = useState<any>({source: "", value: ""});
     const [timeNow, setTimeNow] = useState<any>(0);
+    const [hold, setHold] = useState<any>(0);
+    const [toggleSTKvsFX, setToggleSTKvsFX] = useState<any>(true);
+    const [checkedEffectToShow, setCheckedEffectToShow] = useState<any>(true);
 
+    interface AllSoundSourcesObject {
+        master: Array<any>;
+        oscs: Array<any>;
+        stks: Array<any>;
+        samples: Array<any>;
+        linesIn: Array<any>;
+    }
+
+    const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(
+        {
+            // master: ["whole/4"],
+            // oscs: ["whole/4"],
+            // stks: ["whole/4"],
+            // samples: ["whole/4"],
+            // linesIn: ["whole/4"]
+            master: [4],
+            oscs: [4],
+            stks: [4],
+            samples: [4],
+            linesIn: [4]
+        }
+    )
 
     const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
 
@@ -203,7 +344,7 @@ export default function InitializationComponent() {
 
     const selectedEffect = useRef<string>('')
     const currentScreen = useRef<string>('synth');
-    const [test, setTest] = useState<boolean>(true);
+    const [checkedFXUpdating, setCheckedFXUpdating] = useState<boolean>(true);
     const [showFX, setShowFX] = useState<boolean>(false);
     const stkValsRef = useRef<STKOption[]>([]);
     const stkFX = useRef<any>([]);
@@ -213,7 +354,6 @@ export default function InitializationComponent() {
     const [useStkDirect, setUseDtkDirect] = useState<boolean>(true);
 
     const filesToProcess = useRef<Array<any>>([]);
-    const uploadedFiles = useRef<Array<any>>([]);
 
     const fxValsRef = useRef<FXOption[]>([]);
     const fxFX = useRef<any>([]);
@@ -222,13 +362,33 @@ export default function InitializationComponent() {
     const fx1Group = useRef<string | undefined>('');
     const checkedFXList = useRef<FXOption[]>([]);
 
+
     const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
 
     const getFile = useForm();
 
     const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    const finalReusableFXStringToChuck = useRef<Array<any>>([]);
     const osc1FxStringNeedsBlackhole = useRef<string>('');
+    const samplerFxStringNeedsBlackhole = useRef<string>('');
+    
+    const reusableFxStringNeedsBlackhole = useRef<any>({
+        Osc1: '',
+        Osc2: '',
+        STK: '',
+        Sampler: '',
+        AudioIn: ''
+    });
+    const reusableFxStringToChuckNeedsBlackhole = useRef<any>({
+        Osc1: [],
+        Osc2: [],
+        STK: [],
+        Sampler: [],
+        AudioIn: []
+    });
     const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
     const winFuncEnvFinalHelper = useRef<any>({
         osc1: {
             attackTime: 16,
@@ -237,7 +397,11 @@ export default function InitializationComponent() {
         },
         osc2: '',
         stk1: '',
-        sampler: '',
+        sampler: {
+            attackTime: 16,
+            releaseTime: 16,
+            envSetting: 0,
+        },
         audioIn: '',
     });
     const powerADSRFinalHelper = useRef<any>({
@@ -252,7 +416,15 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            attackTime: 1000,
+            attackCurve: 0.5,
+            decayTime: 1000,
+            decayCurve: 1.25,
+            sustainLevel: 0.5,
+            releaseTime: 1000,
+            releaseCurve: 1.5,
+        },
         audioIn: {},
     });
     const expEnvFinalHelper = useRef<any>({
@@ -263,7 +435,11 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            T60: 3,
+            radius: 0.995,
+            value: 0,
+        },
         audioIn: {},
     });
     const wpDiodeLadderFinalHelper = useRef<any>({
@@ -276,7 +452,13 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            cutoff: 1,
+            resonance: 17,
+            nlp_type: 1,
+            nonlinear: 0,
+            saturation: 0.1
+        },
         audioIn: {},
     });
     const wpKorg35FinalHelper = useRef<any>({
@@ -288,7 +470,12 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            cutoff: 1,
+            resonance: 2,
+            nonlinear: 0,
+            saturation: 0.1
+        },
         audioIn: {},
     });
     const modulateFinalHelper = useRef<any>({
@@ -299,7 +486,11 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            vibratoRate: 6.0,
+            vibratoGain: 0.2,
+            randomGain: 0.2,
+        },
         audioIn: {},
     });
     const delayFinalHelper = useRef<any>({
@@ -313,7 +504,14 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            delay: 500,
+            syncDelay: 1,
+            lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
+        },
         audioIn: {},
     });
     const delayAFinalHelper = useRef<any>({
@@ -327,7 +525,14 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            delay: 500,
+            syncDelay: 1,
+            lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
+        },
         audioIn: {},
     });
     const delayLFinalHelper = useRef<any>({
@@ -341,7 +546,14 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            delay: 500,
+            syncDelay: 1,
+            lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
+        },
         audioIn: {},
     });
     const expDelayFinalHelper = useRef<any>({
@@ -355,7 +567,14 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            ampcurve: 2.0,
+            durcurve: 2.0,
+            delay: 0,
+            mix: 0.5,
+            reps: 4,
+            gain: 1.0,
+        },
         audioIn: {},
     });
     const ellipticFinalHelper = useRef<any>({
@@ -369,7 +588,14 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            filterLow: 500,
+            filterMid: 600,
+            filterHigh: 650,
+            atten: 80.0,
+            ripple: 10.0,
+            filterMode: 0
+        },
         audioIn: {},
     });
     const spectacleFinalHelper = useRef<any>({
@@ -387,13 +613,24 @@ export default function InitializationComponent() {
         },
         osc2: {},
         stk1: {},
-        sampler: {},
+        sampler: {
+            bands: 5,
+            delay: 3,
+            eq: 0,
+            feedback: 0,
+            fftlen: 3,
+            freqMax: 4100,
+            freqMin: 100,
+            mix: 0.8,
+            overlap: 3,
+            table: 2,
+        },
         audioIn: {},
     });
 
-    const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
 
-    console.log("HEYOOOOOOOOO ", filesToProcess.current);
+
+    // console.log("HEYOOOOOOOOO ", filesToProcess.current);
 
 
 
@@ -421,11 +658,25 @@ export default function InitializationComponent() {
     const osc2FXString = useRef<any>('');
     const audioInFXString = useRef<any>('');
     const samplerFXString = useRef<any>('');
+    const reusableFXString = useRef<any>({
+        Osc1: "",
+        Osc2: "",
+        STK: "",
+        Sampler: "",
+        AudioIn: "",
+    })
 
     const osc1FXStringToChuck = useRef<any>('');
     const osc2FXStringToChuck = useRef<any>('');
     const audioInFXStringToChuck = useRef<any>('');
     const samplerFXStringToChuck = useRef<any>('');
+    const reusableFXStringToChuck = useRef<any>({
+        Osc1: "",
+        Osc2: "",
+        STK: "",
+        Sampler: "",
+        AudioIn: "",
+    });
 
     const finalOsc1Obj = useRef<any>({});
 
@@ -516,12 +767,12 @@ export default function InitializationComponent() {
         if (availableFX.length > 0 && availableFX[0].var) {
             currentScreen.current = `fx_${availableFX[0].var}`;
             // currentFX.current = fxFX.current;
-
+            console.log("make curr screen visible: ", currentScreen.current);
             currentFX.current = [];
             visibleFXKnobs.current = availableFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i: any) => [i.label, i])));
-            selectedEffect.current = currentFX.current[0].var;
+            selectedEffect.current = currentFX.current[currentFX.current.length - 1].var;
             // this is where we decide which fx get pushed down into the fxChain
-
+            console.log("make curr effect visible: ", selectedEffect.current); 
             availableFX.map((fx: any) => {
                 if (fx.var && allFxPersistent.current[`${fxRadioValue}`].map((f: any) => f.var).indexOf(fx.var) === -1) {
                     allFxPersistent.current[`${fxRadioValue}`].push(fx);
@@ -552,7 +803,7 @@ export default function InitializationComponent() {
 
 
         console.log('VIZ FX CURR AT END OF TEST: ', visibleFXKnobs.current);
-    }, [test]);
+    }, [checkedFXUpdating, currentScreen]);
 
     useEffect(() => {
         currentFX.current = [];
@@ -567,6 +818,7 @@ export default function InitializationComponent() {
     },[analysisSourceRadioValue]);
 
     useEffect(() => {
+        console.log("WE ARE BREAKING HERE WHEN ADDING MULTIPLE EFFECTS OR WHEN SWITCHING BETWEEN EFFECTS SOURCES!!!!!");
         console.log("NEW CHECKED FX LIST!!! ", checkedEffectsListHook);
     },[checkedEffectsListHook]);
 
@@ -590,6 +842,7 @@ export default function InitializationComponent() {
     };
 
     const handleFXGroupChange = (e: any) => {
+        console.log("E TARGET VALUE IN GROUP FX CHANGE ", e.target.value);
         if (fxValsRef.current.indexOf(e.target.value) === -1 && fxValsRef.current.indexOf(e.target.value) === -1) {
             fxValsRef.current.push(e.target.value);
             checkedFXList.current.push(e.target.value);
@@ -601,6 +854,15 @@ export default function InitializationComponent() {
             checkedFXList.current.slice(indexChecked, 1); 
         }
     };
+    
+    const handleUpdateHold = () => {
+        if (hold === 0) {
+            setHold(1);
+        } else {
+            setHold(0);
+        }
+        setChuckUpdateNeeded(true);
+    }
 
     const updateStkKnobs = (knobVals: STKOption[]) => {
         stkValsRef.current = [];
@@ -622,8 +884,9 @@ export default function InitializationComponent() {
         if (stkValsRef.current && stkValsRef.current.length === 1) stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
 
         let knobsCountTemp;
-        if (currentScreen.current === 'stk') {
-            knobsCountTemp = stkFX.current.presets;
+        console.log("what is current screen in update knobs? ", currentScreen.current);
+        if (currentScreen.current === 'stk' && !checkedFXUpdating) {
+            knobsCountTemp = stkFX.current.presets.length;
         } else {
             knobsCountTemp = currentFX.current.length
         }
@@ -632,6 +895,10 @@ export default function InitializationComponent() {
         updateCurrentFXScreen();
     }
 
+
+    useEffect(() => {
+        console.log("SHOW FX CHANGES: ", showFX)
+    }, [showFX])
 
     // console.log('preloadedFiles on PAGE: ', preloadedFiles);
     const babylonGame = useRef<BabylonGame | any>();
@@ -669,66 +936,89 @@ export default function InitializationComponent() {
             return;
         }
 
-        if (currentScreen.current === 'fx_' && stkValsRef.current.length > 0) {
+        if (currentScreen.current === 'stk' && stkValsRef.current.length > 0) {
             stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
             currentFX.current = stkFX.current;
             currentScreen.current = 'stk';
             visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
-        } else if (currentScreen.current === '') {
+        } else if (currentScreen.current === 'fx_' ) {
+            // currentFX.current = stkFX.current;
+            console.log("YOYOYOYOYOY ",  Object.values(allFxPersistent.current[fxRadioValue][allFxPersistent.current[fxRadioValue].length - 1].presets));
+            currentScreen.current = 'fx_';
+            visibleFXKnobs.current = Object.values(allFxPersistent.current[fxRadioValue][allFxPersistent.current[fxRadioValue].length - 1].presets).map((i: any) => [i.label, i]);
+        } 
+        else if (currentScreen.current === '') {
             // currentScreen.current = 'stk';
+            console.log("AM I SANE? ", doReturnToSynth.current);
             if (doReturnToSynth.current === true) {
+                doReturnToSynth.current = false;
                 // currentFX.current = moogGrandmotherEffects.current;
                 // visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-                currentScreen.current = 'synth';
+                // currentScreen.current = 'synth';
                 currentFX.current = [];
                 currentFX.current = moogGrandmotherEffects.current;
-                fxFX.current = [];
+                fxFX.current = currentFX.current;
                 visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-                doReturnToSynth.current = false;
+                // doReturnToSynth.current = false;
                 setFxKnobsCount(visibleFXKnobs.current.length);
-                doReturnToSynth.current = false;
+                // doReturnToSynth.current = false;
+            } else {
+                doReturnToSynth.current = true;
+                currentFX.current = [];
+                currentFX.current = allFxPersistent.current[fxRadioValue];
+                fxFX.current = currentFX.current;
+                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
+                // doReturnToSynth.current = false;
+                setFxKnobsCount(visibleFXKnobs.current.length);
             }
         }
 
         // tk
         if (currentScreen.current === 'synth') {
-            try {
-                stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
-                currentFX.current = stkFX.current;
-                currentScreen.current = 'stk';
-                visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
-            } catch (e: any) { }
+            // try {
+                console.log("IN CURR SCREEN SYNT: ", stkValsRef.current, allFxPersistent.current[fxRadioValue]);
+                if (stkValsRef.current && stkValsRef.current.length > 0 && (!checkedFXUpdating || toggleSTKvsFX)) {
+                    stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
+                    currentFX.current = stkFX.current;
+                    console.log("whut are curr fx? ", currentFX.current);
+                    currentScreen.current = 'stk';
+                    visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
+                } else {
+                    // currentScreen.current = 'stk';
+                    currentFX.current = fxFX.current = allFxPersistent.current[fxRadioValue];
+                    currentScreen.current = "fx_";
+                    console.log("PRESETS FOR SYNTH EFFECT ", Object.values(allFxPersistent.current[fxRadioValue]));
+                    visibleFXKnobs.current = allFxPersistent.current[fxRadioValue] && allFxPersistent.current[fxRadioValue].length > 0 && Object.values(allFxPersistent.current[fxRadioValue][0].presets).map((i: any) => [i.label, i]);
+                }
+                setToggleSTKvsFX(!toggleSTKvsFX);
+            // } catch (e: any) { }
         }
-        else if (currentScreen.current === '') {
 
-            if (doReturnToSynth.current === true) {
-                currentScreen.current = 'synth';
-                currentFX.current = [];
-                currentFX.current = moogGrandmotherEffects.current;
-                fxFX.current = [];
-                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-                doReturnToSynth.current = false;
-            }
-        }
         else if (currentScreen.current === 'stk' || currentScreen.current === 'fx_') {
             currentScreen.current = 'synth';
             currentFX.current = [];
             currentFX.current = moogGrandmotherEffects.current;
             fxFX.current = [];
             visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-            console.log('what are current FX in stk? ', fxFX.current);
+            console.log('what are current FX in stk!@!@!@? ', fxFX.current);
         }
         else {
             console.log('what are current FX in stk? ', fxFX.current);
-            currentScreen.current = '';
-            currentFX.current = fxFX.current;
-            visibleFXKnobs.current = Object.values(fxFX.current).map((i: any) => [i.label, i]);
+            // currentScreen.current = 'fx_';
+            // currentFX.current = fxFX.current;
+            // visibleFXKnobs.current = Object.values(fxFX.current).map((i: any) => [i.label, i]);
+            currentScreen.current = 'synth';
+            currentFX.current = [];
+            currentFX.current = moogGrandmotherEffects.current;
+            fxFX.current = [];
+            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
         }
         babylonGame.current.engine.dispose();
         babylonGame.current = undefined;
         setBabylonKey(`${babylonKey}1`);
         setRecreateBabylon(!recreateBabylon);
         babylonGame.current = null;
+        setCheckedFXUpdating(!checkedFXUpdating);
 
         return currentScreen.current;
     };
@@ -754,19 +1044,25 @@ export default function InitializationComponent() {
 
         console.log("DOES ALLFX DO WHAT WE WANT? ", allFx);
         allFx.flat().forEach((fx: any) => {
+            console.log("WTF IS FXCURRENT??? ", fxFX.current);
+            
+
+
             if (fxFX.current.filter((fx: any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
                 fxFX.current.push({
                     presets: getFX1Preset(fx.effectVar)[0].presets,
                     type: fx.effectLabel,
                     var: fx.effectVar,
                     fxType: 'fx',
-                    visible: false,
+                    visible: true,
                 });
             }
         });
 
         fxFX.current.forEach((c: any) => {
             const isChecked = checkedFXList.current.indexOf(c.var);
+            console.log("YO CVAR: ", c.var);
+            console.log("YO CHECKED FX: ", checkedFXList.current);
             if (isChecked !== -1) {
                 c.visible = true;
             } else {
@@ -775,8 +1071,10 @@ export default function InitializationComponent() {
         });
 
         fxFX.current = fxFX.current.filter((f: any) => f.visible === true && f)
+
+ 
         // TODO hate this lack of clarity right here.... fix it.
-        setTest(!test);
+        setCheckedFXUpdating(!checkedFXUpdating);
     };
 
     const handleUpdateFXChain = (msg: any) => {
@@ -847,6 +1145,7 @@ export default function InitializationComponent() {
         fun void playPowerADSRWindow(PowerADSR @ win, dur attackTime, float attackCurve, dur decayTime, float decayCurve, float sustainLevel, dur releaseTime, float releaseCurve) {
             win.set(attackTime, decayTime, sustainLevel, releaseTime);
             win.setCurves(attackCurve, decayCurve, releaseCurve);
+            <<< "PLAY_POWERADSR" >>>;
             while (true) {
                 win.keyOn();
                 attackTime => now;
@@ -864,11 +1163,13 @@ export default function InitializationComponent() {
             radius => win.radius;    
             T60 => win.T60; 
             1 => win.keyOn; 
+            <<< "PLAY_ENVWIN" >>>;
             value => now;
             while (1)  {
                 1.0 => win.gain;
                 1 => win.keyOn;
                 value => now;
+                0 => win.keyOn;
             }
         }
         spork ~ playExpEnvWindow(expenv_${source}, whole/${Math.pow(2, T60)}, ${radius}, whole/${Math.pow(2, value)});
@@ -878,7 +1179,7 @@ export default function InitializationComponent() {
         const nlp_str = nlp_type === 1 ? 'true' : 'false';
         const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
         return `
-        fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int resonance, int nlp_type, int nonlinear, float saturation) {
+        fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int resonance,  nlp_type, int nonlinear, float saturation) {
             saw2 => blackhole;
             SinOsc sinb => blackhole;
       
@@ -891,9 +1192,10 @@ export default function InitializationComponent() {
             nlp_type => win.nlp_type;
             saturation => win.saturation;
             
-            0.3 => win.gain;
+            0.15 => win.gain;
 
             while(true){
+                <<< "PLAY_DIODE" >>>;
                 4 * sinb.last() => saw2.freq;
                 40 + (Math.pow((sinb.last())/2.0,2) * (resonance * 1000)) => win.cutoff;
                 1::samp => now;
@@ -919,7 +1221,7 @@ export default function InitializationComponent() {
             nonlinear => win.nonlinear;
             saturation => win.saturation;
             
-            0.1 => win.gain;
+            0.2 => win.gain;
 
             while(true){
                 4 * sinb.last() => saw2.freq;
@@ -933,32 +1235,31 @@ export default function InitializationComponent() {
     };
 
     const modulateString = (source: string, vibratoRate: number, vibratoGain: number, randomGain: number) => {
-        console.log('#### FUCKIN HERE', source, vibratoRate, vibratoGain, randomGain);
-
         return `
 
         fun void playModWindow(Modulate @ win, float vibratoRate, float vibratoGain, float randomGain) {
             // multiply
-            3 => hpf.op;
+            // 3 => hpf.op;
+            if ("${source}" == "o1") {
+                3 => hpf.op;
+            } else if ("${source }" == "s1") {
+                3 => limiter_Sampler.op;
+            }
     
             // set freq
             // 220 => testSin.freq;
     
             // set rate in hz
-            win.vibratoRate( vibratoRate );
+            vibratoRate => win.vibratoRate;
             // set gain
-            win.vibratoGain( vibratoGain );
+            vibratoGain => win.vibratoGain;
             // set random gain
-            win.randomGain( randomGain );
+            randomGain => win.randomGain;
     
-            // infinite time loop
-            while( true )
-            {
-                spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
-                whole / 4 => now;
-            }
+            whole/${currentNoteVals.master[0]} - (now % whole/${currentNoteVals.master[0]}) => now;
+      
         }
-        // spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
+        spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
         `;
     };
 
@@ -977,7 +1278,7 @@ export default function InitializationComponent() {
             } else if (filterMode == 2) {
                 win.hpf(upper, lower);
             }
-            whole / 4 - (now % whole/4) => now;
+            whole/${currentNoteVals.master[0]} - (now % whole/${currentNoteVals.master[0]}) => now;
         }
         spork ~ playEllipticWindow(elliptic_${source}, beat, ${filterLow}, ${filterMid}, ${filterHigh}, ${atten}, ${ripple}, ${filterMode});
         `;
@@ -989,7 +1290,11 @@ export default function InitializationComponent() {
         fun void playDelayWindow(Delay @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
             for (0 => int i; i < ${lines}; i++) 
             { 
-                hpf => win[i] => dac;  
+                if ("${source}" == "o1") {
+                    hpf => win[i] => dac;
+                } else if ("${source}" == "s1") {
+                    limiter_Sampler => win[i] => dac;
+                } 
                 win[i] => OneZero filter_delay_${source} => win[i]; 
                 zero => filter_delay_${source}.zero;
                 b0 => filter_delay_${source}.b0;
@@ -1010,7 +1315,11 @@ export default function InitializationComponent() {
         fun void playDelayAWindow(DelayA @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
             for (0 => int i; i < ${lines}; i++) 
             { 
-                hpf => win[i] => dac;  
+                if ("${source}" == "o1") {
+                    hpf => win[i] => dac;  
+                } else if ("${source }" == "s1") {
+                    limiter_Sampler => win[i] => dac;
+                } 
                 win[i] => OneZero filter_delayA_${source} => win[i]; 
                 zero => filter_delayA_${source}.zero;
                 b0 => filter_delayA_${source}.b0;
@@ -1030,13 +1339,17 @@ export default function InitializationComponent() {
         fun void playDelayLWindow(DelayL @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
             for (0 => int i; i < ${lines}; i++) 
             { 
-                hpf => win[i] => dac;  
+                if ("${source}" == "o1") {
+                    hpf => win[i] => dac;  
+                } else if ("${source }" == "s1") {
+                    limiter_Sampler => win[i] => dac;
+                }
                 win[i] => OneZero filter_delayL_${source} => win[i];
                 zero => filter_delayL_${source}.zero;
                 b0 => filter_delayL_${source}.b0;
                 b1 => filter_delayL_${source}.b1;
                 0.6 => win[i].gain; 
-                ((whole/16)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
+                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
             }
         }
         spork ~ playDelayLWindow(delayL_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
@@ -1044,21 +1357,25 @@ export default function InitializationComponent() {
     };
 
     const expDelayString = (source: string, ampcurve: number, durcurve: number, delay: number, mix: number, reps: number, gain: number) => {
-        const convertedSyncDelay = Math.pow(2, delay)
+        const convertedSyncDelay = Math.pow(2, delay);
+        console.log("WHAT IS CONVERTED SYNC DELAY? ", convertedSyncDelay);
+        console.log("all good???? ", currentNoteVals.master[0]);
         return `
         fun void playExpDelayWindow(ExpDelay @ win, float ampcurve, float durcurve, float delay, float mix, int reps, float gain) {
 
             while (true)
             {
-                whole/delay => win.max => win.delay;
+               (whole/(${currentNoteVals.master[0]}))/delay => win.max => win.delay;
 
                 reps * 0.7 => win.gain;
                 durcurve => win.durcurve;
                 ampcurve => win.ampcurve;
                 reps => win.reps;
                 
-                6000::ms => now;
+                (whole/(${currentNoteVals.master[0]}))/delay => now;
+                me.yield();
             }
+            me.yield();
         }
         spork ~ playExpDelayWindow(expDelay_${source}, ${ampcurve}, ${durcurve}, ${convertedSyncDelay}, ${mix}, ${reps}, ${gain});
         `;
@@ -1106,7 +1423,325 @@ export default function InitializationComponent() {
 
     };
 
-    const osc1FXToString = () => {
+    const winFuncDeclarationReusableRef = useRef<string>("");
+
+    // NEED TO PUSH INTO allFxPersistent.current[genericSource] BEFORE USING THIS
+    // const reusableFXToString = (genericSource: string, sourceName: string) => {
+
+    //     winFuncDeclarationReusableRef.current = reusableWinEnvOn.current[sourceName] ? ` WinFuncEnv winfuncenv_${fxRadioValue + '_' + allFxPersistent.current[sourceName][0]}` : '';
+
+
+
+    //     Object.values(allFxPersistent.current[genericSource][sourceName]).map((source: any) => {
+    //             if (reusableFXStringToChuck.current.indexOf(source.var) === -1) {
+
+
+    //                 if (source.type === "PitchTrack") {
+    //                     if (reusableFxStringToChuckNeedsBlackhole.current[sourceName].map((i: any) => i.name).indexOf(`${source.var}`) === -1) {
+    //                         reusableFxStringToChuckNeedsBlackhole.current[sourceName].push({ name: `${source.var}`, string: `=> ${source.type} ${source.var} => blackhole;` });
+    //                     }
+    //                     return;
+    //                 } else if (source.type === "WinFuncEnv") {
+    //                     reusableWinEnvOn.current[sourceName] = true;
+    //                 } else if (source.type === "PowerADSR") {
+    //                     reusablePowerADSROn.current[sourceName] = true;
+    //                 } else if (source.type === "ExpEnv") {
+    //                     reusableExpEnvOn.current[sourceName] = true;
+    //                 } else if (source.type === "WPDiodeLadder") {
+    //                     reusableWPDiodeLadderOn.current[sourceName] = true;
+    //                 } else if (source.type === "WPKorg35") {
+    //                     reusableWPKorg35On.current[sourceName] = true;
+    //                 } else if (source.type === "Modulate") {
+    //                     reusableModulateOn.current[sourceName] = true;
+    //                 } else if (source.type === "Delay") {
+    //                     reusableDelayOn.current[sourceName] = true;
+    //                 } else if (source.type === "DelayA") {
+    //                     reusableDelayAOn.current[sourceName] = true;
+    //                 } else if (source.type === "DelayL") {
+    //                     reusableDelayLOn.current[sourceName] = true;
+    //                 } else if (source.type === "ExpDelay") {
+    //                     reusableExpDelayOn.current[sourceName] = true;
+    //                 } else if (source.type === "Elliptic") {
+    //                     reusableEllipticOn.current[sourceName] = true;
+    //                 } else if (source.type === "Spectacle") {
+    //                     reusableSpectacleOn.current = true;
+    //                 }
+    
+    //                 // TODO => Basic Implementation of Sampler Interface / Play Logic
+    //                 // TODO => All of SndBuf Implementation
+    //                 // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
+    //                 // TODO => All of Sigmund
+    //                 // TODO => All of Autotune (PitchTrack implelementation)
+    //                 // TODO => All of the Gains & Note Swells (create a mixer W PANNING!??)    
+    //                 // AFTER ALL OF THIS, WE CAN LEVEL OUT (OR MAKE FACTORY OF FX CODE FOR ALL SOURCES)
+    //                 // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
+    
+    //                 else {
+    //                     reusableFXStringToChuck.current = reusableFXStringToChuck.current.concat(`=> ${source.type} ${source.var} `)
+    //                 }
+
+
+    //             }                
+    //         }
+    //     );
+    // }
+
+    const samplerFXToString = () => {
+  
+        // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
+        // =================================================================
+        Object.values(allFxPersistent.current.Sampler).map((s1: any) => {
+            console.log('***** SAMPLERFXSTRINGTOCHUCK... DOES BREAK HAPPEN HERE?!! ', s1, samplerFXStringToChuck.current);
+            if (samplerFXStringToChuck.current.indexOf(`${s1.var}_s1`) === -1) {
+
+
+
+
+
+
+
+
+
+                if (s1.type === "PitchTrack") {
+                    if (samplerFxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${s1.var}`) === -1) {
+                        samplerFxStringToChuckNeedsBlackhole.current.push({ name: `${s1.var}`, string: `=> ${s1.type} ${s1.var}_s1 => blackhole;` });
+                    }
+                    return;
+                } else if (s1.type === "WinFuncEnv") {
+                    samplerWinEnvOn.current = true;
+                } else if (s1.type === "PowerADSR") {
+                    samplerPowerADSROn.current = true;
+                } else if (s1.type === "ExpEnv") {
+                    samplerExpEnvOn.current = true;
+                } else if (s1.type === "WPDiodeLadder") {
+                    samplerWPDiodeLadderOn.current = true;
+                } else if (s1.type === "WPKorg35") {
+                    samplerWPKorg35On.current = true;
+                } else if (s1.type === "Modulate") {
+                    samplerModulateOn.current = true;
+                } else if (s1.type === "Delay") {
+                    samplerDelayOn.current = true;
+                } else if (s1.type === "DelayA") {
+                    samplerDelayAOn.current = true;
+                } else if (s1.type === "DelayL") {
+                    samplerDelayLOn.current = true;
+                } else if (s1.type === "ExpDelay") {
+                    samplerExpDelayOn.current = true;
+                } else if (s1.type === "Elliptic") {
+                    samplerEllipticOn.current = true;
+                } else if (s1.type === "Spectacle") {
+                    samplerSpectacleOn.current = true;
+                }
+
+                // TODO => Basic Implementation of Sampler Interface / Play Logic
+                // TODO => All of SndBuf Implementation
+                // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
+                // TODO => All of Sigmund
+                // TODO => All of Autotune (PitchTrack implelementation)
+                // TODO => All of the Gains & Note Swells (create a mixer W PANNING!??)
+                // TODO => Add other Osc Ugens to Synthvoice
+                // TODO => All of UAna Generics for Analysis Blobs
+
+                // AFTER ALL OF THIS, WE CAN LEVEL OUT (OR MAKE FACTORY OF FX CODE FOR ALL SOURCES)
+                // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
+
+                else {
+                    console.log("we should and do hit this for nrev test ", s1, samplerFXStringToChuck.current);
+                    samplerFXStringToChuck.current = samplerFXStringToChuck.current.concat(`=> ${s1.type} ${s1.var}_s1 `);
+                }
+            }
+            console.log("Make sure we get into part 2: ", Object.values(s1.presets))
+            // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
+            // =================================================================
+            Object.values(s1.presets).length > 0 && Object.values(s1.presets).map(async (preset: any, idx: number) => {
+
+                // ******** TODO change to read type directly from o1.type
+                if (preset.type.includes("_needsFun")) {
+                    if (preset.type.includes("_winFuncEnv")) {
+                        if (preset.name === "attackTime") {
+                            winFuncEnvFinalHelper.current.sampler.attackTime = Math.pow(2, Number(preset.value));
+                        } else if (preset.name === "releaseTime") {
+                            winFuncEnvFinalHelper.current.sampler.releaseTime = Math.pow(2, Number(preset.value));
+                        } else if (preset.name === "envSetting") {
+                            winFuncEnvFinalHelper.current.sampler.envSetting = convertEnvSetting(preset.value);
+                        } else {
+                        }
+                    }
+                    if (preset.type.includes("_powerADSR")) {
+                        // add quantization / feedback etc later
+                        if (preset.name === "attackTime") {
+                            powerADSRFinalHelper.current.sampler.attackTime = preset.value;
+                        } else if (preset.name === "attackCurve") {
+                            powerADSRFinalHelper.current.sampler.attackCurve = preset.value;
+                        } else if (preset.name === "releaseTime") {
+                            powerADSRFinalHelper.current.sampler.releaseTime = preset.value;
+                        } else if (preset.name === "releaseCurve") {
+                            powerADSRFinalHelper.current.sampler.releaseCurve = preset.value;
+                        }
+                        else if (preset.name === "decayTime") {
+                            powerADSRFinalHelper.current.sampler.decayTime = preset.value;
+                        }
+                        else if (preset.name === "decayCurve") {
+                            powerADSRFinalHelper.current.sampler.decayCurve = preset.value;
+                        }
+                        else if (preset.name === "sustainLevel") {
+                            powerADSRFinalHelper.current.sampler.sustainLevel = preset.value;
+                        }
+
+
+                    }
+                    if (preset.type.includes("_expEnv")) {
+                        if (preset.name === "T60") {
+                            expEnvFinalHelper.current.sampler.T60 = preset.value;
+                        } else if (preset.name === "radius") {
+                            expEnvFinalHelper.current.sampler.radius = preset.value;
+                        } else if (preset.name === "value") {
+                            expEnvFinalHelper.current.sampler.value = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_diodeladder")) {
+                        if (preset.name === "cutoff") {
+                            wpDiodeLadderFinalHelper.current.sampler.cutoff = preset.value;
+                        } else if (preset.name === "nlp_type") {
+                            wpDiodeLadderFinalHelper.current.sampler.nlp_type = preset.value;
+                        } else if (preset.name === "nonlinear") {
+                            wpDiodeLadderFinalHelper.current.sampler.nonlinear = preset.value;
+                        } else if (preset.name === "saturation") {
+                            wpDiodeLadderFinalHelper.current.sampler.saturation = preset.value;
+                        } else if (preset.name === "resonance") {
+                            wpDiodeLadderFinalHelper.current.sampler.resonance = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("_wpkorg35")) {
+                        if (preset.name === "cutoff") {
+                            wpDiodeLadderFinalHelper.current.sampler.cutoff = preset.value;
+                        } else if (preset.name === "resonance") {
+                            wpDiodeLadderFinalHelper.current.sampler.resonance = preset.value;
+                        } else if (preset.name === "nonlinear") {
+                            wpDiodeLadderFinalHelper.current.sampler.nonlinear = preset.value;
+                        } else if (preset.name === "saturation") {
+                            wpDiodeLadderFinalHelper.current.sampler.saturation = preset.value;
+                        }
+                    }
+                    if (preset.type.includes("mod")) {
+                        if (preset.name === "vibratoRate") {
+                            modulateFinalHelper.current.sampler.vibratoRate = preset.value;
+                        } else if (preset.name === "vibratoGain") {
+                            modulateFinalHelper.current.sampler.vibratoGain = preset.value;
+                        } else if (preset.name === "randomGain") {
+                            modulateFinalHelper.current.sampler.randomGain = preset.value;
+                        }
+                    }
+                    if (s1.type === "Delay") {
+                        if (preset.name === "delay") {
+                            delayFinalHelper.current.sampler.delay = preset.value;
+                        } else if (preset.name === "lines") {
+                            delayFinalHelper.current.sampler.lines = preset.value;
+                        } else if (preset.name === "syncDelay") {
+                            delayFinalHelper.current.sampler.syncDelay = preset.value;
+                        }
+                    }
+                    if ((s1.type === "DelayA")) {
+                        if (preset.name === "delay") {
+                            delayAFinalHelper.current.sampler.delay = preset.value;
+                        } else if (preset.name === "lines") {
+                            delayAFinalHelper.current.sampler.lines = preset.value;
+                        } else if (preset.name === "syncDelay") {
+                            delayAFinalHelper.current.sampler.syncDelay = preset.value;
+                        }
+                    }
+                    if ((s1.type === "DelayL")) {
+                        if (preset.name === "delay") {
+                            delayLFinalHelper.current.sampler.delay = preset.value;
+                        } else if (preset.name === "lines") {
+                            delayLFinalHelper.current.sampler.lines = preset.value;
+                        } else if (preset.name === "syncDelay") {
+                            delayLFinalHelper.current.sampler.syncDelay = preset.value;
+                        }
+                    }
+                    if (s1.type === "ExpDelay") {
+                        if (preset.name === "ampcurve") {
+                            expDelayFinalHelper.current.sampler.ampcurve = preset.value;
+                        } else if (preset.name === "durcurve") {
+                            expDelayFinalHelper.current.sampler.durcurve = preset.value;
+                        } else if (preset.name === "delay") {
+                            delayLFinalHelper.current.sampler.delay = preset.value;
+                        } else if (preset.name === "mix") {
+                            expDelayFinalHelper.current.sampler.mix = preset.value;
+                        } else if (preset.name === "reps") {
+                            expDelayFinalHelper.current.sampler.reps = preset.value;
+                        }
+                    }
+                    if (s1.type === "Elliptic") {
+                        if (preset.name === "lowFilter") {
+                            ellipticFinalHelper.current.sampler.lowFilter = preset.value;
+                        } else if (preset.name === "midFilter") {
+                            ellipticFinalHelper.current.sampler.midFilter = preset.value;
+                        } else if (preset.name === "highFilter") {
+                            ellipticFinalHelper.current.sampler.highFilter = preset.value;
+                        } else if (preset.name === "atten") {
+                            ellipticFinalHelper.current.sampler.atten = preset.value;
+                        } else if (preset.name === "ripple") {
+                            ellipticFinalHelper.current.sampler.ripple = preset.value;
+                        } else if (preset.name === "filterMode") {
+                            ellipticFinalHelper.current.sampler.filterMode = preset.value;
+                        }
+                    }
+                    if (s1.type === "Spectacle") {
+                        console.log(`YA WE HIT THIS: `, spectacleFinalHelper.current.sampler);
+                        if (preset.name === "bands") {
+                            spectacleFinalHelper.current.sampler.bands;
+                        } else if (preset.name === "delay") {
+                            spectacleFinalHelper.current.sampler.delay;
+                        } else if (preset.name === "eq") {
+                            spectacleFinalHelper.current.sampler.eq;
+                        } else if (preset.name === "feedback") {
+                            spectacleFinalHelper.current.sampler.feedback;
+                        } else if (preset.name === "fftlen") {
+                            spectacleFinalHelper.current.sampler.fftlen;
+                        } else if (preset.name === "freqMax") {
+                            spectacleFinalHelper.current.sampler.freqMax;
+                        } else if (preset.name === "freqMin") {
+                            spectacleFinalHelper.current.sampler.freqMin;
+                        } else if (preset.name === "mix") {
+                            spectacleFinalHelper.current.sampler.mix;
+                        } else if (preset.name === "overlap") {
+                            spectacleFinalHelper.current.sampler.overlap;
+                        } else if (preset.name === "table") {
+                            spectacleFinalHelper.current.sampler.table;
+                        }
+                    }
+
+                    else {
+                        // alert('in the else!')
+                    }
+                } else {
+                    const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
+                    let formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${preset.value}${addDurMs}` : `${preset.value}`;
+
+                    if (samplerFXString.current !== '') {
+                        if (finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name) !== -1) {
+                            const theIndex = finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name);
+                            console.log("hey the samp index: ", theIndex);
+                            finalSamplerFxStringToChuck.current[theIndex].string = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
+                            console.log("hey final sampler is here: ", finalSamplerFxStringToChuck.current[theIndex]);
+                        }
+                        else {
+                            console.log("WTF PRESET ", preset);
+                            // if (preset.visible === true) {
+                            finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};` });
+                            // }
+                        }
+                    } else {
+                        samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
+                    }
+                }
+            });
+        });
+    };
+
+    const osc1FXToString = () => {  
+   
 
         // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
         // =================================================================
@@ -1179,14 +1814,33 @@ export default function InitializationComponent() {
                     if (preset.type.includes("_powerADSR")) {
                         // add quantization / feedback etc later
                         if (preset.name === "attackTime") {
+                            powerADSRFinalHelper.current.sampler.attackTime = preset.value;
                             powerADSRFinalHelper.current.osc1.attackTime = preset.value;
                         } else if (preset.name === "attackCurve") {
+                            powerADSRFinalHelper.current.sampler.attackCurve = preset.value;
                             powerADSRFinalHelper.current.osc1.attackCurve = preset.value;
                         } else if (preset.name === "releaseTime") {
+                            powerADSRFinalHelper.current.sampler.releaseTime = preset.value;
                             powerADSRFinalHelper.current.osc1.releaseTime = preset.value;
                         } else if (preset.name === "releaseCurve") {
+                            powerADSRFinalHelper.current.sampler.releaseCurve = preset.value;
                             powerADSRFinalHelper.current.osc1.releaseCurve = preset.value;
                         }
+
+                        else if (preset.name === "decayTime") {
+                            powerADSRFinalHelper.current.sampler.decayTime = preset.value;
+                            powerADSRFinalHelper.current.osc1.decayTime = preset.value;
+                        }
+                        else if (preset.name === "decayCurve") {
+                            powerADSRFinalHelper.current.sampler.decayCurve = preset.value;
+                            powerADSRFinalHelper.current.osc1.decayCurve = preset.value;
+                        }
+                        else if (preset.name === "sustainLevel") {
+                            powerADSRFinalHelper.current.sampler.sustainLevel = preset.value;
+                            powerADSRFinalHelper.current.osc1.sustainLevel = preset.value;
+                        }
+
+
                     }
                     if (preset.type.includes("_expEnv")) {
                         if (preset.name === "T60") {
@@ -1362,51 +2016,53 @@ export default function InitializationComponent() {
         });
     }
 
-    const samplerFXToString = () => {
-        Object.values(allFxPersistent.current.Sampler).map((s1: any) => {
-            if (samplerFXStringToChuck.current.indexOf(`${s1.var}_s1`) === -1) {
-                samplerFXStringToChuck.current = samplerFXStringToChuck.current.concat(`=> ${s1.type} ${s1.var}_s1 `)
-            }
+    // const samplerFXToString = () => {
+    //     Object.values(allFxPersistent.current.Sampler).map((s1: any) => {
+    //         console.log('sanity chuck here: ', s1);
+    //         if (samplerFXStringToChuck.current.indexOf(`${s1.var}_s1`) === -1) {
+    //             samplerFXStringToChuck.current = samplerFXStringToChuck.current.concat(`=> ${s1.type} ${s1.var}_s1 `)
+    //         }
 
-            Object.values(s1.presets).length > 0 && Object.values(s1.presets).map((preset: any, idx: number) => {
-                const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
-                const formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${parseInt(preset.value)}${addDurMs}` : `${preset.value}`;
-                // const thePreset: any = Object.values(s1.presets)[idx];
-                console.log("EEEESH WTF 1: ", samplerFXString);
-                console.log("EEEESH WTF 2: ", finalSamplerFxStringToChuck.current);
-                if (samplerFXString.current !== '') {
-                    if (finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name) !== -1) {
-                        const theIndex = finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name);
-                        finalSamplerFxStringToChuck.current[theIndex].string = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
-                    } else {
-                        finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};` });
-                    }
-                    samplerFXString.current.indexOf(`${formattedValue} => ${s1.var}_s1.${preset.name};`)
-                    const t: string = samplerFXString.current;
-                    const sub = ` => ${s1.var}_s1.${preset.name};`;
-                    let lastIndexOfValue: any = t.indexOf(sub);
-                    const lastCharOfVal = t[lastIndexOfValue];
+    //         Object.values(s1.presets).length > 0 && Object.values(s1.presets).map((preset: any, idx: number) => {
+    //             const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
+    //             const formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${parseInt(preset.value)}${addDurMs}` : `${preset.value}`;
+    //             // const thePreset: any = Object.values(s1.presets)[idx];
+    //             console.log("EEEESH WTF 1: ", samplerFXString);
+    //             console.log("EEEESH WTF 2: ", finalSamplerFxStringToChuck.current);
+    //             if (samplerFXString.current !== '') {
+    //                 if (finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name) !== -1) {
+    //                     console.log("SANITY CHUCK 2: ", finalSamplerFxStringToChuck.current);
+    //                     const theIndex = finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name);
+    //                     finalSamplerFxStringToChuck.current[theIndex].string = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
+    //                 } else {
+    //                     finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};` });
+    //                 }
+    //                 samplerFXString.current.indexOf(`${formattedValue} => ${s1.var}_s1.${preset.name};`)
+    //                 const t: string = samplerFXString.current;
+    //                 const sub = ` => ${s1.var}_s1.${preset.name};`;
+    //                 let lastIndexOfValue: any = t.indexOf(sub);
+    //                 const lastCharOfVal = t[lastIndexOfValue];
 
-                    formerValSub.current = lastCharOfVal;
-                    console.log('FORMER VAL SUB: ', formerValSub.current);
-                    let chartWindowIndex: any;
-                    const readBackwards = samplerFXString.current[lastIndexOfValue - 1] && setInterval(() => {
-                        formerValSub.current = formerValSub.current + (osc1FXString.current[lastIndexOfValue])
-                        if (lastIndexOfValue && samplerFXString.current && samplerFXString.current[lastIndexOfValue] === ' ') {
-                            clearInterval(readBackwards);
-                            return;
-                        }
-                        chartWindowIndex = chartWindowIndex - 1;
-                    }, 0);
-                    const fullPriorString = `${formerValSub.current}${sub}`;
-                    samplerFXString.current.indexOf(fullPriorString) !== -1 && samplerFXString.current.replace(fullPriorString, samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`);
-                } else {
-                    samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
-                }
-                console.log('CHECK OSC1 STRING CURRENT: ', samplerFXString.current);
-            });
-        });
-    }
+    //                 formerValSub.current = lastCharOfVal;
+    //                 console.log('FORMER VAL SUB: ', formerValSub.current);
+    //                 let chartWindowIndex: any;
+    //                 const readBackwards = samplerFXString.current[lastIndexOfValue - 1] && setInterval(() => {
+    //                     formerValSub.current = formerValSub.current + (osc1FXString.current[lastIndexOfValue])
+    //                     if (lastIndexOfValue && samplerFXString.current && samplerFXString.current[lastIndexOfValue] === ' ') {
+    //                         clearInterval(readBackwards);
+    //                         return;
+    //                     }
+    //                     chartWindowIndex = chartWindowIndex - 1;
+    //                 }, 0);
+    //                 const fullPriorString = `${formerValSub.current}${sub}`;
+    //                 samplerFXString.current.indexOf(fullPriorString) !== -1 && samplerFXString.current.replace(fullPriorString, samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`);
+    //             } else {
+    //                 samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
+    //             }
+    //             console.log('CHECK OSC1 STRING CURRENT: ', samplerFXString.current);
+    //         });
+    //     });
+    // }
 
     const initChuck = async () => {
         if (typeof window === 'undefined') return;
@@ -1423,16 +2079,24 @@ export default function InitializationComponent() {
 
     useEffect(() => {
         console.log('!!!!! ', allFxPersistent.current, Object.values(allFxPersistent.current.Osc1));
+        
+        // allFxPersistent.current && allFxPersistent.current.length > 0 && Object.entries(allFxPersistent.current.map((k: any, v: any, index: number) => {
+        //     if (k === "Sampler" && v.length > 0) {
+        //         console.log("KEY VAL INDEX FXFX: ", k, v, index);
+        //         console.log("KEY VAL INDEX OBJ VALS FXFX: ", k, Object.values(v), index);
+        //     }
+        // }));
+
         if (allFxPersistent.current.Osc1 && allFxPersistent.current.Osc1[0] && Object.values(allFxPersistent.current.Osc1[0].presets).length > 0) {
             osc1FXToString();
         }
-        if (allFxPersistent.current.Osc2 && allFxPersistent.current.Osc2[0] > 0 && Object.values(allFxPersistent.current.Osc2[0].presets).length > 0) {
+        if (allFxPersistent.current.Osc2 && allFxPersistent.current.Osc2[0] && Object.values(allFxPersistent.current.Osc2[0].presets).length > 0) {
             osc2FXToString();
         }
-        if (allFxPersistent.current.AudioIn &&  allFxPersistent.current.AudioIn[0] > 0 && allFxPersistent.current.AudioIn[0] && Object.values(allFxPersistent.current.AudioIn[0].presets).length > 0) {
+        if (allFxPersistent.current.AudioIn && allFxPersistent.current.AudioIn[0] && Object.values(allFxPersistent.current.AudioIn[0].presets).length > 0) {
             audioInFXToString();
         }
-        if (allFxPersistent.current.Sampler && allFxPersistent.current.Sampler[0] > 0 && Object.values(allFxPersistent.current.Sampler[0].presets).length > 0) {
+        if (allFxPersistent.current.Sampler && allFxPersistent.current.Sampler[0] && Object.values(allFxPersistent.current.Sampler[0].presets).length > 0) {
             samplerFXToString();
         }
         if (chuckUpdateNeeded) {setChuckUpdateNeeded(false)}
@@ -1454,11 +2118,21 @@ export default function InitializationComponent() {
         chuckHook && chuckHook.runCode(`Machine.resetShredID();`);
     }
 
+    let initialShredCount = 0;
+
+    const handleCheckedFXToShow = (msg: any) => {
+        console.log("effect to show message: " + msg);
+        setCheckedEffectToShow(msg);
+    }
+
     const runMainChuckCode = async (aChuck: Chuck, getStk1String: any) => {
         // if (chuckUpdateNeeded !== false) {setChuckUpdateNeeded(true)}
         // if (chuckUpdateNeeded === false) {
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
-
+            if (initialShredCount === 0) {
+                initialShredCount = shredCount.current;
+   
+            }
             console.log('WHAT IS SHRED COUNT? ', shredCount.current);
             console.log('FILES TO PROCESS: ', filesToProcess);
 
@@ -1473,18 +2147,26 @@ export default function InitializationComponent() {
             console.log('STK STRING HERE: ', getStk1String);
             const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
 
-            const connectorStk1DirectToDac = getStk1String && getStk1String.length > 0 && useStkDirect ? `
-                ${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; 
-                winfuncenv_stk1.setHann(); 
-                for (int i; i < 250; i++) { 
-                    spork ~ playWindow(winfuncenv_stk1, whole/${16}, whole/${16}); 
-                }` : ``;
+            // const connectorStk1DirectToDac = getStk1String && getStk1String.length > 0 && useStkDirect ? `
+            //     ${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; 
+            //     winfuncenv_stk1.setHann(); 
+            //     for (int i; i < 250; i++) { 
+
+
+            console.log('Krikes ', samplerFXStringToChuck.current);
+            
+
+
+
+            //         spork ~ playWindow(winfuncenv_stk1, ${currentNoteVals.oscs[0]}, ${currentNoteVals.oscs[0]}); 
+            //     }` : ``;
 
 
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             // HANDLING CHUGINS & COMPLEX TIME-BASED EFFECTS
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             const winFuncDeclarationOsc1 = osc1WinEnvOn.current ? ' WinFuncEnv winfuncenv_o1 =>' : '';
+            // const winFuncDeclarationReusable = reusableWinEnvOn.current[sourceName] ? ` WinFuncEnv winfuncenv_${fxRadioValue + '_' + sourceName}` : '';
             const powerADSRDeclarationOsc1 = osc1PowerADSROn.current ? ' PowerADSR poweradsr_o1 =>' : '';
             const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>' : '';
             const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>' : '';
@@ -1512,6 +2194,36 @@ export default function InitializationComponent() {
             const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
             const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
             const delayLCodeStringOsc1 = osc1DelayLOn.current ? delayLString('o1', delayLFinalHelper.current.osc1.delay, delayLFinalHelper.current.osc1.lines, delayLFinalHelper.current.osc1.syncDelay, delayLFinalHelper.current.osc1.zero, delayLFinalHelper.current.osc1.b0, delayLFinalHelper.current.osc1.b1) : '';
+            
+            // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            const winFuncDeclarationSampler = samplerWinEnvOn.current ? ' WinFuncEnv winfuncenv_s1 =>' : '';
+            // const winFuncDeclarationReusable = reusableWinEnvOn.current[sourceName] ? ` WinFuncEnv winfuncenv_${fxRadioValue + '_' + sourceName}` : '';
+            const powerADSRDeclarationSampler = samplerPowerADSROn.current ? ' PowerADSR poweradsr_s1 =>' : '';
+            const expEnvDeclarationSampler = samplerExpEnvOn.current ? ' ExpEnv expenv_s1 =>' : '';
+            const wpDiodeLadderDeclarationSampler = samplerWPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_s1 =>' : '';
+            const WPKorg35DeclarationSampler = samplerWPKorg35On.current ? 'limiter_Sampler => WPKorg35 wpkorg35_s1 => dac;' : '';
+            const modulateDeclarationSampler = samplerModulateOn.current ? ' Modulate mod_s1 =>' : '';
+            const ellipticDeclarationSampler = samplerEllipticOn.current ? ' Elliptic elliptic_s1 =>' : '';
+            const delayDeclarationSampler = samplerDelayOn.current ? `Delay delay_s1[${delayFinalHelper.current.sampler.delay}];` : '';
+            const delayADeclarationSampler = samplerDelayAOn.current ? `DelayA delayA_s1[${delayAFinalHelper.current.sampler.delay}];` : '';
+            const delayLDeclarationSampler = samplerDelayLOn.current ? `DelayL delayL_s1[${delayLFinalHelper.current.sampler.delay}];` : '';
+            const expDelayDeclarationSampler = samplerExpDelayOn.current ? ' ExpDelay expDelay_s1 =>' : '';
+            const spectacleDeclarationSampler = samplerSpectacleOn.current ? 'Spectacle spectacle_s1 =>' : '';
+
+            const winFuncCodeStringSampler = samplerWinEnvOn.current ? winFuncString('s1', winFuncEnvFinalHelper.current.sampler.attackTime, winFuncEnvFinalHelper.current.sampler.releaseTime, winFuncEnvFinalHelper.current.sampler.envSetting) : '';
+            const powerADSRCodeStringSampler = samplerPowerADSROn.current ? powerADSRString('s1', powerADSRFinalHelper.current.sampler.attackTime, powerADSRFinalHelper.current.sampler.attackCurve, powerADSRFinalHelper.current.sampler.decayTime, powerADSRFinalHelper.current.sampler.decayCurve, powerADSRFinalHelper.current.sampler.sustainLevel, powerADSRFinalHelper.current.sampler.releaseTime, powerADSRFinalHelper.current.sampler.releaseCurve) : '';
+            const expEnvCodeStringSampler = samplerExpEnvOn.current ? expEnvString('s1', expEnvFinalHelper.current.sampler.T60, expEnvFinalHelper.current.sampler.radius, expEnvFinalHelper.current.sampler.value) : '';
+            const wpDiodeLadderCodeStringSampler = samplerWPDiodeLadderOn.current ? wpDiodeLadderString('s1', wpDiodeLadderFinalHelper.current.sampler.cutoff, wpDiodeLadderFinalHelper.current.sampler.resonance, wpDiodeLadderFinalHelper.current.sampler.nlp_type, wpDiodeLadderFinalHelper.current.sampler.nonlinear, wpDiodeLadderFinalHelper.current.sampler.saturation) : '';
+            const wpKorg35CodeStringSampler = samplerWPKorg35On.current ? wpKorg35String('s1', wpKorg35FinalHelper.current.sampler.cutoff, wpKorg35FinalHelper.current.sampler.resonance, wpKorg35FinalHelper.current.sampler.nonlinear, wpKorg35FinalHelper.current.sampler.saturation) : '';
+            const modulateCodeStringSampler = samplerModulateOn.current ? modulateString('s1', modulateFinalHelper.current.sampler.vibratoRate, modulateFinalHelper.current.sampler.vibratoGain, modulateFinalHelper.current.sampler.randomGain) : '';
+            const ellipticCodeStringSampler = samplerEllipticOn.current ? ellipticString('s1', ellipticFinalHelper.current.sampler.filterLow, ellipticFinalHelper.current.sampler.filterMid, ellipticFinalHelper.current.sampler.filterHigh, ellipticFinalHelper.current.sampler.atten, ellipticFinalHelper.current.sampler.ripple, ellipticFinalHelper.current.sampler.filterMode) : '';
+            const expDelayCodeStringSampler = samplerExpDelayOn.current ? expDelayString('s1', expDelayFinalHelper.current.sampler.ampcurve, expDelayFinalHelper.current.sampler.durcurve, expDelayFinalHelper.current.sampler.delay, expDelayFinalHelper.current.sampler.mix, expDelayFinalHelper.current.sampler.reps, expDelayFinalHelper.current.sampler.gain) : '';
+            const spectacleCodeStringSampler = samplerSpectacleOn.current ? spectacleString('s1', spectacleFinalHelper.current.sampler.bands, spectacleFinalHelper.current.sampler.delay, spectacleFinalHelper.current.sampler.eq, spectacleFinalHelper.current.sampler.feedback, spectacleFinalHelper.current.sampler.fftlen, spectacleFinalHelper.current.sampler.freqMax, spectacleFinalHelper.current.sampler.freqMin, spectacleFinalHelper.current.sampler.mix, spectacleFinalHelper.current.sampler.overlap, spectacleFinalHelper.current.sampler.table) : '';
+
+            // DELAY LINES
+            const delayCodeStringSampler = samplerDelayOn.current ? delayString('s1', delayFinalHelper.current.sampler.delay, delayFinalHelper.current.sampler.lines, delayFinalHelper.current.sampler.syncDelay, delayFinalHelper.current.sampler.zero, delayFinalHelper.current.sampler.b0, delayFinalHelper.current.sampler.b1) : '';
+            const delayACodeStringSampler = samplerDelayAOn.current ? delayAString('s1', delayAFinalHelper.current.sampler.delay, delayAFinalHelper.current.sampler.lines, delayAFinalHelper.current.sampler.syncDelay, delayAFinalHelper.current.sampler.zero, delayAFinalHelper.current.sampler.b0, delayAFinalHelper.current.sampler.b1) : '';
+            const delayLCodeStringSampler = samplerDelayLOn.current ? delayLString('s1', delayLFinalHelper.current.sampler.delay, delayLFinalHelper.current.sampler.lines, delayLFinalHelper.current.sampler.syncDelay, delayLFinalHelper.current.sampler.zero, delayLFinalHelper.current.sampler.b0, delayLFinalHelper.current.sampler.b1) : '';
 
             ////////////////////////////
 
@@ -1524,37 +2236,28 @@ export default function InitializationComponent() {
 
             const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
 
+            console.log("AND WTF IS THIS? ", samplerFXStringToChuck.current);
+
+            const samplerChuckToOutlet: string = `Dyno limiter_Sampler ${samplerFXStringToChuck.current} => ${winFuncDeclarationSampler} ${ellipticDeclarationSampler} ${powerADSRDeclarationSampler} ${expEnvDeclarationSampler} ${expDelayDeclarationSampler} ${modulateDeclarationSampler} `;
+
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
+
+            samplerFxStringNeedsBlackhole.current = samplerFxStringToChuckNeedsBlackhole.current.length > 0 ? `sample1 ${samplerFxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             const osc2ChuckToOutlet: string = ` SawOsc saw2 => lpf;`;
 
 
-            const finalOsc1Code = Object.values(finalOsc1FxStringToChuck.current).length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
+            const finalOsc1Code = finalOsc1FxStringToChuck.current && finalOsc1FxStringToChuck.current.length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
+            const finalSamplerCode = finalSamplerFxStringToChuck.current && finalSamplerFxStringToChuck.current.length > 0 ? finalSamplerFxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
 
             // bring back sync mode on this eventually -> // ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
             //  allAnalysisBlocks.current.forEach((block: any) => allAnalysisBlocksCodeGen.concat(block.code));
 
-            // console.log("FUUUUUUUCK GETTING FINAL OSC CODE? ", finalOsc1Code);
-
-
-            // console.log('OOOOF FILES TO PROCESS ', filesToProcess.current);
-
+       
             const filesArray = filesToProcess.current.map((f: any) => f.name) || [];
             console.log("****sanity check osc1 declaration: ", chuckUpdateNeeded, "FUYC ", osc1ChuckToOutlet);
      
-
-
-
-
-
-
-
-
-
-
-
-            console.log("WHAT THE FUCK IS FILE ARRAY? ", filesArray);
-
+            console.log("help please: ", allFxPersistent.current);
 
             const chuckCode = `
             
@@ -1749,13 +2452,8 @@ export default function InitializationComponent() {
                         // clamp
                         if( this.TrackingFile.the_gain > 1 )
                             1 => this.TrackingFile.the_gain;
-                        // // fire!
-                        // this.TrackingFile.the_event.broadcast();
-                
-                        // hop
-                        // (win.size()/4)::samp => now;
             
-                        ((win.size()/4) * (second /samp)) * 1000 => float toMilliseconds;
+                        ((win.size()/4) * (second/samp)) * 1000 => float toMilliseconds;
                         toMilliseconds :: ms => now;
             
                         "" => string sfmString;
@@ -1770,9 +2468,7 @@ export default function InitializationComponent() {
                         winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
                         // fire!
                         this.TrackingFile.the_event.broadcast();
-                        // if (count % this.fft.size() == 0) {
-                        //     <<< "FREQ: ", winKurtosis.fval(0), sfmString >>>;
-                        // }
+
                         count++;
                     }
                 }
@@ -1802,7 +2498,7 @@ export default function InitializationComponent() {
                 
                         // advance time
                         (toMilliseconds)::ms => now;
-                        if (countCrossLog % this.fft.size() == 0) {
+                        if (countCrossLog % (this.fft.size() * 4) == 0) {
                             <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
                         }
                         countCrossLog++;
@@ -1812,7 +2508,8 @@ export default function InitializationComponent() {
                 fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
                     // <<< "SOURCE IS: ", source, mfccString >>>;
                     
-                    while (${!chuckUpdateNeeded}) {
+                    // while (${!chuckUpdateNeeded}) {
+                    while (true) {
                         spork ~ this.upchuckRealTimeFeatures(
                             this.combo, 
                             this.mfccString, 
@@ -1828,7 +2525,7 @@ export default function InitializationComponent() {
                         spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
                         spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
                         
-                        <<< "TIME: ", now >>>;
+                        // <<< "TIME: ", now >>>;
                         <<< "FREQ: ", 
                             this.TrackingFile.the_freq, 
                             this.TrackingFile.the_gain, 
@@ -1838,19 +2535,20 @@ export default function InitializationComponent() {
                         >>>;
                         
                         // beat => now;
-                        whole / 4 => now; 
+                        // whole / 4 => now; 
                     }
                 }
             }
             
             
-            
+    
             
             
             class SynthVoice extends Chugraph
                 {
                     // SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter => outlet;
                     ${osc1ChuckToOutlet}
+                    
             
                     // saw1 ${osc1FXStringToChuck.current} => dac;
                     ${osc2ChuckToOutlet}
@@ -1867,8 +2565,6 @@ export default function InitializationComponent() {
             
                     Noise noiseSource => lpf;
                     0 => noiseSource.gain;
-                    
-                    ${connectorStk1DirectToDac}
                                     
                     TriOsc tri1, tri2;
                     SqrOsc sqr1, sqr2;
@@ -1910,8 +2606,7 @@ export default function InitializationComponent() {
             
                     ${parseInt(moogGrandmotherEffects.current.adsrAttack.value)}::ms => adsr.attackTime;
                     ${parseInt(moogGrandmotherEffects.current.adsrDecay.value)}::ms => adsr.decayTime;
-                    ${moogGrandmotherEffects.current.adsrSustain.value} => float susLevel; 
-                    susLevel => adsr.sustainLevel;
+                    ${moogGrandmotherEffects.current.adsrSustain.value} => adsr.sustainLevel;
                     ${parseInt(moogGrandmotherEffects.current.adsrRelease.value)}::ms => adsr.releaseTime;
                     ${parseInt(moogGrandmotherEffects.current.offset.value)} => int offset;
                     880 => float filterEnv;
@@ -1935,6 +2630,7 @@ export default function InitializationComponent() {
                         Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
                         1 => adsr.keyOn;
                         spork ~ filterEnvelope();
+                        
                     }
             
                     fun void ChooseOsc1(int oscType)
@@ -2049,9 +2745,14 @@ export default function InitializationComponent() {
                         filterCutoff => float startFreq;
                         while((adsr.state() != 0 && adsr.value() == 0) == false)
                         {
-                            (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;                        
-                            adsr.releaseTime() => now;  
+                            (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;  
+                            // <<< "IN HERE" >>>;                      
+                            adsr.releaseTime() => now;
+                            1 => adsr.keyOff;
+                            
+                            me.yield();
                         }
+                        me.exit();
                     }
             
                     fun void cutoff(float amount)
@@ -2065,7 +2766,8 @@ export default function InitializationComponent() {
                             0 => amount;
                         }
                         (amount / 100) * 5000 => filterCutoff;
-                        10::ms => now;
+                        // 10::ms => now;
+                        whole/4 => now;
                     }
             
                     fun void rez(float amount)
@@ -2135,7 +2837,7 @@ export default function InitializationComponent() {
                         {
                             0 => amount;
                         }
-                        500 * (amount / 100) => filterLfo.gain;
+                        5000 * (amount / 100) => filterLfo.gain;
                     }
             
                     fun void noise(float amount)
@@ -2169,18 +2871,13 @@ export default function InitializationComponent() {
             
                 ${modulateDeclarationOsc1}
                 ${modulateCodeStringOsc1}
-            
-                
                 ${delayDeclarationOsc1}
                 ${delayADeclarationOsc1}
                 ${delayLDeclarationOsc1}
-            
                 ${delayCodeStringOsc1}
                 ${delayACodeStringOsc1}
                 ${delayLCodeStringOsc1}
-            
                 ${spectacleCodeStringOsc1}
-                
                 ${osc1FxStringNeedsBlackhole.current}
             
                 ${finalOsc1Code}
@@ -2194,9 +2891,10 @@ export default function InitializationComponent() {
                 ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice.ChooseOsc2;
                 ${moogGrandmotherEffects.current.detune.value} => voice.detune;
                 ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice.oscOffset;
+                ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
                 ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice.pitchMod;
                 ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice.ChooseLfo;
-                0.5 => voice.filterLfo.gain;
+                // 0.5 => voice.filterLfo.gain;
                 ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
                 880 => voice.filterEnv;
                 ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice.noise;
@@ -2206,7 +2904,67 @@ export default function InitializationComponent() {
             
             
                 SndBuf buffers[4] => dac;
-                SndBuf testing => dac;
+                
+                
+                class EffectsModule extends Chugraph
+                {
+
+                    "" => string fxChain;
+                    inlet => Gain dry => outlet;
+                    dry => ${samplerChuckToOutlet} ${spectacleDeclarationSampler} outlet;
+
+                    ${finalSamplerCode}
+                    
+                    ${winFuncCodeStringSampler}
+                    ${powerADSRCodeStringSampler}
+                    ${expEnvCodeStringSampler}
+                    ${wpDiodeLadderCodeStringSampler}
+                    ${wpKorg35CodeStringSampler}
+                    
+                    ${ellipticCodeStringSampler}
+                    ${expDelayCodeStringSampler}
+              
+
+                    // ${modulateDeclarationSampler}
+                    ${delayDeclarationSampler}
+                    ${delayADeclarationSampler}
+                    ${delayLDeclarationSampler}
+
+                   
+                    ${delayCodeStringSampler}
+                    ${delayACodeStringSampler}
+                    ${delayLCodeStringSampler}
+                    ${modulateCodeStringSampler}
+                    ${spectacleCodeStringSampler}
+                    ${samplerFxStringNeedsBlackhole.current}
+                    
+                   
+                    0.1 => limiter_Sampler.slopeAbove;
+                    1.0 => limiter_Sampler.slopeBelow;
+                    0.5 => limiter_Sampler.thresh;
+                    5::ms => limiter_Sampler.attackTime;
+                    300::ms => limiter_Sampler.releaseTime;
+                    0 => limiter_Sampler.externalSideInput;
+         
+
+                    // dry => Delay delay2 => outlet;
+                    // delay2 => Gain feedback => delay2;
+                    // feedback => NRev rev2 => outlet;
+                    // dry => NRev rev2 => outlet;
+                    // 0.8 => feedback.gain;
+                    // 0.6 => rev2.mix;
+     
+
+
+
+                    
+                
+                    // whole/${currentNoteVals.samples[0]} => delay2.max => delay2.delay;
+                }
+                
+                SndBuf sample1 => EffectsModule effectsModule => dac;
+
+                
                 
                 // ${filesArray} @=> string filesArr[];
                 string files[4];
@@ -2226,7 +2984,7 @@ export default function InitializationComponent() {
             
                 // UniversalAnalyzer uA;
                 // "${analysisSourceRadioValue}" => string analysisSource;
-                // <<< "ANAL SOURCE 2 ", analysisSource >>>;
+           
                 // if (analysisSource == "Sampler") { 
                 //     uA.declarationCode(testing);
                 //     files[3].find('.') || 0 => int handleDotWav;
@@ -2244,20 +3002,21 @@ export default function InitializationComponent() {
                     buffers[1].samples() => buffers[1].pos;
                     buffers[2].samples() => buffers[2].pos;
                     buffers[3].samples() => buffers[3].pos;
-
+                    sample1.samples() => sample1.pos;
                 }
-            
-                bar => now;
-            
+                  
                 fun void playWindow(WinFuncEnv @ win, dur attack, dur release) {
                     win.attackTime(attack);
                     win.releaseTime(release);
+                    <<< "PLAYWINDOW_ON" >>>;
                     while (true) {
                         win.keyOn();
                         attack => now;
                         win.keyOff();
                         release => now;
+                        me.yield();
                     }
+                    me.exit();
                 }
             
                 fun void Drum(int select, dur duration)
@@ -2275,25 +3034,27 @@ export default function InitializationComponent() {
                     }
                     if(select == 2)
                     {
-                        // 0 => buffers[2].pos;
-
-                        "${filesToProcess.current.length > 0 ? filesToProcess.current[0].name : "Conga.wav"}" => string filename;
-                        filename => testing.read;
-        
-                        0.5 => testing.gain; 
-                        // testing.samples()/3 => testing.pos;
-                        0 => testing.pos;
-                        Math.random2f(0.98,1.0) => testing.rate;
-                        
+                        0 => buffers[2].pos;    
                     }
                     if(select == 3)
                     {
                         0 => buffers[3].pos;
                     }
+                    if (select == 4) {
+                        "${filesToProcess.current && filesToProcess.current.length > 0 ? filesToProcess.current[0].name : "Conga.wav"}" => string filename;
+                        filename => sample1.read;
+        
+                        0.5 => sample1.gain; 
+                        // sample1.samples()/3 => sample1.pos;
+                        0 => sample1.pos;
+                        Math.random2f(0.98,1.0) => sample1.rate;
+                    }
 
          
+                   // <<< "DRUM_ON" >>>;
+                    duration - (now % duration)  => now;
+                    0 => sample1.rate;
 
-                    duration => now;
                     SilenceAllBuffers();
                     me.exit();
                     
@@ -2305,76 +3066,88 @@ export default function InitializationComponent() {
             
             
                 fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
-                    
- 
-                    ${parseFloat(moogGrandmotherEffects.current.env.value).toFixed(4)} => voice.env;
-                    ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
+                    <<< "PLAYSYNTH_ON" >>>;
                     myEvent => now;
-                    UniversalAnalyzer uA;
+                    // UniversalAnalyzer uA;
                     // "${analysisSourceRadioValue}" => string analysisSource;
                     // if (analysisSource == "Osc") { 
                         // uA.declarationCode(voice);
                         // spork ~ uA.getAnalysisForSource(voice, "voice");
                     // }
                     
-                    
+                    0 => int runningShreds;
+                    0 => int runningSynthShreds;
             
-                    while (${chuckUpdateNeeded === false}) {
-                        "" => string getNotesArr;
-            
-                        for (0 => int i; i < notesToPlay.cap(); i++) {
-                            if (getNotesArr.length() > 0) {
-                                getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
-                            } else {
-                                Std.itoa(notesToPlay[i]) => getNotesArr;
-                            }
-                        }
+                    // while (${chuckUpdateNeeded === false}) {
+                    while(true) {
                         
-                        <<< "NOTESDOWN ", 
-                            notesToPlay.cap(), 
-                            getNotesArr 
-                        >>>;
+                        "" => string getNotesArr;
+                        Machine.numShreds() => runningShreds;
+
+                        // for (0 => int i; i < notesToPlay.cap(); i++) {
+                        //     if (${hold} == 1 && (i == notesToPlay.cap()-1)) {
+                        //         getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
+                        //     }
+                        //     if (${hold} == 0 && getNotesArr.length() > 0) {
+                        //         getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
+                        //     } else {
+                        //         Std.itoa(notesToPlay[i]) => getNotesArr;
+                        //     }
+                        // }
+               
                         count % (notesToPlay.size()) => int osc1Idx;
                         // <<< notesToPlay[osc1Idx] >>>;
+                        
                         if (notesToPlay.cap() > 1) {
-                            for (1 => int i; i < notesToPlay.size(); i++) {
-                                if (i == notesToPlay.cap() - 1) {
+                            for (0 => int i; i < notesToPlay.size(); i++) {
+                                if (i > 0) {
                                     notesToPlay[i] => voice.keyOn;
+                                    duration - (now % duration)  => now;
+                               
+                                    1 => voice.keyOff;
                                 }
-                                duration => now;
-                                1 => voice.keyOff;
+                                me.yield();
                             }
-                            // duration - (now % duration)  => now;
-                            1 => voice.keyOff;
+    
+                            // 1 => voice.keyOff;
+                            me.yield();
+                            
                         }
                         else {
                             duration - (now % duration)  => now;
+         
+                           
+                            me.yield();
                         }
+                    
+                        me.yield();
                     }
                     me.exit();
                     
                 }
             
-                fun void PlaySTK(int notesToPlay[], dur duration){
+                fun void PlaySTK(Event mySTKEvent, int notesToPlay[], dur duration){
+                    mySTKEvent => now;
                     // count % (notesToPlay.size()) => int stk1Idx;
+                    
                     while (true) {
                         count % (notesToPlay.size()) => int stk1Idx;
-                        
+                        <<< "STK_ON" >>>;
                         for (0 => int i; i < notesToPlay.cap(); i++) {
                             // <<< notesToPlay[i] >>>;
                             if (notesToPlay[i] != -1 && i == notesToPlay.cap()-1) {
                                 notesToPlay[i] => voice.stk1;
                             }
                             duration / notesToPlay.size() => now;
+                            me.yield();
                         }
+                        me.exit();
                     }
+                    me.exit();
                 }
             
                 
-                fun void PlaySamples(int samplesArrayPos, int notesToPlay[], dur whole) {
-                    <<< "SHIT2! ", ${filesToProcess.current.length} >>>;
-                    
-                }
+
             
                 fun void PlaySamplePattern(
                     Event mySampleEvent, 
@@ -2383,35 +3156,37 @@ export default function InitializationComponent() {
                     dur duration
                 ) {                
                     // count % (notesToPlay.size()) => int sampler1Idx;
-            
+                    <<< "SAMPLE_ON" >>>;
                     <<< "samples notes/pattern to play ", notesToPlay.cap() >>>; 
                     <<< "samples arr pos", samplesArrayPos.cap() >>>;
                     mySampleEvent => now;
                     0 => int samplerCount;
-                    while (${!chuckUpdateNeeded}) {
+                    // while (${!chuckUpdateNeeded}) {
+                    while(true) {
                         count % (notesToPlay.size()) => int sampler1Idx;
                         // for (0 => int i; i < notesToPlay.size(); i++) {
                         for (0 => int i; i < ${numeratorSignature * denominatorSignature}; i++) {
                             // <<< "NOTE!!! ", notesToPlay[i] >>>;
                             if (i % ${numeratorSignature} == 0) {
-                                spork ~ Drum(2, duration);
+                                spork ~ Drum(4, duration);
+                                
                             } 
                             if (${metronomeOn} == 1 && samplerCount % 4 == 0) {
                                 spork ~ Drum(3, duration);
+                                
                             }
                             if (samplerCount % 4 == 2) {
                                 spork ~ Drum(1, duration);
-                            }                                                      
-                            // if (samplerCount % 2 == 0) {
-                            //     spork ~ Drum(notesToPlay[2], duration);
-                            // }
-
-                      
-                            
+                                
+                            }    
+                            me.yield();                                                     
                         }   
-                        duration => now;
+                        // duration => now;
+                        duration - (now % duration) => now;
                         <<< "NUM_COUNT ", samplerCount >>>;
+                        
                         samplerCount++;
+                        me.yield();
                     }
                 }
             
@@ -2426,6 +3201,7 @@ export default function InitializationComponent() {
                 
                 Event myEvent;
                 Event mySampleEvent;
+                Event mySTKEvent;
                 
                 private class TimeProvider {
                     0 => static int globalCount;
@@ -2434,34 +3210,52 @@ export default function InitializationComponent() {
                 TimeProvider oTp;
 
                 private class ChordProvider {
-                
                     [0] @=> static int notes[];
-                    fun void playNotes(int notes[]) {
-                        <<< "Effin notes: ", notes.cap() >>>;
+                    [0] @=> static int notesToRemove[];
+                    fun void playNotes(int note) {
+                        ChordProvider.notes << note;    
                     }
                     fun void releaseNotes (int note) {
-                        if (oCp.notes.cap() > 1) {
-                            for (0 => int i; i < oCp.notes.cap(); i++) {
-                                if (i < oCp.notes.cap()-2) {
-                                    oCp.notes.popFront();
+                        ${hold} => int hold;
+                        for (0 => int i; i < ChordProvider.notes.cap(); i++)
+                        {
+                            if (note == ChordProvider.notes[i] && hold == 0) {
+                                ChordProvider.notes.popOut(i);
+                                if (ChordProvider.notes.size() > 1) {
+                                    ChordProvider.notes.popFront();
                                 }
-                             
+                       
                             }
+                            else if (note == ChordProvider.notes[i] && hold == 1) {
+                                while (ChordProvider.notes.cap() > 2) {
+                                    ChordProvider.notes.popFront();
+                                }
+                            }
+                            // else if (ChordProvider.notes.cap() > 2 && i < ChordProvider.notes.cap()) {
+                            //     ChordProvider.notes.popFront();
+                            // }
                         }
+                        me.yield();
                     }
                 }
                     
                 ChordProvider oCp;
                 
-                spork ~ PlaySTK(oCp.notes, whole);           
+                spork ~ PlaySTK(mySTKEvent, oCp.notes, whole/${currentNoteVals.oscs[0]});           
                 
-                spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/4);
+                spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
                 
-                spork ~ PlaySamplePattern(mySampleEvent, [0], [0,1,2,3], whole/4);
+                spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]});
      
-           
-                while(${chuckUpdateNeeded === false}) {
-                    
+                
+                me.yield();
+
+                // while(${chuckUpdateNeeded === false}) {
+                while(true) {
+                 
+                    // Machine.remove(synthShred.id());
+                    // spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
+                
                     // wait for HID event
                     hid => now;
             
@@ -2469,23 +3263,41 @@ export default function InitializationComponent() {
                     while( hid.recv( msg ) )
                     {
                         if( msg.isButtonDown() ) {
+                            
+                            myEvent.broadcast();
+                            mySTKEvent.broadcast();
+
                             <<< "[key]", msg.key, "(ascii)", msg.which >>>;
                             ${virtualKeyMapping(48, 1)}
-            
-            
+
+                            // mySampleEvent.broadcast();
+                            
+                            me.yield();
                         } else if (msg.isButtonUp()) {
+  
                             ${virtualKeyMapping(48, 0)}
+                            // if(ChordProvider.notes.cap() < 2) {
+                                // synthShred.exit();
+                            // }
+                            // synthShred.exit();
+                            me.yield();
                         }
                         else  {
                             <<< "IN HID ELSE!" >>>;
+                            me.yield();
                         }
+                        me.yield();
                     }
-            
+
                     
                     mySampleEvent.broadcast();
-                    myEvent.broadcast();
-                    whole / 4 - (now % whole/4) => now;
-
+                    // myEvent.broadcast();
+                    // mySTKEvent.broadcast();
+               
+                    (4 * whole)/${currentNoteVals.master[0]} - (now % (4 *whole)/${currentNoteVals.master[0]}) => now;
+                    <<< "TICK" >>>;
+                    // synthShred.exit();
+                  
                     if (count < ${numeratorSignature * denominatorSignature} ) {
                         count++;
                         oTp.globalCount++;
@@ -2496,10 +3308,13 @@ export default function InitializationComponent() {
 
 
                     
-                    <<< "NUM_COUNT: ", oTp.globalCount >>>;
+                    // <<< "NUM_COUNT: ", oTp.globalCount >>>;
                     <<< "NumShreds: ", Machine.numShreds() >>>;
+                    // synthShred.exit();
                     // count++;
-            
+
+                    
+                    me.yield();
                 }                            
             `;
 
@@ -2508,7 +3323,7 @@ export default function InitializationComponent() {
 
 
 
-
+                console.log("CHUCK CODE!!! ", chuckCode);
 
 
 
@@ -2631,13 +3446,13 @@ export default function InitializationComponent() {
             ${bodyIR1}
 
             Std.mtof(note + 32) => ${getStk1String[2]}.freq;
-            0.1 => ${getStk1String[2]}.gain;
+            0.4 => ${getStk1String[2]}.gain;
             1 => ${getStk1String[2]}.noteOn;
 
      
         ` : '';
 
-        //console.log("HOLY SHIT WHAT IS STK1 THEN OSC1 CODE? ", STK_1_Code, STK_1_Code, OSC_1_Code);
+
         setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
 
@@ -2740,19 +3555,24 @@ export default function InitializationComponent() {
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const handleUpdateSliderVal = (obj: any, value: any) => {
+    
         if (currentScreen.current === '') {
             // console.log('SANE CHECK ', obj, value);
+            console.log("## SANITY 1 ", Object.values(allFxPersistent.current[`${fxRadioValue}`]));
             let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i.var === obj.name && i)[0];
 
             if (!index || index.length < 1) {
                 console.log('this should replace... ', allFxPersistent.current[`${fxRadioValue}`].length - 1);
                 index = allFxPersistent.current[`${fxRadioValue}`].length - 1;
             }
-
+console.log("## SANITY 2 ", allFxPersistent.current[`${fxRadioValue}`][index]);
+console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             if (allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`]) {
                 allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`].value = value;
             } else {
             }
+            currentFX.current[currentFX.current.length - 1][0][1][`${obj.name}`].value = value; 
+            console.log("for real??? ", currentFX.current);
         }
 
         // moogGrandmotherEffects.current[`${obj.name}`].value = value;
@@ -2765,18 +3585,15 @@ export default function InitializationComponent() {
             console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
         }
-        else if (currentScreen.current === '') {
-            console.log("WHY ARE WE ON THIS SCREEN??? ");
-            console.log('curr fx $$$$$$ ', currentFX.current);
-            console.log('curr fx obj $$$$$$ ', obj.name);
-        }
-        else if (currentScreen.current.indexOf(`fx_`) !== -1) {
-            console.log('FX ARE KINDA SHIT: fxFX.current in : ', fxFX.current);
+        else if (currentScreen.current.includes(`fx_`)) {
+            console.log('CURRENT FX SCREEN SWITCHING IS CURRENTLY KINDA SHIT: fxFX.current in : ', currentFX.current);
             console.log('SLIDER OBJ NAME: ', obj.name);
-            currentFX.current = fxFX.current[0].presets;
-            console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
-            currentFX.current[`${obj.name}`].value = value;
+            //currentFX.current = fxFX.current[0].presets ? fxFX.current[0].presets : fxFX.current;
+           // console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
+            currentFX.current[0].presets[`${obj.name}`].value = value;
         }
+
+        console.log('WHAT ARE CURRENT FX??? ', currentFX.current);
     };
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
@@ -2814,6 +3631,7 @@ export default function InitializationComponent() {
     }
 
     const handleShowFX = (closeOnly?: boolean) => {
+
         setShowFX(!showFX);
     };
 
@@ -2862,11 +3680,6 @@ export default function InitializationComponent() {
     const initialSampNow = useRef<number>();
 
     useEffect(() => {
-        console.log("HEYO THE NOTES DOWN NOW IN USEEFFECT: ", theNotesDown);
-        console.log("HEYO NUM NOTES DOWN NOW IN USEEFFECT: ", numNotesDown);
-    }, [numNotesDown, theNotesDown]);
-
-    useEffect(() => {
         if (Math.floor(currentNumerCount/(numeratorSignature)) === 0) return;
         setCurrentDenomCount(Math.floor(currentNumerCount/(numeratorSignature)) % denominatorSignature);
         setCurrentPatternCount(Math.floor(currentNumerCount/(numeratorSignature * denominatorSignature))); //
@@ -2874,13 +3687,14 @@ export default function InitializationComponent() {
 
     useEffect(() => {
 
-
         if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT")) {
             const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
 
             const removeComma: string = parseString[0].replace(/,\s*$/, "");
             const countToNum: number = +removeComma && +removeComma;
+
             if (Math.ceil(countToNum/numeratorSignature) !== 0) {
+
                 setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
                 setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
             }
@@ -2889,11 +3703,11 @@ export default function InitializationComponent() {
         };
 
         if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
-            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
-            console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current);
-            setNumNotesDown(parsedLastChuckMessage.current[0]);
-            const theNotesDown = [parsedLastChuckMessage.current.slice(1).filter((i: any) => i.length > 0 && i)];
-            setTheNotesDown(theNotesDown);
+            // parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+            // console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current);
+            // setNumNotesDown(parsedLastChuckMessage.current[0]);
+            // const theNotesDown = [parsedLastChuckMessage.current.slice(1).filter((i: any) => i.length > 0 && i)];
+            // setTheNotesDown(theNotesDown);
         }
 
         if (lastChuckMessage && lastChuckMessage.includes('FEATURES')) {
@@ -3000,6 +3814,10 @@ export default function InitializationComponent() {
         setShowBPM(!showBPM);
     };
 
+    const handleShowSTK = (e: any) => {
+        setShowSTKManager(!showSTKManager);
+    }
+
     const closeAnalysisPopup = () => {
         setIsAnalysisPopupOpen(!isAnalysisPopupOpen);
     };
@@ -3011,15 +3829,17 @@ export default function InitializationComponent() {
             runChuck();
             
         }
-    }, [chuckUpdateNeeded])
+    }, [chuckUpdateNeeded]);
+
+    const handleUpdateFXView = (e: any) => {
+        console.log("heya target: ", e.target.innerText);
+    };
 
     return (
         <ThemeProvider theme={theme}>
             <Box sx={{ height: size.width, boxSizing: "border-box", width: size.width, display: 'flex', flexDirection: 'row' }}>
                 {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
                     <Box key={babylonKey} sx={{ left: '0', display: 'flex', flexDirection: 'row' }}>
-
-
                         <Box sx={{ height: "80%", bottom: "10%", top: "10%", left: "10%", width: "80%", right: "10%", position: "absolute", pointerEvents: "none" }}>
                             {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
                             {isAnalysisPopupOpen &&
@@ -3045,13 +3865,10 @@ export default function InitializationComponent() {
                                     analysisSourceRadioValue={analysisSourceRadioValue}
                                 />}
                         </Box>
-
-
-
                         <FXRouting
                             key={fXChainKey + fxRadioValue}
                             fxChainNeedsUpdate={fxChainNeedsUpdate}
-                            fxData={allFxPersistent.current[`${fxRadioValue}`]}
+                            fxData={allFxPersistent.current}
                             width={size.width}
                             height={size.height}
                             handleShowFX={handleShowFX}
@@ -3083,21 +3900,23 @@ export default function InitializationComponent() {
                             register={register}
                             watch={watch}
                         />
-                        <BabylonLayer
-                            game={babylonGame.current}
-                            handleUpdateSliderVal={handleUpdateSliderVal}
-                            fxKnobsCount={fxKnobsCount}
-                            needsUpdate={needsUpdate}
-                            handleResetNeedsUpdate={() => setNeedsUpdate(false)}
-                            // effects={moogGrandmotherEffects.current}
-                            effects={currentFX.current}
-                            visibleFXKnobs={visibleFXKnobs.current}
-                            chuckUpdateNeeded={chuckUpdateNeeded}
-                            handleTurnKnob={handleTurnKnob}
-                            runChuck={runChuck}
-                        />
-
-
+                        <Box sx={{boxSizing: 'border-box', width: window.innerWidth, height: window.innerHeight, display: !showFX ? "" : "hidden"}}>
+                            <BabylonLayer
+                                game={babylonGame.current}
+                                    handleUpdateSliderVal={handleUpdateSliderVal}
+                                    fxKnobsCount={fxKnobsCount}
+                                    needsUpdate={needsUpdate}
+                                    handleResetNeedsUpdate={() => setNeedsUpdate(false)}
+                                    // effects={moogGrandmotherEffects.current}
+                                    effects={currentFX.current}
+                                    visibleFXKnobs={visibleFXKnobs.current}
+                                    chuckUpdateNeeded={chuckUpdateNeeded}
+                                    handleTurnKnob={handleTurnKnob}
+                                    runChuck={runChuck}
+                                showFX={{showFX}}
+                            />
+                        </Box>
+   
                         <Box
                             sx={{
                                 left: '0px',
@@ -3122,23 +3941,151 @@ export default function InitializationComponent() {
                                     maxHeight: '40px',
                                     color: 'rgba(0,0,0,.98)',
                                     backgroundColor: 'rgba(158, 210, 162, 1)', 
+                                    '&:hover': {
+                                        color: '#f5f5f5'
+                                    }
                                 }} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon />}>In</Button>)}
-                            {chuckHook && (<Button style={{ background: 'rbga(0,0,0,.91)', minWidth: '104px', color: 'rgba(0,0,0,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px' }} variant="contained" id="runChuckButton" onClick={runChuck} endIcon={<PlayCircleFilledIcon />}>Pl</Button>)}
-                            {chuckHook && (<Button style={{ background: 'rbga(0,0,0,.91)', minWidth: '104px', color: 'rgba(0,0,0,1)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={stopChuckInstance} endIcon={<StopCircleIcon />}>St</Button>)}
-                            {chuckHook && (<Button style={{ color: 'rgba(0,0,0,1)', background: 'rbga(0,0,0,.91)' }} sx={{ backgroundColor: 'rgba(232, 82, 82, 1)', background: 'rgba(232, 82,82, 1)', minWidth: '104px', marginLeft: '8px', maxHeight: '40px' }} variant="contained" id="micStartRecordButton" onClick={chuckMicButton} endIcon={<KeyboardVoiceIcon />}>Rc</Button>)}
-                            {chuckHook && (<Button style={{ minWidth: '104px', color: 'rgba(0,0,0,1)', background: 'rbga(0,0,0,.91)' }} sx={{ minWidth: '76px', paddingLeft: '24px', maxHeight: '40px', marginLeft: '8px' }} variant="contained" id="stopChuckButton" onClick={closeAnalysisPopup} endIcon={<AutoGraphIcon />}>An</Button>)}
+                            {chuckHook && (
+                                <Button 
+                                    style={{ 
+                                        background: 'rbga(0,0,0,.91)', 
+                                        minWidth: '104px', 
+                                        color: 'rgba(0,0,0,1)',           
+                                    }} 
+                                    sx={{ 
+                                        minWidth: '76px', 
+                                        paddingLeft: '24px', 
+                                        maxHeight: '40px', 
+                                        '&:hover': {
+                                            color: '#f5f5f5'
+                                          }
+                                    }} 
+                                    variant="contained" 
+                                    id="runChuckButton" 
+                                    onClick={runChuck} 
+                                    endIcon={
+                                        <PlayCircleFilledIcon />
+                                    }>
+                                        Pl
+                                </Button>)}
+                            {chuckHook && (
+                                <Button 
+                                    style={{ 
+                                        background: 'rbga(0,0,0,.91)', 
+                                        minWidth: '104px', 
+                                        color: 'rgba(0,0,0,1)' 
+                                    }} 
+                                    sx={{ 
+                                        minWidth: '76px', 
+                                        paddingLeft: '24px', 
+                                        maxHeight: '40px', 
+                                        marginLeft: '8px', 
+                                        '&:hover': {
+                                            color: '#f5f5f5'
+                                        }
+                                    }} 
+                                    variant="contained" 
+                                    id="stopChuckButton" 
+                                    onClick={stopChuckInstance} 
+                                    endIcon={<StopCircleIcon />}>
+                                        St
+                                </Button>)}
 
-                            <Button sx={{                     
-                                color: 'rgba(0,0,0,.98)',
-                                backgroundColor: 'rgba(147, 206, 214, 1)', 
-                                background: 'rbga(0,0,0,.91)', 
-                                position: 'absolute', 
-                                borderColor: 'rgba(228,225,209,1)', 
-                                left: '0px', 
-                                minWidth: '104px', 
-                                marginLeft: '12px', 
-                                top: '232px', 
-                                maxHeight: '40px' }} variant="outlined" onClick={handleShowBPM} endIcon={<AccessTimeIcon />}>BPM</Button>
+                            {chuckHook && (
+                                <Button 
+                                    style={{ 
+                                        color: 'rgba(0,0,0,1)', 
+                                        background: 'rbga(0,0,0,.91)' 
+                                    }} 
+                                    sx={{ 
+                                        backgroundColor: 'rgba(232, 82, 82, 1)', 
+                                        background: 'rgba(232, 82,82, 1)', 
+                                        minWidth: '104px', 
+                                        marginLeft: '8px', 
+                                        maxHeight: '40px', 
+                                        '&:hover': {
+                                            color: '#f5f5f5'
+                                        }
+                                    }} 
+                                    variant="contained" 
+                                    id="micStartRecordButton" 
+                                    onClick={chuckMicButton} 
+                                    endIcon={<KeyboardVoiceIcon />}>
+                                        Rc
+                                    </Button>
+                                )
+                            }
+                            {chuckHook && (<Button 
+                                style={{ 
+                                    minWidth: '104px', 
+                                    color: 'rgba(0,0,0,1)', 
+                                    background: 'rbga(0,0,0,.91)' 
+                                }} 
+                                sx={{ 
+                                    minWidth: '76px', 
+                                    paddingLeft: '24px', 
+                                    maxHeight: '40px', 
+                                    marginLeft: '8px',
+                                    '&:hover': {
+                                        color: '#f5f5f5'
+                                    } 
+                                }} 
+                                variant="contained" 
+                                id="stopChuckButton" 
+                                onClick={closeAnalysisPopup} 
+                                endIcon={<AutoGraphIcon />}>
+                                    An
+                                </Button>)}
+
+                            <Button 
+                                sx={{                     
+                                    color: 'rgba(0,0,0,.98)',
+                                    backgroundColor: 'rgba(147, 206, 214, 1)', 
+                                    background: 'rbga(0,0,0,.91)', 
+                                    position: 'absolute', 
+                                    borderColor: 'rgba(228,225,209,1)', 
+                                    left: '0px', 
+                                    minWidth: '104px', 
+                                    marginLeft: '12px', 
+                                    top: '232px', 
+                                    maxHeight: '40px',
+                                    '&:hover': {
+                                        color: '#f5f5f5'
+                                    } 
+                                }} 
+                                variant="outlined" 
+                                onClick={handleShowBPM} 
+                                endIcon={<AccessTimeIcon />}>
+                                    BPM
+                                </Button>
+
+
+
+
+                                <Button 
+                                    sx={{                     
+                                        color: 'rgba(0,0,0,.98)',
+                                        backgroundColor: 'rgba(158, 210, 162, 1)', 
+                                        background: 'rbga(0,0,0,.91)', 
+                                        position: 'absolute', 
+                                        borderColor: 'rgba(228,225,209,1)', 
+                                        left: '0px', 
+                                        minWidth: '104px', 
+                                        marginLeft: '12px', 
+                                        top: '276px', 
+                                        maxHeight: '40px',
+                                        '&:hover': {
+                                            color: '#f5f5f5'
+                                        } 
+                                    }} 
+                                    variant="outlined" 
+                                    onClick={handleShowSTK} 
+                                    endIcon={<DeblurIcon />}>
+                                        STK
+                                    </Button>
+
+
+
                             <ControlPopup
                                 bpm={bpm}
                                 handleChangeBPM={handleChangeBPM}
@@ -3165,6 +4112,32 @@ export default function InitializationComponent() {
                         </Box>
                     </Box>
                 )}
+                <Box id="fxViewController" sx={{position:"absolute", left: 0, bottom: 0, height: "25%", width: "50%"}}>
+                    <Box>
+                        <Button onClick={(e) => handleUpdateFXView(e)}>Osc</Button>
+                        {allFxPersistent.current.Osc1.map((i: any) => <Button key={`updateFXView_Osc_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
+                    </Box>
+                    <Box>
+                        <Button onClick={handleUpdateFXView}>STK</Button>
+                        {allFxPersistent.current.STK.map((i: any) => <Button key={`updateFXView_Stk_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
+                    </Box>
+                    <Box>
+                        <Button onClick={handleUpdateFXView}>Sampler</Button>
+                        {allFxPersistent.current.Sampler.map((i: any) => <Button key={`updateFXView_Sampler_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
+                    </Box>
+                    <Box>
+                        <Button onClick={handleUpdateFXView}>Audio In</Button>
+                        {allFxPersistent.current.AudioIn.map((i: any) => <Button key={`updateFXView_AudioIn_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
+                    </Box>
+                </Box>
+                <Box
+                    sx={{position: "absolute", display: "flex", color:"white", bottom: 0, left: 0}}
+                >
+                    <CheckedFXRadioBtns 
+                        handleCheckedFXToShow={handleCheckedFXToShow} 
+                        checkedEffectsListHook={checkedEffectsListHook}>
+                    </CheckedFXRadioBtns>
+                </Box>  
                 <Box sx={{ position: "absolute", color: "white", top: "12px", right: "12px"}}>
                     {
                         showBPM && (
@@ -3179,8 +4152,18 @@ export default function InitializationComponent() {
                         />
                     </Box>)
                     }
+                    {
+                        showSTKManager && (
+                            <STKManagerDropdown
+                            updateStkKnobs={updateStkKnobs}
+                            stkValues={stkValues}
+                            setStkValues={setStkValues}
+                            ></STKManagerDropdown>
+                        )
+                    }
                     <Box sx={{position: "relative", display: "flex", flexDirection: "column", textAlign: "center"}}>
                         <Box sx={{position: "relative", display: "flex", flexDirection: "row", textAlign: "center", justifyContent: "center"}}>
+                            <Button sx={{color: hold === 1 ? "green" : "blue", position: "relative", display: "flex", zIndex: "9999"}} onClick={() => handleUpdateHold()}>HOLD</Button>
                             <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
                                 {currentNumerCountColToDisplay} 
                             </Typography>

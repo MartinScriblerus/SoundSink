@@ -13,20 +13,33 @@ import FXCheckboxLabels from './FXCheckboxes';
 import { STKOption } from '@/utils/fixedOptionsDropdownData';
 
 interface PedalboardNode {
-  id: string;
-  name: string;
-  group: string;
+    id: string;
+    name: string;
+    group: string;
 }
 
 interface PedalboardLink {
-  source: string;
-  target: string;
-  value: number;
+}
+
+interface PedalboardNodesObj {
+  Osc1: PedalboardNode[] | [],
+  Osc2: PedalboardNode[] | [],
+  STK: PedalboardNode[] | [],
+  Sampler: PedalboardNode[] | [],
+  AudioIn: PedalboardNode[] | []
+}
+
+interface PedalboardLinksObj {
+  Osc1: PedalboardLink[] | [],
+  Osc2: PedalboardLink[] | [],
+  STK: PedalboardLink[] | [],
+  Sampler: PedalboardLink[] | [],
+  AudioIn: PedalboardLink[] | []
 }
 
 interface PedalboardData {
-  nodes: PedalboardNode[];
-  links: PedalboardLink[];
+  nodes: [PedalboardNodesObj] | [];
+  links: [PedalboardLinksObj] | [];
 }
 
 interface Props {
@@ -91,44 +104,68 @@ export default function FXRouting(props: Props) {
   // const [visibleFXCols, setVisibleFXCols] = useState<number>(0);
   const [arcDiagramKey, setArcDiagramKey] = useState<string>(`${fxRadioValue}_arcKey`);
   // const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
-  const data = useRef<PedalboardData>({
-    nodes: [
-        // {id: "", name: "", group: ""}
-    ],
-    links: [
-        // { source: "", target: "", value: ""}
-    ]
+  const data = useRef<PedalboardData | any>({
+    nodes: {},
+    links: {}
   });
 
-  const nodesRef = useRef<PedalboardNode[]>([]);
-  const linksRef = useRef<PedalboardLink[]>([]);
+  const nodesRef = useRef<any>({
+    Osc1: [],
+    Osc2: [],
+    STK: [],
+    Sampler: [],
+    AudioIn: []
+  });
+  
+  const linksRef = useRef<any>({
+    Osc1: [],
+    Osc2: [],
+    STK: [],
+    Sampler: [],
+    AudioIn: []
+  });
 
   const handleFXRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     updateFXInputRadio((event.target as HTMLInputElement).value);
   };
 
   useEffect(() => {
-    fxData.map((fx: any, idx: number) => {
-      if (nodesRef.current.map((i: any) => i.id).indexOf(fx.var) === -1) {
-        nodesRef.current.push({
-          id: fx.var,
-          name: fx.type,
-          group: `${idx}`
-        });
-        linksRef.current.push({
-          source: fx.var,
-          target: 'DAC Out',
-          value: 1
-        })
-        if (clickFXChain) {
-          fxChainNeedsUpdate(linksRef.current);
+    console.log("what is fxData in FXRouting??: ", fxData);
+    fxData.length > 0 && Object.entries(fxData.filter((f:any) => f.visible === true && f)).map(([k, v]: Array<any>, idx: number) => {
+      console.log("gosh: ", k, v, idx);
+      // v.length > 0 && v.map((fx: any, idx: number) => {
+        if (nodesRef.current[k].map((i: any) => i.id).indexOf(v.var) === -1) {
+          
+          console.log("what the hell ", v);
+
+          if (k === fxRadioValue) {
+            nodesRef.current[k].push({
+              id: v.var,
+              name: v.type,
+              group: `${idx}`
+            });
+            linksRef.current[k].push({
+              source: v.var || fxRadioValue,
+              target: 'DAC Out',
+              value: 1
+            })
+            if (clickFXChain) {
+              fxChainNeedsUpdate(linksRef.current[fxRadioValue]);
+            }
+          }
+          // if (clickFXChain) {
+          //   fxChainNeedsUpdate(linksRef.current[fxRadioValue]);
+          // }
+        } else if (idx > 0) {
+          console.log("???????*** ", linksRef.current[idx] && linksRef.current[idx - 1].source && Object.values(linksRef.current[idx]), linksRef.current[idx - 1]);
+          // Object.values(linksRef.current[idx]) && linksRef.current[idx - 1].length > 0 && linksRef.current[idx - 1].source;
+          console.log("LINKS REF WTF: ", linksRef.current);
+          // Object.values(linksRef.current[idx]).target = linksRef.current[idx] && linksRef.current[idx - 1] 
+          if (clickFXChain) {
+            fxChainNeedsUpdate(linksRef.current);
+          }
         }
-      } else if (idx > 0) {
-        linksRef.current[idx].target = linksRef.current[idx - 1].source;
-        if (clickFXChain) {
-          fxChainNeedsUpdate(linksRef.current);
-        }
-      }
+      // });
     });
     data.current = Object({nodes: nodesRef.current, links: linksRef.current});
   }, [nodesRef, fxData, fxRadioValue]);
@@ -137,14 +174,20 @@ export default function FXRouting(props: Props) {
     setArcDiagramKey(`${inputVal}_arcDiagramKey`);
   };
 
-
+console.log("links ref is broken! ", linksRef.current);
   return (
-    <Box >
+    <Box sx={{
+      background: "black", 
+      // width: "100vw", 
+      position: "absolute", 
+      height: "100%",
+      // zIndex: showFX ? 9999 : -1
+    }}>
       <Box style={{position: 'absolute', top: '56px', zIndex: 1200}}>
         <ShowFXView handleShowFX={handleShowFX}/>
       </Box>
       {showFX && <Box
-        key={`arcDiagramOuterWrapper_${linksRef.current.map((l:any) => l.source + "_")}`}
+        key={`arcDiagramOuterWrapper_${Object.values(linksRef.current).map((l:any) => l.source + "_")}`}
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
@@ -152,7 +195,7 @@ export default function FXRouting(props: Props) {
           zIndex: 0,
           background: 'rgba(30,34,26,0.96)',
           position: 'absolute',
-          left: '96px',
+          left: '142px',
           top: '56px',
           bottom: '56px',
           width: `calc(100vw - ${2 * 96}px)`,    
@@ -179,16 +222,19 @@ export default function FXRouting(props: Props) {
             currentScreen={currentScreen}
             playUploadedFile={playUploadedFile}
             lastFileUpload={lastFileUpload}
-            updateFileUploads={updateFileUploads}
+            // updateFileUploads={updateFileUploads}
           />
           <Box 
             // key={`${fxRadioValue}_arcDiagramInnerWrapper`} 
             sx={{
               display: 'flex', 
-              width: width / 3 + 48, 
-              height:`${height - 2 * 48}px`,
+              width: `${width}px`, 
+              height:`${height}px`,
+              position: "relative",
+              maxHeight: "100%",
+              overflow: "scroll",
               // marginTop: '48px', 
-              flexDirection: 'row',
+              flexDirection: 'column',
               // borderRight: '1px solid rgba(147, 206, 214, 1)',
               borderLeft: '1px solid rgba(147, 206, 214, 1)'
             }}

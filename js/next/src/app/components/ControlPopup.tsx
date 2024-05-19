@@ -91,7 +91,10 @@ export default function ControlPopup(props: ControlProps) {
           color: 'rgba(0,0,0,.98)',
           backgroundColor: 'rgba(158, 210, 162, 1)',
           left: '12px', 
-          top: '100px'
+          top: '100px',
+          '&:hover': {
+            color: '#f5f5f5'
+          }
         }} 
         aria-describedby={id} 
         variant="outlined" 
@@ -133,6 +136,9 @@ export default function ControlPopup(props: ControlProps) {
                   position: 'absolute', 
                   minWidth: '48px', 
                   right: '0px', 
+                  '&:hover': {
+                    color: '#f5f5f5'
+                  }
                   // top: '232px'
                 }} 
                 aria-describedby={id} 

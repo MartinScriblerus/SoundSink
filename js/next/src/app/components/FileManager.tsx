@@ -32,7 +32,9 @@ const FileManager = (props: Props) => {
                     left: '12px', 
                     top: '188px',
                     zIndex: 1000,
-                    
+                    '&:hover': {
+                        color: '#f5f5f5'
+                    }
                 }} 
                 variant="outlined" 
                 endIcon={<FileUploadIcon />}
