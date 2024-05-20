@@ -3,9 +3,7 @@ export const virtualKeyMapping = (rootNote: number, msgDownOrUp: number) => {
     return `
     ${msgDownOrUp} => int msgDownOrUp;
 
- 
-
-    oCp.notes @=> int notesArrHid[];
+    <<< "VIRTUALKEYUPDATE_", msgDownOrUp, msg.key >>>;
 
     if ( msg.which == 9 ) {
         if (msgDownOrUp == 0) {

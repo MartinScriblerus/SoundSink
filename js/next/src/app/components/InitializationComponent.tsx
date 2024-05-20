@@ -18,6 +18,7 @@ import { BabylonGame } from '../../interfaces/gameInterfaces';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import axios from 'axios';
 import ControlPopup from './ControlPopup';
+import AnimationIcon from '@mui/icons-material/Animation';
 import FixedOptionsDropdown from './FixedOptionsSelect';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { FXOption, STKOption, fxGroupOptions, fxOptions } from '../../utils/fixedOptionsDropdownData';
@@ -254,6 +255,10 @@ export default function InitializationComponent() {
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
     const [clickFXChain, setClickFXChain] = useState<boolean>(false);
+    const currentNotesDownDisplay = useRef<Array<number | any>>([]);
+    const currentNotesKeyValDownDisplay = useRef<Array<number | any>>([]);
+    const [arpeggiatorOn, setArpeggiatorOn] = useState<number>(0);
+
 
     const doReturnToSynth = useRef<boolean>(false);
 
@@ -895,6 +900,13 @@ export default function InitializationComponent() {
         updateCurrentFXScreen();
     }
 
+    const handleToggleArpeggiator = () => {
+        if (arpeggiatorOn === 0) {
+            setArpeggiatorOn(1);
+        } else {
+            setArpeggiatorOn(0);
+        }
+    }
 
     useEffect(() => {
         console.log("SHOW FX CHANGES: ", showFX)
@@ -976,18 +988,17 @@ export default function InitializationComponent() {
         // tk
         if (currentScreen.current === 'synth') {
             // try {
-                console.log("IN CURR SCREEN SYNT: ", stkValsRef.current, allFxPersistent.current[fxRadioValue]);
+                console.log("WHAT A PAIN: ", stkValsRef.current, allFxPersistent.current[fxRadioValue]);
                 if (stkValsRef.current && stkValsRef.current.length > 0 && (!checkedFXUpdating || toggleSTKvsFX)) {
                     stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
                     currentFX.current = stkFX.current;
-                    console.log("whut are curr fx? ", currentFX.current);
+            
                     currentScreen.current = 'stk';
                     visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
                 } else {
                     // currentScreen.current = 'stk';
-                    currentFX.current = fxFX.current = allFxPersistent.current[fxRadioValue];
+                    currentFX.current = fxFX.current = allFxPersistent.current[fxRadioValue].filter((i: any) => i.visible === true && i);
                     currentScreen.current = "fx_";
-                    console.log("PRESETS FOR SYNTH EFFECT ", Object.values(allFxPersistent.current[fxRadioValue]));
                     visibleFXKnobs.current = allFxPersistent.current[fxRadioValue] && allFxPersistent.current[fxRadioValue].length > 0 && Object.values(allFxPersistent.current[fxRadioValue][0].presets).map((i: any) => [i.label, i]);
                 }
                 setToggleSTKvsFX(!toggleSTKvsFX);
@@ -1235,6 +1246,7 @@ export default function InitializationComponent() {
     };
 
     const modulateString = (source: string, vibratoRate: number, vibratoGain: number, randomGain: number) => {
+
         return `
 
         fun void playModWindow(Modulate @ win, float vibratoRate, float vibratoGain, float randomGain) {
@@ -1491,17 +1503,7 @@ export default function InitializationComponent() {
         // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
         // =================================================================
         Object.values(allFxPersistent.current.Sampler).map((s1: any) => {
-            console.log('***** SAMPLERFXSTRINGTOCHUCK... DOES BREAK HAPPEN HERE?!! ', s1, samplerFXStringToChuck.current);
             if (samplerFXStringToChuck.current.indexOf(`${s1.var}_s1`) === -1) {
-
-
-
-
-
-
-
-
-
                 if (s1.type === "PitchTrack") {
                     if (samplerFxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${s1.var}`) === -1) {
                         samplerFxStringToChuckNeedsBlackhole.current.push({ name: `${s1.var}`, string: `=> ${s1.type} ${s1.var}_s1 => blackhole;` });
@@ -2076,6 +2078,11 @@ export default function InitializationComponent() {
         setChuckHook(theChuck);
     };
 
+    useEffect(()=>{
+        console.log("Curr notes down display: ", currentNotesDownDisplay.current);
+        console.log("curr virtual key notes display: ", currentNotesKeyValDownDisplay.current);
+        
+    },[currentNotesDownDisplay, currentNotesKeyValDownDisplay]);
 
     useEffect(() => {
         console.log('!!!!! ', allFxPersistent.current, Object.values(allFxPersistent.current.Osc1));
@@ -2238,9 +2245,9 @@ export default function InitializationComponent() {
 
             console.log("AND WTF IS THIS? ", samplerFXStringToChuck.current);
 
-            const samplerChuckToOutlet: string = `Dyno limiter_Sampler ${samplerFXStringToChuck.current} => ${winFuncDeclarationSampler} ${ellipticDeclarationSampler} ${powerADSRDeclarationSampler} ${expEnvDeclarationSampler} ${expDelayDeclarationSampler} ${modulateDeclarationSampler} `;
+            const samplerChuckToOutlet: string = `limiter_Sampler ${samplerFXStringToChuck.current} => ${winFuncDeclarationSampler} ${ellipticDeclarationSampler} ${powerADSRDeclarationSampler} ${expEnvDeclarationSampler} ${expDelayDeclarationSampler} ${modulateDeclarationSampler} `;
 
-            osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
+            osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice[i] ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             samplerFxStringNeedsBlackhole.current = samplerFxStringToChuckNeedsBlackhole.current.length > 0 ? `sample1 ${samplerFxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
@@ -2257,6 +2264,9 @@ export default function InitializationComponent() {
             const filesArray = filesToProcess.current.map((f: any) => f.name) || [];
             console.log("****sanity check osc1 declaration: ", chuckUpdateNeeded, "FUYC ", osc1ChuckToOutlet);
      
+
+
+            console.log("WHAT IS FILE ARRAY? ", filesArray);
             console.log("help please: ", allFxPersistent.current);
 
             const chuckCode = `
@@ -2276,6 +2286,8 @@ export default function InitializationComponent() {
             
             ((60.0 / ${bpm})) => float secLenBeat;
             (secLenBeat * 1000)::ms => dur beat;
+
+            Dyno limiter_Sampler;
             
             ((secLenBeat * 1000) * 2)::ms => dur whole;
             (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
@@ -2283,7 +2295,7 @@ export default function InitializationComponent() {
             // ${uploadedFilesToChuckString.current}
             // ${uploadedFilesCodeString.current}
             
-            
+            [0] @=> int notes[];
             
             private class UniversalAnalyzer {
                 FeatureCollector combo => blackhole;
@@ -2867,7 +2879,7 @@ export default function InitializationComponent() {
                     // }
                 }
             
-                SynthVoice voice ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
+                SynthVoice voice[10] ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
             
                 ${modulateDeclarationOsc1}
                 ${modulateCodeStringOsc1}
@@ -2884,21 +2896,23 @@ export default function InitializationComponent() {
             
                 ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
                 
-                ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice.cutoff;
-                ${moogGrandmotherEffects.current.rez.value} => voice.rez;
-                ${parseInt(moogGrandmotherEffects.current.env.value)} => voice.env;
-                ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice.ChooseOsc1;
-                ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice.ChooseOsc2;
-                ${moogGrandmotherEffects.current.detune.value} => voice.detune;
-                ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice.oscOffset;
-                ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice.cutoffMod;
-                ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice.pitchMod;
-                ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice.ChooseLfo;
-                // 0.5 => voice.filterLfo.gain;
-                ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice.offset;
-                880 => voice.filterEnv;
-                ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice.noise;
-            
+for (0 => int i; i < voice.cap() - 1; i++) {
+
+                ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice[i].cutoff;
+                ${moogGrandmotherEffects.current.rez.value} => voice[i].rez;
+                ${parseInt(moogGrandmotherEffects.current.env.value)} => voice[i].env;
+                ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice[i].ChooseOsc1;
+                ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice[i].ChooseOsc2;
+                ${moogGrandmotherEffects.current.detune.value} => voice[i].detune;
+                ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice[i].oscOffset;
+                ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice[i].cutoffMod;
+                ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice[i].pitchMod;
+                ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice[i].ChooseLfo;
+                // 0.5 => voice[i].filterLfo.gain;
+                ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice[i].offset;
+                880 => voice[i].filterEnv;
+                ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice[i].noise;
+}      
                 0 => int count;
             
             
@@ -3078,48 +3092,46 @@ export default function InitializationComponent() {
                     0 => int runningShreds;
                     0 => int runningSynthShreds;
             
-                    // while (${chuckUpdateNeeded === false}) {
                     while(true) {
-                        
-                        "" => string getNotesArr;
-                        Machine.numShreds() => runningShreds;
 
-                        // for (0 => int i; i < notesToPlay.cap(); i++) {
-                        //     if (${hold} == 1 && (i == notesToPlay.cap()-1)) {
-                        //         getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
-                        //     }
-                        //     if (${hold} == 0 && getNotesArr.length() > 0) {
-                        //         getNotesArr + ", " + Std.itoa(notesToPlay[i]) => getNotesArr;
-                        //     } else {
-                        //         Std.itoa(notesToPlay[i]) => getNotesArr;
-                        //     }
-                        // }
-               
-                        count % (notesToPlay.size()) => int osc1Idx;
-                        // <<< notesToPlay[osc1Idx] >>>;
-                        
-                        if (notesToPlay.cap() > 1) {
-                            for (0 => int i; i < notesToPlay.size(); i++) {
-                                if (i > 0) {
-                                    notesToPlay[i] => voice.keyOn;
-                                    duration - (now % duration)  => now;
-                               
-                                    1 => voice.keyOff;
-                                }
-                                me.yield();
-                            }
-    
-                            // 1 => voice.keyOff;
-                            me.yield();
+                        Machine.numShreds() => runningShreds;
+// TK *******************************                      
+                        if (notesToPlay.size() > 0) {
+                            for (1 => int i; i < notesToPlay.size(); i++) {
                             
-                        }
-                        else {
-                            duration - (now % duration)  => now;
-         
+                                // notesToPlay[i] => voice[i-1].keyOn;
                            
+                                if (${arpeggiatorOn} == 1) {
+                                    notesToPlay[i] => voice[i-1].keyOn;
+                                    duration - (now % duration)  => now;
+                                    1 => voice[i].keyOff;
+                                } else {
+                                    notesToPlay[i] => voice[i-1].keyOn;
+                                }
+                                
+                                // 1 => voice[i].keyOff;
+                                "" => string notesToPlayMsg;
+                             
+                                notesToPlayMsg + " " + notesToPlay[i] => notesToPlayMsg;
+                                <<< "NOTESDOWN", notesToPlayMsg >>>;
+                            }
+                        }       
+                        else {
+                            // duration - (now % duration)  => now;
+                            for (int i; i < voice.size(); i++) {
+                                1 => voice[i].keyOff;
+                                notes.erase(i + 1);
+                            }
+                            // testing VOICES BEGINS NOW!
+
                             me.yield();
                         }
-                    
+                        if (${arpeggiatorOn} == 0) {
+                            duration - (now % duration)  => now;
+                        }
+                                
+                        // 1 => voice[i].keyOff;
+                        
                         me.yield();
                     }
                     me.exit();
@@ -3130,13 +3142,13 @@ export default function InitializationComponent() {
                     mySTKEvent => now;
                     // count % (notesToPlay.size()) => int stk1Idx;
                     
-                    while (true) {
+                    while (notesToPlay.cap() > 0) {
                         count % (notesToPlay.size()) => int stk1Idx;
                         <<< "STK_ON" >>>;
-                        for (0 => int i; i < notesToPlay.cap(); i++) {
+                        for (1 => int i; i < notesToPlay.cap(); i++) {
                             // <<< notesToPlay[i] >>>;
-                            if (notesToPlay[i] != -1 && i == notesToPlay.cap()-1) {
-                                notesToPlay[i] => voice.stk1;
+                            if (notesToPlay[i] != -1 && i <= notesToPlay.cap()-1) {
+                                notesToPlay[i] => voice[i].stk1;
                             }
                             duration / notesToPlay.size() => now;
                             me.yield();
@@ -3191,7 +3203,7 @@ export default function InitializationComponent() {
                 }
             
                 [[1,3],[2,4]] @=> int notesArr[][];
-                int notes[];
+                // int notes[];
                 [3] @=> int sample1Notes[];
                 [1,1,1,1] @=> int sample1TestNotes[];
                 [1, 4, 1, 3] @=> int sample2Notes[];
@@ -3209,31 +3221,40 @@ export default function InitializationComponent() {
 
                 TimeProvider oTp;
 
+                
                 private class ChordProvider {
-                    [0] @=> static int notes[];
-                    [0] @=> static int notesToRemove[];
+                    // [0] @=> static int notes[];
+                    
                     fun void playNotes(int note) {
-                        ChordProvider.notes << note;    
+                        int existingIndex;
+                        for (0 => int i; i < notes.size(); i++) {
+                            if (notes[i] == note) {
+                                i => existingIndex;
+                                notes.erase(i);
+                                break;
+                            }
+                        }
+                        if (!existingIndex) {
+                            notes << note;    
+                        }
                     }
                     fun void releaseNotes (int note) {
                         ${hold} => int hold;
-                        for (0 => int i; i < ChordProvider.notes.cap(); i++)
+        
+                        for (0 => int i; i < notes.size(); i++)
                         {
-                            if (note == ChordProvider.notes[i] && hold == 0) {
-                                ChordProvider.notes.popOut(i);
-                                if (ChordProvider.notes.size() > 1) {
-                                    ChordProvider.notes.popFront();
-                                }
-                       
+                            <<< "SANITY IN CHUCK ", note, notes[i] >>>;
+                            if (note == notes[i] && hold == 0) {
+                                // notes.popOut(i);  
+                                notes.erase(i);                     
                             }
-                            else if (note == ChordProvider.notes[i] && hold == 1) {
-                                while (ChordProvider.notes.cap() > 2) {
-                                    ChordProvider.notes.popFront();
+                            // else if (note == notes[i] && hold == 1) {
+                            else if (hold == 1) {
+                                // this is a quick implementation... developing shd be relatively easy
+                                while (notes.cap() > 2) {
+                                    notes.popFront();
                                 }
                             }
-                            // else if (ChordProvider.notes.cap() > 2 && i < ChordProvider.notes.cap()) {
-                            //     ChordProvider.notes.popFront();
-                            // }
                         }
                         me.yield();
                     }
@@ -3241,9 +3262,9 @@ export default function InitializationComponent() {
                     
                 ChordProvider oCp;
                 
-                spork ~ PlaySTK(mySTKEvent, oCp.notes, whole/${currentNoteVals.oscs[0]});           
+                spork ~ PlaySTK(mySTKEvent, notes, whole/${currentNoteVals.oscs[0]});           
                 
-                spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
+                spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
                 
                 spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]});
      
@@ -3254,7 +3275,7 @@ export default function InitializationComponent() {
                 while(true) {
                  
                     // Machine.remove(synthShred.id());
-                    // spork ~ PlaySynthNotes(myEvent, oCp.notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
+                    // spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
                 
                     // wait for HID event
                     hid => now;
@@ -3272,18 +3293,15 @@ export default function InitializationComponent() {
 
                             // mySampleEvent.broadcast();
                             
-                            me.yield();
+                            // me.yield();
                         } else if (msg.isButtonUp()) {
   
                             ${virtualKeyMapping(48, 0)}
-                            // if(ChordProvider.notes.cap() < 2) {
-                                // synthShred.exit();
-                            // }
-                            // synthShred.exit();
                             me.yield();
                         }
                         else  {
                             <<< "IN HID ELSE!" >>>;
+                            
                             me.yield();
                         }
                         me.yield();
@@ -3294,7 +3312,7 @@ export default function InitializationComponent() {
                     // myEvent.broadcast();
                     // mySTKEvent.broadcast();
                
-                    (4 * whole)/${currentNoteVals.master[0]} - (now % (4 *whole)/${currentNoteVals.master[0]}) => now;
+                    (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
                     <<< "TICK" >>>;
                     // synthShred.exit();
                   
@@ -3452,7 +3470,7 @@ export default function InitializationComponent() {
      
         ` : '';
 
-
+        //console.log("HOLY SHIT WHAT IS STK1 THEN OSC1 CODE? ", STK_1_Code, STK_1_Code, OSC_1_Code);
         setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
 
@@ -3558,15 +3576,15 @@ export default function InitializationComponent() {
     
         if (currentScreen.current === '') {
             // console.log('SANE CHECK ', obj, value);
-            console.log("## SANITY 1 ", Object.values(allFxPersistent.current[`${fxRadioValue}`]));
+            console.log("SANITY 1 ", Object.values(allFxPersistent.current[`${fxRadioValue}`]));
             let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i.var === obj.name && i)[0];
 
             if (!index || index.length < 1) {
                 console.log('this should replace... ', allFxPersistent.current[`${fxRadioValue}`].length - 1);
                 index = allFxPersistent.current[`${fxRadioValue}`].length - 1;
             }
-console.log("## SANITY 2 ", allFxPersistent.current[`${fxRadioValue}`][index]);
-console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
+console.log("SANITY 2 ", allFxPersistent.current[`${fxRadioValue}`][index]);
+console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             if (allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`]) {
                 allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`].value = value;
             } else {
@@ -3586,7 +3604,7 @@ console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
         }
         else if (currentScreen.current.includes(`fx_`)) {
-            console.log('CURRENT FX SCREEN SWITCHING IS CURRENTLY KINDA SHIT: fxFX.current in : ', currentFX.current);
+            console.log('CURRENT FX ARE KINDA SHIT: fxFX.current in : ', currentFX.current);
             console.log('SLIDER OBJ NAME: ', obj.name);
             //currentFX.current = fxFX.current[0].presets ? fxFX.current[0].presets : fxFX.current;
            // console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
@@ -3686,6 +3704,53 @@ console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
     }, [currentNumerCount]);
 
     useEffect(() => {
+////// TESTING ONLY (FOR HIGH SHRED COUNT CULPRIT) - TEST BEGIN
+        if (lastChuckMessage && lastChuckMessage.includes("PLAYWINDOW_ON")) {
+
+        };
+        // if (lastChuckMessage && lastChuckMessage.includes("DRUM_ON")) {
+
+        // };
+        if (lastChuckMessage && lastChuckMessage.includes("PLAYSYNTH_ON")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("STK_ON")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("SAMPLE_ON")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("TICK")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("PLAY_POWERADSR")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("PLAY_ENVWIN")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("PLAY_DIODE")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("")) {
+
+        };
+        if (lastChuckMessage && lastChuckMessage.includes("")) {
+
+        };
+///// TESTING END
+
+        if(lastChuckMessage && lastChuckMessage.includes("VIRTUALKEYUPDATE_")){
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+            console.log('%cParsedLastChuckMessage.current NOTES DOWN: ', 'color: red', parsedLastChuckMessage.current);
+            parsedLastChuckMessage.current && parsedLastChuckMessage.current.length > 0 && currentNotesKeyValDownDisplay.current.push(parsedLastChuckMessage.current[1]);
+        }
 
         if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT")) {
             const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
@@ -3703,11 +3768,12 @@ console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
         };
 
         if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
-            // parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
-            // console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current);
-            // setNumNotesDown(parsedLastChuckMessage.current[0]);
-            // const theNotesDown = [parsedLastChuckMessage.current.slice(1).filter((i: any) => i.length > 0 && i)];
-            // setTheNotesDown(theNotesDown);
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+            console.log('%cParsedLastChuckMessage.current NOTES DOWN: ', 'color: yellow', parsedLastChuckMessage.current);
+            
+            parsedLastChuckMessage.current.shift();
+            currentNotesDownDisplay.current = [];
+            currentNotesDownDisplay.current.push(parsedLastChuckMessage.current);
         }
 
         if (lastChuckMessage && lastChuckMessage.includes('FEATURES')) {
@@ -3832,8 +3898,10 @@ console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
     }, [chuckUpdateNeeded]);
 
     const handleUpdateFXView = (e: any) => {
-        console.log("heya target: ", e.target.innerText);
+        console.log("e target: ", e.target.innerText);
     };
+
+
 
     return (
         <ThemeProvider theme={theme}>
@@ -4082,7 +4150,30 @@ console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
                                     onClick={handleShowSTK} 
                                     endIcon={<DeblurIcon />}>
                                         STK
-                                    </Button>
+                                </Button>
+
+                                
+                                <Button 
+                                    sx={{                     
+                                        color: 'rgba(0,0,0,.98)',
+                                        background: 'rbga(0,0,0,.91)', 
+                                        position: 'absolute', 
+                                        borderColor: 'rgba(228,225,209,1)', 
+                                        left: '0px', 
+                                        minWidth: '104px', 
+                                        marginLeft: '12px', 
+                                        top: '320px',
+                                        backgroundColor: arpeggiatorOn ? "#1976d2" : 'rgba(147, 206, 214, 1)', 
+                                        maxHeight: '40px',
+                                        '&:hover': {
+                                            color: '#f5f5f5'
+                                        } 
+                                    }} 
+                                    variant="outlined" 
+                                    onClick={handleToggleArpeggiator} 
+                                    endIcon={<AnimationIcon />}>
+                                        ARP
+                                </Button>
 
 
 
@@ -4112,7 +4203,19 @@ console.log("## SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
                         </Box>
                     </Box>
                 )}
-                <Box id="fxViewController" sx={{position:"absolute", left: 0, bottom: 0, height: "25%", width: "50%"}}>
+                <Box sx={{position:"absolute", left: 0, bottom: 0, color: "red", fontFamily: "Menlo", height: "50%", width: "80px"}}>
+                    <>{currentNotesDownDisplay.current}</>
+                    {/* <Box>{currentVirtualKeyNotesDownDisplay.length > 1 && [currentVirtualKeyNotesDownDisplay].map((i: any) => {
+          <Box>{i}</Box>
+                    })}</Box> */}
+                </Box>
+                <Box id="fxViewController" sx={{
+                        position: "absolute",
+                        left: "0",
+                        bottom: "0",
+                        height: "20%",
+                        width: "20%"
+                    }}>
                     <Box>
                         <Button onClick={(e) => handleUpdateFXView(e)}>Osc</Button>
                         {allFxPersistent.current.Osc1.map((i: any) => <Button key={`updateFXView_Osc_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}

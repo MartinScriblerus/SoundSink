@@ -174,7 +174,7 @@ export default function FXRouting(props: Props) {
     setArcDiagramKey(`${inputVal}_arcDiagramKey`);
   };
 
-console.log("links ref is broken! ", linksRef.current);
+// console.log("links ref is broken! ", linksRef.current);
   return (
     <Box sx={{
       background: "black", 
