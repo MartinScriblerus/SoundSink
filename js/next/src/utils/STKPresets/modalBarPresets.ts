@@ -19,6 +19,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     strikePosition: {
         name: "strikePosition", // if this does not work, try controlChange 2
@@ -27,6 +28,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -35,6 +37,7 @@ const modalBarPresets = {
         min: 0,
         max: 60,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     vibratoGain: {
         name: "vibratoGain",
@@ -43,6 +46,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     directGain: {
         name: "directGain",
@@ -51,6 +55,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, 
     masterGain: {
         name: "masterGain",
@@ -59,6 +64,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     preset: {
         name: "preset",
@@ -67,6 +73,7 @@ const modalBarPresets = {
         min: 0,
         max: 8,
         screenInterface: "intSpinner",
+        fxType: "stk",
     },
     volume: {
         name: "volume",
@@ -75,6 +82,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     strike: {
         name: "strike",
@@ -83,6 +91,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     damp: {
         name: "damp",
@@ -91,6 +100,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     mode: {
         name: "mode",
@@ -99,6 +109,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "intspinner",
+        fxType: "stk",
     },
     modeRatio: {
         name: "modeRatio",
@@ -107,6 +118,7 @@ const modalBarPresets = {
         min: 0.1,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     modeRadius: {
         name: "modeRadius",
@@ -115,6 +127,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     modeGain: {
         name: "modeGain",
@@ -123,6 +136,7 @@ const modalBarPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     // reverb: {
     //     name: "reverb",

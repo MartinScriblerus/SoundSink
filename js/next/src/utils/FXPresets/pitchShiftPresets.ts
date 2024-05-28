@@ -26,6 +26,7 @@ export const pitShiftPresets = {
         value: 0,
         min: 0,
         max: 1,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float",
         group: 2,
@@ -36,6 +37,7 @@ export const pitShiftPresets = {
         value: 6, // need to translate this to center of -6 0 6
         min: 0,
         max: 12,
+        fxType: "fx",
         screenInterface: "knob", // new type needed?
         type: "float",
         group: 2,

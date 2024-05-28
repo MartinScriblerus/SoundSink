@@ -9,6 +9,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     noiseGain: {
         name: "noiseGain",
@@ -17,6 +18,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     pressure: {
         name: "pressure",
@@ -25,6 +27,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     rate: {
         name: "rate",
@@ -33,6 +36,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     }, // rate in seconds
     vibratoFreq: {
         name: "vibratoFreq",
@@ -41,6 +45,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 1000,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     vibratoGain: {
         name: "vibratoGain",
@@ -49,6 +54,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     startBlowing: {
         name: "startBlowing",
@@ -57,6 +63,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     stopBlowing: {
         name: "stopBlowing",
@@ -65,6 +72,7 @@ const clarinetPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     // reverb: {
     //     name: "reverb",

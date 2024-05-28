@@ -9,6 +9,7 @@ const stifKarpPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     sustain: {
         name: "sustain",
@@ -17,6 +18,7 @@ const stifKarpPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, 
     stretch: {
         name: "stretch",
@@ -25,6 +27,7 @@ const stifKarpPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     pluck: {
         name: "pluck",
@@ -33,6 +36,7 @@ const stifKarpPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     baseLoopGain: {
         name: "baseLoopGain",
@@ -41,6 +45,7 @@ const stifKarpPresets = {
         min: 0.8,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     }, 
 };
 

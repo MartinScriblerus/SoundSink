@@ -9,6 +9,7 @@ const rhodeyPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     controlTwo: { // Make sure to SET on code side (see ChucK reference)
         name: "controlTwo",
@@ -17,6 +18,7 @@ const rhodeyPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     lfoSpeed: {
         name: "lfoSpeed",
@@ -25,6 +27,7 @@ const rhodeyPresets = { // .clair
         min: 0.0,
         max: 12.0,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     lfoDepth: {
         name: "lfoDepth",
@@ -33,6 +36,7 @@ const rhodeyPresets = { // .clair
         min: 0.0,
         max: 12.0,
         screenInterface: "knob",
+        fxType: "stk",
     },
     // opADSR_op: {
     //     name: "opADSR_op",

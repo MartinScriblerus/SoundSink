@@ -33,6 +33,7 @@ const shakersPresets = {
         min: 0,
         max: 22,
         screenInterface: "intSpinner",
+        fxType: "stk",
     },
     energy: {
         name: "energy", // if this does not work, try controlChange 2
@@ -41,6 +42,7 @@ const shakersPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     decay: {
         name: "decay",
@@ -49,6 +51,7 @@ const shakersPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     objects: {
         name: "objects",
@@ -57,6 +60,7 @@ const shakersPresets = {
         min: 0,
         max: 128,
         screenInterface: "intSpinner_128",
+        fxType: "stk",
     },
 };
 

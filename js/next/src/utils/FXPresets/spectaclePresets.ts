@@ -26,6 +26,7 @@ const spectaclePresets = {
         value: 5, // default 20
         min: 0,
         max: 8,
+        fxType: "fx",
         screenInterface: "intspinner", // power of two exponent
         type: "int_needsFun",
         group: 7,
@@ -36,6 +37,7 @@ const spectaclePresets = {
         value: 3,
         min: 0,
         max: 7,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "dur_needsFun",
         group: 7,
@@ -46,6 +48,7 @@ const spectaclePresets = {
         value: 0,
         min: 0,
         max: 85,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "int_needsFun",
         group: 7,
@@ -56,6 +59,7 @@ const spectaclePresets = {
         value: 0.8, // => this should be 0 for -1 to 1 range
         min: -1,
         max: 1,
+        fxType: "fx",
         screenInterface: "knob", // need a knob for -1 0 1
         type: "float_needsFun",
         group: 7,
@@ -66,6 +70,7 @@ const spectaclePresets = {
         value: 3, // 512 here... see powers of 2
         min: 0,
         max: 8, // this will be exponent for powers of 2
+        fxType: "fx",
         screenInterface: "intspinner", // should this be a float knob?
         type: "int_needsFun",
         group: 7,
@@ -76,6 +81,7 @@ const spectaclePresets = {
         value: 4100,
         min: 1,
         max: 5000,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "int_needsFun",
         group: 7,
@@ -86,6 +92,7 @@ const spectaclePresets = {
         value: 100,
         min: 1,
         max: 600,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "int_needsFun",
         group: 7,
@@ -96,6 +103,7 @@ const spectaclePresets = {
         value: 0.8,
         min: 0.01,
         max: 1.0,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_needsFun",
         group: 7,
@@ -106,6 +114,7 @@ const spectaclePresets = {
         value: 3,
         min: 2,
         max: 6,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "int_needsFun",
         group: 7,
@@ -119,6 +128,7 @@ const spectaclePresets = {
         value: 2,
         min: 0, // 0-2 desc / 3 - 5 random / 6 - 8 asc (for all 3 types) 
         max: 8,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "int_needsFun_spectacleTable",
         group: 7,

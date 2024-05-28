@@ -9,6 +9,7 @@ const fmVoicesPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     spectralTilt: {
         name: "spectralTilt", // if this does not work, try controlChange 2
@@ -17,6 +18,7 @@ const fmVoicesPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     lfoSpeed: {
         name: "lfoSpeed",
@@ -25,6 +27,7 @@ const fmVoicesPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     lfoDepth: {
         name: "lfoDepth",
@@ -33,6 +36,7 @@ const fmVoicesPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
   
     // reverb: {

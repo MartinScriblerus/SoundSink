@@ -9,6 +9,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     filterSweepRate: {
         name: "filterSweepRate",
@@ -17,6 +18,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -25,6 +27,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1000,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     vibratoGain: {
         name: "vibratoGain",
@@ -33,6 +36,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     afterTouch: {
         name: "afterTouch",
@@ -41,6 +45,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
 
     lfoSpeed: {
@@ -50,6 +55,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     lfoDepth: {
         name: "lfoDepth",
@@ -58,6 +64,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     modSpeed: {
         name: "modSpeed",
@@ -66,6 +73,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     modDepth: {
         name: "modDepth",
@@ -74,6 +82,7 @@ const moogPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     // reverb: {
     //     name: "reverb",

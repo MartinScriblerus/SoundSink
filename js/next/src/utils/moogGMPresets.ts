@@ -21,6 +21,7 @@ const moogGMPresets = {
         value: 2,
         min: 0,
         max: 3,
+        fxType: "default",
         screenInterface: "switch_4_disabled_sine_saw_square",
     }, // lfo voice 
     offset: {
@@ -29,6 +30,7 @@ const moogGMPresets = {
         value: 24,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // offset (controls note offset in semitones)
     cutoff: {
@@ -37,54 +39,61 @@ const moogGMPresets = {
         value: 30,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // filter cutoff amount (0-100)
     rez: {
         name: "rez",
         label: "Rez",
-        value: 64,
+        value: 72,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // filter resonance (0-100)
     env: {
         name: "env",
         label: "Env",
-        value: 75,
+        value: 36,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // filter ASDR tracking (0-100)
     oscType1: {
         name: "oscType1",
         label: "Osc1",
-        value: 2,
+        value: 1,
         min: 0,
         max: 3,
+        fxType: "default",
         screenInterface: "switch_4_disabled_tri_saw_square",
     }, // select osc type (0-3) => (silence, tri, saw, square)
     oscType2: {
         name: "oscType2",
         label: "Osc2",
-        value: 3,
+        value: 1,
         min: 0,
         max: 3,
+        fxType: "default",
         screenInterface: "switch_4_disabled_tri_saw_square",
     }, // select osc type (0-3) => (silence, tri, saw, square)
     detune: {
         name: "detune",
         label: "Detune",
-        value: 10,
+        value: 0,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // detune the two voice oscs (1-100)
     oscOffset: {
         name: "oscOffset",
         label: "Oscs Off",
-        value: 0,
+        value: 12,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // offset the two voice oscs (in semitones)
     noise: {
@@ -93,6 +102,7 @@ const moogGMPresets = {
         value: 0.1,
         min: 0.001,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // noise level (0-100)
     // syncMode: {
@@ -109,30 +119,34 @@ const moogGMPresets = {
         value: 1,
         min: 0,
         max: 2000,
+        fxType: "default",
         screenInterface: "knob",
     }, // adsr attack (0-100) amount over time
     adsrDecay: {
         name: "adsrDecay",
         label: "Decay",
-        value: 50,
+        value: 100,
         min: 0,
         max: 500,
+        fxType: "default",
         screenInterface: "knob",
     }, // adsr decay (0-100)
     adsrSustain: {
         name: "adsrSustain",
         label: "Sustain",
-        value: 0.05, // should this be a float?
+        value: 0.01, // should this be a float?
         min: 0,
-        max: 0.5,
+        max: 1,
+        fxType: "default",
         screenInterface: "knob",
     }, // adsr sustain (0-100)
     adsrRelease: {
         name: "adsrRelease",
         label: "Release",
-        value: 1800,
+        value: 400,
         min: 0,
         max: 2000,
+        fxType: "default",
         screenInterface: "knob",
     }, // adsr release (0-100)
     limiterAttack: {
@@ -141,6 +155,7 @@ const moogGMPresets = {
         value: 0,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // limiter attack (0-100)
     limiterThreshold: {
@@ -149,6 +164,7 @@ const moogGMPresets = {
         value: 0.8,
         min: 0.0,
         max: 1.0,
+        fxType: "default",
         screenInterface: "knob",
     }, // hard limiter threshold (0-1)
     lfoFreq: {
@@ -157,6 +173,7 @@ const moogGMPresets = {
         value: 320,
         min: 0,
         max: 1000,
+        fxType: "default",
         screenInterface: "knob",
     }, // lfo frequency amounnt? (0-100) TEST W CAUTION!
     pitchMod: {
@@ -165,6 +182,7 @@ const moogGMPresets = {
         value: 0.5,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // pitch modulation (0-100)
     cutoffMod: {
@@ -173,6 +191,7 @@ const moogGMPresets = {
         value: 5,
         min: 0,
         max: 100,
+        fxType: "default",
         screenInterface: "knob",
     }, // cutoff modulation (0-100)
     // filterEnv: {
@@ -189,6 +208,7 @@ const moogGMPresets = {
         value: 120,
         min: 1,
         max: 1000,
+        fxType: "default",
         screenInterface: "knob",
     }, // high pass filter frequency in hZ (NEEDS TESTING!)
     // reverb: {

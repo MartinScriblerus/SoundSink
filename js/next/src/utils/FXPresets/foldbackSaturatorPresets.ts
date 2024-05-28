@@ -26,6 +26,7 @@ const foldbackSaturatorPresets = {
         value: 0.2,
         min: 0,
         max: 1,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_float",
         group: 0,

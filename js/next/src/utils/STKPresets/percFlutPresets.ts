@@ -9,6 +9,7 @@ const percFlutPresets = {
         min: 0,
         max: 2,
         screenInterface: "intSpinner",
+        fxType: "stk",
     },
     controlTwo: {
         name: "controlTwo",
@@ -17,6 +18,7 @@ const percFlutPresets = {
         min: 0,
         max: 4,
         screenInterface: "intSpinner_5",
+        fxType: "stk",
     },
     lfoSpeed: {
         name: "lfoSpeed",
@@ -25,6 +27,7 @@ const percFlutPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     lfoDepth: {
         name: "lfoDepth",
@@ -33,6 +36,7 @@ const percFlutPresets = {
         min: 0,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     },
 };
 

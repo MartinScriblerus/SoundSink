@@ -44,6 +44,7 @@ export interface MoogGrandmotherEffectsItem {
     min?: number;
     max?: number;
     screenInterface?: string;
+    fxType: string;
 }
 
 export default interface MoogGrandmotherEffects {

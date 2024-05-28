@@ -9,6 +9,7 @@ const bowedPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     bowPosition: {
         name: "bowPosition", // if this does not work, try controlChange 2
@@ -17,6 +18,7 @@ const bowedPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -25,6 +27,7 @@ const bowedPresets = {
         min: 0,
         max: 1000,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoGain: {
         name: "vibratoGain",
@@ -33,6 +36,7 @@ const bowedPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     startBowing: {
         name: "startBowing",
@@ -41,6 +45,7 @@ const bowedPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     stopBowing: {
         name: "stopBowing",
@@ -49,6 +54,7 @@ const bowedPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     // rate: {
     //     name: "rate",

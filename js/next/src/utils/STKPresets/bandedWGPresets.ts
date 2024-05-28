@@ -17,6 +17,7 @@ const bandedWGPresets = {
         min: 0.01,
         max: 1.0,
         screenInterface: "intspinner",
+        fxType: "stk",
     },
     bowRate: {
         name: "bowRate",
@@ -25,6 +26,7 @@ const bandedWGPresets = {
         min: 0.0,
         max: 1.0,
         screenInterface: "float",
+        fxType: "stk",
     },
     strikePosition: {
         name: "strikePosition",
@@ -33,6 +35,7 @@ const bandedWGPresets = {
         min: 0.01,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // rate in seconds
     // integrationConstant: {
     //     name: "integrationConstant",
@@ -57,6 +60,7 @@ const bandedWGPresets = {
         min: 0.0,
         max: 32.0,
         screenInterface: "knob",
+        fxType: "stk",
     },
     preset: { // 0 -> uniform bar / 1 -> Tuned Bar / 2 -> Glass Harmonica  3 -> Tibetan Bowl
         name: "preset",
@@ -65,6 +69,7 @@ const bandedWGPresets = {
         min: 0,
         max: 3,
         screenInterface: "intspinner",
+        fxType: "stk",
     },
     pluck: {
         name: "pluck",
@@ -73,6 +78,7 @@ const bandedWGPresets = {
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
+        fxType: "stk",
     },
     startBowing: {
         name: "startBowing",
@@ -81,6 +87,7 @@ const bandedWGPresets = {
         min: 0,
         max: 7,
         screenInterface: "intspinner",
+        fxType: "stk",
     },
     // stopBowing: {
     //     name: "stopBowing",

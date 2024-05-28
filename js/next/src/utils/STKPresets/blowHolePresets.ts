@@ -9,6 +9,7 @@ const blowHolePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     noiseGain: {
         name: "noiseGain", // if this does not work, try controlChange 2
@@ -17,6 +18,7 @@ const blowHolePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     tonehole: {
         name: "tonehole",
@@ -25,6 +27,7 @@ const blowHolePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vent: {
         name: "vent",
@@ -33,6 +36,7 @@ const blowHolePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     pressure: {
         name: "pressure",
@@ -41,6 +45,7 @@ const blowHolePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     startBlowing: {
         name: "startBlowing",
@@ -49,6 +54,7 @@ const blowHolePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     stopBlowing: {
         name: "stopBlowing",
@@ -57,6 +63,7 @@ const blowHolePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     rate: {
         name: "rate",
@@ -65,6 +72,7 @@ const blowHolePresets = {
         min: 0,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     }, // rate in seconds
 };
 

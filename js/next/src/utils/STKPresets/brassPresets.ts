@@ -9,6 +9,7 @@ const brassPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     slide: {
         name: "slide", // if this does not work, try controlChange 2
@@ -17,6 +18,7 @@ const brassPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -25,6 +27,7 @@ const brassPresets = {
         min: 0,
         max: 12,
         screenInterface: "intspinner",
+        fxType: "stk",
     }, // freq in hZ
     vibratoGain: {
         name: "vibratoGain",
@@ -33,6 +36,7 @@ const brassPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     volume: {
         name: "volume",
@@ -41,6 +45,7 @@ const brassPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     
     startBlowing: {
@@ -50,6 +55,7 @@ const brassPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     stopBlowing: {
         name: "stopBlowing",
@@ -58,6 +64,7 @@ const brassPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     // rate: {
     //     name: "rate",

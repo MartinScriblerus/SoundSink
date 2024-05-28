@@ -9,6 +9,7 @@ const saxofonyPresets = {
         min: 0.15,
         max: 0.50,
         screenInterface: "knob",
+        fxType: "stk",
     },
     aperture: {
         name: "aperture", // if this does not work, try controlChange 2
@@ -17,6 +18,7 @@ const saxofonyPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     pressure: {
         name: "pressure",
@@ -25,6 +27,7 @@ const saxofonyPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -33,6 +36,7 @@ const saxofonyPresets = {
         min: 0,
         max: 2000,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     vibratoGain: {
         name: "vibratoGain",
@@ -41,6 +45,7 @@ const saxofonyPresets = {
         min: 0.1,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     noiseGain: {
         name: "noiseGain",
@@ -49,6 +54,7 @@ const saxofonyPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     blowPosition: {
         name: "blowPosition",
@@ -57,6 +63,7 @@ const saxofonyPresets = {
         min: 0.1,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, 
     rate: {
         name: "rate",
@@ -65,6 +72,7 @@ const saxofonyPresets = {
         min: 0,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     }, // rate in seconds
     startBlowing: {
         name: "startBlowing",
@@ -73,6 +81,7 @@ const saxofonyPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     stopBlowing: {
         name: "stopBlowing",
@@ -81,6 +90,7 @@ const saxofonyPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
 };
 

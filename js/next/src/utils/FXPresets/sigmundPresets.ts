@@ -36,6 +36,7 @@ const sigmundPresets = {
         value: 128,
         min: 0,
         max: 128, // freq measured as MIDI vals here
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_float",
         group: 6,
@@ -46,6 +47,7 @@ const sigmundPresets = {
         value: 50,
         min: 1,
         max: 85,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_float",
         group: 6,
@@ -56,6 +58,7 @@ const sigmundPresets = {
         value: 9,
         min: 0,
         max: 11, // this will be exponent for powers of 2 (0 - 4096)
+        fxType: "fx",
         screenInterface: "exponentialintspinner", // should this be a float knob?
         type: "int_int",
         group: 6,
@@ -66,6 +69,7 @@ const sigmundPresets = {
         value: 7, // (necessary clarification => 2 should actually equal 2 ^ (10 + 1) => 2048)
         min: 6,
         max: 11, // this will be exponent for powers of 2 (0 - 4096)
+        fxType: "fx",
         screenInterface: "exponentialintspinner", // should this be a float knob?
         type: "int_int",
         group: 6,
@@ -76,6 +80,7 @@ const sigmundPresets = {
         value: 9,
         min: 0,
         max: 11, // this will be exponent for powers of 2 (0 - 4096)
+        fxType: "fx",
         screenInterface: "exponentialintspinner", // should this be a float knob?
         type: "int_int",
         group: 6,
@@ -86,6 +91,7 @@ const sigmundPresets = {
         value: 0,
         min: 0,
         max: 1,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_float",
         group: 6,
@@ -96,6 +102,7 @@ const sigmundPresets = {
         value: 0,
         min: 0,
         max: 1,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_float",
         group: 6,
@@ -106,6 +113,7 @@ const sigmundPresets = {
         value: 0,
         min: 0,
         max: 1,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_float",
         group: 6,
@@ -116,6 +124,7 @@ const sigmundPresets = {
         value: 0,
         min: 0,
         max: 1,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "int_int", // works like a bool
         group: 6,

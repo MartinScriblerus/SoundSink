@@ -36,6 +36,7 @@ const powerADSRPresets = {
         value: 0.5, // default 0.5
         min: 0.01,
         max: 4,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_needsFun_powerADSR",
         group: 4,
@@ -46,6 +47,7 @@ const powerADSRPresets = {
         value: 1000,
         min: 1,
         max: 2000,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "dur_needsFun_powerADSR",
         group: 4,
@@ -66,6 +68,7 @@ const powerADSRPresets = {
         value: 1.25, // default 1.25
         min: 0.01,
         max: 3,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_needsFun_powerADSR",
         group: 4,
@@ -76,6 +79,7 @@ const powerADSRPresets = {
         value: 1000, // 1000 ms default
         min: 1,
         max: 2000,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "dur_needsFun_powerADSR",
         group: 4,
@@ -96,6 +100,7 @@ const powerADSRPresets = {
         value: 1.5, // default 1.5
         min: 0.01,
         max: 3,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_needsFun_powerADSR",
         group: 4,
@@ -106,6 +111,7 @@ const powerADSRPresets = {
         value: 1000,
         min: 1,
         max: 2000,
+        fxType: "fx",
         screenInterface: "intspinner",
         type: "dur_needsFun_powerADSR",
         group: 4,
@@ -116,6 +122,7 @@ const powerADSRPresets = {
         value: 0.5, // default 0.8
         min: 0.01,
         max: 1,
+        fxType: "fx",
         screenInterface: "knob",
         type: "float_needsFun_powerADSR",
         group: 4,

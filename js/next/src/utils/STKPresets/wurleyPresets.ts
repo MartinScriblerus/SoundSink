@@ -9,6 +9,7 @@ const wurleyPresets = {
         min: 0,
         max: 2,
         screenInterface: "switch_2_0_1_2",
+        fxType: "stk",
     },
     controlTwo: {
         name: "controlTwo",
@@ -17,6 +18,7 @@ const wurleyPresets = {
         min: 0,
         max: 4,
         screenInterface: "intSpinner_5",
+        fxType: "stk",
     },
     lfoSpeed: {
         name: "lfoSpeed",
@@ -25,6 +27,7 @@ const wurleyPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     lfoDepth: {
         name: "lfoDepth",
@@ -33,6 +36,7 @@ const wurleyPresets = {
         min: 0,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     },
 };
 

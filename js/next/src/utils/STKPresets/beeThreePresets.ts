@@ -9,6 +9,7 @@ const beeThreePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     controlTwo: {
         name: "controlTwo", // if this does not work, try controlChange 2
@@ -17,6 +18,7 @@ const beeThreePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     lfoSpeed: {
         name: "lfoSpeed",
@@ -25,6 +27,7 @@ const beeThreePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     lfoDepth: {
         name: "lfoDepth",
@@ -33,6 +36,7 @@ const beeThreePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
 };
 

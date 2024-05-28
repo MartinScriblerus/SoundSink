@@ -9,6 +9,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     jetReflection: {
         name: "jetReflection", // if this does not work, try controlChange 2
@@ -17,6 +18,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     endReflection: {
         name: "endReflection", // if this does not work, try controlChange 2
@@ -25,6 +27,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     noiseGain: {
         name: "noiseGain", // if this does not work, try controlChange 2
@@ -33,6 +36,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -41,6 +45,7 @@ const flutePresets = {
         min: 0,
         max: 11,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoGain: {
         name: "vibratoGain",
@@ -49,6 +54,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     pressure: {
         name: "pressure",
@@ -57,6 +63,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     startBlowing: {
         name: "startBlowing",
@@ -65,6 +72,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     stopBlowing: {
         name: "stopBlowing",
@@ -73,6 +81,7 @@ const flutePresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     rate: {
         name: "rate",
@@ -81,6 +90,7 @@ const flutePresets = {
         min: 0,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     }, // rate in seconds
     // reverb: {
     //     name: "reverb",

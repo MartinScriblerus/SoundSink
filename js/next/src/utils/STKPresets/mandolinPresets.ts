@@ -9,6 +9,7 @@ const mandolinPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // lfo gain 
     pluckPos: {
         name: "pluckPos",
@@ -17,6 +18,7 @@ const mandolinPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // lfo pitch
     stringDamping: {
         name: "stringDamping",
@@ -25,6 +27,7 @@ const mandolinPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // lfo voice 
     stringDetune: {
         name: "stringDetune",
@@ -33,6 +36,7 @@ const mandolinPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // offset (controls note offset in semitones)
     pluck: {
         name: "pluck",
@@ -41,6 +45,7 @@ const mandolinPresets = { // .clair
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // filter cutoff amount (0-100)
 //    bodyIR: {
 //         name: "bodyIR",

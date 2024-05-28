@@ -9,6 +9,7 @@ const blowBotlPresets = {
         min: 0.01,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -17,6 +18,7 @@ const blowBotlPresets = {
         min: 0,
         max: 2000,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoGain: {
         name: "vibratoGain",
@@ -25,6 +27,7 @@ const blowBotlPresets = {
         min: 0.01,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     rate: {
         name: "rate",
@@ -33,6 +36,7 @@ const blowBotlPresets = {
         min: 0.01,
         max: 2,
         screenInterface: "knob",
+        fxType: "stk",
     }, // rate in seconds
     startBlowing: {
         name: "startBlowing",
@@ -41,6 +45,7 @@ const blowBotlPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     stopBlowing: {
         name: "stopBlowing",
@@ -49,6 +54,7 @@ const blowBotlPresets = {
         min: 0.01,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
 };
 

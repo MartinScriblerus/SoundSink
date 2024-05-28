@@ -255,7 +255,6 @@ export default function FXRouting(props: Props) {
 
           {/* <HexBin widthProp={width} heightProp={height} /> */}
           {
-          // currentScreen.current === 'stk' && 
           showFX &&
           <FXCheckboxLabels 
               fxValsRef={fxFX} 

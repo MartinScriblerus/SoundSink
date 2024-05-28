@@ -41,6 +41,7 @@ import BPMModule from './BPMModule';
 import STKManagerDropdown from './STKManagerDropdown';
 import DeblurIcon from '@mui/icons-material/Deblur';
 import CheckedFXRadioBtns from './CheckedFXRadioBtns';
+import build from 'next/dist/build';
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
@@ -280,7 +281,6 @@ export default function InitializationComponent() {
             AudioIn: "",
     });
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
-    const [tActive, setTActive] = useState<any>(false);
     const [numeratorSignature, setNumeratorSignature] = useState(4);
     const [denominatorSignature, setDenominatorSignature] = useState(4);
 
@@ -288,9 +288,6 @@ export default function InitializationComponent() {
     const [currentNumerCountColToDisplay, setCurrentNumerCountColToDisplay] = useState<number>(0);
     const [currentDenomCount, setCurrentDenomCount] = useState<number>(0);
     const [currentPatternCount, setCurrentPatternCount] = useState<number>(0);
-
-    const [uploadedFile, setUploadedFile] = useState<any>({});
-
 
 
     const [centroid, setCentroid] = useState<any>([
@@ -342,8 +339,6 @@ export default function InitializationComponent() {
     const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
 
 
-
-    const filesChuckToSynth = useRef<string>('');
     const filesChuckToDac = useRef<string>('');
     const filesGenericCodeString = useRef<any>('');
 
@@ -370,28 +365,12 @@ export default function InitializationComponent() {
 
     const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
 
-    const getFile = useForm();
-
     const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
-    const finalReusableFXStringToChuck = useRef<Array<any>>([]);
+
     const osc1FxStringNeedsBlackhole = useRef<string>('');
     const samplerFxStringNeedsBlackhole = useRef<string>('');
     
-    const reusableFxStringNeedsBlackhole = useRef<any>({
-        Osc1: '',
-        Osc2: '',
-        STK: '',
-        Sampler: '',
-        AudioIn: ''
-    });
-    const reusableFxStringToChuckNeedsBlackhole = useRef<any>({
-        Osc1: [],
-        Osc2: [],
-        STK: [],
-        Sampler: [],
-        AudioIn: []
-    });
     const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
     const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
     const winFuncEnvFinalHelper = useRef<any>({
@@ -658,39 +637,21 @@ export default function InitializationComponent() {
     // currentFX.current = {...currentFX.current, ...fxFX.current.filter((fx: any) => fx.visible === true && fx)}
 
     const stkFXString = useRef<any>('');
-    const stkFX2String = useRef<any>('');
     const osc1FXString = useRef<any>('');
     const osc2FXString = useRef<any>('');
     const audioInFXString = useRef<any>('');
     const samplerFXString = useRef<any>('');
-    const reusableFXString = useRef<any>({
-        Osc1: "",
-        Osc2: "",
-        STK: "",
-        Sampler: "",
-        AudioIn: "",
-    })
+ 
 
     const osc1FXStringToChuck = useRef<any>('');
     const osc2FXStringToChuck = useRef<any>('');
     const audioInFXStringToChuck = useRef<any>('');
     const samplerFXStringToChuck = useRef<any>('');
-    const reusableFXStringToChuck = useRef<any>({
-        Osc1: "",
-        Osc2: "",
-        STK: "",
-        Sampler: "",
-        AudioIn: "",
-    });
 
-    const finalOsc1Obj = useRef<any>({});
+
 
     // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
     const visibleFXKnobs = useRef<Array<any>>();
-
-
-    const blobURLRef = useRef<any>();
-
 
     const testArrBuffFile = useRef<any>();
 
@@ -745,62 +706,121 @@ export default function InitializationComponent() {
         console.log('TEST CLICK ', e, op);
     };
 
+    const handleUpdateFXView = (e: any) => {
+        console.log("e target: ", e.target.innerText);
+        //currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
+        // const getIndex = allFxPersistent.current[fxRadioValue].map((i: any) => i.var).indexOf(e.target.innerText.toLowerCase());
+        selectedEffect.current = e.target.innerText.toLowerCase();
+        const knobsCountTemp = currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
+        setFxKnobsCount(knobsCountTemp);
+        updateCurrentFXScreen();
+    };
 
     useEffect(() => {
-        const stksAndFX: any = [stkFX.current, ...Object.values(fxFX.current)];
-        const visibleStkAndFX: Array<any> = Array.from(stksAndFX).filter((i: any) => i.visible);
+        console.log('what is going on w fxFX & currentFX? ', fxFX.current, currentFX.current);
+        const stksAndFX: any = (Object.values(fxFX.current).length && (fxFX !== currentFX) ? [stkFX.current, ...Object.values(fxFX.current)] : fxFX.current).filter((fx: any) => Object.values(fx).length > 0 && fx);
+        
+        let visibleStkAndFX: Array<any>;
+        console.log('curr screen ', currentScreen.current, doReturnToSynth.current, checkedFXUpdating, stksAndFX);
+        visibleFXKnobs.current = [];
+        let gotFX: any;
+        let theFXIdx: any;
+        console.log("any use for stksandeffects? ", stksAndFX);
+
+        console.log("SEL EFFECT1 ", selectedEffect.current);
+        if (stksAndFX.length > 0 && currentScreen.current !== "fx_" || selectedEffect.current.length > 0 ) {
+        // **** THIS IS WHERE THE ISSUE MAY BE HAPPENING => WHATEVER GETS PASSED INTO VISIBLESTKSANDFX ALWAYS WINS 
+            visibleStkAndFX = Array.from(stksAndFX).filter((i: any) => i.visible);
+            visibleStkAndFX.map((i: any) => {
+                console.log('ARG I! ', i)
+                Object.values(i.presets).map((j: any) => {
+                    console.log('ARG J! ', [j.label, j]);
+                    visibleFXKnobs.current?.push([j.label, j]);
+                });
+            });
+            console.log('visibleFXKNOBS: ', visibleFXKnobs.current);
+
+            let newVals: any = [];
+    
+            visibleFXKnobs.current.map((fxK: any) => newVals.push([fxK, fxK.label]))
+    
+            const availableFX: any = visibleStkAndFX.filter((i: any) => (i.fxType === 'fx' || i.fxType === 'stk') && i);
+            setNeedsUpdate(true);
+            console.log('ummmmmmm what are availableFX: ', availableFX);
+
+            if (availableFX.length > 0 && availableFX[0].fxType === 'stk') {
+                currentFX.current = [];
+                currentFX.current.push(availableFX);
+                fxFX.current = [];
+                fxFX.current.push(availableFX[0]);
+            } else if (availableFX.length > 0 && availableFX[0].var) {
+     
+                currentFX.current = [];
+                
+                currentFX.current.push(availableFX[availableFX.length - 1].presets);
+            }
+
+            if (currentScreen.current !== "stk" && availableFX[availableFX.length - 1] && availableFX[availableFX.length - 1].fxType !== 'stk') {
+            
+                console.log("WHAT ARE AVAILABLE FX?? ", availableFX);
+                
+                if (availableFX.length > 0 && availableFX[0].var) {
+    
+                    visibleFXKnobs.current = visibleStkAndFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i: any) => [i.label, i])));
+                    // selectedEffect.current = currentFX.current[currentFX.current.length - 1].var;
+                    
+                    // this is where we decide which fx get pushed down into the fxChain
+                    // console.log("make curr effect visible: ", selectedEffect.current); 
+    
+                        availableFX.map((fx: any) => {
+                            console.log("YO FX! ", fx);
+                            if (fx.var && allFxPersistent.current[`${fxRadioValue}`].map((f: any) => f.var).indexOf(fx.var) === -1) {
+                                allFxPersistent.current[`${fxRadioValue}`].push(fx);
+                                allFxPersistent.current[`${fxRadioValue}`].filter((v: any) => v.var && v);
+                            }
+                        })
+                        currentScreen.current = '';
+            
+                    updateCurrentFXScreen();
+                }
+            }
+            
+            gotFX= fxFX.current.length > 0 && fxFX.current.filter((fx: any) => (fx.visible === true || fx.fxType === 'stk') && fx);
+
+
+            console.log("SEL EFFECT 2 ***** ", selectedEffect.current);
+
+    
+            theFXIdx = gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) >= 0
+                ?
+                gotFX.map((f: any) => f.var).indexOf(selectedEffect.current)
+                :
+                gotFX.length - 1;
+    
+            console.log(`theFX: ${theFXIdx} // ${visibleFXKnobs.current} // ${currentFX.current}`)
+            doReturnToSynth.current = !doReturnToSynth.current;
+        } else {
+            visibleStkAndFX = Object.values(moogGMPresets);
+            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
+            // fxFX.current = moogGrandmotherEffects.current[0];
+        }
         // console.log('???%%%% ', currentFX.current);
         console.log('visibleStkAndFX: ', visibleStkAndFX);
-
-        visibleFXKnobs.current = [];
-        visibleStkAndFX.map((i: any) => {
-            console.log('ARG I! ', i)
-            Object.values(i.presets).map((j: any) => {
-                console.log('ARG J! ', [j.label, j]);
-                visibleFXKnobs.current?.push([j.label, j]);
-            });
-        });
-        console.log('visibleFXKNOBS: ', visibleFXKnobs.current);
-
-        let newVals: any = [];
-
-        visibleFXKnobs.current.map((fxK: any) => newVals.push([fxK, fxK.label]))
-
-        const availableFX: any = visibleStkAndFX.filter((i: any) => i.fxType === 'fx');
-        setNeedsUpdate(true);
-        console.log('ummmmmmm what are availableFX: ', availableFX);
-        if (availableFX.length > 0 && availableFX[0].var) {
-            currentScreen.current = `fx_${availableFX[0].var}`;
-            // currentFX.current = fxFX.current;
-            console.log("make curr screen visible: ", currentScreen.current);
-            currentFX.current = [];
-            visibleFXKnobs.current = availableFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i: any) => [i.label, i])));
-            selectedEffect.current = currentFX.current[currentFX.current.length - 1].var;
-            // this is where we decide which fx get pushed down into the fxChain
-            console.log("make curr effect visible: ", selectedEffect.current); 
-            availableFX.map((fx: any) => {
-                if (fx.var && allFxPersistent.current[`${fxRadioValue}`].map((f: any) => f.var).indexOf(fx.var) === -1) {
-                    allFxPersistent.current[`${fxRadioValue}`].push(fx);
-                    allFxPersistent.current[`${fxRadioValue}`].filter((v: any) => v.var && v);
-                }
-            })
-            currentScreen.current = '';
-            updateCurrentFXScreen();
-        }
-
-        const gotFX: any = fxFX.current.length > 0 && fxFX.current.filter((fx: any) => fx.visible === true && fx);
-
-        const theFXIdx = gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) >= 0
-            ?
-            gotFX.map((f: any) => f.var).indexOf(selectedEffect.current)
-            :
-            gotFX.length - 1;
-        // console.log(`theFXIdx ${theFXIdx}`)
+        
+        console.log("SANITY CHECKIN ", visibleFXKnobs.current, currentFX.current.presets)
         visibleFXKnobs.current = !currentFX.current.presets
             ?
-            currentFX.current.length > 0 || visibleFXKnobs.current && gotFX
+            currentScreen.current !== 'synth' && 
+            currentFX.current && 
+            currentFX.current.length > 0 || 
+            visibleFXKnobs.current && 
+            gotFX && 
+            theFXIdx && 
+            gotFX[theFXIdx].length > 0 && 
+            !doReturnToSynth.current
                 ?
-                Object.values(gotFX[theFXIdx]) && Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
+                Object.values(gotFX[theFXIdx]) && 
+                Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
                 :
                 Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
             : 
@@ -808,7 +828,8 @@ export default function InitializationComponent() {
 
 
         console.log('VIZ FX CURR AT END OF TEST: ', visibleFXKnobs.current);
-    }, [checkedFXUpdating, currentScreen]);
+
+    }, [checkedFXUpdating]);
 
     useEffect(() => {
         currentFX.current = [];
@@ -871,32 +892,23 @@ export default function InitializationComponent() {
 
     const updateStkKnobs = (knobVals: STKOption[]) => {
         stkValsRef.current = [];
-        console.log("WHAT ARE KNOBVALS? ", stkValsRef.current);
-        if (knobVals[0] && Object.values(knobVals[0]).length > 0 && knobVals.length > 1) {
-            knobVals.map(
-                // (kv: any) => {
-                (kv: any) => {
-                    stkValsRef.current.push(kv);
-                    // }
-                })
+        stkValsRef.current.push(...knobVals);
 
-        } else {
-            knobVals.forEach((kv: any) => {
-                stkValsRef.current.push(kv);
-            })
-        }
         console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', stkValsRef.current);
-        if (stkValsRef.current && stkValsRef.current.length === 1) stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
+        if (stkValsRef.current && stkValsRef.current.length > 0) {
+            stkFX.current = fxFX.current = getSTK1Preset(stkValsRef.current[stkValsRef.current.length - 1].value);
+            currentScreen.current = "stk";
+        }
 
         let knobsCountTemp;
         console.log("what is current screen in update knobs? ", currentScreen.current);
-        if (currentScreen.current === 'stk' && !checkedFXUpdating) {
+        if (currentScreen.current === 'stk') {
+            currentFX.current = stkValsRef.current;
             knobsCountTemp = stkFX.current.presets.length;
         } else {
             knobsCountTemp = currentFX.current.length
         }
         setFxKnobsCount(knobsCountTemp);
-        console.log('#### Current FX current: ', currentFX.current);
         updateCurrentFXScreen();
     }
 
@@ -936,7 +948,10 @@ export default function InitializationComponent() {
     const theme = useTheme();
 
     const handleReturnToSynth = () => {
-        doReturnToSynth.current = true;
+        if (currentScreen.current !== "synth") {
+            // doReturnToSynth.current = !doReturnToSynth.current;
+            currentScreen.current = "synth";
+        }
         updateCurrentFXScreen();
     }
 
@@ -948,82 +963,30 @@ export default function InitializationComponent() {
             return;
         }
 
-        if (currentScreen.current === 'stk' && stkValsRef.current.length > 0) {
-            stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
-            currentFX.current = stkFX.current;
-            currentScreen.current = 'stk';
-            visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
-        } else if (currentScreen.current === 'fx_' ) {
-            // currentFX.current = stkFX.current;
-            console.log("YOYOYOYOYOY ",  Object.values(allFxPersistent.current[fxRadioValue][allFxPersistent.current[fxRadioValue].length - 1].presets));
-            currentScreen.current = 'fx_';
-            visibleFXKnobs.current = Object.values(allFxPersistent.current[fxRadioValue][allFxPersistent.current[fxRadioValue].length - 1].presets).map((i: any) => [i.label, i]);
-        } 
-        else if (currentScreen.current === '') {
-            // currentScreen.current = 'stk';
-            console.log("AM I SANE? ", doReturnToSynth.current);
-            if (doReturnToSynth.current === true) {
-                doReturnToSynth.current = false;
-                // currentFX.current = moogGrandmotherEffects.current;
-                // visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i:any) => [i.label, i]);
-                // currentScreen.current = 'synth';
-                currentFX.current = [];
-                currentFX.current = moogGrandmotherEffects.current;
-                fxFX.current = currentFX.current;
-                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-                // doReturnToSynth.current = false;
-                setFxKnobsCount(visibleFXKnobs.current.length);
-                // doReturnToSynth.current = false;
-            } else {
-                doReturnToSynth.current = true;
-                currentFX.current = [];
-                currentFX.current = allFxPersistent.current[fxRadioValue];
-                fxFX.current = currentFX.current;
-                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-                // doReturnToSynth.current = false;
-                setFxKnobsCount(visibleFXKnobs.current.length);
+        if (currentScreen.current === 'stk' || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
+  
+            if (stkFX.current && stkFX.current.length > 0 && (toggleSTKvsFX || visibleFXKnobs.current?.length === 0)) {
+                currentScreen.current = 'stk';
+                stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
+                currentFX.current = stkFX.current;
+                visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);  
+            } else if (visibleFXKnobs.current && visibleFXKnobs.current.length > 0 && (!toggleSTKvsFX || stkFX.current.length === 0)) {
+                currentScreen.current = 'fx_';
+                currentFX.current = fxFX.current = allFxPersistent.current[fxRadioValue].filter((i: any) => i.visible === true && i);
+                visibleFXKnobs.current = allFxPersistent.current[fxRadioValue] && allFxPersistent.current[fxRadioValue].length > 0 &&  Object.values(allFxPersistent.current[fxRadioValue][allFxPersistent.current[fxRadioValue].length - 1].presets).map((i: any) => [i.label, i]);
             }
         }
-
-        // tk
-        if (currentScreen.current === 'synth') {
-            // try {
-                console.log("WHAT A PAIN: ", stkValsRef.current, allFxPersistent.current[fxRadioValue]);
-                if (stkValsRef.current && stkValsRef.current.length > 0 && (!checkedFXUpdating || toggleSTKvsFX)) {
-                    stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
-                    currentFX.current = stkFX.current;
-            
-                    currentScreen.current = 'stk';
-                    visibleFXKnobs.current = Object.values(stkFX.current.presets).map((i: any) => [i.label, i]);
-                } else {
-                    // currentScreen.current = 'stk';
-                    currentFX.current = fxFX.current = allFxPersistent.current[fxRadioValue].filter((i: any) => i.visible === true && i);
-                    currentScreen.current = "fx_";
-                    visibleFXKnobs.current = allFxPersistent.current[fxRadioValue] && allFxPersistent.current[fxRadioValue].length > 0 && Object.values(allFxPersistent.current[fxRadioValue][0].presets).map((i: any) => [i.label, i]);
-                }
-                setToggleSTKvsFX(!toggleSTKvsFX);
-            // } catch (e: any) { }
-        }
-
-        else if (currentScreen.current === 'stk' || currentScreen.current === 'fx_') {
-            currentScreen.current = 'synth';
+        else if (currentScreen.current === 'synth' ) {
+    
             currentFX.current = [];
             currentFX.current = moogGrandmotherEffects.current;
-            fxFX.current = [];
+            fxFX.current = currentFX.current;
             visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-            console.log('what are current FX in stk!@!@!@? ', fxFX.current);
-        }
-        else {
-            console.log('what are current FX in stk? ', fxFX.current);
-            // currentScreen.current = 'fx_';
-            // currentFX.current = fxFX.current;
-            // visibleFXKnobs.current = Object.values(fxFX.current).map((i: any) => [i.label, i]);
-            currentScreen.current = 'synth';
-            currentFX.current = [];
-            currentFX.current = moogGrandmotherEffects.current;
-            fxFX.current = [];
-            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-        }
+            setFxKnobsCount(visibleFXKnobs.current.length);
+        } 
+        
+
+    
         babylonGame.current.engine.dispose();
         babylonGame.current = undefined;
         setBabylonKey(`${babylonKey}1`);
@@ -1034,19 +997,37 @@ export default function InitializationComponent() {
         return currentScreen.current;
     };
 
+
     const updateCheckedFXList = (e: any) => {
+
+        console.log("sannnne ", e.target.defaultValue);
+
+        if (!e.target.checked) {
+            // const index = checkedFXList.current.indexOf(e.target.defaultValue);
+            // checkedFXList.current[index];
+            // return;
+            fxFX.current.find((i:any) => e.target.defaultValue === i.var).visible = false;
+        }
+
+    // else {
+        if (!fxFX.current || fxFX.current.length < 1 || (fxFX.current[0] && !fxFX.current[0].visible)) {
+            currentScreen.current = 'fx_';
+            fxFX.current = allFxPersistent.current[fxRadioValue].filter((i: any) => i.visible === true && i);
+        }
         if (checkedFXList.current.indexOf(e.target.value) === -1) {
             checkedFXList.current.push(e.target.value);
             setCheckedEffectsListHook((x: any) => [...x, e.target.value]);
+            selectedEffect.current = e.target.value;
         } else {
             const index = checkedFXList.current.indexOf(e.target.value);
             checkedFXList.current.splice(index, 1);
             setCheckedEffectsListHook((x: any) => x.filter((y: any) => y !== e.target.value && y));
         }
-
+    
         console.log("Checked List Current in Update: ", checkedFXList.current);
 
         const allFx: any = [];
+        console.log("what are fx group opts???");
         fxGroupOptions.map((i: any) => {
             if (allFx.indexOf(i.effects) === -1) {
                 allFx.push(i.effects);
@@ -1057,9 +1038,8 @@ export default function InitializationComponent() {
         allFx.flat().forEach((fx: any) => {
             console.log("WTF IS FXCURRENT??? ", fxFX.current);
             
-
-
-            if (fxFX.current.filter((fx: any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
+ 
+            if (fxFX.current && fxFX.current.filter((fx: any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
                 fxFX.current.push({
                     presets: getFX1Preset(fx.effectVar)[0].presets,
                     type: fx.effectLabel,
@@ -1081,9 +1061,11 @@ export default function InitializationComponent() {
             }
         });
 
+    // }
+
         fxFX.current = fxFX.current.filter((f: any) => f.visible === true && f)
 
- 
+        currentScreen.current = "synth";
         // TODO hate this lack of clarity right here.... fix it.
         setCheckedFXUpdating(!checkedFXUpdating);
     };
@@ -1123,6 +1105,22 @@ export default function InitializationComponent() {
         setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
     }, [moogGrandmotherEffects])
 
+    const stxFXGetVals = () => {
+        if (!stkFX.current || stkFX.current.length < 1) return '';
+        stk1Type.current = stkFX.current.type;
+        stk1Var.current = stkFX.current.var;
+
+        stkFX.current && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
+            console.log('STK PRESET: ', preset); // preset.name
+            const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
+            // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
+            for (let j = 1; j < currentNotesDownDisplay.current.length; j++) {
+                stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
+            }
+            // console.log("WHAT IS STKFX CURRENT >?>?>?>? ", stkFXString.current);
+            return stkFXString.current;
+        });
+    }
 
     // THIS METHOD TURNS A PRESET INTO CHUCK CODE (only set up for stk1)
     const stkFXToString = () => {
@@ -1135,7 +1133,11 @@ export default function InitializationComponent() {
         stkFX.current && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
             console.log('STK PRESET: ', preset); // preset.name
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
-            stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
+            // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
+            for (let j = 1; j < currentNotesDownDisplay.current.length; j++) {
+                stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
+            }
+            console.log("WHAT IS STKFX CURRENT >?>?>?>? ", stkFXString.current);
         });
 
         // stkFX2.current && stkFX2.current.presets && Object.values(stkFX2.current.presets).map((preset: any) => {
@@ -1435,68 +1437,8 @@ export default function InitializationComponent() {
 
     };
 
-    const winFuncDeclarationReusableRef = useRef<string>("");
+ 
 
-    // NEED TO PUSH INTO allFxPersistent.current[genericSource] BEFORE USING THIS
-    // const reusableFXToString = (genericSource: string, sourceName: string) => {
-
-    //     winFuncDeclarationReusableRef.current = reusableWinEnvOn.current[sourceName] ? ` WinFuncEnv winfuncenv_${fxRadioValue + '_' + allFxPersistent.current[sourceName][0]}` : '';
-
-
-
-    //     Object.values(allFxPersistent.current[genericSource][sourceName]).map((source: any) => {
-    //             if (reusableFXStringToChuck.current.indexOf(source.var) === -1) {
-
-
-    //                 if (source.type === "PitchTrack") {
-    //                     if (reusableFxStringToChuckNeedsBlackhole.current[sourceName].map((i: any) => i.name).indexOf(`${source.var}`) === -1) {
-    //                         reusableFxStringToChuckNeedsBlackhole.current[sourceName].push({ name: `${source.var}`, string: `=> ${source.type} ${source.var} => blackhole;` });
-    //                     }
-    //                     return;
-    //                 } else if (source.type === "WinFuncEnv") {
-    //                     reusableWinEnvOn.current[sourceName] = true;
-    //                 } else if (source.type === "PowerADSR") {
-    //                     reusablePowerADSROn.current[sourceName] = true;
-    //                 } else if (source.type === "ExpEnv") {
-    //                     reusableExpEnvOn.current[sourceName] = true;
-    //                 } else if (source.type === "WPDiodeLadder") {
-    //                     reusableWPDiodeLadderOn.current[sourceName] = true;
-    //                 } else if (source.type === "WPKorg35") {
-    //                     reusableWPKorg35On.current[sourceName] = true;
-    //                 } else if (source.type === "Modulate") {
-    //                     reusableModulateOn.current[sourceName] = true;
-    //                 } else if (source.type === "Delay") {
-    //                     reusableDelayOn.current[sourceName] = true;
-    //                 } else if (source.type === "DelayA") {
-    //                     reusableDelayAOn.current[sourceName] = true;
-    //                 } else if (source.type === "DelayL") {
-    //                     reusableDelayLOn.current[sourceName] = true;
-    //                 } else if (source.type === "ExpDelay") {
-    //                     reusableExpDelayOn.current[sourceName] = true;
-    //                 } else if (source.type === "Elliptic") {
-    //                     reusableEllipticOn.current[sourceName] = true;
-    //                 } else if (source.type === "Spectacle") {
-    //                     reusableSpectacleOn.current = true;
-    //                 }
-    
-    //                 // TODO => Basic Implementation of Sampler Interface / Play Logic
-    //                 // TODO => All of SndBuf Implementation
-    //                 // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
-    //                 // TODO => All of Sigmund
-    //                 // TODO => All of Autotune (PitchTrack implelementation)
-    //                 // TODO => All of the Gains & Note Swells (create a mixer W PANNING!??)    
-    //                 // AFTER ALL OF THIS, WE CAN LEVEL OUT (OR MAKE FACTORY OF FX CODE FOR ALL SOURCES)
-    //                 // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
-    
-    //                 else {
-    //                     reusableFXStringToChuck.current = reusableFXStringToChuck.current.concat(`=> ${source.type} ${source.var} `)
-    //                 }
-
-
-    //             }                
-    //         }
-    //     );
-    // }
 
     const samplerFXToString = () => {
   
@@ -1800,7 +1742,7 @@ export default function InitializationComponent() {
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
             Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async (preset: any, idx: number) => {
-
+                console.log("WTF IS PRESET??? ", preset);
                 // ******** TODO change to read type directly from o1.type
                 if (preset.type.includes("_needsFun")) {
                     if (preset.type.includes("_winFuncEnv")) {
@@ -2152,19 +2094,12 @@ export default function InitializationComponent() {
             });
 
             console.log('STK STRING HERE: ', getStk1String);
-            const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}` : '';
+            const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}[12]` : '';
 
             // const connectorStk1DirectToDac = getStk1String && getStk1String.length > 0 && useStkDirect ? `
             //     ${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; 
             //     winfuncenv_stk1.setHann(); 
             //     for (int i; i < 250; i++) { 
-
-
-            console.log('Krikes ', samplerFXStringToChuck.current);
-            
-
-
-
             //         spork ~ playWindow(winfuncenv_stk1, ${currentNoteVals.oscs[0]}, ${currentNoteVals.oscs[0]}); 
             //     }` : ``;
 
@@ -2233,8 +2168,8 @@ export default function InitializationComponent() {
             const delayLCodeStringSampler = samplerDelayLOn.current ? delayLString('s1', delayLFinalHelper.current.sampler.delay, delayLFinalHelper.current.sampler.lines, delayLFinalHelper.current.sampler.syncDelay, delayLFinalHelper.current.sampler.zero, delayLFinalHelper.current.sampler.b0, delayLFinalHelper.current.sampler.b1) : '';
 
             ////////////////////////////
-
-
+            console.log("WHAT R STKS? ", stkFX.current);
+            ////////////////////////////
 
 
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2265,12 +2200,57 @@ export default function InitializationComponent() {
             console.log("****sanity check osc1 declaration: ", chuckUpdateNeeded, "FUYC ", osc1ChuckToOutlet);
      
 
+        
+
+            const playSTKOn = () => {
+                if (stkFX.current.var) {
+                    return `
+                        notesToPlay[i] + 24 => Std.mtof => ${stkFX.current.var}[i-1].freq;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].noteOn;  
+                        0.01 => ${stkFX.current.var}[i-1].gain;
+                    `;
+                } else {
+                    return ``;
+                }
+            }
+
+
+
+            const createSTKFXChugraph = () => {
+                console.log("LOOK HEEEERE: ", stkFX.current);
+                ////// PICK UP HERE WHEN YOU RETURN!!!!!!!!!!!
+                let buildSTKString = ``;
+                const gainAdjuster = `                        
+                    notes.size() || 1 => int notesNum;
+                    if (!notesNum || notesNum < 1) {
+                        1 => notesNum;
+                    }
+                    0.2/notesNum => stks_mastergain.gain;`
+
+                if (stkFX.current && stkFX.current.length > 0) {
+                    stkFX.current.map((fx: any) => {
+                        buildSTKString = buildSTKString + ` ${fx.type} ${fx.var}[12] => EffectsModuleSTK effectsModuleSTK => Gain stks_mastergain => dac; ` 
+                    });
+                    buildSTKString = buildSTKString + gainAdjuster;
+                    console.log("WHAT IS THIS BUILDSTRING? ", buildSTKString);
+                    return buildSTKString;
+                } else {
+                    return buildSTKString;
+                }
+            }
+
+
+           
+            console.log("PRETTY ANNOYING // getNewSTKFXString(): ", getNewSTKFXString());
+            console.log("---- wtf is thisssss? ", createSTKFXChugraph());
 
             console.log("WHAT IS FILE ARRAY? ", filesArray);
             console.log("help please: ", allFxPersistent.current);
 
+
             const chuckCode = `
             
+            [0] @=> int notes[];
             
             // webchuck keyboard device
             0 => int device;
@@ -2284,8 +2264,11 @@ export default function InitializationComponent() {
             if( !hid.openKeyboard( device ) ) me.exit();
             <<< "keyboard '" + hid.name() + "' ready", "" >>>;
             
+            ${getNewSTKFXString()}
+
             ((60.0 / ${bpm})) => float secLenBeat;
             (secLenBeat * 1000)::ms => dur beat;
+
 
             Dyno limiter_Sampler;
             
@@ -2295,7 +2278,7 @@ export default function InitializationComponent() {
             // ${uploadedFilesToChuckString.current}
             // ${uploadedFilesCodeString.current}
             
-            [0] @=> int notes[];
+
             
             private class UniversalAnalyzer {
                 FeatureCollector combo => blackhole;
@@ -2879,8 +2862,14 @@ export default function InitializationComponent() {
                     // }
                 }
             
-                SynthVoice voice[10] ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => dac;
-            
+                SynthVoice voice[10] ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => Gain oscs_masterGain => dac;
+                
+                0.7 => oscs_masterGain.gain;
+                
+                if (${arpeggiatorOn} == 0) {
+                    oscs_masterGain.gain() / notes.cap() => oscs_masterGain.gain;
+                }
+
                 ${modulateDeclarationOsc1}
                 ${modulateCodeStringOsc1}
                 ${delayDeclarationOsc1}
@@ -2916,9 +2905,27 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 0 => int count;
             
             
-            
-                SndBuf buffers[4] => dac;
+
+
+
+
                 
+               
+
+                class EffectsModuleSTK extends Chugraph
+                {
+                    "" => string fxChain;
+                    inlet => Gain dry => outlet;
+                }
+             
+                
+                ${createSTKFXChugraph()} 
+
+
+
+
+                // Start Buffers below
+                SndBuf buffers[4] => dac;
                 
                 class EffectsModule extends Chugraph
                 {
@@ -2959,31 +2966,15 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                     5::ms => limiter_Sampler.attackTime;
                     300::ms => limiter_Sampler.releaseTime;
                     0 => limiter_Sampler.externalSideInput;
-         
-
-                    // dry => Delay delay2 => outlet;
-                    // delay2 => Gain feedback => delay2;
-                    // feedback => NRev rev2 => outlet;
-                    // dry => NRev rev2 => outlet;
-                    // 0.8 => feedback.gain;
-                    // 0.6 => rev2.mix;
-     
-
-
-
-                    
-                
-                    // whole/${currentNoteVals.samples[0]} => delay2.max => delay2.delay;
                 }
                 
-                SndBuf sample1 => EffectsModule effectsModule => dac;
+                SndBuf sample1 => EffectsModule effectsModule => Gain sampler_masterGain => dac;
+
+                0.3 => sampler_masterGain.gain;
 
                 
-                
-                // ${filesArray} @=> string filesArr[];
                 string files[4];
             
-        
                 me.dir() + "DR-55Kick.wav" => files[0];
                 me.dir() + "DR-55Snare.wav" => files[1];
                 me.dir() + "DR-55Hat.wav" => files[2];
@@ -3082,56 +3073,40 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
                     <<< "PLAYSYNTH_ON" >>>;
                     myEvent => now;
-                    // UniversalAnalyzer uA;
-                    // "${analysisSourceRadioValue}" => string analysisSource;
-                    // if (analysisSource == "Osc") { 
-                        // uA.declarationCode(voice);
-                        // spork ~ uA.getAnalysisForSource(voice, "voice");
-                    // }
+             
                     
                     0 => int runningShreds;
                     0 => int runningSynthShreds;
             
                     while(true) {
-
+                        "" => string notesToPlayMsg;
                         Machine.numShreds() => runningShreds;
 // TK *******************************                      
-                        if (notesToPlay.size() > 0) {
-                            for (1 => int i; i < notesToPlay.size(); i++) {
-                            
-                                // notesToPlay[i] => voice[i-1].keyOn;
-                           
-                                if (${arpeggiatorOn} == 1) {
-                                    notesToPlay[i] => voice[i-1].keyOn;
-                                    duration - (now % duration)  => now;
-                                    1 => voice[i].keyOff;
-                                } else {
-                                    notesToPlay[i] => voice[i-1].keyOn;
-                                }
-                                
-                                // 1 => voice[i].keyOff;
-                                "" => string notesToPlayMsg;
-                             
-                                notesToPlayMsg + " " + notesToPlay[i] => notesToPlayMsg;
-                                <<< "NOTESDOWN", notesToPlayMsg >>>;
-                            }
-                        }       
-                        else {
-                            // duration - (now % duration)  => now;
-                            for (int i; i < voice.size(); i++) {
-                                1 => voice[i].keyOff;
-                                notes.erase(i + 1);
-                            }
-                            // testing VOICES BEGINS NOW!
 
-                            me.yield();
+                        for (1 => int i; i < notesToPlay.size(); i++) {                 
+                            if (${arpeggiatorOn} == 1 && notesToPlay.cap() > 0) {
+                                notesToPlay[i] => voice[i-1].keyOn;
+                                duration - (now % duration)  => now;
+                                if (${hold} != 1) {
+                                    1 => voice[i-1].keyOff;
+                                }
+                                // break;
+                            } else if (notesToPlay.cap() > 0) {
+                                notesToPlay[i] => voice[i-1].keyOn;
+                            }
+                            notesToPlayMsg + " " + notesToPlay[i] => notesToPlayMsg;
                         }
+                        // <<< "NOTESDOWN", notesToPlayMsg >>>;
+
                         if (${arpeggiatorOn} == 0) {
                             duration - (now % duration)  => now;
+                            for (1 => int i; i < notesToPlay.size(); i++) {
+                                1 => voice[i].keyOff;
+                            }
+                        } 
+                        if (${arpeggiatorOn} == 1 && notes.cap() < 2) {
+                            1::ms => now;
                         }
-                                
-                        // 1 => voice[i].keyOff;
-                        
                         me.yield();
                     }
                     me.exit();
@@ -3141,19 +3116,31 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 fun void PlaySTK(Event mySTKEvent, int notesToPlay[], dur duration){
                     mySTKEvent => now;
                     // count % (notesToPlay.size()) => int stk1Idx;
+                    // Sitar testSTK[12] => EffectsModuleSTK effectsModuleSTK => Gain stks_mastergain => dac;
                     
-                    while (notesToPlay.cap() > 0) {
-                        count % (notesToPlay.size()) => int stk1Idx;
-                        <<< "STK_ON" >>>;
-                        for (1 => int i; i < notesToPlay.cap(); i++) {
-                            // <<< notesToPlay[i] >>>;
-                            if (notesToPlay[i] != -1 && i <= notesToPlay.cap()-1) {
-                                notesToPlay[i] => voice[i].stk1;
+                    while (true) {
+                        
+                        if (notesToPlay.cap() > 1){
+                            for (1 => int i; i < notesToPlay.cap(); i++) {
+                   
+                                if (notesToPlay[i] && notesToPlay[i] > 0 && notesToPlay[i] < 127) {
+                
+                                    ${playSTKOn()}
+                                
+                                } 
+                                else if (notesToPlay[i]) {
+                                    notesToPlay.erase(1);
+                                }
+                                if (${arpeggiatorOn} == 1) {
+                                    duration - (now % duration)  => now;
+                                }
                             }
-                            duration / notesToPlay.size() => now;
-                            me.yield();
+                            if (${arpeggiatorOn} == 0) {
+                                duration - (now % duration)  => now;
+                            }                       
+                        } else {
+                            duration - (now % duration)  => now;
                         }
-                        me.exit();
                     }
                     me.exit();
                 }
@@ -3231,7 +3218,7 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                             if (notes[i] == note) {
                                 i => existingIndex;
                                 notes.erase(i);
-                                break;
+                                // break;
                             }
                         }
                         if (!existingIndex) {
@@ -3244,14 +3231,14 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                         for (0 => int i; i < notes.size(); i++)
                         {
                             <<< "SANITY IN CHUCK ", note, notes[i] >>>;
-                            if (note == notes[i] && hold == 0) {
-                                // notes.popOut(i);  
+                            if (note == notes[i] && hold == 0 && notes.cap() > 4) {
                                 notes.erase(i);                     
                             }
                             // else if (note == notes[i] && hold == 1) {
-                            else if (hold == 1) {
+                            // else if (hold == 1) {
+                            else {
                                 // this is a quick implementation... developing shd be relatively easy
-                                while (notes.cap() > 2) {
+                                while (notes.cap() > 6) {
                                     notes.popFront();
                                 }
                             }
@@ -3262,7 +3249,9 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                     
                 ChordProvider oCp;
                 
-                spork ~ PlaySTK(mySTKEvent, notes, whole/${currentNoteVals.oscs[0]});           
+               
+               
+                spork ~ PlaySTK(mySTKEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred stkShred;           
                 
                 spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
                 
@@ -3274,9 +3263,6 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 // while(${chuckUpdateNeeded === false}) {
                 while(true) {
                  
-                    // Machine.remove(synthShred.id());
-                    // spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
-                
                     // wait for HID event
                     hid => now;
             
@@ -3284,33 +3270,32 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                     while( hid.recv( msg ) )
                     {
                         if( msg.isButtonDown() ) {
+                          
+                            mySTKEvent.signal();
                             
                             myEvent.broadcast();
-                            mySTKEvent.broadcast();
+                            
 
                             <<< "[key]", msg.key, "(ascii)", msg.which >>>;
                             ${virtualKeyMapping(48, 1)}
-
-                            // mySampleEvent.broadcast();
                             
                             // me.yield();
                         } else if (msg.isButtonUp()) {
   
                             ${virtualKeyMapping(48, 0)}
-                            me.yield();
+                            // me.yield();
                         }
                         else  {
                             <<< "IN HID ELSE!" >>>;
                             
                             me.yield();
                         }
-                        me.yield();
+                        // me.yield();
                     }
 
                     
                     mySampleEvent.broadcast();
-                    // myEvent.broadcast();
-                    // mySTKEvent.broadcast();
+
                
                     (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
                     <<< "TICK" >>>;
@@ -3378,6 +3363,30 @@ for (0 => int i; i < voice.cap() - 1; i++) {
         }
     }
 
+    const getNewSTKFXPresets = (type: string, name: string) => {
+
+        return `${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[n-1].pluck;`;
+
+    }
+
+    const getNewSTKFXString = () => {
+        console.log("OOOOF WHAT R STKFX? ", stkFX.current);
+        if (stkFX.current && Object.values(stkFX.current).length > 0) {
+            return `
+            
+                ${stkFX.current.type} ${stkFX.current.var}[12] => EffectsModuleSTK effectsModuleSTK_${stkFX.current.var} => Gain stks_mastergain_${stkFX.current.var} => dac;
+                0.2/notes.cap() => stks_mastergain_${stkFX.current.var}.gain;
+
+        
+                for (1=>int n; n < notes.cap(); n++) {
+                    ${getNewSTKFXPresets(stkFX.current.type, stkFX.current.var)}
+                } 
+            
+            `;
+        } else {
+            return ``;
+        }
+    };
 
     const runChuck = async () => {
         if (typeof window === 'undefined') return;
@@ -3413,7 +3422,6 @@ for (0 => int i; i < voice.cap() - 1; i++) {
         if (chuckUpdateNeeded) {
             setChuckUpdateNeeded(false);
         }
-        // console.log("CHECK CURRENT FX ************** ", currentFX.current);
 
         const buffersToChuck: any = {};
 
@@ -3454,26 +3462,25 @@ for (0 => int i; i < voice.cap() - 1; i++) {
             {
                 127 => note;
             }
-            if(note < 0)
+            if(note < 20)
             {
-                0 => note;
+                21 => note;
             }
 
             ${getStk1String[0]}
 
             ${bodyIR1}
-
-            Std.mtof(note + 32) => ${getStk1String[2]}.freq;
-            0.4 => ${getStk1String[2]}.gain;
-            1 => ${getStk1String[2]}.noteOn;
+            // if (note > 20 && note < 127) {
+            //     Std.mtof(note) => ${getStk1String[2]}.freq;
+            //     0.1 => ${getStk1String[2]}.gain;
+            //     1 => ${getStk1String[2]}.noteOn;
+            // }
 
      
         ` : '';
 
-        //console.log("HOLY SHIT WHAT IS STK1 THEN OSC1 CODE? ", STK_1_Code, STK_1_Code, OSC_1_Code);
         setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
-
 
         runMainChuckCode(aChuck, getStk1String);
 
@@ -3538,8 +3545,7 @@ for (0 => int i; i < voice.cap() - 1; i++) {
     // ========================================================
 
     useEffect(() => {
-        // console.log('in useeffect');
-        // console.log('recreating babylon on this screen and with these fx: ', currentScreen.current, currentFX.current)
+
         if (babylonGame.current && !babylonGame.current.canvas) {
             // console.log('in useeffect getting canvas');
             babylonGame.current.canvas = document.querySelector(`babylonCanvas`);
@@ -3562,56 +3568,41 @@ for (0 => int i; i < voice.cap() - 1; i++) {
         if (windowListenerRef.current) {
             windowListenerRef.current.addEventListener("resize", resize);
         }
+        // if (currentScreen.current === "fx_" || currentScreen.current === "stk") {
+        //     currentScreen.current = 'synth';
+        // }
         return () => {
             if (windowListenerRef.current) {
                 windowListenerRef.current.removeEventListener("resize", resize);
             }
         };
+
     }, [windowListenerRef, recreateBabylon]);
 
     // SLIDER CONTROL KNOB
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const handleUpdateSliderVal = (obj: any, value: any) => {
-    
-        if (currentScreen.current === '') {
-            // console.log('SANE CHECK ', obj, value);
-            console.log("SANITY 1 ", Object.values(allFxPersistent.current[`${fxRadioValue}`]));
-            let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i.var === obj.name && i)[0];
+        console.log("COULD THIS BE MUCH SIMPLER ", obj)
+        console.log("CHRIKES CURR SCREEN ", currentScreen.current, currentFX.current);
 
+        if (obj.fxType === "stk") {
+            stkFX.current.presets[`${obj.name}`].value = value;
+            setToggleSTKvsFX(!toggleSTKvsFX);
+        } else if (obj.fxType === 'fx')
+        {
+            let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i.var === obj.name && i)[0];
             if (!index || index.length < 1) {
                 console.log('this should replace... ', allFxPersistent.current[`${fxRadioValue}`].length - 1);
                 index = allFxPersistent.current[`${fxRadioValue}`].length - 1;
             }
-console.log("SANITY 2 ", allFxPersistent.current[`${fxRadioValue}`][index]);
-console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             if (allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`]) {
                 allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`].value = value;
-            } else {
             }
-            currentFX.current[currentFX.current.length - 1][0][1][`${obj.name}`].value = value; 
-            console.log("for real??? ", currentFX.current);
         }
-
-        // moogGrandmotherEffects.current[`${obj.name}`].value = value;
-        if (currentScreen.current === 'stk') {
-            console.log('SLIDER OBJ NAME: ', obj.name);
-            console.log('STK PRESETS FOR OBJ ', stkFX.current.presets[`${obj.name}`]);
-            stkFX.current.presets[`${obj.name}`].value = value;
-        } else if (currentScreen.current === 'synth') {
-            console.log('SLIDER OBJ NAME: ', obj.name);
-            console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
+        else if (obj.fxType === 'default') {
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
         }
-        else if (currentScreen.current.includes(`fx_`)) {
-            console.log('CURRENT FX ARE KINDA SHIT: fxFX.current in : ', currentFX.current);
-            console.log('SLIDER OBJ NAME: ', obj.name);
-            //currentFX.current = fxFX.current[0].presets ? fxFX.current[0].presets : fxFX.current;
-           // console.log('SYNTH PRESETS FOR OBJ ', currentFX.current[`${obj.name}`]);
-            currentFX.current[0].presets[`${obj.name}`].value = value;
-        }
-
-        console.log('WHAT ARE CURRENT FX??? ', currentFX.current);
     };
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
@@ -3649,7 +3640,7 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
     }
 
     const handleShowFX = (closeOnly?: boolean) => {
-
+        currentScreen.current = "";
         setShowFX(!showFX);
     };
 
@@ -3663,14 +3654,7 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
     const updateFileUploads = (e: any) => {
 
         console.log('%cDO WE GET CONTACT HERE ON FILE UPLOOAD? ', 'color: cyan ', e);
-        // const test = new Promise((resolve, reject) => {
-        //     resolve(axios.post(`${getBaseUrl}/api/upload_files`, {
-        //         // headers: {
-        //         //     'Content-Type': 'application/json',
-        //         // },
-        //     }));
-        // });
-        // console.log('123411! ', test);
+
     };
 
     const playUploadedFile = (e?: any) => {
@@ -3678,18 +3662,7 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             return;
         }
         const theFile = e ? e : lastFileUpload;
-        // if (!uploadedFileName) return;
         console.log('%cwhat is the uploaded file? ', 'color: beige;', theFile);
-        // chuckHook.loadFile(`./src/tmp/${theFile}`);
-        // chuckHook.loadFile("/readData.ck")
-        // if (!tActive) { 
-        //     chuckHook.runFileWithArgs("/readData.ck", `${bpm}:${numeratorSignature}:${denominatorSignature}:/${theFile}`);
-        //     setTActive(true);
-        // } else {
-        //     // chuckHook.removeLastCode();
-        //     chuckHook.replaceFileWithArgs("/readData.ck", `${bpm}:${numeratorSignature}:${denominatorSignature}:/${theFile}`);
-        // }
-        // console.log('ran chuck code');
     };
 
     const parsedLastChuckMessage = useRef<any>()
@@ -3704,52 +3677,19 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
     }, [currentNumerCount]);
 
     useEffect(() => {
-////// TESTING ONLY (FOR HIGH SHRED COUNT CULPRIT) - TEST BEGIN
-        if (lastChuckMessage && lastChuckMessage.includes("PLAYWINDOW_ON")) {
-
-        };
-        // if (lastChuckMessage && lastChuckMessage.includes("DRUM_ON")) {
-
-        // };
-        if (lastChuckMessage && lastChuckMessage.includes("PLAYSYNTH_ON")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("STK_ON")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("SAMPLE_ON")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("TICK")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("PLAY_POWERADSR")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("PLAY_ENVWIN")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("PLAY_DIODE")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("")) {
-
-        };
-        if (lastChuckMessage && lastChuckMessage.includes("")) {
-
-        };
-///// TESTING END
 
         if(lastChuckMessage && lastChuckMessage.includes("VIRTUALKEYUPDATE_")){
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
             console.log('%cParsedLastChuckMessage.current NOTES DOWN: ', 'color: red', parsedLastChuckMessage.current);
-            parsedLastChuckMessage.current && parsedLastChuckMessage.current.length > 0 && currentNotesKeyValDownDisplay.current.push(parsedLastChuckMessage.current[1]);
+            // currentNotesKeyValDownDisplay.current = [];
+            if (parsedLastChuckMessage.current) {
+                // currentNotesKeyValDownDisplay.current.push(parsedLastChuckMessage.current[2]);
+                console.log("WTF KEY VALS DOWN??   ", parsedLastChuckMessage.current);
+            } 
+            else if (parsedLastChuckMessage.current[1] === 0) {
+                const theIndex = currentNotesKeyValDownDisplay.current.indexOf(parsedLastChuckMessage.current[2]);
+                currentNotesKeyValDownDisplay.current.slice(theIndex, 1);
+            }
         }
 
         if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT")) {
@@ -3769,11 +3709,23 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
 
         if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
+            parsedLastChuckMessage.current.filter((i:any) => i.length > 0 && i );
             console.log('%cParsedLastChuckMessage.current NOTES DOWN: ', 'color: yellow', parsedLastChuckMessage.current);
             
-            parsedLastChuckMessage.current.shift();
             currentNotesDownDisplay.current = [];
-            currentNotesDownDisplay.current.push(parsedLastChuckMessage.current);
+
+            // parsedLastChuckMessage.current.filter((i: any) => i && i);
+            if (parsedLastChuckMessage.current.length > 1) {
+                // parsedLastChuckMessage.current.shift();
+                
+                // currentNotesDownDisplay.current = [];
+                parsedLastChuckMessage.current.forEach((i: any) => {
+                    if (i && i !== '' && currentNotesDownDisplay.current.indexOf(i) === -1) {
+                        currentNotesDownDisplay.current.push(i);
+                    }
+                })
+                // currentNotesDownDisplay.current.push(parsedLastChuckMessage.current);
+            }
         }
 
         if (lastChuckMessage && lastChuckMessage.includes('FEATURES')) {
@@ -3824,6 +3776,7 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             });
             setChroma((i: any) => parsedLastChuckMessage.current.slice(26, parsedLastChuckMessage.current.length - 2).map((i: any) => Number(parseFloat(i).toFixed(4))));
         }
+
         if (lastChuckMessage.includes('XCROSS')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
             setXCross(Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4)));
@@ -3831,6 +3784,7 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             // console.log('to Milliseconds: ', parsedLastChuckMessage.current[5]);
             setSampleRate(Number(parseFloat(parsedLastChuckMessage.current[5])));
         }
+
         if (lastChuckMessage && lastChuckMessage.includes('FREQ')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
             const source = parsedLastChuckMessage.current[parsedLastChuckMessage.current.length - 2].replace(/\W/g, '');
@@ -3862,6 +3816,7 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
             //         return i;
             // }));
         }
+
         if (lastChuckMessage.includes('TIME')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
 
@@ -3873,6 +3828,7 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
                 setTimeNow((Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4)) - initialTimeNow.current) / 44100);
             }
         }
+
     }, [lastChuckMessage]);
 
 
@@ -3897,11 +3853,34 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
         }
     }, [chuckUpdateNeeded]);
 
-    const handleUpdateFXView = (e: any) => {
-        console.log("e target: ", e.target.innerText);
-    };
+
+    
 
 
+
+    // const change = (arr: Array<any>, fromIndex: number, toIndex: number) => {
+    //     if (toIndex === fromIndex || toIndex >= arr.length) return arr;
+      
+    //     const toMove = arr[fromIndex];
+    //     const movedForward = fromIndex < toIndex;
+      
+    //     return arr.reduce((res, next, index) => {
+    //       if (index === fromIndex) return res;
+    //       if (index === toIndex) return res.concat(
+    //         movedForward ? [next, toMove] : [toMove, next]
+    //       );
+      
+    //       return res.concat(next);
+    //     }, []);
+    //   };
+
+
+    // const handleUpdateFXView = (e: any) => {
+    //     console.log("e target: ", e.target.innerText);
+    //     //currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
+    //     // const getIndex = allFxPersistent.current[fxRadioValue].map((i: any) => i.var).indexOf(e.target.innerText.toLowerCase());
+    //     selectedEffect.current = e.target.innerText.toLowerCase();
+    // };
 
     return (
         <ThemeProvider theme={theme}>
@@ -4199,12 +4178,16 @@ console.log("SANITY 3", allFxPersistent.current[`${fxRadioValue}`])
                                 // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
                                 filesToProcess={filesToProcess.current}
                             />
-                            <ToggleFXView handleReturnToSynth={handleReturnToSynth} />
+                            <ToggleFXView 
+                                stkCount={stkFX.current.length}
+                                fxCount={checkedFXList.current.length}
+                                handleReturnToSynth={handleReturnToSynth} />
                         </Box>
                     </Box>
                 )}
                 <Box sx={{position:"absolute", left: 0, bottom: 0, color: "red", fontFamily: "Menlo", height: "50%", width: "80px"}}>
                     <>{currentNotesDownDisplay.current}</>
+                    <>{currentNotesKeyValDownDisplay.current}</>
                     {/* <Box>{currentVirtualKeyNotesDownDisplay.length > 1 && [currentVirtualKeyNotesDownDisplay].map((i: any) => {
           <Box>{i}</Box>
                     })}</Box> */}

@@ -17,6 +17,7 @@ const voicFormPresets = {
         min: 0,
         max: 128,
         screenInterface: "intSpinner",
+        fxType: "stk",
     },
     speak: {
         name: "speak",
@@ -25,6 +26,7 @@ const voicFormPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     quiet: {
         name: "quiet",
@@ -33,6 +35,7 @@ const voicFormPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     vibratoFreq: {
         name: "vibratoFreq",
@@ -41,6 +44,7 @@ const voicFormPresets = {
         min: 0,
         max: 1200,
         screenInterface: "knob",
+        fxType: "stk",
     }, // freq in hZ
     vibratoGain: {
         name: "vibratoGain",
@@ -49,6 +53,7 @@ const voicFormPresets = {
         min: 0,
         max: 1,
         screenInterface: "knob",
+        fxType: "stk",
     },
     loudness: {
         name: "loudness",
@@ -57,6 +62,7 @@ const voicFormPresets = {
         min: 0,
         max: 128,
         screenInterface: "intSpinner_128",
+        fxType: "stk",
     },
 };
 
