@@ -1,7 +1,7 @@
 export const stkVariableMoog = "mog";
 export const stkIdentifierMoog = "Moog";
 
-const moogPresets = { // .clair
+const moogPresets = {
     filterQ: {
         name: "filterQ",
         label: "Filter Q",
@@ -84,6 +84,15 @@ const moogPresets = { // .clair
         screenInterface: "knob",
         fxType: "stk",
     },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.8,
+        min: 0,
+        max: 2,
+        screenInterface: "knob",
+        fxType: "stk",
+    }
     // reverb: {
     //     name: "reverb",
     //     label: "Reverb",

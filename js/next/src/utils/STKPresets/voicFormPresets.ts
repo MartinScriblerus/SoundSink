@@ -13,9 +13,9 @@ const voicFormPresets = {
     phonemeNum: {
         name: "phonemeNum",
         label: "Phoneme",
-        value: 2,
+        value: 3,
         min: 0,
-        max: 128,
+        max: 127,
         screenInterface: "intSpinner",
         fxType: "stk",
     },
@@ -55,13 +55,13 @@ const voicFormPresets = {
         screenInterface: "knob",
         fxType: "stk",
     },
-    loudness: {
-        name: "loudness",
-        label: "Spectral Tilt",
-        value: 100,
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.8,
         min: 0,
-        max: 128,
-        screenInterface: "intSpinner_128",
+        max: 1,
+        screenInterface: "knob",
         fxType: "stk",
     },
 };

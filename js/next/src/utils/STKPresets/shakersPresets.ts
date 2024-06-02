@@ -62,6 +62,15 @@ const shakersPresets = {
         screenInterface: "intSpinner_128",
         fxType: "stk",
     },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 3,
+        min: 0,
+        max: 6,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
 };
 
 export default shakersPresets;

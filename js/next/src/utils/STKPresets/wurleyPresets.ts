@@ -38,6 +38,15 @@ const wurleyPresets = {
         screenInterface: "knob",
         fxType: "stk",
     },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.15,
+        min: 0,
+        max: 1,
+        screenInterface: "knob",
+        fxType: "stk",
+    }
 };
 
 export default wurleyPresets;

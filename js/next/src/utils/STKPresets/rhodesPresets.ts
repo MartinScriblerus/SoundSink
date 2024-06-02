@@ -86,6 +86,15 @@ const rhodeyPresets = { // .clair
     //     max: 100,
     //     screenInterface: "knob",
     // }, // reverb amount (0-100)
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 1.5,
+        min: 0.0,
+        max: 3.0,
+        screenInterface: "knob",
+        fxType: "stk",
+    }
 };
 
 export default rhodeyPresets;

@@ -45,6 +45,8 @@ import moogPresets, {stkVariableMoog, stkIdentifierMoog} from '@/utils/STKPreset
 import percFlutPresets, {stkVariablePercFlut, stkIdentifierPercFlut} from '@/utils/STKPresets/percFlutPresets';
 // import pitShiftPresets, {stkVariablePitShift, stkIdentifierPitShift} from '@/utils/FXPresets/pitchShiftPresets';
 import rhodeyPresets, {stkVariableRhodey, stkIdentifierRhodey} from '@/utils/STKPresets/rhodesPresets';
+import hevyMetlPresets, {stkIdentifierHevyMetl, stkVariableHevyMetl} from '@/utils/STKPresets/hevyMetlPresets';
+import hnkyTonkPresets, {stkVariableHnkyTonk, stkIdentifierHnkyTonk} from '@/utils/STKPresets/hnkyTonk';
 import saxofonyPresets, {stkIdentifierSaxofony, stkVariableSaxofony} from '@/utils/STKPresets/saxPresets';
 import sitarPresets, {stkVariableSitar, stkIdentifierSitar} from '@/utils/STKPresets/sitarPresets';
 import stifKarpPresets, {stkVariableStifKarp, stkIdentifierStifKarp} from '@/utils/STKPresets/stifKarpPresets';
@@ -124,6 +126,25 @@ export const getSTK1Preset = (stkVal: string) => {
             presets: frencHrnPresets,
             type: stkIdentifierFrencHrn,
             var: stkVariableFrencHrn,
+            fxType: 'stk',
+            visible: true,
+            checked: true
+        };
+    } 
+    else if (stkVal === 'hevyMetl') {
+        theStk1Fx = {
+            presets: hevyMetlPresets,
+            type: stkIdentifierHevyMetl,
+            var: stkVariableHevyMetl,
+            fxType: 'stk',
+            visible: true,
+            checked: true
+        };
+    } else if (stkVal === 'hnkyTonk') {
+        theStk1Fx = {
+            presets: hnkyTonkPresets,
+            type: stkIdentifierHnkyTonk,
+            var: stkVariableHnkyTonk,
             fxType: 'stk',
             visible: true,
             checked: true

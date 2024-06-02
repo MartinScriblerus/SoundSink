@@ -47,6 +47,15 @@ const stifKarpPresets = {
         screenInterface: "knob",
         fxType: "stk",
     }, 
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.8,
+        min: 0.01,
+        max: 2,
+        screenInterface: "knob",
+        fxType: "stk",
+    }, 
 };
 
 export default stifKarpPresets;

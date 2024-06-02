@@ -23,7 +23,7 @@ const fmVoicesPresets = {
     lfoSpeed: {
         name: "lfoSpeed",
         label: "LFO Speed",
-        value: 0.2,
+        value: 0.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -38,7 +38,15 @@ const fmVoicesPresets = {
         screenInterface: "knob",
         fxType: "stk",
     },
-  
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.5,
+        min: 0,
+        max: 1,
+        screenInterface: "knob",
+        fxType: "stk",
+    }
     // reverb: {
     //     name: "reverb",
     //     label: "Reverb",

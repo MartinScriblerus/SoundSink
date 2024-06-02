@@ -35,8 +35,8 @@ export const stkOptions: readonly STKOption[] = [
   { value: 'shakers', label: 'Shakers', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
   { value: 'voiceForm', label: 'Voice Form', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
   { value: 'beeThree', label: 'B3', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
-  
-
+  { value: 'hevyMetl', label: 'Electric Guitar', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
+  { value: 'hnkyTonk', label: 'Honky Tonk', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   // { value: 'fm', label: 'FM', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   { value: 'fmVoices', label: 'FM Voices', color: 'rgb(236/255, 128/255, 139/255 )' }, // *** preset written
   { value: 'krstlChr', label: 'Crystal Choir', color: 'rgb(236/255, 128/255, 139/255 )' }, // *** preset written

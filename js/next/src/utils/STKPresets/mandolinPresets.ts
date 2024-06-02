@@ -32,7 +32,7 @@ const mandolinPresets = { // .clair
     stringDetune: {
         name: "stringDetune",
         label: "String Detune",
-        value: 0.1,
+        value: 0.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -47,14 +47,15 @@ const mandolinPresets = { // .clair
         screenInterface: "knob",
         fxType: "stk",
     }, // filter cutoff amount (0-100)
-//    bodyIR: {
-//         name: "bodyIR",
-//         label: "Body IR",
-//         value: 'me.dir() + "ByronGlacier.wav"',
-//         min: 0,
-//         max: 1,
-//         screenInterface: "none",
-//    } // impulse response file source
+   gain: {
+        name: "gain",
+        label: "Gain",
+        value: .5,
+        min: 0,
+        max: 2,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
 };
 
 export default mandolinPresets;

@@ -44,7 +44,7 @@ export const Renderer = ({
 
   var colorScale = d3
     .scaleSequential()
-    .interpolator(d3.interpolateInferno)
+    .interpolator(d3.interpolateBlues)
     .domain([min, max]);
 
   // Build the rectangles

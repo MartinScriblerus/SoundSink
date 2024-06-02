@@ -24,7 +24,8 @@ const GroupedButtons = () => {
                 color: 'rgba(228,225,209,1)', 
                 borderColor: 'rgba(147,206,214, 1)',
                 '&:hover': {
-                    color: '#f5f5f5'
+                    color: '#f5f5f5',
+                    background: 'rgba(0,0,0,.98)',
                   }
             }}  
             onClick={handleIncrement}>+</Button>
@@ -33,7 +34,8 @@ const GroupedButtons = () => {
                 color: 'rgba(228,225,209,1)', 
                 borderColor: 'rgba(147,206,214, 1)',
                 '&:hover': {
-                    color: '#f5f5f5'
+                    color: '#f5f5f5',
+                    background: 'rgba(0,0,0,.98)',
                   }
             }}  
             onClick={handleDecrement}>-</Button>

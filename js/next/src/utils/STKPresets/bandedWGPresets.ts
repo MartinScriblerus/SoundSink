@@ -89,14 +89,14 @@ const bandedWGPresets = {
         screenInterface: "intspinner",
         fxType: "stk",
     },
-    // stopBowing: {
-    //     name: "stopBowing",
-    //     label: "Stop Bowing",
-    //     value: 0,
-    //     min: 0,
-    //     max: 7,
-    //     screenInterface: "intspinner",
-    // },
+    stopBowing: {
+        name: "stopBowing",
+        label: "Stop Bowing",
+        value: 1,
+        min: 0,
+        max: 7,
+        screenInterface: "intspinner",
+    },
     // noteOn: {
     //     name: "noteOn",
     //     label: "Note On",

@@ -60,20 +60,29 @@ const brassPresets = {
     stopBlowing: {
         name: "stopBlowing",
         label: "Stp Blow",
-        value: 0,
+        value: 1,
         min: 0,
         max: 1,
         screenInterface: "knob",
         fxType: "stk",
     },
-    // rate: {
-    //     name: "rate",
-    //     label: "Rate",
-    //     value: 0.2,
-    //     min: 0,
-    //     max: 2,
-    //     screenInterface: "knob",
-    // }, // rate in seconds
+    rate: {
+        name: "rate",
+        label: "Rate",
+        value: 0.02,
+        min: 0,
+        max: 2,
+        screenInterface: "knob",
+    }, // rate in seconds
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 3,
+        min: 0,
+        max: 6,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
     // reverb: {
     //     name: "reverb",
     //     label: "Reverb",

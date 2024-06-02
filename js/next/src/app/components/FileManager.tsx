@@ -23,7 +23,7 @@ const FileManager = (props: Props) => {
             <Button
                 component="label"
                 sx={{ 
-                    borderColor: 'rgba(228,225,209,1)', 
+                    border: '0.5px solid #b2b2b2',
                     color: 'rgba(0,0,0,.98)',
                     backgroundColor: 'rgba(158, 210, 162, 1)',
                     position: 'absolute', 
@@ -33,7 +33,9 @@ const FileManager = (props: Props) => {
                     top: '188px',
                     zIndex: 1000,
                     '&:hover': {
-                        color: '#f5f5f5'
+                        color: '#f5f5f5',
+                        background: 'rgba(0,0,0,.98)',
+                        border: 'solid 1px #1976d2'
                     }
                 }} 
                 variant="outlined" 

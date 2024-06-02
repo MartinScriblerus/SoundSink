@@ -14,8 +14,8 @@ const saxofonyPresets = {
     aperture: {
         name: "aperture", // if this does not work, try controlChange 2
         label: "Aperture",
-        value: 0.62,
-        min: 0,
+        value: 0.36,
+        min: .3,
         max: 1,
         screenInterface: "knob",
         fxType: "stk",
@@ -51,7 +51,7 @@ const saxofonyPresets = {
         name: "noiseGain",
         label: "Noise Gain",
         value: 0.01,
-        min: 0,
+        min: 0.5,
         max: 1,
         screenInterface: "knob",
         fxType: "stk",
@@ -59,7 +59,7 @@ const saxofonyPresets = {
     blowPosition: {
         name: "blowPosition",
         label: "Blow Pos",
-        value: 0.3,
+        value: 0.6,
         min: 0.1,
         max: 1,
         screenInterface: "knob",
@@ -68,7 +68,7 @@ const saxofonyPresets = {
     rate: {
         name: "rate",
         label: "Rate",
-        value: 0.2,
+        value: 1,
         min: 0,
         max: 2,
         screenInterface: "knob",
@@ -77,8 +77,8 @@ const saxofonyPresets = {
     startBlowing: {
         name: "startBlowing",
         label: "Strt Blow",
-        value: 0.1,
-        min: 0,
+        value: 0.96,
+        min: 0.9,
         max: 1,
         screenInterface: "knob",
         fxType: "stk",
@@ -92,6 +92,14 @@ const saxofonyPresets = {
         screenInterface: "knob",
         fxType: "stk",
     },
-};
-
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.09,
+        min: 0,
+        max: 1,
+        screenInterface: "knob",
+        fxType: "stk",
+    }
+}
 export default saxofonyPresets;

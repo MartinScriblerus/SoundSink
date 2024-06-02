@@ -41,7 +41,7 @@ const bowedPresets = {
     startBowing: {
         name: "startBowing",
         label: "Start Bowing",
-        value: 0.0,
+        value: 1.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -50,9 +50,18 @@ const bowedPresets = {
     stopBowing: {
         name: "stopBowing",
         label: "Stop Bowing",
-        value: 0.5,
+        value: 1.0,
         min: 0,
         max: 1,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 3,
+        min: 0,
+        max: 6,
         screenInterface: "knob",
         fxType: "stk",
     },

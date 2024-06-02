@@ -93,7 +93,8 @@ export default function ControlPopup(props: ControlProps) {
           left: '12px', 
           top: '100px',
           '&:hover': {
-            color: '#f5f5f5'
+            color: '#f5f5f5',
+            background: 'rgba(0,0,0,.98)',
           }
         }} 
         aria-describedby={id} 
@@ -137,7 +138,8 @@ export default function ControlPopup(props: ControlProps) {
                   minWidth: '48px', 
                   right: '0px', 
                   '&:hover': {
-                    color: '#f5f5f5'
+                    color: '#f5f5f5',
+                    background: 'rgba(0,0,0,.98)',
                   }
                   // top: '232px'
                 }} 

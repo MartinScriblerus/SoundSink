@@ -42,6 +42,7 @@ import STKManagerDropdown from './STKManagerDropdown';
 import DeblurIcon from '@mui/icons-material/Deblur';
 import CheckedFXRadioBtns from './CheckedFXRadioBtns';
 import build from 'next/dist/build';
+import { phonemes } from '@/utils/STKPresets/voicFormPresets';
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
@@ -259,6 +260,7 @@ export default function InitializationComponent() {
     const currentNotesDownDisplay = useRef<Array<number | any>>([]);
     const currentNotesKeyValDownDisplay = useRef<Array<number | any>>([]);
     const [arpeggiatorOn, setArpeggiatorOn] = useState<number>(0);
+    const [stkArpeggiatorOn, setStkArpeggiatorOn] = useState<number>(0);
 
 
     const doReturnToSynth = useRef<boolean>(false);
@@ -920,6 +922,14 @@ export default function InitializationComponent() {
         }
     }
 
+    const handleToggleStkArpeggiator = () => {
+        if (stkArpeggiatorOn === 0) {
+            setStkArpeggiatorOn(1);
+        } else {
+            setStkArpeggiatorOn(0);
+        }
+    }
+
     useEffect(() => {
         console.log("SHOW FX CHANGES: ", showFX)
     }, [showFX])
@@ -1134,6 +1144,8 @@ export default function InitializationComponent() {
             console.log('STK PRESET: ', preset); // preset.name
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
             // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
+            console.log("WHAT ARE CURRENT NOTES DOWN>??? ", currentNotesDownDisplay.current);
+            console.log("what the flying fuck: ", alreadyInChuckDynamicScript);
             for (let j = 1; j < currentNotesDownDisplay.current.length; j++) {
                 stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
             }
@@ -2167,6 +2179,9 @@ export default function InitializationComponent() {
             const delayACodeStringSampler = samplerDelayAOn.current ? delayAString('s1', delayAFinalHelper.current.sampler.delay, delayAFinalHelper.current.sampler.lines, delayAFinalHelper.current.sampler.syncDelay, delayAFinalHelper.current.sampler.zero, delayAFinalHelper.current.sampler.b0, delayAFinalHelper.current.sampler.b1) : '';
             const delayLCodeStringSampler = samplerDelayLOn.current ? delayLString('s1', delayLFinalHelper.current.sampler.delay, delayLFinalHelper.current.sampler.lines, delayLFinalHelper.current.sampler.syncDelay, delayLFinalHelper.current.sampler.zero, delayLFinalHelper.current.sampler.b0, delayLFinalHelper.current.sampler.b1) : '';
 
+
+            // COPY_ABOVE_LINES_1
+
             ////////////////////////////
             console.log("WHAT R STKS? ", stkFX.current);
             ////////////////////////////
@@ -2175,8 +2190,8 @@ export default function InitializationComponent() {
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             // HANDLING CHUCK UGEN => DAC DECLARATIONS 
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-            const osc1ChuckToOutlet: string = ` SawOsc saw1 ${connector1Stk} => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
+            // NOTE! => I removed ${connector1stk} from between saw1 & diodeladder below... this was breaking longer playing stks (& all else when they were chosen).
+            const osc1ChuckToOutlet: string = ` SawOsc saw1 => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
 
             console.log("AND WTF IS THIS? ", samplerFXStringToChuck.current);
 
@@ -2201,20 +2216,471 @@ export default function InitializationComponent() {
      
 
         
-
+            // BE SURE TO ADD DURATION DIVISIONS (AND ALSO ELSEWHERE)
             const playSTKOn = () => {
                 if (stkFX.current.var) {
-                    return `
-                        notesToPlay[i] + 24 => Std.mtof => ${stkFX.current.var}[i-1].freq;
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].noteOn;  
-                        0.01 => ${stkFX.current.var}[i-1].gain;
-                    `;
+                    console.log("$$$$ ", stkFX.current.var);
+             
+                    if (stkFX.current.var === "sit") {                     
+                        return `
+                            ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
+                            notesToPlay[i] + 24 => Std.mtof => ${stkFX.current.var}[i-1].freq;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].noteOn;  
+                            0.01 => ${stkFX.current.var}[i-1].gain;
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                1 =>  ${stkFX.current.var}[i-1].noteOff; 
+                            }
+                        `;
+                    } else if (stkFX.current.var === "bow") {
+                        return `
+                        ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                        ${stkFX.current.presets.bowPressure.value} => ${stkFX.current.var}[i-1].bowPressure;
+                        ${stkFX.current.presets.bowPosition.value} => ${stkFX.current.var}[i-1].bowPosition;
+                        ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                        ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBowing.value} => ${stkFX.current.var}[i-1].startBowing;
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                ${stkFX.current.presets.stopBowing.value} => ${stkFX.current.var}[i-1].stopBowing;
+                                1 => ${stkFX.current.var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (stkFX.current.var === "wg") {
+                        return `
+                            ${stkFX.current.presets.bowMotion.value} => ${stkFX.current.var}[i-1].bowMotion;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+                            ${stkFX.current.presets.strikePosition.value} => ${stkFX.current.var}[i-1].strikePosition;
+                            ${stkFX.current.presets.gain.value} => ${stkFX.current.var}[i-1].gain;
+                            ${stkFX.current.presets.preset.value} => ${stkFX.current.var}[i-1].preset;
+                            ${stkFX.current.presets.bowRate.value} => ${stkFX.current.var}[i-1].bowRate;
+                            ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
+                            ${stkFX.current.presets.startBowing.value} => ${stkFX.current.var}[i-1].startBowing;
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                ${stkFX.current.presets.stopBowing.value} => ${stkFX.current.var}[i-1].stopBowing;
+                                1 => ${stkFX.current.var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (stkFX.current.var === "blwbtl") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                            ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
+                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+                            
+                            notesToPlay[i] + 36 => Std.mtof => ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
+                            }
+                        `;
+                    } else if (stkFX.current.var === "brs") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
+                            ${stkFX.current.presets.volume.value} => ${stkFX.current.var}[i-1].volume;
+                            ${stkFX.current.presets.lip.value} => ${stkFX.current.var}[i-1].lip;
+                            ${stkFX.current.presets.volume.value} => ${stkFX.current.var}[i-1].volume;
+                            ${stkFX.current.presets.slide.value} => ${stkFX.current.var}[i-1].slide;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+
+                            notesToPlay[i] + 36 => Std.mtof => ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
+                            }
+                        `;
+                    } else if (stkFX.current.var === "shak") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                            ${stkFX.current.presets.energy.value} => ${stkFX.current.var}[i-1].energy;
+                            ${stkFX.current.presets.preset.value} => ${stkFX.current.var}[i-1].preset;
+                            ${stkFX.current.presets.objects.value} => ${stkFX.current.var}[i-1].objects;
+                            ${stkFX.current.presets.decay.value} => ${stkFX.current.var}[i-1].decay;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                // duration - (now % duration)  => now;
+                                1 => ${stkFX.current.var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (stkFX.current.var === "mdlbr") {
+                        return `
+                            ${stkFX.current.presets.stickHardness.value} => ${stkFX.current.var}[i-1].stickHardness;
+                            ${stkFX.current.presets.strikePosition.value} => ${stkFX.current.var}[i-1].strikePosition;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+                            ${stkFX.current.presets.directGain.value} => ${stkFX.current.var}[i-1].directGain;
+                            ${stkFX.current.presets.masterGain.value} => ${stkFX.current.var}[i-1].masterGain;
+                            ${stkFX.current.presets.preset.value} => ${stkFX.current.var}[i-1].preset;
+                            ${stkFX.current.presets.volume.value} => ${stkFX.current.var}[i-1].volume;
+                            ${stkFX.current.presets.strike.value} => ${stkFX.current.var}[i-1].strike;
+                            ${stkFX.current.presets.damp.value} => ${stkFX.current.var}[i-1].damp;
+
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                1 => ${stkFX.current.var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (stkFX.current.var === "flut") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                            ${stkFX.current.presets.jetDelay.value} => ${stkFX.current.var}[i-1].jetDelay;
+                            ${stkFX.current.presets.jetReflection.value} => ${stkFX.current.var}[i-1].jetReflection;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+
+                            ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
+                            ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
+
+
+                            notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
+                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
+                            ${stkFX.current.presets.endReflection.value} => ${stkFX.current.var}[i-1].endReflection;
+                            
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
+                                1 => ${stkFX.current.var}[i-1].noteOff;
+                            }`;
+                    } else if (stkFX.current.var === "clair") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                            ${stkFX.current.presets.reed.value} => ${stkFX.current.var}[i-1].reed;
+                            ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
+                            ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
+                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
+
+                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+
+
+                            notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
+
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
+                                1 => ${stkFX.current.var}[i-1].noteOff;
+                            }`;
+                    } else if (stkFX.current.var === "f") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                            ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                            1 => ${stkFX.current.var}[i-1].noteOn;
+
+                            duration - (now % duration)  => now;
+                            if (${stkArpeggiatorOn} == 1) {
+                                1 => ${stkFX.current.var}[i-1].noteOff;
+                            }`;
+                        } else if (stkFX.current.var === "m") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                ${stkFX.current.presets.pickupPosition.value} => ${stkFX.current.var}[i-1].pickupPosition;
+                                ${stkFX.current.presets.sustain.value} => ${stkFX.current.var}[i-1].sustain;
+                                ${stkFX.current.presets.stretch.value} => ${stkFX.current.var}[i-1].stretch;
+                                ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
+                                ${stkFX.current.presets.baseLoopGain.value} => ${stkFX.current.var}[i-1].baseLoopGain;
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "prcflt") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "man") {
+                            return `
+                                ${stkFX.current.presets.bodySize.value} => ${stkFX.current.var}[i-1].bodySize;
+                                ${stkFX.current.presets.pluckPos.value} => ${stkFX.current.var}[i-1].pluckPos;
+                                ${stkFX.current.presets.stringDamping.value} => ${stkFX.current.var}[i-1].stringDamping;
+                                ${stkFX.current.presets.stringDetune.value} => ${stkFX.current.var}[i-1].stringDetune;
+                                ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
+
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+
+                                notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "tubbl") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                
+                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 48 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "blwhl") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                
+                                ${stkFX.current.presets.reed.value} => ${stkFX.current.var}[i-1].reed;
+                                ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
+                                ${stkFX.current.presets.tonehole.value} => ${stkFX.current.var}[i-1].tonehole;
+                                ${stkFX.current.presets.vent.value} => ${stkFX.current.var}[i-1].vent;
+                                ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
+                                ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;                                
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } 
+                        // else if (stkFX.current.var === "voic") {
+                        //     return `
+                        //         ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                
+
+                        //         ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                        //         ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+
+                              
+
+                        //         notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                        //         1 => ${stkFX.current.var}[i-1].noteOn;
+                        //         ${stkFX.current.presets.speak.value} => ${stkFX.current.var}[i-1].speak;
+                        //         ${stkFX.current.presets.phonemeNum.value} => ${stkFX.current.var}[i-1].phonemeNum;
+                        //         duration - (now % duration)  => now;
+                        //         if (${stkArpeggiatorOn} == 1) {
+                        //             ${stkFX.current.presets.quiet.value} => ${stkFX.current.var}[i-1].quiet;
+                        //             1 => ${stkFX.current.var}[i-1].noteOff;
+
+                        //         }`;
+                        // }
+                        else if (stkFX.current.var === "sax") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                
+                                ${stkFX.current.presets.stiffness.value} => ${stkFX.current.var}[i-1].stiffness;
+                                ${stkFX.current.presets.aperture.value} => ${stkFX.current.var}[i-1].aperture;
+                                ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
+                                ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                                ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+                                ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;              
+                                ${stkFX.current.presets.blowPosition.value} => ${stkFX.current.var}[i-1].blowPosition;
+                                ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;                  
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+                                ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;  
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;  
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "bthree") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 12 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                          
+                        } else if (stkFX.current.var === "fmVoic") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                ${stkFX.current.presets.vowel.value} => ${stkFX.current.var}[i-1].vowel;
+                                ${stkFX.current.presets.spectralTilt.value} => ${stkFX.current.var}[i-1].spectralTilt;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                          
+                        } else if (stkFX.current.var === "krstl") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                          
+                        } else if (stkFX.current.var === "rod") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "wur") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "mog") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                ${stkFX.current.presets.filterQ.value} => ${stkFX.current.var}[i-1].filterQ;
+                                ${stkFX.current.presets.filterSweepRate.value} => ${stkFX.current.var}[i-1].filterSweepRate;
+                                ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+                                ${stkFX.current.presets.afterTouch.value} => ${stkFX.current.var}[i-1].afterTouch;
+                                ${stkFX.current.presets.modDepth.value} => ${stkFX.current.var}[i-1].modDepth;
+                                ${stkFX.current.presets.modSpeed.value} => ${stkFX.current.var}[i-1].modSpeed;
+
+                                notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "hevymetl") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                // ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                // ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                // ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                // ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        } else if (stkFX.current.var === "hnkytonk") {
+                            return `
+                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                                    
+                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
+                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
+                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
+                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+
+                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
+                                1 => ${stkFX.current.var}[i-1].noteOn;
+
+                                duration - (now % duration)  => now;
+                                if (${stkArpeggiatorOn} == 1) {
+                                    
+                                    1 => ${stkFX.current.var}[i-1].noteOff;
+                                }`;
+                        }
+
+
+ 
+
+  
+        // } else if (name === "voic") { // <-- buggy ... needs another look
+
+
+
                 } else {
+                    console.log("WHY NO NAME?");
                     return ``;
                 }
             }
 
-
+            const stkOn = playSTKOn();
+            console.log("WHAT IS THIS STKON? ", stkOn);
 
             const createSTKFXChugraph = () => {
                 console.log("LOOK HEEEERE: ", stkFX.current);
@@ -2264,7 +2730,7 @@ export default function InitializationComponent() {
             if( !hid.openKeyboard( device ) ) me.exit();
             <<< "keyboard '" + hid.name() + "' ready", "" >>>;
             
-            ${getNewSTKFXString()}
+            
 
             ((60.0 / ${bpm})) => float secLenBeat;
             (secLenBeat * 1000)::ms => dur beat;
@@ -2277,8 +2743,8 @@ export default function InitializationComponent() {
                 
             // ${uploadedFilesToChuckString.current}
             // ${uploadedFilesCodeString.current}
-            
-
+     
+            ${getNewSTKFXString()}
             
             private class UniversalAnalyzer {
                 FeatureCollector combo => blackhole;
@@ -2909,7 +3375,9 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
 
 
-                
+                Event myEvent;
+                Event mySampleEvent;
+                Event mySTKEvent;
                
 
                 class EffectsModuleSTK extends Chugraph
@@ -3114,26 +3582,27 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 }
             
                 fun void PlaySTK(Event mySTKEvent, int notesToPlay[], dur duration){
+                    <<< "PLAYSTK_ON" >>>;
                     mySTKEvent => now;
-                    // count % (notesToPlay.size()) => int stk1Idx;
-                    // Sitar testSTK[12] => EffectsModuleSTK effectsModuleSTK => Gain stks_mastergain => dac;
-                    
+          
                     while (true) {
                         
                         if (notesToPlay.cap() > 1){
                             for (1 => int i; i < notesToPlay.cap(); i++) {
-                   
+                                <<< "FUCKING HERE ", notesToPlay[i] >>>;
                                 if (notesToPlay[i] && notesToPlay[i] > 0 && notesToPlay[i] < 127) {
                 
-                                    ${playSTKOn()}
+                                    ${stkOn}
                                 
                                 } 
                                 else if (notesToPlay[i]) {
                                     notesToPlay.erase(1);
                                 }
+
                                 if (${arpeggiatorOn} == 1) {
                                     duration - (now % duration)  => now;
                                 }
+                                // me.yield();
                             }
                             if (${arpeggiatorOn} == 0) {
                                 duration - (now % duration)  => now;
@@ -3198,9 +3667,7 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 [1,2] @=> int stkNotes[];
             
                 
-                Event myEvent;
-                Event mySampleEvent;
-                Event mySTKEvent;
+  
                 
                 private class TimeProvider {
                     0 => static int globalCount;
@@ -3270,8 +3737,8 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                     while( hid.recv( msg ) )
                     {
                         if( msg.isButtonDown() ) {
-                          
-                            mySTKEvent.signal();
+                          <<< "hitit" >>>;
+                            mySTKEvent.broadcast();
                             
                             myEvent.broadcast();
                             
@@ -3317,7 +3784,7 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                     // count++;
 
                     
-                    me.yield();
+                    // me.yield();
                 }                            
             `;
 
@@ -3365,25 +3832,20 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
     const getNewSTKFXPresets = (type: string, name: string) => {
 
-        return `${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[n-1].pluck;`;
-
     }
 
     const getNewSTKFXString = () => {
         console.log("OOOOF WHAT R STKFX? ", stkFX.current);
+        console.log("stkFX current & var: ", stkFX.current, stkFX.current.var);
         if (stkFX.current && Object.values(stkFX.current).length > 0) {
             return `
             
                 ${stkFX.current.type} ${stkFX.current.var}[12] => EffectsModuleSTK effectsModuleSTK_${stkFX.current.var} => Gain stks_mastergain_${stkFX.current.var} => dac;
-                0.2/notes.cap() => stks_mastergain_${stkFX.current.var}.gain;
-
-        
-                for (1=>int n; n < notes.cap(); n++) {
-                    ${getNewSTKFXPresets(stkFX.current.type, stkFX.current.var)}
-                } 
-            
+                // 0.4/notes.cap() => stks_mastergain_${stkFX.current.var}.gain;
+    
             `;
         } else {
+            console.log('WHY THE FUCK ARE WE HERE?');
             return ``;
         }
     };
@@ -3455,8 +3917,6 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
         console.log('Get stk1 string: ', getStk1String);
 
-        const bodyIR1 = getStk1String && getStk1String.length > 0 && getStk1String[2] === 'man' ? `me.dir() + "ByronGlacier.wav" => ${getStk1String[2]}.bodyIR;` : '';
-
         const STK_1_Code = getStk1String && getStk1String.length > 0 ? `
             if(note > 127)
             {
@@ -3469,12 +3929,12 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
             ${getStk1String[0]}
 
-            ${bodyIR1}
-            // if (note > 20 && note < 127) {
-            //     Std.mtof(note) => ${getStk1String[2]}.freq;
-            //     0.1 => ${getStk1String[2]}.gain;
-            //     1 => ${getStk1String[2]}.noteOn;
-            // }
+          
+            if (note > 20 && note < 127) {
+                Std.mtof(note) => ${getStk1String[2]}.freq;
+                0.1 => ${getStk1String[2]}.gain;
+                1 => ${getStk1String[2]}.noteOn;
+            }
 
      
         ` : '';
@@ -3988,8 +4448,11 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                     maxHeight: '40px',
                                     color: 'rgba(0,0,0,.98)',
                                     backgroundColor: 'rgba(158, 210, 162, 1)', 
+                                    border: '0.5px solid #b2b2b2',
                                     '&:hover': {
-                                        color: '#f5f5f5'
+                                        color: '#f5f5f5 !important',
+                                        border: '1px solid #1976d2',
+                                        background: 'rgba(0,0,0,.98)',
                                     }
                                 }} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon />}>In</Button>)}
                             {chuckHook && (
@@ -4002,9 +4465,12 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                     sx={{ 
                                         minWidth: '76px', 
                                         paddingLeft: '24px', 
-                                        maxHeight: '40px', 
+                                        maxHeight: '40px',
+                                        border: '0.5px solid #b2b2b2',
                                         '&:hover': {
-                                            color: '#f5f5f5'
+                                            color: '#f5f5f5 !important',
+                                            background: 'rgba(0,0,0,.98)',
+                                            border: 'solid 1px #1976d2',
                                           }
                                     }} 
                                     variant="contained" 
@@ -4018,8 +4484,8 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                             {chuckHook && (
                                 <Button 
                                     style={{ 
-                                        background: 'rbga(0,0,0,.91)', 
-                                        minWidth: '104px', 
+                                        // background: 'rbga(0,0,0,.91)', 
+                                        minWidth: '104px',
                                         color: 'rgba(0,0,0,1)' 
                                     }} 
                                     sx={{ 
@@ -4027,8 +4493,11 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                         paddingLeft: '24px', 
                                         maxHeight: '40px', 
                                         marginLeft: '8px', 
+                                        border: '0.5px solid #b2b2b2',
                                         '&:hover': {
-                                            color: '#f5f5f5'
+                                            color: '#f5f5f5 !important',
+                                            background: 'rgba(0,0,0,.98)',
+                                            border: '1px solid #1976d2',
                                         }
                                     }} 
                                     variant="contained" 
@@ -4050,8 +4519,11 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                         minWidth: '104px', 
                                         marginLeft: '8px', 
                                         maxHeight: '40px', 
+                                        border: '0.5px solid #b2b2b2',
                                         '&:hover': {
-                                            color: '#f5f5f5'
+                                            color: '#f5f5f5 !important',
+                                            background: 'rgba(0,0,0,.98)',
+                                            border: '1px solid #1976d2',
                                         }
                                     }} 
                                     variant="contained" 
@@ -4073,12 +4545,15 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                     paddingLeft: '24px', 
                                     maxHeight: '40px', 
                                     marginLeft: '8px',
+                                    border: '0.5px solid #b2b2b2',
                                     '&:hover': {
-                                        color: '#f5f5f5'
+                                        color: '#f5f5f5 !important',
+                                        background: 'rgba(0,0,0,.98)',
+                                        border: '1px solid #1976d2',
                                     } 
                                 }} 
                                 variant="contained" 
-                                id="stopChuckButton" 
+                                id="analyzeChuckButton" 
                                 onClick={closeAnalysisPopup} 
                                 endIcon={<AutoGraphIcon />}>
                                     An
@@ -4090,14 +4565,16 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                     backgroundColor: 'rgba(147, 206, 214, 1)', 
                                     background: 'rbga(0,0,0,.91)', 
                                     position: 'absolute', 
-                                    borderColor: 'rgba(228,225,209,1)', 
+                                    border: '0.5px solid #b2b2b2',
                                     left: '0px', 
                                     minWidth: '104px', 
                                     marginLeft: '12px', 
                                     top: '232px', 
                                     maxHeight: '40px',
                                     '&:hover': {
-                                        color: '#f5f5f5'
+                                        color: '#f5f5f5',
+                                        background: 'rgba(0,0,0,.98)',
+                                        border: '1px solid #1976d2',
                                     } 
                                 }} 
                                 variant="outlined" 
@@ -4115,14 +4592,16 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                         backgroundColor: 'rgba(158, 210, 162, 1)', 
                                         background: 'rbga(0,0,0,.91)', 
                                         position: 'absolute', 
-                                        borderColor: 'rgba(228,225,209,1)', 
+                                        border: '0.5px solid #b2b2b2',
                                         left: '0px', 
                                         minWidth: '104px', 
                                         marginLeft: '12px', 
                                         top: '276px', 
                                         maxHeight: '40px',
                                         '&:hover': {
-                                            color: '#f5f5f5'
+                                            color: '#f5f5f5',
+                                            background: 'rgba(0,0,0,.98)',
+                                            border: '1px solid #1976d2',
                                         } 
                                     }} 
                                     variant="outlined" 
@@ -4135,9 +4614,9 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                 <Button 
                                     sx={{                     
                                         color: 'rgba(0,0,0,.98)',
-                                        background: 'rbga(0,0,0,.91)', 
+                                        background: 'rgba(147, 206, 214, 1)', 
                                         position: 'absolute', 
-                                        borderColor: 'rgba(228,225,209,1)', 
+                                        border: '0.5px solid #b2b2b2',
                                         left: '0px', 
                                         minWidth: '104px', 
                                         marginLeft: '12px', 
@@ -4145,13 +4624,39 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                         backgroundColor: arpeggiatorOn ? "#1976d2" : 'rgba(147, 206, 214, 1)', 
                                         maxHeight: '40px',
                                         '&:hover': {
-                                            color: '#f5f5f5'
+                                            color: '#f5f5f5',
+                                            background: 'rgba(0,0,0,.98)',
+                                            border: '1px solid #1976d2',
                                         } 
                                     }} 
                                     variant="outlined" 
                                     onClick={handleToggleArpeggiator} 
                                     endIcon={<AnimationIcon />}>
                                         ARP
+                                </Button>
+
+                                <Button 
+                                    sx={{                     
+                                        color: 'rgba(0,0,0,.98)',
+                                        background: 'rgba(158, 210, 162, 1)', 
+                                        position: 'absolute', 
+                                        border: '0.5px solid #b2b2b2',
+                                        left: '0px', 
+                                        minWidth: '104px', 
+                                        marginLeft: '12px', 
+                                        top: '364px',
+                                        backgroundColor: stkArpeggiatorOn ? "#1976d2" : 'rgba(158, 210, 162, 1)', 
+                                        maxHeight: '40px',
+                                        '&:hover': {
+                                            color: '#f5f5f5',
+                                            background: 'rgba(0,0,0,.98)',
+                                            border: '1px solid #1976d2',
+                                        } 
+                                    }} 
+                                    variant="outlined" 
+                                    onClick={handleToggleStkArpeggiator} 
+                                    endIcon={<AnimationIcon />}>
+                                        S-ARP
                                 </Button>
 
 

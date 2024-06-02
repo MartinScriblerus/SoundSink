@@ -38,6 +38,15 @@ const tubeBellPresets = {
         screenInterface: "knob",
         fxType: "stk",
     },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: .01,
+        min: 0,
+        max: 1.0,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
 };
 
 export default tubeBellPresets;

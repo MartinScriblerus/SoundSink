@@ -5,7 +5,7 @@ const clarinetPresets = { // .clair
     reed: {
         name: "reed",
         label: "Reed",
-        value: 0.71,
+        value: 0.5,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -14,7 +14,7 @@ const clarinetPresets = { // .clair
     noiseGain: {
         name: "noiseGain",
         label: "Noise Gain",
-        value: 0.04,
+        value: 0.5,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -23,7 +23,7 @@ const clarinetPresets = { // .clair
     pressure: {
         name: "pressure",
         label: "Pressure",
-        value: 0.16,
+        value: 0.7,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -32,7 +32,7 @@ const clarinetPresets = { // .clair
     rate: {
         name: "rate",
         label: "Rate",
-        value: 0.2,
+        value: 1.0,
         min: 0,
         max: 2,
         screenInterface: "knob",
@@ -59,7 +59,7 @@ const clarinetPresets = { // .clair
     startBlowing: {
         name: "startBlowing",
         label: "Strt Blow",
-        value: 0,
+        value: 1.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -69,6 +69,15 @@ const clarinetPresets = { // .clair
         name: "stopBlowing",
         label: "Stp Blow",
         value: 0.5,
+        min: 0,
+        max: 1,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.3,
         min: 0,
         max: 1,
         screenInterface: "knob",

@@ -19,8 +19,11 @@ const ShowFXView = ({handleShowFX}: Props) => {
                     color: 'rgba(0,0,0,.98)',
                     backgroundColor: 'rgba(147, 206, 214, 1)',
                     left: '12px',
+                    border: '0.5px solid #b2b2b2',
                     '&:hover': {
-                        color: '#f5f5f5'
+                        color: '#f5f5f5',
+                        background: 'rgba(0,0,0,.98)',
+                        border: '1px solid #1976d2',
                     }
                 }} 
                 onClick={handleShowFX} 

@@ -38,6 +38,15 @@ const krstlChrPresets = {
         screenInterface: "knob",
         fxType: "stk",
     },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 0.5,
+        min: 0,
+        max: 1,
+        screenInterface: "knob",
+        fxType: "stk",
+    }
 };
 
 export default krstlChrPresets;

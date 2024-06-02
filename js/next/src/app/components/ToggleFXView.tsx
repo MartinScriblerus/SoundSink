@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import KeyboardTabIcon from '@mui/icons-material/KeyboardTab';
 import Stack from '@mui/material/Stack';
-
+import PianoIcon from '@mui/icons-material/Piano';
 
 type Props = {
     // currentFXScreen: string;
@@ -19,22 +19,26 @@ const ToggleFXView = ({stkCount, fxCount, handleReturnToSynth}: Props) => {
     const fxCountHandler = fxCount? fxCount : 0;
 
     return (
-        <Stack direction="row" spacing={2} style={{position:"absolute", left: "12px", top: "144px"}}>
+        <Stack direction="row" spacing={2} style={{
+            position:"absolute", 
+            left: "12px", 
+            top: "144px"}}>
             <Button 
                 sx={{
                     minWidth: '104px', 
                     color: 'rgba(0,0,0,.98)',
-                    backgroundColor: 'rgba(147, 206, 214, 1)',
-                    background: 'rbga(0,0,0,.91)', 
-                    borderColor: fxCountHandler+stkCountHandler === 0 ? 'rgba(228,225,209,.2)' : 'rgba(228,225,209,1)',
+                    background: 'rgba(147, 206, 214, 1)',
+                    border: '0.5px solid #b2b2b2',
                     '&:hover': {
-                        color: '#f5f5f5'
+                        color: '#f5f5f5',
+                        background: 'rgba(0,0,0,.98)',
+                        border: '1px solid #1976d2',
                     },
-                    pointerEvents: fxCountHandler+stkCountHandler === 0 ? 'none': 'auto'
+                    // pointerEvents: fxCountHandler+stkCountHandler === 0 ? 'none': 'auto'
                 }} 
                 onClick={handleReturnToSynth} 
                 variant="outlined" 
-                endIcon={<KeyboardTabIcon />}>
+                endIcon={<PianoIcon />}>
                 {/* FX View */}Synth
             </Button>
         </Stack>

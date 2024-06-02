@@ -38,6 +38,15 @@ const percFlutPresets = {
         screenInterface: "knob",
         fxType: "stk",
     },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: .6,
+        min: 0,
+        max: 2,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
 };
 
 export default percFlutPresets;

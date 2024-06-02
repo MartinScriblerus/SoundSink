@@ -88,7 +88,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
           background: "blue",
           // borderRight: '1px solid rgba(147, 206, 214, 1)'
         }} 
-          key={node.id}>
+          key={`fxG_link${Math.random() * 1000}_${node.id}`}>
 
           
           <React.Fragment key={`${fxChainsSelected}`}>
@@ -192,7 +192,8 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
     console.log('wtf i???? ', i);
     return (
       <path
-        key={i}
+        // key={i}
+        key={`fxG_link${Math.random() * 1000}_${i}`}
         // d={verticalArcGenerator(0, yStart, 0, yEnd)}
         d={verticalArcGenerator(-TEXT_TO_NODE_PADDING * 2, yStart, -TEXT_TO_NODE_PADDING * 2, yEnd)}
         stroke="rgba(158, 210, 162, 1)"
@@ -203,7 +204,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
 
   const svgFXChain = <svg key={`fxSvg${Math.random() * 1000}`} ref={d3FxChainSvg} width={width} height={height - 48}>
     <g 
-      key={`fxG${Math.random() * 1000}`}
+      key={`fxG_2${Math.random() * 1000}`}
       width={boundsWidth}
       height={boundsHeight - 48}
       transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}

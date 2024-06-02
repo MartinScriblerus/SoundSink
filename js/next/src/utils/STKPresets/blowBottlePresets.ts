@@ -5,7 +5,7 @@ const blowBotlPresets = {
     noiseGain: {
         name: "noiseGain", // if this does not work, try controlChange 2
         label: "Noise Gain",
-        value: 0.67,
+        value: 0.2,
         min: 0.01,
         max: 1,
         screenInterface: "knob",
@@ -41,7 +41,7 @@ const blowBotlPresets = {
     startBlowing: {
         name: "startBlowing",
         label: "Strt Blow",
-        value: 0.0,
+        value: 1.0,
         min: 0,
         max: 1,
         screenInterface: "knob",
@@ -53,6 +53,15 @@ const blowBotlPresets = {
         value: 0.5,
         min: 0.01,
         max: 1,
+        screenInterface: "knob",
+        fxType: "stk",
+    },
+    gain: {
+        name: "gain",
+        label: "Gain",
+        value: 3,
+        min: 0,
+        max: 6,
         screenInterface: "knob",
         fxType: "stk",
     },
