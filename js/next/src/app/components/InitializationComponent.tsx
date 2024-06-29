@@ -1,7 +1,7 @@
 "use client"
 
-import Image from 'next/image'
-import styles from './page.module.css';
+import Image from 'next/image';
+import styles from '../page.module.css';
 import { Box, Button, FormControl, Grid, TextField, Typography } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
@@ -10,7 +10,7 @@ import BabylonLayer from './BabylonLayer';
 import * as BABYLON from 'babylonjs';
 import 'babylonjs-loaders';
 import { Chuck, HID } from 'webchuck';
-
+import { Note } from "tonal";
 import moogGMPresets from '../../utils/moogGMPresets';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
 import MoogGrandmotherEffects from '../../interfaces/audioInterfaces';
@@ -43,6 +43,14 @@ import DeblurIcon from '@mui/icons-material/Deblur';
 import CheckedFXRadioBtns from './CheckedFXRadioBtns';
 import build from 'next/dist/build';
 import { phonemes } from '@/utils/STKPresets/voicFormPresets';
+import ResponsiveAppBar from './ResponsiveAppBar';
+import CustomAriaLive from './MicrotonesSearch';
+import microtoneDescsData from '../microtone_descriptions.json'; 
+import {Tune} from '../../tune';
+import Keyboard from './Keyboard'
+import { useMingusData } from '@/hooks/useMingusData';
+import MicrotonalSearch from './MicrotonalSearch';
+import {notefreqchart} from '../../utils//notefreqchart';
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
 //     res:Response,
@@ -107,10 +115,16 @@ interface MixingBoard {
 //     releaseRateDenominator: any;
 // }
 
+
 export default function InitializationComponent() {
+    const [programIsOn, setProgramIsOn] = useState<boolean>(false);
+
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
     const [lastChuckMessage, setLastChuckMessage] = useState<any>("");
+    const [updateUIAfterInit, setUpdateUIAfterInit] = useState<boolean>(false);
+    const [microTonalLetters, setMicroTonalLetters] = useState<any>([]);
+    const [formats, setFormats] = React.useState<any>(() => []);
 
     const osc1WinEnvOn = useRef<any>(false);
     const osc1PowerADSROn = useRef<any>(false);
@@ -138,90 +152,25 @@ export default function InitializationComponent() {
     const samplerEllipticOn = useRef<any>(false);
     const samplerSpectacleOn = useRef<any>(false);
 
-    const reusableWinEnvOn = useRef<any>({
-        Osc1: false,
-        Osc2: false,
-        STK: false,
-        Sampler: false,
-        AudioIn: false,
-    });
-    const reusablePowerADSROn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableExpEnvOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableWPDiodeLadderOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableWPKorg35On = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableModulateOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableDelayOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableDelayAOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableDelayLOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableExpDelayOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableEllipticOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
-    const reusableSpectacleOn = useRef<any>({
-        Osc1:false,
-        Osc2:false,
-        STK:false,
-        Sampler:false,
-        AudioIn:false,
-    });
+    const stkWinEnvOn = useRef<any>(false);
+    const stkPowerADSROn = useRef<any>(false);
+    const stkExpEnvOn = useRef<any>(false);
+    const stkWPDiodeLadderOn = useRef<any>(false);
+    const stkWPKorg35On = useRef<any>(false);
+    const stkModulateOn = useRef<any>(false);
+    const stkDelayOn = useRef<any>(false);
+    const stkDelayAOn = useRef<any>(false);
+    const stkDelayLOn = useRef<any>(false);
+    const stkExpDelayOn = useRef<any>(false);
+    const stkEllipticOn = useRef<any>(false);
+    const stkSpectacleOn = useRef<any>(false);
+    const stkOn = useRef<any>();
+
+    const stkPolyKeyOff = useRef<any>(false);
+
+    const [keysVisible, setKeysVisible] = useState(false);
+    const [keysReady, setKeysReady] = useState(false);
+
 
     const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
     const allFxPersistent = useRef<AllFXPersistent | any>({
@@ -236,7 +185,7 @@ export default function InitializationComponent() {
     const [fXChainKey, setFXChainKey] = useState<string>('');
     const [needsUpdate, setNeedsUpdate] = useState<boolean>(false);
     const [chuckUpdateNeeded, setChuckUpdateNeeded] = useState(false);
-    const [bpm, setBpm] = useState<number>(120.00);
+    const [bpm, setBpm] = useState<number>(60.00);
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
     const { register, handleSubmit, watch } = useForm();
@@ -251,7 +200,7 @@ export default function InitializationComponent() {
     const [audioChord, setAudioChord] = useState('M');
     const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
     const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState('Sampler');
-    const [showBPM, setShowBPM] = useState<boolean>(false);
+    const [showBPM, setShowBPM] = useState<boolean>(true);
     const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
 
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
@@ -264,24 +213,20 @@ export default function InitializationComponent() {
 
 
     const doReturnToSynth = useRef<boolean>(false);
+    const virtualKeyMapDown = useRef<string>("");
+    const virtualKeyMapUp = useRef<string>("");
+
+    const hasHexKeys = useRef<boolean>(false);
+    
+    const [tune, setTune] = useState<any>(null);
+    const [mingusKeyboardData, setMingusKeyboardData] = useState<any>([]);
+    const [keyBoard, setKeyBoard] = useState<any>();
 
     const [stk1Code, setStk1Code] = useState<string>('');
     const [osc1Code, setOsc1Code] = useState<string>('');
-    const [reusableCode, setReusableCode] = useState<any>({
-            Osc1: "",
-            Osc2: "",
-            STK: "",
-            Sampler: "",
-            AudioIn: "",
-    });
+
     const [osc1CodeToChuck, setOsc1CodeToChuck] = useState<string>('');
-    const [reusableCodeToChuck, setReusableCodeToChuck] = useState<any>({
-            Osc1: "",
-            Osc2: "",
-            STK: "",
-            Sampler: "",
-            AudioIn: "",
-    });
+
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
     const [numeratorSignature, setNumeratorSignature] = useState(4);
     const [denominatorSignature, setDenominatorSignature] = useState(4);
@@ -314,6 +259,105 @@ export default function InitializationComponent() {
     const [hold, setHold] = useState<any>(0);
     const [toggleSTKvsFX, setToggleSTKvsFX] = useState<any>(true);
     const [checkedEffectToShow, setCheckedEffectToShow] = useState<any>(true);
+    const [microtonalScale, setMicrotonalScale] = useState<string>('05-19');
+
+    const selectRef: any = React.useCallback((selectedMicrotone: string, i: any) => {
+        if (selectedMicrotone) {
+            console.log('&&&selected microtone: ', selectedMicrotone);
+        }
+        if (i) {
+            console.log('&&&selected microtone::: what is i???? ', i);
+        }
+    }, []);
+
+    async function convertFrequency(freq: number, microFreq: any, microMidiNum: any) { 
+        console.log("YYYYYYY ", freq);
+        const freqLets: string[] = [];
+        Object.values(notefreqchart).forEach((val: any, idx: number) => {
+            if (
+                freq < val && 
+                newMicroTonalArr.map((i:any) => i.freq).indexOf(microFreq) === -1 && 
+                Object.keys(notefreqchart)[idx - 1]
+            ) {
+                console.log("WHAT IS VAL? ", val, Object.keys(notefreqchart)[idx - 1])
+                // freqLets.push(Object.keys(notefreqchart)[idx - 1])
+                newMicroTonalArr.push({
+                    freq: microFreq,
+                    midiNum: microMidiNum,
+                    noteName: Object.keys(notefreqchart)[idx-1],
+                })
+                // setMicroTonalLetters([...microTonalLetters, microNoteLetter]);
+            }
+        });
+        // console.log("FREQLETS: ", freqLets);
+        console.log("NEW MICRO ARR: ", newMicroTonalArr);
+        return freqLets;
+    }
+
+    const newMicroTonalArr: any = []
+
+    const currentMicroTonalScale = (scale: any) => {
+        let theScale;
+        console.log("WTF SCALE? ", scale);
+        if (typeof scale === 'string') {
+        
+            theScale = '12-19';
+        } else {
+            console.log('and what is scale??? ', tune.loadScale(scale.value));
+            tune.loadScale(scale.value)
+            tune.tonicize(220);
+            console.log("HEYA ", tune.scale);
+          //   tune.mode.output = "MIDI";
+            const microtonalFreqs: any[] = []; 
+            const microtonalMidiNums: any[] = [];
+            
+            for(let i = -3; i < 6; i++) {
+              // tune.scale.forEach((i: any, idx: number) => {
+              for (let j = 0; j < tune.scale.length; j++) {
+                  // console.log("OOOF ", tune.note(tune.scale[j], i));
+                  tune.mode.output = "frequency";
+                  microtonalFreqs.push(tune.note(j, i).toFixed(2));
+                  tune.mode.output = "MIDI";
+                  microtonalMidiNums.push(tune.note(j, i).toFixed(4));
+              }
+              // });
+            }
+            console.log("WOOHA: ", microtonalFreqs);
+            console.log("WOOHA2: ", microtonalMidiNums);
+            
+            
+
+            for (const i in microtonalFreqs) {
+                
+                (async() => {
+                    await convertFrequency(parseFloat(i), microtonalFreqs[i], microtonalMidiNums[i]);
+               
+                    // newMicroTonalArr.push({
+                    //     freq: microtonalFreqs[i],
+                    //     midiNum: microtonalMidiNums[i],
+                    //     noteName: microNoteLetter,
+                    // })
+                    // setMicroTonalLetters([...microTonalLetters, microNoteLetter]);
+                })();
+                
+            }
+
+            console.log("CHECK FIRST ARE WE GETTING MICROTONAL ARR??? ", newMicroTonalArr);
+            setMicroTonalLetters(newMicroTonalArr);
+
+
+
+
+// *******
+
+            theScale = scale && scale.length > 0 && scale.value && scale.value;
+        }
+        console.log("have we got the scale? ", scale);
+        if (theScale) {
+            setMicrotonalScale(theScale);
+        }
+    };
+
 
     interface AllSoundSourcesObject {
         master: Array<any>;
@@ -369,12 +413,15 @@ export default function InitializationComponent() {
 
     const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
     const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    const finalStkFxStringToChuck = useRef<any>([]);
 
     const osc1FxStringNeedsBlackhole = useRef<string>('');
     const samplerFxStringNeedsBlackhole = useRef<string>('');
+    const stkFxStringNeedsBlackhole = useRef<string>('');
     
     const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
     const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    const stkFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
     const winFuncEnvFinalHelper = useRef<any>({
         osc1: {
             attackTime: 16,
@@ -382,7 +429,11 @@ export default function InitializationComponent() {
             envSetting: 0,
         },
         osc2: '',
-        stk1: '',
+        stk: {
+            attackTime: 16,
+            releaseTime: 16,
+            envSetting: 0,
+        },
         sampler: {
             attackTime: 16,
             releaseTime: 16,
@@ -401,7 +452,15 @@ export default function InitializationComponent() {
             releaseCurve: 1.5,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            attackTime: 1000,
+            attackCurve: 0.5,
+            decayTime: 1000,
+            decayCurve: 1.25,
+            sustainLevel: 0.5,
+            releaseTime: 1000,
+            releaseCurve: 1.5,
+        },
         sampler: {
             attackTime: 1000,
             attackCurve: 0.5,
@@ -420,7 +479,11 @@ export default function InitializationComponent() {
             value: 0,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            T60: 3,
+            radius: 0.995,
+            value: 0,
+        },
         sampler: {
             T60: 3,
             radius: 0.995,
@@ -437,7 +500,13 @@ export default function InitializationComponent() {
             saturation: 0.1
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            cutoff: 1,
+            resonance: 17,
+            nlp_type: 1,
+            nonlinear: 0,
+            saturation: 0.1
+        },
         sampler: {
             cutoff: 1,
             resonance: 17,
@@ -455,7 +524,12 @@ export default function InitializationComponent() {
             saturation: 0.1
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            cutoff: 1,
+            resonance: 2,
+            nonlinear: 0,
+            saturation: 0.1
+        },
         sampler: {
             cutoff: 1,
             resonance: 2,
@@ -471,7 +545,11 @@ export default function InitializationComponent() {
             randomGain: 0.2,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            vibratoRate: 6.0,
+            vibratoGain: 0.2,
+            randomGain: 0.2,
+        },
         sampler: {
             vibratoRate: 6.0,
             vibratoGain: 0.2,
@@ -489,7 +567,14 @@ export default function InitializationComponent() {
             b1: 0.2,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            delay: 500,
+            syncDelay: 1,
+            lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
+        },
         sampler: {
             delay: 500,
             syncDelay: 1,
@@ -510,7 +595,14 @@ export default function InitializationComponent() {
             b1: 0.2,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            delay: 500,
+            syncDelay: 1,
+            lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
+        },
         sampler: {
             delay: 500,
             syncDelay: 1,
@@ -531,7 +623,14 @@ export default function InitializationComponent() {
             b1: 0.2,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            delay: 500,
+            syncDelay: 1,
+            lines: 3,
+            zero: 0.5,
+            b0: 0.5,
+            b1: 0.2,
+        },
         sampler: {
             delay: 500,
             syncDelay: 1,
@@ -552,7 +651,14 @@ export default function InitializationComponent() {
             gain: 1.0,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            ampcurve: 2.0,
+            durcurve: 2.0,
+            delay: 0,
+            mix: 0.5,
+            reps: 4,
+            gain: 1.0,
+        },
         sampler: {
             ampcurve: 2.0,
             durcurve: 2.0,
@@ -573,7 +679,14 @@ export default function InitializationComponent() {
             filterMode: 0
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            filterLow: 500,
+            filterMid: 600,
+            filterHigh: 650,
+            atten: 80.0,
+            ripple: 10.0,
+            filterMode: 0
+        },
         sampler: {
             filterLow: 500,
             filterMid: 600,
@@ -598,7 +711,18 @@ export default function InitializationComponent() {
             table: 2,
         },
         osc2: {},
-        stk1: {},
+        stk: {
+            bands: 5,
+            delay: 3,
+            eq: 0,
+            feedback: 0,
+            fftlen: 3,
+            freqMax: 4100,
+            freqMin: 100,
+            mix: 0.8,
+            overlap: 3,
+            table: 2,
+        },
         sampler: {
             bands: 5,
             delay: 3,
@@ -649,13 +773,24 @@ export default function InitializationComponent() {
     const osc2FXStringToChuck = useRef<any>('');
     const audioInFXStringToChuck = useRef<any>('');
     const samplerFXStringToChuck = useRef<any>('');
+    const stkFXStringToChuck = useRef<any>('');
 
 
+    
 
     // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
     const visibleFXKnobs = useRef<Array<any>>();
 
     const testArrBuffFile = useRef<any>();
+
+    const beginProgram = (val: boolean) => {
+        if (val === true) {
+          setProgramIsOn(true);
+        } else {
+          setProgramIsOn(false);
+        }
+      };
+
 
     const onSubmit = async (files: any) => {
         if (files.length === 0) return;
@@ -708,12 +843,63 @@ export default function InitializationComponent() {
         console.log('TEST CLICK ', e, op);
     };
 
+    useEffect(() => {
+        if (!microtonalScale || !tune) return;
+        let numVal;
+        const num = microtonalScale.split('-')[microtonalScale.split('-').length - 1];
+  
+        (async()=>{
+          const data = [];
+          
+          tune.loadScale(microtonalScale);
+          tune.tonicize(220);
+          console.log("HEYA ", tune.scale);
+        //   tune.mode.output = "MIDI";
+          const microtonalFreqs: any[] = []; 
+          const microtonalMidiNums: any[] = [];
+          
+          for(let i = -3; i < 6; i++) {
+            // tune.scale.forEach((i: any, idx: number) => {
+            for (let j = 0; j < tune.scale.length; j++) {
+                // console.log("OOOF ", tune.note(tune.scale[j], i));
+                tune.mode.output = "frequency";
+                microtonalFreqs.push(tune.note(j, i).toFixed(2));
+                tune.mode.output = "MIDI";
+                microtonalMidiNums.push(tune.note(j, i).toFixed(4));
+            }
+            // });
+          }
+          console.log("WOOHA: ", microtonalFreqs);
+          console.log("WOOHA2: ", microtonalMidiNums);
+
+        })();
+    }, [microtonalScale]);
+
+    const headerDict = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Access-Control-Allow-Headers': 'Content-Type',
+    }
+
+    const requestOptions = {                                                                                                                                                                                 
+        headers: headerDict,
+        params: {
+            key: audioKey || 'A',
+        }
+    };
+
+    const {getMingusData} = useMingusData();
+
     const handleUpdateFXView = (e: any) => {
         console.log("e target: ", e.target.innerText);
+        // SAVED STATE HERE ???
         //currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
         // const getIndex = allFxPersistent.current[fxRadioValue].map((i: any) => i.var).indexOf(e.target.innerText.toLowerCase());
         selectedEffect.current = e.target.innerText.toLowerCase();
-        const knobsCountTemp = currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
+        const theEffect = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
+        console.log("OOOF MONDAY: ", allFxPersistent.current[fxRadioValue]);
+        const knobsCountTemp = currentFX.current = theEffect;
+        
         setFxKnobsCount(knobsCountTemp);
         updateCurrentFXScreen();
     };
@@ -727,9 +913,7 @@ export default function InitializationComponent() {
         visibleFXKnobs.current = [];
         let gotFX: any;
         let theFXIdx: any;
-        console.log("any use for stksandeffects? ", stksAndFX);
 
-        console.log("SEL EFFECT1 ", selectedEffect.current);
         if (stksAndFX.length > 0 && currentScreen.current !== "fx_" || selectedEffect.current.length > 0 ) {
         // **** THIS IS WHERE THE ISSUE MAY BE HAPPENING => WHATEVER GETS PASSED INTO VISIBLESTKSANDFX ALWAYS WINS 
             visibleStkAndFX = Array.from(stksAndFX).filter((i: any) => i.visible);
@@ -740,7 +924,6 @@ export default function InitializationComponent() {
                     visibleFXKnobs.current?.push([j.label, j]);
                 });
             });
-            console.log('visibleFXKNOBS: ', visibleFXKnobs.current);
 
             let newVals: any = [];
     
@@ -748,24 +931,22 @@ export default function InitializationComponent() {
     
             const availableFX: any = visibleStkAndFX.filter((i: any) => (i.fxType === 'fx' || i.fxType === 'stk') && i);
             setNeedsUpdate(true);
-            console.log('ummmmmmm what are availableFX: ', availableFX);
 
             if (availableFX.length > 0 && availableFX[0].fxType === 'stk') {
                 currentFX.current = [];
                 currentFX.current.push(availableFX);
                 fxFX.current = [];
-                fxFX.current.push(availableFX[0]);
+                fxFX.current.push(availableFX[availableFX.length - 1]);
+                if (availableFX && availableFX.length > 0 && availableFX[0].fxType === "fx") {
+                    currentScreen.current = "fx_";
+                }
+                updateCurrentFXScreen();
             } else if (availableFX.length > 0 && availableFX[0].var) {
-     
                 currentFX.current = [];
-                
                 currentFX.current.push(availableFX[availableFX.length - 1].presets);
             }
 
-            if (currentScreen.current !== "stk" && availableFX[availableFX.length - 1] && availableFX[availableFX.length - 1].fxType !== 'stk') {
-            
-                console.log("WHAT ARE AVAILABLE FX?? ", availableFX);
-                
+            if (currentScreen.current !== "stk" && availableFX[availableFX.length - 1] && availableFX[availableFX.length - 1].fxType !== 'stk') {     
                 if (availableFX.length > 0 && availableFX[0].var) {
     
                     visibleFXKnobs.current = visibleStkAndFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i: any) => [i.label, i])));
@@ -775,8 +956,10 @@ export default function InitializationComponent() {
                     // console.log("make curr effect visible: ", selectedEffect.current); 
     
                         availableFX.map((fx: any) => {
-                            console.log("YO FX! ", fx);
-                            if (fx.var && allFxPersistent.current[`${fxRadioValue}`].map((f: any) => f.var).indexOf(fx.var) === -1) {
+                            const filteredFX: any = allFxPersistent.current[`${fxRadioValue}`].filter((i: any) => i && i)
+                            if (fx.var && filteredFX.map((f: any) => f.var).indexOf(fx.var) === -1) {
+                                console.log("need to sanity check fx... ", fx);
+                                fxFX.current.push(fx);
                                 allFxPersistent.current[`${fxRadioValue}`].push(fx);
                                 allFxPersistent.current[`${fxRadioValue}`].filter((v: any) => v.var && v);
                             }
@@ -789,27 +972,20 @@ export default function InitializationComponent() {
             
             gotFX= fxFX.current.length > 0 && fxFX.current.filter((fx: any) => (fx.visible === true || fx.fxType === 'stk') && fx);
 
-
-            console.log("SEL EFFECT 2 ***** ", selectedEffect.current);
-
-    
             theFXIdx = gotFX.length > 0 && gotFX.map((f: any) => f.var).indexOf(selectedEffect.current) >= 0
                 ?
                 gotFX.map((f: any) => f.var).indexOf(selectedEffect.current)
                 :
                 gotFX.length - 1;
     
-            console.log(`theFX: ${theFXIdx} // ${visibleFXKnobs.current} // ${currentFX.current}`)
+            // console.log(`theFX: ${theFXIdx} // ${visibleFXKnobs.current} // ${currentFX.current}`)
             doReturnToSynth.current = !doReturnToSynth.current;
         } else {
             visibleStkAndFX = Object.values(moogGMPresets);
             visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
             // fxFX.current = moogGrandmotherEffects.current[0];
         }
-        // console.log('???%%%% ', currentFX.current);
-        console.log('visibleStkAndFX: ', visibleStkAndFX);
-        
-        console.log("SANITY CHECKIN ", visibleFXKnobs.current, currentFX.current.presets)
+        // console.log('visibleStkAndFX: ', visibleStkAndFX);
         visibleFXKnobs.current = !currentFX.current.presets
             ?
             currentScreen.current !== 'synth' && 
@@ -821,16 +997,12 @@ export default function InitializationComponent() {
             gotFX[theFXIdx].length > 0 && 
             !doReturnToSynth.current
                 ?
-                Object.values(gotFX[theFXIdx]) && 
-                Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
+                    Object.values(gotFX[theFXIdx]) && 
+                    Object.values(gotFX[theFXIdx].presets).map((f: any) => [f.label, f])
                 :
-                Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
+                    Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
             : 
                 Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
-
-
-        console.log('VIZ FX CURR AT END OF TEST: ', visibleFXKnobs.current);
-
     }, [checkedFXUpdating]);
 
     useEffect(() => {
@@ -842,23 +1014,16 @@ export default function InitializationComponent() {
     }, [fxRadioValue]);
 
     useEffect(() => {
-        console.log(`WTF?? ${analysisSourceRadioValue.toLowerCase()}`);
+        console.log(`Analysis Radio Val ${analysisSourceRadioValue.toLowerCase()}`);
     },[analysisSourceRadioValue]);
-
-    useEffect(() => {
-        console.log("WE ARE BREAKING HERE WHEN ADDING MULTIPLE EFFECTS OR WHEN SWITCHING BETWEEN EFFECTS SOURCES!!!!!");
-        console.log("NEW CHECKED FX LIST!!! ", checkedEffectsListHook);
-    },[checkedEffectsListHook]);
 
     const fxChainNeedsUpdate = (msg: any) => {
         console.log("MSG MSG MSG ", msg[0].source);
         selectedEffect.current = msg[0].source;
-
+       
         const effectToSwitchDisplay = allFxPersistent.current[`${fxRadioValue}`].filter((fx: any) => fx.var === msg[0].source && fx);
         if (effectToSwitchDisplay.length > 0) {
-            console.log('12345 ', effectToSwitchDisplay);
             fxFX.current = effectToSwitchDisplay;
-
         }
         selectedEffect.current = msg[0].source;
         setClickFXChain(true);
@@ -884,6 +1049,7 @@ export default function InitializationComponent() {
     };
     
     const handleUpdateHold = () => {
+        
         if (hold === 0) {
             setHold(1);
         } else {
@@ -904,11 +1070,11 @@ export default function InitializationComponent() {
 
         let knobsCountTemp;
         console.log("what is current screen in update knobs? ", currentScreen.current);
-        if (currentScreen.current === 'stk') {
+        if (currentScreen.current === 'stk' && stkFX.current && stkFX.current.presets && stkFX.current.presets.length > 0) {
             currentFX.current = stkValsRef.current;
             knobsCountTemp = stkFX.current.presets.length;
         } else {
-            knobsCountTemp = currentFX.current.length
+            knobsCountTemp = currentFX.current.length;
         }
         setFxKnobsCount(knobsCountTemp);
         updateCurrentFXScreen();
@@ -919,6 +1085,14 @@ export default function InitializationComponent() {
             setArpeggiatorOn(1);
         } else {
             setArpeggiatorOn(0);
+        }
+    }
+
+    const toggleKeyboard = () => {
+        if (keysVisible === false) {
+            setKeysVisible(true);
+        } else {
+            setKeysVisible(false);
         }
     }
 
@@ -957,8 +1131,15 @@ export default function InitializationComponent() {
 
     const theme = useTheme();
 
+    useEffect(() => {
+        setTune(new Tune());
+    }, [])
+
+
     const handleReturnToSynth = () => {
-        if (currentScreen.current !== "synth") {
+        if (currentScreen.current === "stk") {
+            currentScreen.current = ""
+        } else if (currentScreen.current !== "fx") {
             // doReturnToSynth.current = !doReturnToSynth.current;
             currentScreen.current = "synth";
         }
@@ -974,7 +1155,6 @@ export default function InitializationComponent() {
         }
 
         if (currentScreen.current === 'stk' || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
-  
             if (stkFX.current && stkFX.current.length > 0 && (toggleSTKvsFX || visibleFXKnobs.current?.length === 0)) {
                 currentScreen.current = 'stk';
                 stkFX.current = getSTK1Preset(stkValsRef.current[0].value);
@@ -986,8 +1166,7 @@ export default function InitializationComponent() {
                 visibleFXKnobs.current = allFxPersistent.current[fxRadioValue] && allFxPersistent.current[fxRadioValue].length > 0 &&  Object.values(allFxPersistent.current[fxRadioValue][allFxPersistent.current[fxRadioValue].length - 1].presets).map((i: any) => [i.label, i]);
             }
         }
-        else if (currentScreen.current === 'synth' ) {
-    
+        else if (currentScreen.current === 'synth' ) { 
             currentFX.current = [];
             currentFX.current = moogGrandmotherEffects.current;
             fxFX.current = currentFX.current;
@@ -1016,7 +1195,7 @@ export default function InitializationComponent() {
             // const index = checkedFXList.current.indexOf(e.target.defaultValue);
             // checkedFXList.current[index];
             // return;
-            fxFX.current.find((i:any) => e.target.defaultValue === i.var).visible = false;
+            // fxFX.current.find((i:any) => e.target.defaultValue === i.var).visible = false;
         }
 
     // else {
@@ -1098,11 +1277,13 @@ export default function InitializationComponent() {
     const handleChangeScale = (event: SelectChangeEvent) => {
         console.log('WHAT IS EVENT IN HANDLECHANNGESCALE? ', event);
         setAudioScale(event.target.value as string);
+        submitMingus();
     };
 
     const handleChangeChord = (event: SelectChangeEvent) => {
         console.log('WHAT IS EVENT IN HANDLECHANNGECHORD? ', event);
         setAudioChord(event.target.value as string);
+        submitMingus();
     };
 
 
@@ -1132,21 +1313,23 @@ export default function InitializationComponent() {
         });
     }
 
-    // THIS METHOD TURNS A PRESET INTO CHUCK CODE (only set up for stk1)
-    const stkFXToString = () => {
+    // // THIS METHOD TURNS A PRESET INTO CHUCK CODE (only set up for stk1)
+    const stkFXToStringPrepare = () => {
         console.log('stkFXTo *** STRING ***: ', stkFX.current);
         if (!stkFX.current || stkFX.current.length < 1) return '';
 
         stk1Type.current = stkFX.current.type;
         stk1Var.current = stkFX.current.var;
 
-        stkFX.current && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
+        const isFX = Object.values(stkFX.current).filter((i: any) => i.fxType === "fx");
+
+       isFX && stkFX.current.length > 0 && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
             console.log('STK PRESET: ', preset); // preset.name
             const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
             // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
             console.log("WHAT ARE CURRENT NOTES DOWN>??? ", currentNotesDownDisplay.current);
-            console.log("what the flying fuck: ", alreadyInChuckDynamicScript);
-            for (let j = 1; j < currentNotesDownDisplay.current.length; j++) {
+
+            for (let j = 1; j < 12; j++) {
                 stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
             }
             console.log("WHAT IS STKFX CURRENT >?>?>?>? ", stkFXString.current);
@@ -1163,6 +1346,8 @@ export default function InitializationComponent() {
 
     const formerValSub = useRef<string>('');
 
+
+
     const winFuncString = (source: string, attackDenom: number, releaseDenom: number, envSetting: string) => `winfuncenv_${source}.set${envSetting}(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_${source}, whole/${attackDenom}, whole/${releaseDenom}); }`;
 
     const powerADSRString = (source: string, attackTime: number, attackCurve: number, decayTime: number, decayCurve: number, sustainLevel: number, releaseTime: number, releaseCurve: number) => `
@@ -1170,7 +1355,7 @@ export default function InitializationComponent() {
         fun void playPowerADSRWindow(PowerADSR @ win, dur attackTime, float attackCurve, dur decayTime, float decayCurve, float sustainLevel, dur releaseTime, float releaseCurve) {
             win.set(attackTime, decayTime, sustainLevel, releaseTime);
             win.setCurves(attackCurve, decayCurve, releaseCurve);
-            <<< "PLAY_POWERADSR" >>>;
+          
             while (true) {
                 win.keyOn();
                 attackTime => now;
@@ -1188,7 +1373,7 @@ export default function InitializationComponent() {
             radius => win.radius;    
             T60 => win.T60; 
             1 => win.keyOn; 
-            <<< "PLAY_ENVWIN" >>>;
+            
             value => now;
             while (1)  {
                 1.0 => win.gain;
@@ -1220,7 +1405,7 @@ export default function InitializationComponent() {
             0.15 => win.gain;
 
             while(true){
-                <<< "PLAY_DIODE" >>>;
+               
                 4 * sinb.last() => saw2.freq;
                 40 + (Math.pow((sinb.last())/2.0,2) * (resonance * 1000)) => win.cutoff;
                 1::samp => now;
@@ -1270,7 +1455,9 @@ export default function InitializationComponent() {
                 3 => hpf.op;
             } else if ("${source }" == "s1") {
                 3 => limiter_Sampler.op;
-            }
+            } else if ("${source}" == "stk1") {
+                3 => limiter_STK.op;
+            } 
     
             // set freq
             // 220 => testSin.freq;
@@ -1320,16 +1507,19 @@ export default function InitializationComponent() {
                     hpf => win[i] => dac;
                 } else if ("${source}" == "s1") {
                     limiter_Sampler => win[i] => dac;
-                } 
+                } else if ("${source}" == "stk1") {
+                    limiter_STK => win[i] => dac;
+                }
                 win[i] => OneZero filter_delay_${source} => win[i]; 
                 zero => filter_delay_${source}.zero;
                 b0 => filter_delay_${source}.b0;
                 b1 => filter_delay_${source}.b1;
-                0.6 => win[i].gain; 
+                0.2 => win[i].gain; 
                 // (((1 + i*0.3) * 1000)) :: ms => win[i].max => win[i].delay;
-                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
-                
+                ((whole)/((syncDelay/${currentNoteVals.master[0]}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
+                me.yield();
             }
+            me.exit();
         }
         spork ~ playDelayWindow(delay_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
         `;
@@ -1345,15 +1535,18 @@ export default function InitializationComponent() {
                     hpf => win[i] => dac;  
                 } else if ("${source }" == "s1") {
                     limiter_Sampler => win[i] => dac;
-                } 
+                } else if ("${source}" == "stk1") {
+                    limiter_STK => win[i] => dac;
+                }
                 win[i] => OneZero filter_delayA_${source} => win[i]; 
                 zero => filter_delayA_${source}.zero;
                 b0 => filter_delayA_${source}.b0;
                 b1 => filter_delayA_${source}.b1;
                 0.6 => win[i].gain; 
-                // (((1 + i*0.3) * 1000)) :: ms => win[i].max => win[i].delay;
-                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
+                (whole/${currentNoteVals.master[0]})/((syncDelay) * (1 + i*0.3)) => win[i].max => win[i].delay;
+                me.yield();
             }
+            me.exit();
         }
         spork ~ playDelayAWindow(delayA_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
         `;
@@ -1361,22 +1554,31 @@ export default function InitializationComponent() {
 
     const delayLString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
         const convertedSyncDelay = Math.pow(2, syncDelay);
+        console.log("sanity check delayL source: ", source);
         return `
         fun void playDelayLWindow(DelayL @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
-            for (0 => int i; i < ${lines}; i++) 
-            { 
-                if ("${source}" == "o1") {
-                    hpf => win[i] => dac;  
-                } else if ("${source }" == "s1") {
-                    limiter_Sampler => win[i] => dac;
-                }
-                win[i] => OneZero filter_delayL_${source} => win[i];
-                zero => filter_delayL_${source}.zero;
-                b0 => filter_delayL_${source}.b0;
-                b1 => filter_delayL_${source}.b1;
-                0.6 => win[i].gain; 
-                ((whole)/((syncDelay/${numeratorSignature}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
-            }
+            // while (true) {
+                    for (0 => int i; i < ${lines}; i++) 
+                    { 
+                        if ("${source}" == "o1") {
+                            hpf => win[i] => dac;  
+                        } else if ("${source}" == "s1") {
+                            limiter_Sampler => win[i] => dac;
+                        } else if ("${source}" == "stk1") {
+                            limiter_STK => win[i] => dac;
+                        }
+                        win[i] => OneZero filter_delayL_${source} => win[i];
+                        zero => filter_delayL_${source}.zero;
+                        b0 => filter_delayL_${source}.b0;
+                        b1 => filter_delayL_${source}.b1;
+                        0.6 => win[i].gain; 
+                        // ((whole * ${numeratorSignature})/((syncDelay) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
+                        (whole * ${numeratorSignature})/((syncDelay) * (1/(1 + i*0.7))) => win[i].max => win[i].delay;
+   
+                        // me.yield();
+                    }
+    
+                me.exit();
         }
         spork ~ playDelayLWindow(delayL_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
         `;
@@ -1399,9 +1601,9 @@ export default function InitializationComponent() {
                 reps => win.reps;
                 
                 (whole/(${currentNoteVals.master[0]}))/delay => now;
-                me.yield();
+                // me.yield();
             }
-            me.yield();
+            me.exit();
         }
         spork ~ playExpDelayWindow(expDelay_${source}, ${ampcurve}, ${durcurve}, ${convertedSyncDelay}, ${mix}, ${reps}, ${gain});
         `;
@@ -1621,7 +1823,7 @@ export default function InitializationComponent() {
                         } else if (preset.name === "durcurve") {
                             expDelayFinalHelper.current.sampler.durcurve = preset.value;
                         } else if (preset.name === "delay") {
-                            delayLFinalHelper.current.sampler.delay = preset.value;
+                            expDelayFinalHelper.current.sampler.delay = preset.value;
                         } else if (preset.name === "mix") {
                             expDelayFinalHelper.current.sampler.mix = preset.value;
                         } else if (preset.name === "reps") {
@@ -1873,7 +2075,7 @@ export default function InitializationComponent() {
                         } else if (preset.name === "durcurve") {
                             expDelayFinalHelper.current.osc1.durcurve = preset.value;
                         } else if (preset.name === "delay") {
-                            delayLFinalHelper.current.osc1.delay = preset.value;
+                            expDelayFinalHelper.current.osc1.delay = preset.value;
                         } else if (preset.name === "mix") {
                             expDelayFinalHelper.current.osc1.mix = preset.value;
                         } else if (preset.name === "reps") {
@@ -1972,53 +2174,394 @@ export default function InitializationComponent() {
         });
     }
 
-    // const samplerFXToString = () => {
-    //     Object.values(allFxPersistent.current.Sampler).map((s1: any) => {
-    //         console.log('sanity chuck here: ', s1);
-    //         if (samplerFXStringToChuck.current.indexOf(`${s1.var}_s1`) === -1) {
-    //             samplerFXStringToChuck.current = samplerFXStringToChuck.current.concat(`=> ${s1.type} ${s1.var}_s1 `)
-    //         }
+    const stkFXToString = () => {
+        console.log("AM I SANE? ", allFxPersistent.current.STK);
+        // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
+        // =================================================================
+        
+        // allFxPersistent.current.STK.presets && Object.values(allFxPersistent.current.STK.presets).length > 0 && Object.values(allFxPersistent.current.STK.filter((i: any) => i.fxType !== "stk" && i)).map((stk1: any) => {
+            allFxPersistent.current.STK.map((i: any) => i.fxType === "fx").length > 0 && allFxPersistent.current.STK.filter((i: any) => i.fxType === "fx" && i).map((stk1: any) => {
+            // if ((!stk1.fxType || stk1.fxType !== "stk") && stkFXStringToChuck.current.indexOf(`${stk1.var}_stk1`) !== -1 && stk1.presets && stk1.presets.length > 0) {
+            console.log("THIS IS THE FUCKING PROB ", stk1, "****", stkFXStringToChuck.current);
+            if (stkFXStringToChuck.current.indexOf(`${stk1.var}_stk1`) === -1){
+            
+                if (stk1.var === "pittrack") {
+                    console.log("THIS WOULD DO IT ", stkFxStringToChuckNeedsBlackhole.current);
+                    // if (stkFxStringToChuckNeedsBlackhole.current && stkFxStringToChuckNeedsBlackhole.current.length > 0 && stkFxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${stk1.var}`) === -1) {
+                    //     stkFxStringToChuckNeedsBlackhole.current.push({ name: `${stk1.var}`, string: `=> ${stk1.type} ${stk1.var}_stk1 => blackhole;` });
+                    // }
+                    // // return;
+                } else if (stk1.var === "winFuncEnv") {
+                    stkWinEnvOn.current = true;
+                } else if (stk1.var === "poweradsr") {
+                    stkPowerADSROn.current = true;
+                } else if (stk1.var === "expEnv") {
+                    stkExpEnvOn.current = true;
+                } else if (stk1.var === "wpdiodeLadder") {
+                    stkWPDiodeLadderOn.current = true;
+                } else if (stk1.var === "wpkorg35") {
+                    stkWPKorg35On.current = true;
+                } else if (stk1.var === "modulate") {
+                    // stkModulateOn.current = true;
+                } else if (stk1.var === "delay") {
+                    stkDelayOn.current = true;
+                } else if (stk1.var === "delayA") {
+                    stkDelayAOn.current = true;
+                } else if (stk1.var === "delayL") {
+                    stkDelayLOn.current = true;
+                } else if (stk1.var === "expDelay") {
+                    stkExpDelayOn.current = true;
+                } else if (stk1.var === "elliptic") {
+                    stkEllipticOn.current = true;
+                } else if (stk1.var === "spectacle") {
+                    stkSpectacleOn.current = true;
+                }
 
-    //         Object.values(s1.presets).length > 0 && Object.values(s1.presets).map((preset: any, idx: number) => {
-    //             const addDurMs = preset.type.indexOf('dur') !== -1 ? '::ms' : '';
-    //             const formattedValue: any = preset.type.indexOf('dur') !== -1 ? `${parseInt(preset.value)}${addDurMs}` : `${preset.value}`;
-    //             // const thePreset: any = Object.values(s1.presets)[idx];
-    //             console.log("EEEESH WTF 1: ", samplerFXString);
-    //             console.log("EEEESH WTF 2: ", finalSamplerFxStringToChuck.current);
-    //             if (samplerFXString.current !== '') {
-    //                 if (finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name) !== -1) {
-    //                     console.log("SANITY CHUCK 2: ", finalSamplerFxStringToChuck.current);
-    //                     const theIndex = finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name);
-    //                     finalSamplerFxStringToChuck.current[theIndex].string = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
-    //                 } else {
-    //                     finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};` });
-    //                 }
-    //                 samplerFXString.current.indexOf(`${formattedValue} => ${s1.var}_s1.${preset.name};`)
-    //                 const t: string = samplerFXString.current;
-    //                 const sub = ` => ${s1.var}_s1.${preset.name};`;
-    //                 let lastIndexOfValue: any = t.indexOf(sub);
-    //                 const lastCharOfVal = t[lastIndexOfValue];
+                // TODO => Basic Implementation of Sampler Interface / Play Logic
+                // TODO => All of SndBuf Implementation
+                // TODO => All of Lisa (do we want Stereo or even Lisa10 => Sampler Mixer when patterns are done?)
+                // TODO => All of Sigmund
+                // TODO => All of Autotune (PitchTrack implelementation)
+                // TODO => All of the Gains & Note Swells (create a mixer W PANNING!??)
+                // TODO => Add other Osc Ugens to Synthvoice
+                // TODO => All of UAna Generics for Analysis Blobs
 
-    //                 formerValSub.current = lastCharOfVal;
-    //                 console.log('FORMER VAL SUB: ', formerValSub.current);
-    //                 let chartWindowIndex: any;
-    //                 const readBackwards = samplerFXString.current[lastIndexOfValue - 1] && setInterval(() => {
-    //                     formerValSub.current = formerValSub.current + (osc1FXString.current[lastIndexOfValue])
-    //                     if (lastIndexOfValue && samplerFXString.current && samplerFXString.current[lastIndexOfValue] === ' ') {
-    //                         clearInterval(readBackwards);
-    //                         return;
-    //                     }
-    //                     chartWindowIndex = chartWindowIndex - 1;
-    //                 }, 0);
-    //                 const fullPriorString = `${formerValSub.current}${sub}`;
-    //                 samplerFXString.current.indexOf(fullPriorString) !== -1 && samplerFXString.current.replace(fullPriorString, samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`);
-    //             } else {
-    //                 samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
-    //             }
-    //             console.log('CHECK OSC1 STRING CURRENT: ', samplerFXString.current);
-    //         });
-    //     });
-    // }
+                // AFTER ALL OF THIS, WE CAN LEVEL OUT (OR MAKE FACTORY OF FX CODE FOR ALL SOURCES)
+                // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
+
+                else {
+                    // console.log("ARE WE SUPPOSED TO GET NON-COMPLEX EFFECTS HERE? ", stk1);
+                    // console.log("we should and do hit this for nrev test ", stk1, stkFXStringToChuck.current);
+                    console.log(`YO! ${stk1.var} //// ${samplerFXStringToChuck.current}`)
+
+                            const preventdupes = stkFXStringToChuck.current.includes(stk1.var); 
+
+                    if ( !stkFXStringToChuck.current || stkFXStringToChuck.current.length < 1 && stk1.fxType === "stk") {
+                        alert("case A");
+                        stkFXStringToChuck.current = `${stk1.type} ${stk1.var}_stk1`
+                    } else {
+                        alert("case B");
+                        stkFXStringToChuck.current = !preventdupes ? stkFXStringToChuck.current.concat(`=> ${stk1.type} ${stk1.var}_stk1 `) : stkFXStringToChuck.current;
+                    }
+                    // stkFXStringToChuck.current = stkFXStringToChuck.current.concat(`=> ${stk1.type} ${stk1.var}_stk1 `)
+                    alert(`THIS IS NOW... ${stkFXStringToChuck.current}`)
+                }
+            }
+            console.log("Make sure we get into part 2: ", Object.values(stk1.presets))
+            // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
+            // =================================================================
+            Object.values(stk1.presets).length > 0 && Object.values(stk1.presets).map(async (effect: any, idx: number) => {
+                console.log("FUCKING PRESET FUCKING STK ", effect.type)
+        
+                // ******** TODO change to read type directly from o1.type
+                if (effect && effect.length > 0 && effect.type && effect.type.includes("_needsFun") && effect.fxType !== "stk") {
+                    console.log('ug1 preset type: ', effect.type, effect.name);
+                    if (effect.type.includes("_winFuncEnv")) {
+                        if (effect.name === "attackTime") {
+                            winFuncEnvFinalHelper.current.stk.attackTime = Math.pow(2, Number(effect.value));
+                        } else if (effect.name === "releaseTime") {
+                            winFuncEnvFinalHelper.current.stk.releaseTime = Math.pow(2, Number(effect.value));
+                        } else if (effect.name === "envSetting") {
+                            winFuncEnvFinalHelper.current.stk.envSetting = convertEnvSetting(effect.value);
+                        } else {
+                        }
+                    }
+                    if (effect.type.includes("_powerADSR")) {
+                        // add quantization / feedback etc later
+                        if (effect.name === "attackTime") {
+                            powerADSRFinalHelper.current.stk.attackTime = effect.value;
+                        } else if (effect.name === "attackCurve") {
+                            powerADSRFinalHelper.current.stk.attackCurve = effect.value;
+                        } else if (effect.name === "releaseTime") {
+                            powerADSRFinalHelper.current.stk.releaseTime = effect.value;
+                        } else if (effect.name === "releaseCurve") {
+                            powerADSRFinalHelper.current.stk.releaseCurve = effect.value;
+                        }
+                        else if (effect.name === "decayTime") {
+                            powerADSRFinalHelper.current.stk.decayTime = effect.value;
+                        }
+                        else if (effect.name === "decayCurve") {
+                            powerADSRFinalHelper.current.stk.decayCurve = effect.value;
+                        }
+                        else if (effect.name === "sustainLevel") {
+                            powerADSRFinalHelper.current.stk.sustainLevel = effect.value;
+                        }
+
+
+                    }
+                    if (effect.type.includes("_expEnv")) {
+                        if (effect.name === "T60") {
+                            expEnvFinalHelper.current.stk.T60 = effect.value;
+                        } else if (effect.name === "radius") {
+                            expEnvFinalHelper.current.stk.radius = effect.value;
+                        } else if (effect.name === "value") {
+                            expEnvFinalHelper.current.stk.value = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("_diodeladder")) {
+                        if (effect.name === "cutoff") {
+                            wpDiodeLadderFinalHelper.current.stk.cutoff = effect.value;
+                        } else if (effect.name === "nlp_type") {
+                            wpDiodeLadderFinalHelper.current.stk.nlp_type = effect.value;
+                        } else if (effect.name === "nonlinear") {
+                            wpDiodeLadderFinalHelper.current.stk.nonlinear = effect.value;
+                        } else if (effect.name === "saturation") {
+                            wpDiodeLadderFinalHelper.current.stk.saturation = effect.value;
+                        } else if (effect.name === "resonance") {
+                            wpDiodeLadderFinalHelper.current.stk.resonance = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("_korg35")) {
+                        if (effect.name === "cutoff") {
+                            wpDiodeLadderFinalHelper.current.stk.cutoff = effect.value;
+                        } else if (effect.name === "resonance") {
+                            wpDiodeLadderFinalHelper.current.stk.resonance = effect.value;
+                        } else if (effect.name === "nonlinear") {
+                            wpDiodeLadderFinalHelper.current.stk.nonlinear = effect.value;
+                        } else if (effect.name === "saturation") {
+                            wpDiodeLadderFinalHelper.current.stk.saturation = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("mod")) {
+                        if (effect.name === "vibratoRate") {
+                            modulateFinalHelper.current.stk.vibratoRate = effect.value;
+                        } else if (effect.name === "vibratoGain") {
+                            modulateFinalHelper.current.stk.vibratoGain = effect.value;
+                        } else if (effect.name === "randomGain") {
+                            modulateFinalHelper.current.stk.randomGain = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("delay_")) {
+                        if (effect.name === "delay") {
+                            delayFinalHelper.current.stk.delay = effect.value;
+                        } else if (effect.name === "lines") {
+                            delayFinalHelper.current.stk.lines = effect.value;
+                        } else if (effect.name === "syncDelay") {
+                            delayFinalHelper.current.stk.syncDelay = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("delayA")) {
+                        if (effect.name === "delay") {
+                            delayAFinalHelper.current.stk.delay = effect.value;
+                        } else if (effect.name === "lines") {
+                            delayAFinalHelper.current.stk.lines = effect.value;
+                        } else if (effect.name === "syncDelay") {
+                            delayAFinalHelper.current.stk.syncDelay = effect.value;
+                        }
+                    }
+                    console.log("EEEEESHSHSHSHSHSH WTF EFFECT TYPE INCLUDES THE PROB HERE??? ", effect)
+                    if (effect.type.includes("delayL")) {
+                        if (effect.name === "delay") {
+                            delayLFinalHelper.current.stk.delay = effect.value;
+                        } else if (effect.name === "lines") {
+                            delayLFinalHelper.current.stk.lines = effect.value;
+                        } else if (effect.name === "syncDelay") {
+                            delayLFinalHelper.current.stk.syncDelay = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("expDelay")) {
+                        if (effect.name === "ampcurve") {
+                            expDelayFinalHelper.current.stk.ampcurve = effect.value;
+                        } else if (effect.name === "durcurve") {
+                            expDelayFinalHelper.current.stk.durcurve = effect.value;
+                        } else if (effect.name === "delay") {
+                            delayLFinalHelper.current.stk.delay = effect.value;
+                        } else if (effect.name === "mix") {
+                            expDelayFinalHelper.current.stk.mix = effect.value;
+                        } else if (effect.name === "reps") {
+                            expDelayFinalHelper.current.stk.reps = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("elliptic")) {
+                        if (effect.name === "lowFilter") {
+                            ellipticFinalHelper.current.stk.lowFilter = effect.value;
+                        } else if (effect.name === "midFilter") {
+                            ellipticFinalHelper.current.stk.midFilter = effect.value;
+                        } else if (effect.name === "highFilter") {
+                            ellipticFinalHelper.current.stk.highFilter = effect.value;
+                        } else if (effect.name === "atten") {
+                            ellipticFinalHelper.current.stk.atten = effect.value;
+                        } else if (effect.name === "ripple") {
+                            ellipticFinalHelper.current.stk.ripple = effect.value;
+                        } else if (effect.name === "filterMode") {
+                            ellipticFinalHelper.current.stk.filterMode = effect.value;
+                        }
+                    }
+                    if (effect.type.includes("spectacle")) {
+                        console.log(`YA WE HIT THIS: `, spectacleFinalHelper.current.sampler);
+                        if (effect.name === "bands") {
+                            spectacleFinalHelper.current.stk.bands = effect.value;
+                        } else if (effect.name === "delay") {
+                            spectacleFinalHelper.current.stk.delay = effect.value;
+                        } else if (effect.name === "eq") {
+                            spectacleFinalHelper.current.stk.eq = effect.value;
+                        } else if (effect.name === "feedback") {
+                            spectacleFinalHelper.current.stk.feedback = effect.value;
+                        } else if (effect.name === "fftlen") {
+                            spectacleFinalHelper.current.stk.fftlen = effect.value;
+                        } else if (effect.name === "freqMax") {
+                            spectacleFinalHelper.current.stk.freqMax = effect.value;
+                        } else if (effect.name === "freqMin") {
+                            spectacleFinalHelper.current.stk.freqMin = effect.value;
+                        } else if (effect.name === "mix") {
+                            spectacleFinalHelper.current.stk.mix = effect.value;
+                        } else if (effect.name === "overlap") {
+                            spectacleFinalHelper.current.stk.overlap = effect.value;
+                        } else if (effect.name === "table") {
+                            spectacleFinalHelper.current.stk.table = effect.value;
+                        }
+                    }
+
+                    else {
+                        // console.log(`in the else! ///+^+^+^ ${effect.type}`)
+                        //stkFXStringToChuck.current = stkFXStringToChuck.current.concat(`=> ${effect.type} ${effect.var}_stk1 `)
+                    }
+                } else {
+                    if (!effect.preset) {
+                        console.log("WTFFFFFFFF ", effect); // this is correct
+                        return '';
+                    }
+                    const addDurMs = effect.type.indexOf('dur') !== -1 ? '::ms' : '';
+                    let formattedValue: any = effect.type.indexOf('dur') !== -1 ? `${effect.value}${addDurMs}` : `${effect.value}`;
+
+                    if (stkFXString.current !== '') {
+                        if (effect.fxType === "stk" && finalStkFxStringToChuck.current.map((stk: any) => stk.name).indexOf(effect.name) !== -1) {
+                            const theIndex = finalStkFxStringToChuck.current.map((stk: any) => stk.name).indexOf(effect.name);
+                            console.log("hey the stk index: ", theIndex);
+                            finalStkFxStringToChuck.current[theIndex].string = `${formattedValue} => ${stk1.var}_stk1.${effect.name};`;
+                            console.log("hey final stk is here: ", finalStkFxStringToChuck.current[theIndex]);
+                        }
+                        else {
+                            console.log("WTF PRESET ", effect.preset);
+                            const preventdupes = finalStkFxStringToChuck.current.map((i:any) => i.var).indexOf(effect.var) === -1; 
+                            console.log(`PREVENT DUPES??? , ${preventdupes}`);
+                            if (effect && effect.length > 0 && effect.visible === true && effect.fxType === "fx") {
+                                
+                                finalStkFxStringToChuck.current.push({ name: effect.name, string: `${formattedValue} => ${stk1.var}_stk1.${effect.name};` });
+                                console.log(`what are we doing with this 1 finalStkFx // ${finalStkFxStringToChuck.current}`);
+                                alert(`finalStkFxStringToChuck is nowwww.... ${finalStkFxStringToChuck.current}`);
+                            } else {
+                            console.log("PREVENTED A DUPE! ", effect.var);
+                            }
+                        }
+                    } else {
+                        if (stkFXString.current.fxType === "fx") {
+                        //     stkFXString.current = `${formattedValue} => ${stk1.var}_stk1.${effect.name};`;
+                            alert(`WE DO HAVE STKFXSTRING:  ${stkFXString.current}`);
+
+                        
+                            console.log('saniiiiity?? ', `${formattedValue} => ${stk1.var}_stk1.${effect.name};`);
+                            stkFXString.current = `${formattedValue} => ${stk1.var}_stk1.${effect.name};`;
+                        }
+                    }
+                    console.log(finalStkFxStringToChuck.current);
+                    // alert(`GOT IT! ${finalStkFxStringToChuck.current}`);
+                }
+            });
+        });
+    };
+    const logOnly: any = [];
+
+    const awaitNote = async (note: string) => {
+
+        console.log('KR ', keysReady);
+        if(keysReady) {
+            return;
+        }
+
+        // const stateData = store.getState();
+        // console.log("HAVE WE GOT STATE? ", stateData);
+        // return new Promise((resolve) => {
+        //     let getVals: any;
+
+        //     console.log("WHAT IS NOTE> ", note);
+        //     console.log("WHAT ARE REQ OPTS? ", requestOptions);
+        //         getVals = axios.get(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/note/${"A"}`, 
+                
+        //         {headers: {
+        //             'Content-Type': 'application/json'
+        //         }})
+                
+        //         // requestOptions);
+        //         resolve(getVals);
+            
+        // }).then(async (res: any) => {
+        //     console.log("WTF IS RES? ", res);
+        //     logOnly.push({'note': note, 'data': res.data});
+        //     if(note === `B8` || note === `17equal_B-9`) {
+        //         console.log('GET THIS IN A FILE: ', JSON.stringify(logOnly));
+        //         // setKeysReady(true);
+        //     }
+        //     return await res.data;
+        // });
+    };
+    const organizeRows = async(rowNum: number, note: string) => {
+        if (keysReady) {
+            return;
+        }
+        // noteReady is single note data returned from server
+        // const noteReady = await awaitNote(note);
+        
+        const noteReady = {
+            midiNote: undefined,
+            midiHz: undefined,    
+        };
+
+        
+        note = note.replace("♯", "#");
+        console.log("ROW NUM ", rowNum, "NOTE: ", note);
+        const getNote: any = Note.get(note);
+        noteReady.midiNote = getNote.midi;
+        noteReady.midiHz = getNote.freq;
+        console.log("%cNOTEREADY", "color: red; ", noteReady);
+
+        getMingusData({...noteReady, note, rowNum});
+        if (noteReady) {
+            setKeysReady(true);
+        } else {
+            return;
+        }
+
+        const parsedNote = note.charAt(1) === '♯' ? note.slice(0, 2) + "-" + note.slice(2) : note.slice(0, 1) + "-" + note.slice(1);
+        console.log("PARSED??? ", parsedNote);
+        const el: any = await document.getElementById(parsedNote);
+        if (el && !el['data-midiNote'] && !el['data-midiHz']) {
+            el.key = `keyRow_${rowNum}_${noteReady.midiHz}`;
+            el.classList.add(`keyRow`);
+            el.classList.add(`keyRow_${rowNum}`);
+            el.setAttribute('data-midiNote', await noteReady.midiNote);
+            el.setAttribute('data-midiHz', await noteReady.midiHz);
+            el.setAttribute('onClick', playChuckNote(noteReady.midiHz));
+        }
+    }
+
+    const organizeLocalStorageRows = async(theNote: any) => {
+        // getMingusData({...theNote});
+                        // const tune = new Tune();
+                // console.log("YO MICROTONES! ", microtoneDescsData);
+       
+
+        const parsedNote = theNote.note.charAt(1) === '♯' ? theNote.note.slice(0, 2) + "-" + theNote.note.slice(2) : theNote.note.slice(0, 1) + "-" + theNote.note.slice(1);
+        const el: any = await document.getElementById(parsedNote);
+        if (el && !el['data-midiNote'] && !el['data-midiHz']) {
+            el.classList.add(`keyRow`);
+            el.classList.add(`keyRow_${theNote.rowNum}`);
+            el.setAttribute('data-midiNote', await theNote.midiNote);
+            el.setAttribute('data-midiHz', await theNote.midiHz);
+            el.setAttribute('onClick', playChuckNote(theNote.midiHz));
+        }
+    }
+
+    function compare( a: any, b: any ) {
+        if ( a.midiNote < b.midiNote ){
+          return -1;
+        }
+        if ( a.midiNote > b.midiNote ){
+          return 1;
+        }
+        return 0;
+    };
+    
 
     const initChuck = async () => {
         if (typeof window === 'undefined') return;
@@ -2030,9 +2573,12 @@ export default function InitializationComponent() {
             theChuckContext.resume();
         }
         setChuckHook(theChuck);
+        setUpdateUIAfterInit(true);
+        beginProgram(true);
     };
 
     useEffect(()=>{
+
         console.log("Curr notes down display: ", currentNotesDownDisplay.current);
         console.log("curr virtual key notes display: ", currentNotesKeyValDownDisplay.current);
         
@@ -2059,6 +2605,12 @@ export default function InitializationComponent() {
         }
         if (allFxPersistent.current.Sampler && allFxPersistent.current.Sampler[0] && Object.values(allFxPersistent.current.Sampler[0].presets).length > 0) {
             samplerFXToString();
+        }
+        if (allFxPersistent.current.STK && allFxPersistent.current.STK.map((i:any) => i.fxType === "fx").length > 0 && allFxPersistent.current.STK[0].presets && Object.values(allFxPersistent.current.STK[0].presets).length > 0) {
+            console.log('YO! -- all ok')
+
+            stkFXToString();
+
         }
         if (chuckUpdateNeeded) {setChuckUpdateNeeded(false)}
     }, [chuckUpdateNeeded])
@@ -2089,6 +2641,10 @@ export default function InitializationComponent() {
     const runMainChuckCode = async (aChuck: Chuck, getStk1String: any) => {
         // if (chuckUpdateNeeded !== false) {setChuckUpdateNeeded(true)}
         // if (chuckUpdateNeeded === false) {
+
+
+        console.log("&&&&&& I NEED SANITY ", getStk1String)
+
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
             if (initialShredCount === 0) {
                 initialShredCount = shredCount.current;
@@ -2105,9 +2661,9 @@ export default function InitializationComponent() {
 
             });
 
-            console.log('STK STRING HERE: ', getStk1String);
-            const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}[12]` : '';
-
+            // console.log('STK STRING HERE: ', getStk1String());
+//             const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}[12]` : '';
+// console.log("HEYOHEYOHEYO ", connector1Stk);
             // const connectorStk1DirectToDac = getStk1String && getStk1String.length > 0 && useStkDirect ? `
             //     ${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; 
             //     winfuncenv_stk1.setHann(); 
@@ -2120,16 +2676,16 @@ export default function InitializationComponent() {
             // HANDLING CHUGINS & COMPLEX TIME-BASED EFFECTS
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             const winFuncDeclarationOsc1 = osc1WinEnvOn.current ? ' WinFuncEnv winfuncenv_o1 =>' : '';
-            // const winFuncDeclarationReusable = reusableWinEnvOn.current[sourceName] ? ` WinFuncEnv winfuncenv_${fxRadioValue + '_' + sourceName}` : '';
+
             const powerADSRDeclarationOsc1 = osc1PowerADSROn.current ? ' PowerADSR poweradsr_o1 =>' : '';
             const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>' : '';
             const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>' : '';
             const WPKorg35DeclarationOsc1 = osc1WPKorg35On.current ? 'saw2 => WPKorg35 wpkorg35_o1 => dac;' : '';
             const modulateDeclarationOsc1 = osc1ModulateOn.current ? 'hpf => Modulate mod_o1 => dac;' : '';
             const ellipticDeclarationOsc1 = osc1EllipticOn.current ? ' Elliptic elliptic_o1 =>' : '';
-            const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.delay}];` : '';
-            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.delay}];` : '';
-            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.delay}];` : '';
+            const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.lines}];` : '';
+            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.lines}];` : '';
+            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.lines}];` : '';
             const expDelayDeclarationOsc1 = osc1ExpDelayOn.current ? ' ExpDelay expDelay_o1 =>' : '';
             const spectacleDeclarationOsc1 = osc1SpectacleOn.current ? ' => Spectacle spectacle_o1 ' : '';
 
@@ -2151,16 +2707,15 @@ export default function InitializationComponent() {
             
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             const winFuncDeclarationSampler = samplerWinEnvOn.current ? ' WinFuncEnv winfuncenv_s1 =>' : '';
-            // const winFuncDeclarationReusable = reusableWinEnvOn.current[sourceName] ? ` WinFuncEnv winfuncenv_${fxRadioValue + '_' + sourceName}` : '';
             const powerADSRDeclarationSampler = samplerPowerADSROn.current ? ' PowerADSR poweradsr_s1 =>' : '';
             const expEnvDeclarationSampler = samplerExpEnvOn.current ? ' ExpEnv expenv_s1 =>' : '';
             const wpDiodeLadderDeclarationSampler = samplerWPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_s1 =>' : '';
             const WPKorg35DeclarationSampler = samplerWPKorg35On.current ? 'limiter_Sampler => WPKorg35 wpkorg35_s1 => dac;' : '';
             const modulateDeclarationSampler = samplerModulateOn.current ? ' Modulate mod_s1 =>' : '';
             const ellipticDeclarationSampler = samplerEllipticOn.current ? ' Elliptic elliptic_s1 =>' : '';
-            const delayDeclarationSampler = samplerDelayOn.current ? `Delay delay_s1[${delayFinalHelper.current.sampler.delay}];` : '';
-            const delayADeclarationSampler = samplerDelayAOn.current ? `DelayA delayA_s1[${delayAFinalHelper.current.sampler.delay}];` : '';
-            const delayLDeclarationSampler = samplerDelayLOn.current ? `DelayL delayL_s1[${delayLFinalHelper.current.sampler.delay}];` : '';
+            const delayDeclarationSampler = samplerDelayOn.current ? `Delay delay_s1[${delayFinalHelper.current.sampler.lines}];` : '';
+            const delayADeclarationSampler = samplerDelayAOn.current ? `DelayA delayA_s1[${delayAFinalHelper.current.sampler.lines}];` : '';
+            const delayLDeclarationSampler = samplerDelayLOn.current ? `DelayL delayL_s1[${delayLFinalHelper.current.sampler.lines}];` : '';
             const expDelayDeclarationSampler = samplerExpDelayOn.current ? ' ExpDelay expDelay_s1 =>' : '';
             const spectacleDeclarationSampler = samplerSpectacleOn.current ? 'Spectacle spectacle_s1 =>' : '';
 
@@ -2180,7 +2735,68 @@ export default function InitializationComponent() {
             const delayLCodeStringSampler = samplerDelayLOn.current ? delayLString('s1', delayLFinalHelper.current.sampler.delay, delayLFinalHelper.current.sampler.lines, delayLFinalHelper.current.sampler.syncDelay, delayLFinalHelper.current.sampler.zero, delayLFinalHelper.current.sampler.b0, delayLFinalHelper.current.sampler.b1) : '';
 
 
-            // COPY_ABOVE_LINES_1
+            // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+            // const newStkFXString = useRef<string>('');
+      
+
+
+            const winFuncDeclarationStk = stkWinEnvOn.current ? ' WinFuncEnv winfuncenv_stk1 =>' : '';
+            const powerADSRDeclarationStk = stkPowerADSROn.current ? ' PowerADSR poweradsr_stk1 =>' : '';
+            const expEnvDeclarationStk = stkExpEnvOn.current ? ' ExpEnv expenv_stk1 =>' : '';
+            const wpDiodeLadderDeclarationStk = stkWPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_stk1 =>' : '';
+            const WPKorg35DeclarationStk = stkWPKorg35On.current ? 'limiter_STK => WPKorg35 wpkorg35_stk1 => dac;' : '';
+            const modulateDeclarationStk = stkModulateOn.current ? ' Modulate mod_stk1 =>' : '';
+            const ellipticDeclarationStk = stkEllipticOn.current ? ' Elliptic elliptic_stk1 =>' : '';
+            const delayDeclarationStk = stkDelayOn.current ? `Delay delay_stk1[${delayFinalHelper.current.stk.lines}];` : '';
+            const delayADeclarationStk = stkDelayAOn.current ? `DelayA delayA_stk1[${delayAFinalHelper.current.stk.lines}];` : '';
+            const delayLDeclarationStk = stkDelayLOn.current ? `DelayL delayL_stk1[${delayLFinalHelper.current.stk.lines}];` : '';
+            const expDelayDeclarationStk = stkExpDelayOn.current ? ' ExpDelay expDelay_stk1 =>' : '';
+            const spectacleDeclarationStk = stkSpectacleOn.current ? 'Spectacle spectacle_stk1 =>' : '';
+
+        
+            const winFuncCodeStringStk = stkWinEnvOn.current ? winFuncString('stk1', winFuncEnvFinalHelper.current.stk.attackTime, winFuncEnvFinalHelper.current.stk.releaseTime, winFuncEnvFinalHelper.current.stk.envSetting) : '';
+            const powerADSRCodeStringStk = stkPowerADSROn.current ? powerADSRString('stk1', powerADSRFinalHelper.current.stk.attackTime, powerADSRFinalHelper.current.stk.attackCurve, powerADSRFinalHelper.current.stk.decayTime, powerADSRFinalHelper.current.stk.decayCurve, powerADSRFinalHelper.current.stk.sustainLevel, powerADSRFinalHelper.current.stk.releaseTime, powerADSRFinalHelper.current.stk.releaseCurve) : '';
+            const expEnvCodeStringStk = stkExpEnvOn.current ? expEnvString('stk1', expEnvFinalHelper.current.stk.T60, expEnvFinalHelper.current.stk.radius, expEnvFinalHelper.current.stk.value) : '';
+            const wpDiodeLadderCodeStringStk = stkWPDiodeLadderOn.current ? wpDiodeLadderString('stk1', wpDiodeLadderFinalHelper.current.stk.cutoff, wpDiodeLadderFinalHelper.current.stk.resonance, wpDiodeLadderFinalHelper.current.stk.nlp_type, wpDiodeLadderFinalHelper.current.stk.nonlinear, wpDiodeLadderFinalHelper.current.stk.saturation) : '';
+            const wpKorg35CodeStringStk = stkWPKorg35On.current ? wpKorg35String('stk1', wpKorg35FinalHelper.current.stk.cutoff, wpKorg35FinalHelper.current.stk.resonance, wpKorg35FinalHelper.current.stk.nonlinear, wpKorg35FinalHelper.current.stk.saturation) : '';
+            const modulateCodeStringStk = stkModulateOn.current ? modulateString('stk1', modulateFinalHelper.current.stk.vibratoRate, modulateFinalHelper.current.stk.vibratoGain, modulateFinalHelper.current.stk.randomGain) : '';
+            const ellipticCodeStringStk = stkEllipticOn.current ? ellipticString('stk1', ellipticFinalHelper.current.stk.filterLow, ellipticFinalHelper.current.stk.filterMid, ellipticFinalHelper.current.stk.filterHigh, ellipticFinalHelper.current.stk.atten, ellipticFinalHelper.current.stk.ripple, ellipticFinalHelper.current.stk.filterMode) : '';
+            const expDelayCodeStringStk = stkExpDelayOn.current ? expDelayString('stk1', expDelayFinalHelper.current.stk.ampcurve, expDelayFinalHelper.current.stk.durcurve, expDelayFinalHelper.current.stk.delay, expDelayFinalHelper.current.stk.mix, expDelayFinalHelper.current.stk.reps, expDelayFinalHelper.current.stk.gain) : '';
+            const spectacleCodeStringStk = stkSpectacleOn.current ? spectacleString('stk1', spectacleFinalHelper.current.stk.bands, spectacleFinalHelper.current.stk.delay, spectacleFinalHelper.current.stk.eq, spectacleFinalHelper.current.stk.feedback, spectacleFinalHelper.current.stk.fftlen, spectacleFinalHelper.current.stk.freqMax, spectacleFinalHelper.current.stk.freqMin, spectacleFinalHelper.current.stk.mix, spectacleFinalHelper.current.stk.overlap, spectacleFinalHelper.current.stk.table) : '';
+
+            // DELAY LINES
+            const delayCodeStringStk = stkDelayOn.current ? delayString('stk1', delayFinalHelper.current.stk.delay, delayFinalHelper.current.stk.lines, delayFinalHelper.current.stk.syncDelay, delayFinalHelper.current.stk.zero, delayFinalHelper.current.stk.b0, delayFinalHelper.current.stk.b1) : '';
+            const delayACodeStringStk = stkDelayAOn.current ? delayAString('stk1', delayAFinalHelper.current.stk.delay, delayAFinalHelper.current.stk.lines, delayAFinalHelper.current.stk.syncDelay, delayAFinalHelper.current.stk.zero, delayAFinalHelper.current.stk.b0, delayAFinalHelper.current.stk.b1) : '';
+            const delayLCodeStringStk = stkDelayLOn.current ? delayLString('stk1', delayLFinalHelper.current.stk.delay, delayLFinalHelper.current.stk.lines, delayLFinalHelper.current.stk.syncDelay, delayLFinalHelper.current.stk.zero, delayLFinalHelper.current.stk.b0, delayLFinalHelper.current.stk.b1) : '';
+
+
+
+                    
+            console.log("*2: ", winFuncCodeStringStk)
+            console.log("*3: ", powerADSRCodeStringStk)
+            console.log("*4: ", expEnvCodeStringStk)
+            console.log("*5: ", wpDiodeLadderCodeStringStk)
+            console.log("*6: ", stkPowerADSROn.current)
+            
+            console.log("*7: ", ellipticCodeStringStk)
+            console.log("*8: ", expDelayCodeStringStk)
+      
+
+            // ${modulateDeclarationStk}
+            console.log("*9: ", delayDeclarationStk)
+            console.log("*10: ", delayADeclarationStk)
+            console.log("*11: ", delayLDeclarationStk)
+
+           
+            console.log("*12: ", delayCodeStringStk)
+            console.log("*13: ", delayACodeStringStk)
+            console.log("*14: ", delayLCodeStringStk)
+            console.log("*15: ", modulateCodeStringStk)
+            console.log("*16: ", spectacleCodeStringStk)
+            console.log("*17: ", stkFxStringNeedsBlackhole.current)
+
 
             ////////////////////////////
             console.log("WHAT R STKS? ", stkFX.current);
@@ -2193,20 +2809,45 @@ export default function InitializationComponent() {
             // NOTE! => I removed ${connector1stk} from between saw1 & diodeladder below... this was breaking longer playing stks (& all else when they were chosen).
             const osc1ChuckToOutlet: string = ` SawOsc saw1 => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
 
-            console.log("AND WTF IS THIS? ", samplerFXStringToChuck.current);
+            // console.log("AND WTF IS THIS? ", samplerFXStringToChuck.current);
 
+            ////// ************************* WHY IS THIS TAKING IN WHAT SHOULD BE APPLIED TO STK??? 
+            // alert(`MUST BEGIN HERE... ${stkFXStringToChuck.current}`)
             const samplerChuckToOutlet: string = `limiter_Sampler ${samplerFXStringToChuck.current} => ${winFuncDeclarationSampler} ${ellipticDeclarationSampler} ${powerADSRDeclarationSampler} ${expEnvDeclarationSampler} ${expDelayDeclarationSampler} ${modulateDeclarationSampler} `;
+            const transitionhandlerSimpleToComplex = stkFXStringToChuck.current.length > 0 ? `=>` : ``;
+            // const stkChuckToOutlet: string = stkFXStringToChuck.current && stkFXStringToChuck.current.length > 0 ? `${stkFXStringToChuck.current} ${transitionhandlerSimpleToComplex} ${winFuncDeclarationStk} ${ellipticDeclarationStk} ${powerADSRDeclarationStk} ${expEnvDeclarationStk} ${expDelayDeclarationStk} ${modulateDeclarationStk} `: '';
+
+            const stkChuckToOutlet: string = `${stkFXStringToChuck.current} ${transitionhandlerSimpleToComplex} ${winFuncDeclarationStk} ${ellipticDeclarationStk} ${powerADSRDeclarationStk} ${expEnvDeclarationStk} ${expDelayDeclarationStk} ${modulateDeclarationStk} `;
+            
+
+            console.log("FUCKING SANITY 1: ", stkFXStringToChuck.current)
+            console.log("FUCKING SANITY 2: ", winFuncDeclarationStk)
+            console.log("FUCKING SANITY 3: ", ellipticDeclarationStk)
+            console.log("FUCKING SANITY 4: ", powerADSRDeclarationStk)
+            console.log("FUCKING SANITY 5: ", expEnvDeclarationStk)
+            console.log("FUCKING SANITY 6: ", expDelayDeclarationStk)
+            console.log("FUCKING SANITY 7: ", stkFXStringToChuck.current)
+
+            console.log("WHAT THE FUCK IS THIS???? ", stkChuckToOutlet);
 
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice[i] ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             samplerFxStringNeedsBlackhole.current = samplerFxStringToChuckNeedsBlackhole.current.length > 0 ? `sample1 ${samplerFxStringToChuckNeedsBlackhole.current[0].string}` : '';
+            stkFxStringNeedsBlackhole.current = stkFxStringToChuckNeedsBlackhole.current.length > 0 ? `sample1 ${stkFxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             const osc2ChuckToOutlet: string = ` SawOsc saw2 => lpf;`;
 
+            console.log("GOOOOOOOSH WTF IS THIS? ", finalStkFxStringToChuck.current);
+            console.log("GOOOOOOOSH WTF IS THIS TRYYYY SAMPLER? ", stkFXString.current);
 
             const finalOsc1Code = finalOsc1FxStringToChuck.current && finalOsc1FxStringToChuck.current.length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
             const finalSamplerCode = finalSamplerFxStringToChuck.current && finalSamplerFxStringToChuck.current.length > 0 ? finalSamplerFxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
-
+            // const finalStkCode = finalStkFxStringToChuck.current && finalStkFxStringToChuck.current.length > 0 ? finalStkFxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
+            const finalStkCode = finalStkFxStringToChuck.current && finalStkFxStringToChuck.current.length > 0 ? finalStkFxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
+            console.log("*1: ", finalStkCode);
+            console.log("FUCKING SANITY 8: ", finalStkFxStringToChuck.current);
+            console.log("FUCKING SANITY 9: ", finalStkCode);
+            
             // bring back sync mode on this eventually -> // ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
             //  allAnalysisBlocks.current.forEach((block: any) => allAnalysisBlocksCodeGen.concat(block.code));
 
@@ -2218,452 +2859,510 @@ export default function InitializationComponent() {
         
             // BE SURE TO ADD DURATION DIVISIONS (AND ALSO ELSEWHERE)
             const playSTKOn = () => {
-                if (stkFX.current.var) {
-                    console.log("$$$$ ", stkFX.current.var);
+                console.log("FUCK SHIT FUCK SHIT: ", allFxPersistent.current.STK);
+                console.log("FUCK SHIT STKFX ", stkFX.current);
+
+                
+                let getFXOnly = allFxPersistent.current.STK.filter((i: any) => i.fxType === "stk" && i);
+                console.log("FUCKING SANITY 10******: ", allFxPersistent.current.STK);
+                console.log("FUCK HELL HELL HELL ", getFXOnly)
+                if (stkFX.current && stkFX.current.length > 0 || (!getFXOnly || getFXOnly.length < 1) ) {
+                        allFxPersistent.current.STK.push(stkFX.current);
+                        getFXOnly = [stkFX.current];
+                } 
+                
+                if (getFXOnly && getFXOnly.length > 0 && getFXOnly[0].var) {
+                    
+                    console.log("$$$$ ", getFXOnly[0].var);
              
-                    if (stkFX.current.var === "sit") {                     
+
+
+
+                    if (getFXOnly[0].var === "sit") {                     
                         return `
-                            ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
-                            notesToPlay[i] + 24 => Std.mtof => ${stkFX.current.var}[i-1].freq;
-                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].noteOn;  
-                            0.01 => ${stkFX.current.var}[i-1].gain;
-                            duration - (now % duration)  => now;
-                            if (${stkArpeggiatorOn} == 1) {
-                                1 =>  ${stkFX.current.var}[i-1].noteOff; 
-                            }
-                        `;
-                    } else if (stkFX.current.var === "bow") {
-                        return `
-                        ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                        ${stkFX.current.presets.bowPressure.value} => ${stkFX.current.var}[i-1].bowPressure;
-                        ${stkFX.current.presets.bowPosition.value} => ${stkFX.current.var}[i-1].bowPosition;
-                        ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                        ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
-                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-                            ${stkFX.current.presets.startBowing.value} => ${stkFX.current.var}[i-1].startBowing;
-                            duration - (now % duration)  => now;
-                            if (${stkArpeggiatorOn} == 1) {
-                                ${stkFX.current.presets.stopBowing.value} => ${stkFX.current.var}[i-1].stopBowing;
-                                1 => ${stkFX.current.var}[i-1].noteOff;
-                            }
-                        `;
-                    } else if (stkFX.current.var === "wg") {
-                        return `
-                            ${stkFX.current.presets.bowMotion.value} => ${stkFX.current.var}[i-1].bowMotion;
-                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-                            ${stkFX.current.presets.strikePosition.value} => ${stkFX.current.var}[i-1].strikePosition;
-                            ${stkFX.current.presets.gain.value} => ${stkFX.current.var}[i-1].gain;
-                            ${stkFX.current.presets.preset.value} => ${stkFX.current.var}[i-1].preset;
-                            ${stkFX.current.presets.bowRate.value} => ${stkFX.current.var}[i-1].bowRate;
-                            ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
-                            ${stkFX.current.presets.startBowing.value} => ${stkFX.current.var}[i-1].startBowing;
-                            duration - (now % duration)  => now;
-                            if (${stkArpeggiatorOn} == 1) {
-                                ${stkFX.current.presets.stopBowing.value} => ${stkFX.current.var}[i-1].stopBowing;
-                                1 => ${stkFX.current.var}[i-1].noteOff;
-                            }
-                        `;
-                    } else if (stkFX.current.var === "blwbtl") {
-                        return `
-                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                            ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
-                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
-                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+                    
+                            ${stkFX.current.presets.pluck.value} => ${getFXOnly[0].var}[i-1].pluck;
+                            notesToPlay[i] + 36 => Std.mtof => ${getFXOnly[0].var}[i-1].freq;
+                            notesToPlay[i] + 36 => Std.mtof =>  ${getFXOnly[0].var}[i-1].noteOn;  
+                            0.01/notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
                             
-                            notesToPlay[i] + 36 => Std.mtof => ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
-                            duration - (now % duration)  => now;
                             if (${stkArpeggiatorOn} == 1) {
-                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
+                                // duration * ${numeratorSignature} - (now % duration  * ${numeratorSignature} )  => now;
+                                duration - (now % duration)  => now;
+                                1 =>  ${getFXOnly[0].var}[i-1].noteOff; 
                             }
                         `;
-                    } else if (stkFX.current.var === "brs") {
+                    } else if (getFXOnly[0].var === "bow") {
                         return `
-                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
-                            ${stkFX.current.presets.volume.value} => ${stkFX.current.var}[i-1].volume;
-                            ${stkFX.current.presets.lip.value} => ${stkFX.current.var}[i-1].lip;
-                            ${stkFX.current.presets.volume.value} => ${stkFX.current.var}[i-1].volume;
-                            ${stkFX.current.presets.slide.value} => ${stkFX.current.var}[i-1].slide;
-                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
-
-                            notesToPlay[i] + 36 => Std.mtof => ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
-                            duration - (now % duration)  => now;
-                            if (${stkArpeggiatorOn} == 1) {
-                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
-                            }
-                        `;
-                    } else if (stkFX.current.var === "shak") {
-                        return `
-                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                            ${stkFX.current.presets.energy.value} => ${stkFX.current.var}[i-1].energy;
-                            ${stkFX.current.presets.preset.value} => ${stkFX.current.var}[i-1].preset;
-                            ${stkFX.current.presets.objects.value} => ${stkFX.current.var}[i-1].objects;
-                            ${stkFX.current.presets.decay.value} => ${stkFX.current.var}[i-1].decay;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-                            duration - (now % duration)  => now;
-                            if (${stkArpeggiatorOn} == 1) {
-                                // duration - (now % duration)  => now;
-                                1 => ${stkFX.current.var}[i-1].noteOff;
-                            }
-                        `;
-                    } else if (stkFX.current.var === "mdlbr") {
-                        return `
-                            ${stkFX.current.presets.stickHardness.value} => ${stkFX.current.var}[i-1].stickHardness;
-                            ${stkFX.current.presets.strikePosition.value} => ${stkFX.current.var}[i-1].strikePosition;
-                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
-                            ${stkFX.current.presets.directGain.value} => ${stkFX.current.var}[i-1].directGain;
-                            ${stkFX.current.presets.masterGain.value} => ${stkFX.current.var}[i-1].masterGain;
-                            ${stkFX.current.presets.preset.value} => ${stkFX.current.var}[i-1].preset;
-                            ${stkFX.current.presets.volume.value} => ${stkFX.current.var}[i-1].volume;
-                            ${stkFX.current.presets.strike.value} => ${stkFX.current.var}[i-1].strike;
-                            ${stkFX.current.presets.damp.value} => ${stkFX.current.var}[i-1].damp;
-
-
-                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-
-                            duration - (now % duration)  => now;
-                            if (${stkArpeggiatorOn} == 1) {
-                                1 => ${stkFX.current.var}[i-1].noteOff;
-                            }
-                        `;
-                    } else if (stkFX.current.var === "flut") {
-                        return `
-                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
-                            ${stkFX.current.presets.jetDelay.value} => ${stkFX.current.var}[i-1].jetDelay;
-                            ${stkFX.current.presets.jetReflection.value} => ${stkFX.current.var}[i-1].jetReflection;
-                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
-
-                            ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
-                            ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
-
-
-                            notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
-                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
-                            ${stkFX.current.presets.endReflection.value} => ${stkFX.current.var}[i-1].endReflection;
+                        ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                        ${stkFX.current.presets.bowPressure.value} => ${getFXOnly[0].var}[i-1].bowPressure;
+                        ${stkFX.current.presets.bowPosition.value} => ${getFXOnly[0].var}[i-1].bowPosition;
+                        ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                        ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBowing.value} => ${getFXOnly[0].var}[i-1].startBowing;
                             
-                            duration - (now % duration)  => now;
                             if (${stkArpeggiatorOn} == 1) {
-                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
-                                1 => ${stkFX.current.var}[i-1].noteOff;
-                            }`;
-                    } else if (stkFX.current.var === "clair") {
+                                duration - (now % duration)  => now;
+                                ${stkFX.current.presets.stopBowing.value} => ${getFXOnly[0].var}[i-1].stopBowing;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (getFXOnly[0].var === "wg") {
                         return `
-                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
-                            ${stkFX.current.presets.reed.value} => ${stkFX.current.var}[i-1].reed;
-                            ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
-                            ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
-                            ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;
-
-                            ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                            ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
-
-
-                            notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
-                            ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;
-
-                            duration - (now % duration)  => now;
+                            // ${stkFX.current.presets.bowMotion.value} => ${getFXOnly[0].var}[i-1].bowMotion;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            ${stkFX.current.presets.strikePosition.value} => ${getFXOnly[0].var}[i-1].strikePosition;
+                            ${stkFX.current.presets.gain.value} => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.preset.value} => ${getFXOnly[0].var}[i-1].preset;
+                            ${stkFX.current.presets.bowRate.value} => ${getFXOnly[0].var}[i-1].bowRate;
+                            ${stkFX.current.presets.pluck.value} => ${getFXOnly[0].var}[i-1].pluck;
+                            ${stkFX.current.presets.startBowing.value} => ${getFXOnly[0].var}[i-1].startBowing;
+                   
                             if (${stkArpeggiatorOn} == 1) {
-                                ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;
-                                1 => ${stkFX.current.var}[i-1].noteOff;
-                            }`;
-                    } else if (stkFX.current.var === "f") {
+                                duration - (now % duration)  => now;
+                                ${stkFX.current.presets.stopBowing.value} => ${getFXOnly[0].var}[i-1].stopBowing;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (getFXOnly[0].var === "blwbtl") {
                         return `
-                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
-                            ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                            ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                            ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                            ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.noiseGain.value} => ${getFXOnly[0].var}[i-1].noiseGain;
+                            ${stkFX.current.presets.rate.value} => ${getFXOnly[0].var}[i-1].rate;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+                            
+                            notesToPlay[i] + 36 => Std.mtof => ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${getFXOnly[0].var}[i-1].startBlowing;
+                           
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
+                            }
+                        `;
+                    } else if (getFXOnly[0].var === "brs") {
+                        alert("hit brass in")
+                        return `
+                            notesToPlay[i] + 36 => Std.mtof => ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;    
+                            ${stkFX.current.presets.startBlowing.value} => ${getFXOnly[0].var}[i-1].startBlowing;    
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.rate.value} => ${getFXOnly[0].var}[i-1].rate;
+                            ${stkFX.current.presets.volume.value} => ${getFXOnly[0].var}[i-1].volume;
+                            ${stkFX.current.presets.lip.value} => ${getFXOnly[0].var}[i-1].lip;
+                            ${stkFX.current.presets.slide.value} => ${getFXOnly[0].var}[i-1].slide;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+                            
+                            ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
 
-                            notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                            1 => ${stkFX.current.var}[i-1].noteOn;
+      
+                            
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (getFXOnly[0].var === "shak") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.energy.value} => ${getFXOnly[0].var}[i-1].energy;
+                            ${stkFX.current.presets.preset.value} => ${getFXOnly[0].var}[i-1].preset;
+                            ${stkFX.current.presets.objects.value} => ${getFXOnly[0].var}[i-1].objects;
+                            ${stkFX.current.presets.decay.value} => ${getFXOnly[0].var}[i-1].decay;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (getFXOnly[0].var === "mdlbr") {
+                        return `
+                            ${stkFX.current.presets.stickHardness.value} => ${getFXOnly[0].var}[i-1].stickHardness;
+                            ${stkFX.current.presets.strikePosition.value} => ${getFXOnly[0].var}[i-1].strikePosition;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+                            ${stkFX.current.presets.directGain.value} => ${getFXOnly[0].var}[i-1].directGain;
+                            ${stkFX.current.presets.masterGain.value} => ${getFXOnly[0].var}[i-1].masterGain;
+                            ${stkFX.current.presets.preset.value} => ${getFXOnly[0].var}[i-1].preset;
+                            ${stkFX.current.presets.volume.value} => ${getFXOnly[0].var}[i-1].volume;
+                            ${stkFX.current.presets.strike.value} => ${getFXOnly[0].var}[i-1].strike;
+                            ${stkFX.current.presets.damp.value} => ${getFXOnly[0].var}[i-1].damp;
 
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }
+                        `;
+                    } else if (getFXOnly[0].var === "flut") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.jetDelay.value} => ${getFXOnly[0].var}[i-1].jetDelay;
+                            ${stkFX.current.presets.jetReflection.value} => ${getFXOnly[0].var}[i-1].jetReflection;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+
+                            ${stkFX.current.presets.noiseGain.value} => ${getFXOnly[0].var}[i-1].noiseGain;
+                            ${stkFX.current.presets.pressure.value} => ${getFXOnly[0].var}[i-1].pressure;
+
+
+                            notesToPlay[i] + 36 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${getFXOnly[0].var}[i-1].startBlowing;
+                            ${stkFX.current.presets.rate.value} => ${getFXOnly[0].var}[i-1].rate;
+                            ${stkFX.current.presets.endReflection.value} => ${getFXOnly[0].var}[i-1].endReflection;
+                            
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "clair") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.reed.value} => ${getFXOnly[0].var}[i-1].reed;
+                            ${stkFX.current.presets.noiseGain.value} => ${getFXOnly[0].var}[i-1].noiseGain;
+                            ${stkFX.current.presets.pressure.value} => ${getFXOnly[0].var}[i-1].pressure;
+                            ${stkFX.current.presets.rate.value} => ${getFXOnly[0].var}[i-1].rate;
+
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+
+
+                            notesToPlay[i] + 36 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${getFXOnly[0].var}[i-1].startBlowing;
+
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "f") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                           
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "m") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.pickupPosition.value} => ${getFXOnly[0].var}[i-1].pickupPosition;
+                            ${stkFX.current.presets.sustain.value} => ${getFXOnly[0].var}[i-1].sustain;
+                            ${stkFX.current.presets.stretch.value} => ${getFXOnly[0].var}[i-1].stretch;
+                            ${stkFX.current.presets.pluck.value} => ${getFXOnly[0].var}[i-1].pluck;
+                            ${stkFX.current.presets.baseLoopGain.value} => ${getFXOnly[0].var}[i-1].baseLoopGain;
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "prcflt") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "man") {
+                        return `
+                            ${stkFX.current.presets.bodySize.value} => ${getFXOnly[0].var}[i-1].bodySize;
+                            ${stkFX.current.presets.pluckPos.value} => ${getFXOnly[0].var}[i-1].pluckPos;
+                            ${stkFX.current.presets.stringDamping.value} => ${getFXOnly[0].var}[i-1].stringDamping;
+                            ${stkFX.current.presets.stringDetune.value} => ${getFXOnly[0].var}[i-1].stringDetune;
+                            ${stkFX.current.presets.pluck.value} => ${getFXOnly[0].var}[i-1].pluck;
+
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+
+                            notesToPlay[i] + 36 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "tubbl") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
+
+                            notesToPlay[i] + 48 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "blwhl") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            
+                            ${stkFX.current.presets.reed.value} => ${getFXOnly[0].var}[i-1].reed;
+                            ${stkFX.current.presets.noiseGain.value} => ${getFXOnly[0].var}[i-1].noiseGain;
+                            ${stkFX.current.presets.tonehole.value} => ${getFXOnly[0].var}[i-1].tonehole;
+                            ${stkFX.current.presets.vent.value} => ${getFXOnly[0].var}[i-1].vent;
+                            ${stkFX.current.presets.pressure.value} => ${getFXOnly[0].var}[i-1].pressure;
+                            ${stkFX.current.presets.rate.value} => ${getFXOnly[0].var}[i-1].rate;                                
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } 
+                    else if (getFXOnly[0].var === "voic") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${getFXOnly[0].var}[i-1].gain;
+                            
+
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+
+                            
+
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            ${stkFX.current.presets.speak.value} => ${getFXOnly[0].var}[i-1].speak;
+                            ${stkFX.current.presets.phonemeNum.value} => ${getFXOnly[0].var}[i-1].phonemeNum;
                             duration - (now % duration)  => now;
                             if (${stkArpeggiatorOn} == 1) {
-                                1 => ${stkFX.current.var}[i-1].noteOff;
+                                ${stkFX.current.presets.quiet.value} => ${getFXOnly[0].var}[i-1].quiet;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+
                             }`;
-                        } else if (stkFX.current.var === "m") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
-                                ${stkFX.current.presets.pickupPosition.value} => ${stkFX.current.var}[i-1].pickupPosition;
-                                ${stkFX.current.presets.sustain.value} => ${stkFX.current.var}[i-1].sustain;
-                                ${stkFX.current.presets.stretch.value} => ${stkFX.current.var}[i-1].stretch;
-                                ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
-                                ${stkFX.current.presets.baseLoopGain.value} => ${stkFX.current.var}[i-1].baseLoopGain;
+                    }
+                    else if (getFXOnly[0].var === "sax") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                            
+                            ${stkFX.current.presets.stiffness.value} => ${getFXOnly[0].var}[i-1].stiffness;
+                            ${stkFX.current.presets.aperture.value} => ${getFXOnly[0].var}[i-1].aperture;
+                            ${stkFX.current.presets.pressure.value} => ${getFXOnly[0].var}[i-1].pressure;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+                            ${stkFX.current.presets.rate.value} => ${getFXOnly[0].var}[i-1].rate;              
+                            ${stkFX.current.presets.blowPosition.value} => ${getFXOnly[0].var}[i-1].blowPosition;
+                            ${stkFX.current.presets.noiseGain.value} => ${getFXOnly[0].var}[i-1].noiseGain;                  
 
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+                            ${stkFX.current.presets.startBlowing.value} => ${getFXOnly[0].var}[i-1].startBlowing;  
 
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "prcflt") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
-                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
-
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
-
-                                duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "man") {
-                            return `
-                                ${stkFX.current.presets.bodySize.value} => ${stkFX.current.var}[i-1].bodySize;
-                                ${stkFX.current.presets.pluckPos.value} => ${stkFX.current.var}[i-1].pluckPos;
-                                ${stkFX.current.presets.stringDamping.value} => ${stkFX.current.var}[i-1].stringDamping;
-                                ${stkFX.current.presets.stringDetune.value} => ${stkFX.current.var}[i-1].stringDetune;
-                                ${stkFX.current.presets.pluck.value} => ${stkFX.current.var}[i-1].pluck;
-
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-
-                                notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
-
-                                duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "tubbl") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;  
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "bthree") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
                                 
-                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
 
-                                notesToPlay[i] + 48 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
+                            notesToPlay[i] + 12 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "blwhl") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                        
+                    } else if (getFXOnly[0].var === "fmVoic") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
                                 
-                                ${stkFX.current.presets.reed.value} => ${stkFX.current.var}[i-1].reed;
-                                ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;
-                                ${stkFX.current.presets.tonehole.value} => ${stkFX.current.var}[i-1].tonehole;
-                                ${stkFX.current.presets.vent.value} => ${stkFX.current.var}[i-1].vent;
-                                ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
-                                ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;                                
+                            ${stkFX.current.presets.vowel.value} => ${getFXOnly[0].var}[i-1].vowel;
+                            ${stkFX.current.presets.spectralTilt.value} => ${getFXOnly[0].var}[i-1].spectralTilt;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
 
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
-
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } 
-                        // else if (stkFX.current.var === "voic") {
-                        //     return `
-                        //         ${stkFX.current.presets.gain.value} / notesToPlay.size() => ${stkFX.current.var}[i-1].gain;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                        
+                    } 
+                    
+                    else if (stkFX.current === "voic") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                                    
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            ${stkFX.current.presets.phonemeNum.value} => ${getFXOnly[0].var}[i-1].phonemeNum;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+                            ${stkFX.current.presets.quiet.value} => ${getFXOnly[0].var}[i-1].quiet;
+
+                            
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
+
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                        }`;
+                    } 
+                    
+                    else if (getFXOnly[0].var === "krstl") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
                                 
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
 
-                        //         ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                        //         ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
-                              
-
-                        //         notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                        //         1 => ${stkFX.current.var}[i-1].noteOn;
-                        //         ${stkFX.current.presets.speak.value} => ${stkFX.current.var}[i-1].speak;
-                        //         ${stkFX.current.presets.phonemeNum.value} => ${stkFX.current.var}[i-1].phonemeNum;
-                        //         duration - (now % duration)  => now;
-                        //         if (${stkArpeggiatorOn} == 1) {
-                        //             ${stkFX.current.presets.quiet.value} => ${stkFX.current.var}[i-1].quiet;
-                        //             1 => ${stkFX.current.var}[i-1].noteOff;
-
-                        //         }`;
-                        // }
-                        else if (stkFX.current.var === "sax") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
+                            
+                            if (${stkArpeggiatorOn} == 1) {
+                                duration - (now % duration)  => now;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                        
+                    } else if (getFXOnly[0].var === "rod") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
                                 
-                                ${stkFX.current.presets.stiffness.value} => ${stkFX.current.var}[i-1].stiffness;
-                                ${stkFX.current.presets.aperture.value} => ${stkFX.current.var}[i-1].aperture;
-                                ${stkFX.current.presets.pressure.value} => ${stkFX.current.var}[i-1].pressure;
-                                ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                                ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
-                                ${stkFX.current.presets.rate.value} => ${stkFX.current.var}[i-1].rate;              
-                                ${stkFX.current.presets.blowPosition.value} => ${stkFX.current.var}[i-1].blowPosition;
-                                ${stkFX.current.presets.noiseGain.value} => ${stkFX.current.var}[i-1].noiseGain;                  
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
 
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
-                                ${stkFX.current.presets.startBlowing.value} => ${stkFX.current.var}[i-1].startBlowing;  
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    ${stkFX.current.presets.stopBlowing.value} => ${stkFX.current.var}[i-1].stopBlowing;  
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "bthree") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "wur") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                                
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
 
-                                notesToPlay[i] + 12 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
+                            notesToPlay[i] + 36 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                          
-                        } else if (stkFX.current.var === "fmVoic") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                ${stkFX.current.presets.vowel.value} => ${stkFX.current.var}[i-1].vowel;
-                                ${stkFX.current.presets.spectralTilt.value} => ${stkFX.current.var}[i-1].spectralTilt;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "mog") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                                
+                            ${stkFX.current.presets.filterQ.value} => ${getFXOnly[0].var}[i-1].filterQ;
+                            ${stkFX.current.presets.filterSweepRate.value} => ${getFXOnly[0].var}[i-1].filterSweepRate;
+                            ${stkFX.current.presets.vibratoFreq.value} => ${getFXOnly[0].var}[i-1].vibratoFreq;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.vibratoGain.value} => ${getFXOnly[0].var}[i-1].vibratoGain;
+                            ${stkFX.current.presets.afterTouch.value} => ${getFXOnly[0].var}[i-1].afterTouch;
+                            ${stkFX.current.presets.modDepth.value} => ${getFXOnly[0].var}[i-1].modDepth;
+                            ${stkFX.current.presets.modSpeed.value} => ${getFXOnly[0].var}[i-1].modSpeed;
 
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
+                            notesToPlay[i] + 36 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                          
-                        } else if (stkFX.current.var === "krstl") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "hevymetl") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                                
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
 
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                          
-                        } else if (stkFX.current.var === "rod") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    } else if (getFXOnly[0].var === "hnkytonk") {
+                        return `
+                            ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${getFXOnly[0].var}[i-1].gain;
+                                
+                            ${stkFX.current.presets.controlOne.value} => ${getFXOnly[0].var}[i-1].controlOne;
+                            ${stkFX.current.presets.controlTwo.value} => ${getFXOnly[0].var}[i-1].controlTwo;
+                            ${stkFX.current.presets.lfoSpeed.value} => ${getFXOnly[0].var}[i-1].lfoSpeed;
+                            ${stkFX.current.presets.lfoDepth.value} => ${getFXOnly[0].var}[i-1].lfoDepth;
 
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
+                            notesToPlay[i] + 24 => Std.mtof =>  ${getFXOnly[0].var}[i-1].freq;
+                            1 => ${getFXOnly[0].var}[i-1].noteOn;
 
+                            
+                            if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "wur") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
-
-                                notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
-
-                                duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "mog") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                ${stkFX.current.presets.filterQ.value} => ${stkFX.current.var}[i-1].filterQ;
-                                ${stkFX.current.presets.filterSweepRate.value} => ${stkFX.current.var}[i-1].filterSweepRate;
-                                ${stkFX.current.presets.vibratoFreq.value} => ${stkFX.current.var}[i-1].vibratoFreq;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.vibratoGain.value} => ${stkFX.current.var}[i-1].vibratoGain;
-                                ${stkFX.current.presets.afterTouch.value} => ${stkFX.current.var}[i-1].afterTouch;
-                                ${stkFX.current.presets.modDepth.value} => ${stkFX.current.var}[i-1].modDepth;
-                                ${stkFX.current.presets.modSpeed.value} => ${stkFX.current.var}[i-1].modSpeed;
-
-                                notesToPlay[i] + 36 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
-
-                                duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "hevymetl") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                // ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                // ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                // ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                // ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
-
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
-
-                                duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        } else if (stkFX.current.var === "hnkytonk") {
-                            return `
-                                ${stkFX.current.presets.gain.value} / notesToPlay.cap() => ${stkFX.current.var}[i-1].gain;
-                                    
-                                ${stkFX.current.presets.controlOne.value} => ${stkFX.current.var}[i-1].controlOne;
-                                ${stkFX.current.presets.controlTwo.value} => ${stkFX.current.var}[i-1].controlTwo;
-                                ${stkFX.current.presets.lfoSpeed.value} => ${stkFX.current.var}[i-1].lfoSpeed;
-                                ${stkFX.current.presets.lfoDepth.value} => ${stkFX.current.var}[i-1].lfoDepth;
-
-                                notesToPlay[i] + 24 => Std.mtof =>  ${stkFX.current.var}[i-1].freq;
-                                1 => ${stkFX.current.var}[i-1].noteOn;
-
-                                duration - (now % duration)  => now;
-                                if (${stkArpeggiatorOn} == 1) {
-                                    
-                                    1 => ${stkFX.current.var}[i-1].noteOff;
-                                }`;
-                        }
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            }`;
+                    }
 
 
  
@@ -2679,40 +3378,134 @@ export default function InitializationComponent() {
                 }
             }
 
-            const stkOn = playSTKOn();
-            console.log("WHAT IS THIS STKON? ", stkOn);
+            const playSTKOff = () => {
+                let getFXOnly = allFxPersistent.current.STK.filter((i: any) => i.fxType === "stk" && i);
+                if (stkFX.current && stkFX.current.length > 0 || (!getFXOnly || getFXOnly.length < 1) ) {
+                    getFXOnly = [stkFX.current];
+                }
+                if (getFXOnly && getFXOnly.length > 0 && getFXOnly[0].var) {
+             
+                    if (getFXOnly[0].var === "sit") {                     
+                        return `1 =>  ${getFXOnly[0].var}[i-1].noteOff;`;
+                    } else if (getFXOnly[0].var === "bow") {
+                        return `
+                            ${stkFX.current.presets.stopBowing.value} => ${getFXOnly[0].var}[i-1].stopBowing;
+                            1 => ${getFXOnly[0].var}[i-1].noteOff;
+                        `;
+                    } else if (getFXOnly[0].var === "wg") {
+                        return `
+                            ${stkFX.current.presets.stopBowing.value} => ${getFXOnly[0].var}[i-1].stopBowing;
+                            1 => ${getFXOnly[0].var}[i-1].noteOff;
+                        `;
+                    } else if (getFXOnly[0].var === "blwbtl") {
+                        return `
+                            ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
+                        `;
+                    } else if (getFXOnly[0].var === "brs") {
+                        alert('hit brass off')
+                        return `
+                            ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
+                            1 => ${getFXOnly[0].var}[i-1].noteOff;
+                        `;
+                    } else if (getFXOnly[0].var === "shak") {
+                        return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                    } else if (getFXOnly[0].var === "mdlbr") {
+                        return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                    } else if (getFXOnly[0].var === "flut") {
+                        return `                            
+                            ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
+                            1 => ${getFXOnly[0].var}[i-1].noteOff;
+                        `;
+                    } else if (getFXOnly[0].var === "clair") {
+                        return `                            
+                            ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
+                            1 => ${getFXOnly[0].var}[i-1].noteOff;
+                        `;
+                    } else if (getFXOnly[0].var === "f") {
+                        return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "m") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "prcflt") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "man") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "tubbl") {
+                            return `                                
+                                1 => ${getFXOnly[0].var}[i-1].noteOff;
+                            `;
+                        } else if (getFXOnly[0].var === "blwhl") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } 
+                        else if (getFXOnly[0].var === "voic") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        }
+                        else if (getFXOnly[0].var === "sax") {
+                            return `                                
+                                    ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;  
+                                    1 => ${getFXOnly[0].var}[i-1].noteOff;
+                                `;
+                        } else if (getFXOnly[0].var === "bthree") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                          
+                        } else if (getFXOnly[0].var === "fmVoic") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                          
+                        } 
+                        else if (stkFX.current === "voic") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } 
+                        
+                        else if (getFXOnly[0].var === "krstl") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                          
+                        } else if (getFXOnly[0].var === "rod") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "wur") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "mog") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "hevymetl") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        } else if (getFXOnly[0].var === "hnkytonk") {
+                            return `1 => ${getFXOnly[0].var}[i-1].noteOff;`;
+                        }
 
-            const createSTKFXChugraph = () => {
-                console.log("LOOK HEEEERE: ", stkFX.current);
-                ////// PICK UP HERE WHEN YOU RETURN!!!!!!!!!!!
-                let buildSTKString = ``;
-                const gainAdjuster = `                        
-                    notes.size() || 1 => int notesNum;
-                    if (!notesNum || notesNum < 1) {
-                        1 => notesNum;
-                    }
-                    0.2/notesNum => stks_mastergain.gain;`
-
-                if (stkFX.current && stkFX.current.length > 0) {
-                    stkFX.current.map((fx: any) => {
-                        buildSTKString = buildSTKString + ` ${fx.type} ${fx.var}[12] => EffectsModuleSTK effectsModuleSTK => Gain stks_mastergain => dac; ` 
-                    });
-                    buildSTKString = buildSTKString + gainAdjuster;
-                    console.log("WHAT IS THIS BUILDSTRING? ", buildSTKString);
-                    return buildSTKString;
                 } else {
-                    return buildSTKString;
+                    return ``;
                 }
             }
+            
 
+            virtualKeyMapDown.current = await virtualKeyMapping(48, 1);
 
-           
-            console.log("PRETTY ANNOYING // getNewSTKFXString(): ", getNewSTKFXString());
-            console.log("---- wtf is thisssss? ", createSTKFXChugraph());
+            virtualKeyMapUp.current = currentNotesDownDisplay.current.length > 1 ? await virtualKeyMapping(48, 0) : "";
+
+            console.log("1111111 ", currentNotesDownDisplay.current);
+;      
+
+            stkOn.current = await playSTKOn();
+
+            stkPolyKeyOff.current = await playSTKOff(); 
+                        
+            
+            console.log("WHAT IS THIS STKON? ", stkOn.current);
+
 
             console.log("WHAT IS FILE ARRAY? ", filesArray);
             console.log("help please: ", allFxPersistent.current);
 
+
+            // console.log("SO TEDIOUS! ", newStkFXString);
+
+    
+             const stkShouldPlay = () => {
+                if (stkFX.current && stkFX.current.length > 0 && stkFX.current.filter((i: any) => i.fxType === "stk" && i).length > 0) {
+                    return 1;
+                } else {
+                    return 0;
+                };
+             } 
+             const SHD_STK_PLAY = stkShouldPlay(); 
 
             const chuckCode = `
             
@@ -2725,10 +3518,9 @@ export default function InitializationComponent() {
             Hid hid;
             HidMsg msg;
             
-            <<< hid >>>;
             // open keyboard device
             if( !hid.openKeyboard( device ) ) me.exit();
-            <<< "keyboard '" + hid.name() + "' ready", "" >>>;
+            // <<< "keyboard '" + hid.name() + "' ready", "" >>>;
             
             
 
@@ -2737,14 +3529,13 @@ export default function InitializationComponent() {
 
 
             Dyno limiter_Sampler;
+            Dyno limiter_STK;
             
             ((secLenBeat * 1000) * 2)::ms => dur whole;
             (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
                 
-            // ${uploadedFilesToChuckString.current}
-            // ${uploadedFilesCodeString.current}
-     
-            ${getNewSTKFXString()}
+   
+
             
             private class UniversalAnalyzer {
                 FeatureCollector combo => blackhole;
@@ -2868,14 +3659,14 @@ export default function InitializationComponent() {
                     }
                     
                     if (count % 16 == 0) {
-                        <<< "FEATURES VALS: ", 
-                        centroid.fval(0) + " " 
-                        + flux.fval(0) + " " 
-                        + rms.fval(0) + " " 
-                        + mfccString + " " 
-                        + rolloff.fval(0) + " " 
-                        + chromaString + " "
-                        + sourceName >>>;
+                        // <<< "FEATURES VALS: ", 
+                        // centroid.fval(0) + " " 
+                        // + flux.fval(0) + " " 
+                        // + rms.fval(0) + " " 
+                        // + mfccString + " " 
+                        // + rolloff.fval(0) + " " 
+                        // + chromaString + " "
+                        // + sourceName >>>;
                     }
                 }
             
@@ -2969,7 +3760,6 @@ export default function InitializationComponent() {
                 fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
                     // <<< "SOURCE IS: ", source, mfccString >>>;
                     
-                    // while (${!chuckUpdateNeeded}) {
                     while (true) {
                         spork ~ this.upchuckRealTimeFeatures(
                             this.combo, 
@@ -2986,17 +3776,17 @@ export default function InitializationComponent() {
                         spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
                         spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
                         
-                        // <<< "TIME: ", now >>>;
-                        <<< "FREQ: ", 
-                            this.TrackingFile.the_freq, 
-                            this.TrackingFile.the_gain, 
-                            this.the_sfm, 
-                            this.TrackingFile.the_kurtosis,
-                            sourceVarName 
-                        >>>;
+                        // // <<< "TIME: ", now >>>;
+                        // <<< "FREQ: ", 
+                        //     this.TrackingFile.the_freq, 
+                        //     this.TrackingFile.the_gain, 
+                        //     this.the_sfm, 
+                        //     this.TrackingFile.the_kurtosis,
+                        //     sourceVarName 
+                        // >>>;
                         
                         // beat => now;
-                        // whole / 4 => now; 
+                        whole / 4 => now; 
                     }
                 }
             }
@@ -3007,9 +3797,8 @@ export default function InitializationComponent() {
             
             class SynthVoice extends Chugraph
                 {
-                    // SawOsc saw1 ${connector1Stk} => LPF lpf => ADSR adsr => Dyno limiter => outlet;
+      
                     ${osc1ChuckToOutlet}
-                    
             
                     // saw1 ${osc1FXStringToChuck.current} => dac;
                     ${osc2ChuckToOutlet}
@@ -3285,7 +4074,7 @@ export default function InitializationComponent() {
             
                     fun void stk1(float note)
                     {
-                        ${stk1Code}
+                        <<< "hit this stk1" >>>;
                     }
                         
                     fun void cutoffMod(float amount)
@@ -3328,11 +4117,13 @@ export default function InitializationComponent() {
                     // }
                 }
             
-                SynthVoice voice[10] ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => Gain oscs_masterGain => dac;
+                SynthVoice voice[12] ${osc1FXStringToChuck.current} ${spectacleDeclarationOsc1} => HPF hpf => Gain oscs_masterGain => dac;
                 
                 0.7 => oscs_masterGain.gain;
                 
-                if (${arpeggiatorOn} == 0) {
+                <<< "EEEESH WTF ARE NOTES: ", notes.cap() >>>;
+
+                if (${arpeggiatorOn} == 0 && notes.cap() > 0) {
                     oscs_masterGain.gain() / notes.cap() => oscs_masterGain.gain;
                 }
 
@@ -3351,28 +4142,26 @@ export default function InitializationComponent() {
             
                 ${moogGrandmotherEffects.current.highPassFreq.value} => hpf.freq;
                 
-for (0 => int i; i < voice.cap() - 1; i++) {
+                for (0 => int i; i < voice.cap() - 1; i++) {
 
-                ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice[i].cutoff;
-                ${moogGrandmotherEffects.current.rez.value} => voice[i].rez;
-                ${parseInt(moogGrandmotherEffects.current.env.value)} => voice[i].env;
-                ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice[i].ChooseOsc1;
-                ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice[i].ChooseOsc2;
-                ${moogGrandmotherEffects.current.detune.value} => voice[i].detune;
-                ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice[i].oscOffset;
-                ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice[i].cutoffMod;
-                ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice[i].pitchMod;
-                ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice[i].ChooseLfo;
-                // 0.5 => voice[i].filterLfo.gain;
-                ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice[i].offset;
-                880 => voice[i].filterEnv;
-                ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice[i].noise;
-}      
+                    ${parseInt(moogGrandmotherEffects.current.cutoff.value)} => voice[i].cutoff;
+                    ${moogGrandmotherEffects.current.rez.value} => voice[i].rez;
+                    ${parseInt(moogGrandmotherEffects.current.env.value)} => voice[i].env;
+                    ${parseInt(moogGrandmotherEffects.current.oscType1.value)} => voice[i].ChooseOsc1;
+                    ${parseInt(moogGrandmotherEffects.current.oscType2.value)} => voice[i].ChooseOsc2;
+                    ${moogGrandmotherEffects.current.detune.value} => voice[i].detune;
+                    ${parseInt(moogGrandmotherEffects.current.oscOffset.value)} => voice[i].oscOffset;
+                    ${parseInt(moogGrandmotherEffects.current.cutoffMod.value)} => voice[i].cutoffMod;
+                    ${parseInt(moogGrandmotherEffects.current.pitchMod.value)} => voice[i].pitchMod;
+                    ${parseInt(moogGrandmotherEffects.current.lfoVoice.value)} => voice[i].ChooseLfo;
+                    // 0.5 => voice[i].filterLfo.gain;
+                    ${parseInt(moogGrandmotherEffects.current.offset.value)} => voice[i].offset;
+                    880 => voice[i].filterEnv;
+                    ${parseInt(moogGrandmotherEffects.current.noise.value)} => voice[i].noise;
+                }      
                 0 => int count;
             
             
-
-
 
 
                 Event myEvent;
@@ -3382,23 +4171,55 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
                 class EffectsModuleSTK extends Chugraph
                 {
-                    "" => string fxChain;
-                    inlet => Gain dry => outlet;
+                 
+                    inlet => Gain drySTK => outlet;
+
+                    0.1 => limiter_STK.slopeAbove;
+                    1.0 => limiter_STK.slopeBelow;
+                    0.5 => limiter_STK.thresh;
+                    5::ms => limiter_STK.attackTime;
+                    300::ms => limiter_STK.releaseTime;
+                    0 => limiter_STK.externalSideInput;
+
+                    drySTK => limiter_STK => ${stkChuckToOutlet} ${spectacleDeclarationStk} outlet;
+                    
+                    ${finalStkCode}
+                    
+                    ${winFuncCodeStringStk}
+                    ${powerADSRCodeStringStk}
+                    ${expEnvCodeStringStk}
+                    ${wpDiodeLadderCodeStringStk}
+                    
+                    ${ellipticCodeStringStk}
+                    ${expDelayCodeStringStk}
+                    
+
+                    ${spectacleCodeStringStk}
+                    ${stkFxStringNeedsBlackhole.current}
+
+                    ${delayDeclarationStk}
+                    ${delayADeclarationStk}
+                    ${delayLDeclarationStk}
+                    ${delayCodeStringStk}
+                    ${delayACodeStringStk}
+                    ${delayLCodeStringStk}
+
+
+
+        
+
                 }
-             
+               
+
+        
                 
-                ${createSTKFXChugraph()} 
-
-
-
-
+             
                 // Start Buffers below
                 SndBuf buffers[4] => dac;
                 
-                class EffectsModule extends Chugraph
+                private class EffectsModule extends Chugraph
                 {
-
-                    "" => string fxChain;
+               
                     inlet => Gain dry => outlet;
                     dry => ${samplerChuckToOutlet} ${spectacleDeclarationSampler} outlet;
 
@@ -3437,7 +4258,7 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 }
                 
                 SndBuf sample1 => EffectsModule effectsModule => Gain sampler_masterGain => dac;
-
+     
                 0.3 => sampler_masterGain.gain;
 
                 
@@ -3454,8 +4275,8 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 files[3] => buffers[3].read;
 
 
-            
-                // UniversalAnalyzer uA;
+            if (1 == 2) {
+                // UniversalAnalyzer uA; < -- added mock condition to stop this from running
                 // "${analysisSourceRadioValue}" => string analysisSource;
            
                 // if (analysisSource == "Sampler") { 
@@ -3468,7 +4289,7 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 //     // spork ~ uA.getAnalysisForSource(testing, fileName);
             
                 // }
-
+            }
                 fun void SilenceAllBuffers()
                 {
                     buffers[0].samples() => buffers[0].pos;
@@ -3554,27 +4375,32 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                         for (1 => int i; i < notesToPlay.size(); i++) {                 
                             if (${arpeggiatorOn} == 1 && notesToPlay.cap() > 0) {
                                 notesToPlay[i] => voice[i-1].keyOn;
-                                duration - (now % duration)  => now;
+                                duration/notesToPlay.size() - (now % duration/notesToPlay.size()) => now;
+                                if (i == 1) {
+                                    0 => voice[i-1].gain;
+                                }
                                 if (${hold} != 1) {
                                     1 => voice[i-1].keyOff;
                                 }
                                 // break;
                             } else if (notesToPlay.cap() > 0) {
                                 notesToPlay[i] => voice[i-1].keyOn;
+                               
                             }
                             notesToPlayMsg + " " + notesToPlay[i] => notesToPlayMsg;
+                            me.yield();
                         }
-                        // <<< "NOTESDOWN", notesToPlayMsg >>>;
 
+                        // <<< "NOTESDOWN", notesToPlayMsg >>>;
+                        
                         if (${arpeggiatorOn} == 0) {
                             duration - (now % duration)  => now;
-                            for (1 => int i; i < notesToPlay.size(); i++) {
-                                1 => voice[i].keyOff;
+                           
+                            for (1 => int i; i <= notesToPlay.size(); i++) {
+                                1 => voice[i-1].keyOff;
                             }
                         } 
-                        if (${arpeggiatorOn} == 1 && notes.cap() < 2) {
-                            1::ms => now;
-                        }
+                 
                         me.yield();
                     }
                     me.exit();
@@ -3582,34 +4408,54 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                 }
             
                 fun void PlaySTK(Event mySTKEvent, int notesToPlay[], dur duration){
-                    <<< "PLAYSTK_ON" >>>;
+                    <<< "PLAYSTK_ON ", notesToPlay.cap() >>>;
                     mySTKEvent => now;
-          
+                  
+                   
+                   
+                    ${stkFX.current.type || 'UGen'} ${stkFX.current.var || 'ugen'}[12] => EffectsModuleSTK effectsModuleSTK => Gain stk_masterGain => dac;
+                    0.6/notes.cap() => stk_masterGain.gain; 
+
+    
                     while (true) {
+                        if (${stkFX.current.length} < 1) {
+                            me.exit();
+                        }
+                        <<< "NOTES TO PLAAAAAAY ", notesToPlay >>>;
                         
-                        if (notesToPlay.cap() > 1){
-                            for (1 => int i; i < notesToPlay.cap(); i++) {
-                                <<< "FUCKING HERE ", notesToPlay[i] >>>;
-                                if (notesToPlay[i] && notesToPlay[i] > 0 && notesToPlay[i] < 127) {
+                        if (notesToPlay.size() > 1){
+                            for (1 => int i; i <= notesToPlay.size(); i++) {
+
+                                // if (notesToPlay[i] && notesToPlay[i] > 0 && notesToPlay[i] < 127 && notesToPlay.size() > 0) {
+                                    if (notesToPlay[i] && notesToPlay.size() > 0) {
                 
-                                    ${stkOn}
+                                    ${stkOn.current}
                                 
                                 } 
-                                else if (notesToPlay[i]) {
-                                    notesToPlay.erase(1);
-                                }
-
-                                if (${arpeggiatorOn} == 1) {
-                                    duration - (now % duration)  => now;
-                                }
+                                
                                 // me.yield();
                             }
-                            if (${arpeggiatorOn} == 0) {
+                          
+                            if (${stkArpeggiatorOn} == 0) {
                                 duration - (now % duration)  => now;
-                            }                       
+                                for (1 => int i; i <= notesToPlay.cap(); i++) {
+                                    ${stkPolyKeyOff.current}
+                                    // me.yield();
+                                }
+                                // me.yield();
+                                // me.exit();
+                            } 
+                            // else {
+                            //     duration - (now % duration)  => now;
+                            // }
+                            // me.yield();                
                         } else {
-                            duration - (now % duration)  => now;
+                            // duration - (now % duration) => now;
+                            me.yield();
+                        
                         }
+                        // me.yield();   
+                        // me.exit();
                     }
                     me.exit();
                 }
@@ -3647,19 +4493,20 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                 spork ~ Drum(1, duration);
                                 
                             }    
-                            me.yield();                                                     
+                            // me.yield();                                                     
                         }   
                         // duration => now;
                         duration - (now % duration) => now;
                         <<< "NUM_COUNT ", samplerCount >>>;
                         
                         samplerCount++;
-                        me.yield();
+                        // me.yield();
                     }
+                    me.exit();
                 }
             
                 [[1,3],[2,4]] @=> int notesArr[][];
-                // int notes[];
+              
                 [3] @=> int sample1Notes[];
                 [1,1,1,1] @=> int sample1TestNotes[];
                 [1, 4, 1, 3] @=> int sample2Notes[];
@@ -3677,7 +4524,7 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
                 
                 private class ChordProvider {
-                    // [0] @=> static int notes[];
+               
                     
                     fun void playNotes(int note) {
                         int existingIndex;
@@ -3693,77 +4540,31 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                         }
                     }
                     fun void releaseNotes (int note) {
-                        ${hold} => int hold;
-        
-                        for (0 => int i; i < notes.size(); i++)
+                       
+                        <<< "NOTE TO RELEASE: ", note >>>;
+                        <<< "ALL NOTES: ", notes >>>;
+
+                        for (0 => int i; i < notes.cap(); i++)
                         {
-                            <<< "SANITY IN CHUCK ", note, notes[i] >>>;
-                            if (note == notes[i] && hold == 0 && notes.cap() > 4) {
-                                notes.erase(i);                     
+                            
+                            if (note == notes[i]) {
+                                notes.erase(i);
+                                                  
                             }
-                            // else if (note == notes[i] && hold == 1) {
-                            // else if (hold == 1) {
-                            else {
-                                // this is a quick implementation... developing shd be relatively easy
-                                while (notes.cap() > 6) {
-                                    notes.popFront();
-                                }
-                            }
+                            // if (${hold} == 1 && notes.cap() > 2) {
+                            //     notes.popFront();
+                            // }
+                            // if (notes.cap() > 2) {
+                            //     notes.popFront();
+                            // }
+                  
                         }
-                        me.yield();
                     }
                 }
                     
                 ChordProvider oCp;
                 
-               
-               
-                spork ~ PlaySTK(mySTKEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred stkShred;           
-                
-                spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred synthShred;
-                
-                spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]});
-     
-                
-                me.yield();
-
-                // while(${chuckUpdateNeeded === false}) {
-                while(true) {
-                 
-                    // wait for HID event
-                    hid => now;
-            
-                    // get HID message
-                    while( hid.recv( msg ) )
-                    {
-                        if( msg.isButtonDown() ) {
-                          <<< "hitit" >>>;
-                            mySTKEvent.broadcast();
-                            
-                            myEvent.broadcast();
-                            
-
-                            <<< "[key]", msg.key, "(ascii)", msg.which >>>;
-                            ${virtualKeyMapping(48, 1)}
-                            
-                            // me.yield();
-                        } else if (msg.isButtonUp()) {
-  
-                            ${virtualKeyMapping(48, 0)}
-                            // me.yield();
-                        }
-                        else  {
-                            <<< "IN HID ELSE!" >>>;
-                            
-                            me.yield();
-                        }
-                        // me.yield();
-                    }
-
-                    
-                    mySampleEvent.broadcast();
-
-               
+                fun void advanceTime() {
                     (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
                     <<< "TICK" >>>;
                     // synthShred.exit();
@@ -3775,16 +4576,62 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                         0 => count;
                         0 => oTp.globalCount;
                     }
+                    me.exit();
+                }
+            
+                spork ~ PlaySTK(mySTKEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred shredSTK;  
+             
+                spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred shredSynth; 
+                
+                spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]}) @=> Shred shredSample;
+     
+                
+                // me.yield();
 
+                // while(${chuckUpdateNeeded === false}) {
+                while(true) {
+                 
+                    // wait for HID event
+                    hid => now;
+            
+                    // get HID message
+                    while( hid.recv( msg ) )
+                    {
+                        if( msg.isButtonDown() ) {
+                    
+                                mySTKEvent.signal();
+                  
+                            
+                            myEvent.signal();
+                            
+
+                            <<< "[key]", msg.key, "(ascii)", msg.which >>>;
+                            ${virtualKeyMapDown.current}
+                            
+                            // me.yield();
+                        } else if (msg.isButtonUp()) {
+                           
+                                ${virtualKeyMapUp.current}
+                           
+                            // me.yield();
+                        }
+                        else  {
+                            <<< "IN HID ELSE!" >>>;
+                            
+                            // me.yield();
+                        }
+                        // me.yield();
+                    }
 
                     
-                    // <<< "NUM_COUNT: ", oTp.globalCount >>>;
+                    mySampleEvent.broadcast();
+
+               
+                    spork ~ advanceTime();
+
+   
                     <<< "NumShreds: ", Machine.numShreds() >>>;
-                    // synthShred.exit();
-                    // count++;
-
-                    
-                    // me.yield();
+                    me.yield();
                 }                            
             `;
 
@@ -3830,25 +4677,8 @@ for (0 => int i; i < voice.cap() - 1; i++) {
         }
     }
 
-    const getNewSTKFXPresets = (type: string, name: string) => {
+   
 
-    }
-
-    const getNewSTKFXString = () => {
-        console.log("OOOOF WHAT R STKFX? ", stkFX.current);
-        console.log("stkFX current & var: ", stkFX.current, stkFX.current.var);
-        if (stkFX.current && Object.values(stkFX.current).length > 0) {
-            return `
-            
-                ${stkFX.current.type} ${stkFX.current.var}[12] => EffectsModuleSTK effectsModuleSTK_${stkFX.current.var} => Gain stks_mastergain_${stkFX.current.var} => dac;
-                // 0.4/notes.cap() => stks_mastergain_${stkFX.current.var}.gain;
-    
-            `;
-        } else {
-            console.log('WHY THE FUCK ARE WE HERE?');
-            return ``;
-        }
-    };
 
     const runChuck = async () => {
         if (typeof window === 'undefined') return;
@@ -3868,7 +4698,9 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
         aChuck.chuckPrint = (message) => {
             console.log('WHAT IS MSG? ', message);
-            setLastChuckMessage(message);
+            if (message) {
+                setLastChuckMessage(message);
+            }
             // if (aChuck) {
             //     (async () => {
             //         shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
@@ -3910,39 +4742,31 @@ for (0 => int i; i < voice.cap() - 1; i++) {
         // }
         // tk tk getOsc1String
         const OSC_1_Code = osc1FXString.current;
-        
+        console.log("WHAT IS OSC 1 FX String? ", osc1FXString.current)
         if (osc1FXString.current && osc1FXString.current.length < 1) return;
 
-        const getStk1String: any = await stkFXToString();
+        // const getStk1String: any = stkFX.current && stkFX.current.length > 0 && await stkFXToStringPrepare();
 
-        console.log('Get stk1 string: ', getStk1String);
+        console.log("%cARE WE PREPARING??? ", "color: magenta;", await stkFXToStringPrepare())
 
-        const STK_1_Code = getStk1String && getStk1String.length > 0 ? `
-            if(note > 127)
-            {
-                127 => note;
-            }
-            if(note < 20)
-            {
-                21 => note;
-            }
+        console.log('Get stkFX?!!?  ', stkFX.current);
 
-            ${getStk1String[0]}
+        const getStk1String: any = await stkFXToStringPrepare();
+        console.log("%cDO WE EVEN HJAVE STK! STRING TO PASSSSS??? ", "color: orange;", getStk1String);
 
-          
-            if (note > 20 && note < 127) {
-                Std.mtof(note) => ${getStk1String[2]}.freq;
-                0.1 => ${getStk1String[2]}.gain;
-                1 => ${getStk1String[2]}.noteOn;
-            }
 
-     
-        ` : '';
 
-        setStk1Code(STK_1_Code);
+        // if (!getStk1String) {
+        //     alert(`hereeeeees NOOOOOO stk1string ${getStk1String}`);
+        // }
+
+        // ` : '';
+
+        // setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
 
         runMainChuckCode(aChuck, getStk1String);
+
 
     }
 
@@ -4004,6 +4828,52 @@ for (0 => int i; i < voice.cap() - 1; i++) {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
 
+    const noteOn = (noteLetter: string, theMidiNum: number, theMidiHz: any, mysteryArg=100) => {
+        console.log("IN NOTE ON: ", noteLetter, theMidiNum, theMidiHz, mysteryArg);
+    }
+
+    const playChuckNote = (note: any) => {  
+        // console.log('NOTE! ', note);    
+        if (!note || !note.target ) { 
+            return null;
+        }
+        console.log("NOTE IN PLAY CHUCK: ", note); 
+   
+        try {
+            const noteReady = note.target.attributes[2].value;
+            console.log('what are options? ', note.target.attributes);
+            const theNoteLetter = note.target.attributes[0].value.replace('-','');
+            const theMidiNum = parseInt(note.target.attributes[2].value);
+            const theMidiHz = parseFloat(note.target.attributes[3].value).toFixed(2);
+            console.log('NOTE READYYY? ', Math.round(noteReady));
+            // chuckHook.runCode(` SinOsc osc => dac; 0.2 => osc.gain; ${Math.round(noteReady)} => osc.freq; 3::second => now; `);
+            // noteOn(Math.round(noteReady), 100);
+            noteOn(theNoteLetter, theMidiNum, theMidiHz, 100);
+            return noteReady;
+        } catch {
+            return null;
+        }
+    };
+
+    useEffect(() => {
+        if (!formats || formats.length < 1 || formats.indexOf('tradKey') !== -1) {
+            setKeysVisible(true);
+            // updateHasHexkeys(false);
+        }
+        if (formats && formats.length > 0 && keysVisible && formats.indexOf('tradKey') === -1) {
+            setKeysVisible(false);
+            // updateHasHexkeys(true);
+        }
+        if (formats && formats.length > 0 && formats.indexOf('hexKey') !== -1) {
+            updateHasHexkeys(true);
+            // setKeysVisible(false);
+        }
+        if (formats && formats.length > 0 && keysVisible && formats.indexOf('hexKey') === -1) {
+            updateHasHexkeys(false);
+            // setKeysVisible(true);
+        }
+    }, [formats]);
+
     useEffect(() => {
 
         if (babylonGame.current && !babylonGame.current.canvas) {
@@ -4051,13 +4921,18 @@ for (0 => int i; i < voice.cap() - 1; i++) {
             setToggleSTKvsFX(!toggleSTKvsFX);
         } else if (obj.fxType === 'fx')
         {
-            let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i.var === obj.name && i)[0];
+            let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i && i.length > 0 && i.var === obj.name && i)[0];
+      
             if (!index || index.length < 1) {
                 console.log('this should replace... ', allFxPersistent.current[`${fxRadioValue}`].length - 1);
                 index = allFxPersistent.current[`${fxRadioValue}`].length - 1;
+           
+                allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`].value = value;
+             
             }
             if (allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`]) {
                 allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`].value = value;
+                // SAVED STATE HERE
             }
         }
         else if (obj.fxType === 'default') {
@@ -4141,6 +5016,8 @@ for (0 => int i; i < voice.cap() - 1; i++) {
         if(lastChuckMessage && lastChuckMessage.includes("VIRTUALKEYUPDATE_")){
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
             console.log('%cParsedLastChuckMessage.current NOTES DOWN: ', 'color: red', parsedLastChuckMessage.current);
+            currentNotesDownDisplay.current = [];
+            currentNotesDownDisplay.current = parsedLastChuckMessage.current;
             // currentNotesKeyValDownDisplay.current = [];
             if (parsedLastChuckMessage.current) {
                 // currentNotesKeyValDownDisplay.current.push(parsedLastChuckMessage.current[2]);
@@ -4158,11 +5035,11 @@ for (0 => int i; i < voice.cap() - 1; i++) {
             const removeComma: string = parseString[0].replace(/,\s*$/, "");
             const countToNum: number = +removeComma && +removeComma;
 
-            if (Math.ceil(countToNum/numeratorSignature) !== 0) {
+            // if (Math.ceil(countToNum/numeratorSignature) !== 0) {
 
-                setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
-                setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
-            }
+            //     setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+            //     setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+            // }
             // setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
             // setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
         };
@@ -4309,14 +5186,38 @@ for (0 => int i; i < voice.cap() - 1; i++) {
         if (chuckUpdateNeeded) {
             setChuckUpdateNeeded(false);
             runChuck();
+            beginProgram(true);
             
         }
     }, [chuckUpdateNeeded]);
 
 
     
+    const updateHasHexkeys = (msg: boolean) => {
+        hasHexKeys.current = msg;
+    }
 
-
+    const handleFormat = (
+        event: React.MouseEvent<HTMLElement>,
+        newFormats: string[],
+    ) => {
+        // console.log("NEW FORMAT? ", newFormats)
+        // if (newFormats.length > 0) {
+        //     if (formats.indexOf("tradKeys") !== -1) {
+        //         setFormats(['hexKeys']);
+        //     } else {
+        //         setFormats(['tradKeys']);
+        //     }
+        // } else {
+        //     setFormats(['tradKeys']);
+        // }
+        console.log("NEW FORMATS ", newFormats);
+        if (newFormats.length > 1) {
+            setFormats(newFormats.reverse());
+        } else {
+            setFormats(newFormats);
+        }
+    };
 
     // const change = (arr: Array<any>, fromIndex: number, toIndex: number) => {
     //     if (toIndex === fromIndex || toIndex >= arr.length) return arr;
@@ -4344,10 +5245,172 @@ for (0 => int i; i < voice.cap() - 1; i++) {
 
     return (
         <ThemeProvider theme={theme}>
-            <Box sx={{ height: size.width, boxSizing: "border-box", width: size.width, display: 'flex', flexDirection: 'row' }}>
+            {/* <Box sx={{ height: size.width, boxSizing: "border-box", width: size.width, display: 'flex', flexDirection: 'row' }}> */}
+            <Box>
+                <Box sx={{position: "absolute", width: "100vw", maxHeight: "36px" }} >
+
+                    <ResponsiveAppBar 
+                        selectRef={selectRef} 
+                        tune={tune} 
+                        currentMicroTonalScale={currentMicroTonalScale}
+                        submitMingus={submitMingus}
+                        audioKey={audioKey}
+                        octave={octave}
+                        audioScale={audioScale}
+                        audioChord={audioChord}
+                        handleChangeChord={handleChangeChord}
+                        handleChangeScale={handleChangeScale}
+                        programIsOn={programIsOn}
+                        updateHasHexKeys={updateHasHexkeys}
+                        handleFormat={handleFormat}
+                        formats={formats}
+                    />
+                </Box>
+
+    {/* ARP */}
+                                <Box sx={{display: "flex", position: "absolute", left: '208px', top: '48px', flexDirection: "row"}}>
+                                <Box sx={{display: "flex", flexDirection: "row"}}></Box>
+                                    <Button 
+                                        sx={{ 
+                                            color: 'rgba(0,0,0,.98)',
+                                            backgroundColor: 'rgba(219, 230, 161, 0.8)', 
+                                            // borderRadius: '50%',
+                                            // background: 'rgba(232, 82,82, 1)', 
+                                            // background: 'rgba(147, 206, 214, 0.8)', 
+                                            // minWidth: '208px', 
+                                            marginLeft: '0px', 
+                                            maxHeight: '40px', 
+                                            display: programIsOn ? "flex" : "none",
+                                            border: '0.5px solid #b2b2b2',
+                                            '&:hover': {
+                                                color: '#f5f5f5 !important',
+                                                background: 'rgba(0,0,0,.98)',
+                                                border: '1px solid #1976d2',
+                                            }
+                                        }} 
+                                        variant="outlined" 
+                                        className="ui_SynthLayerButton"
+                                        onClick={handleToggleArpeggiator} 
+                                        // endIcon={<AnimationIcon />}
+                                        >
+                                            Arp S
+                                    </Button>
+
+    {/* S-ARP */}
+                                    <Button 
+                                        sx={{ 
+                                            color: 'rgba(0,0,0,.98)',
+                                            backgroundColor: 'rgba(219, 230, 161, 0.8)', 
+                                            // background: 'rgba(232, 82,82, 1)', 
+                                            // background: 'rgba(147, 206, 214, 1)', 
+                                            // minWidth: '208px', 
+                                            marginLeft: '0px', 
+                                            maxHeight: '40px', 
+                                            border: '0.5px solid #b2b2b2',
+                                            // borderRadius: '50%',
+                                            display: programIsOn ? "flex" : "none",
+                                            '&:hover': {
+                                                color: '#f5f5f5 !important',
+                                                background: 'rgba(0,0,0,.98)',
+                                                border: '1px solid #1976d2',
+                                            }
+                                        }} 
+                                        variant="outlined" 
+                                        className="ui_SynthLayerButton"
+                                        onClick={handleToggleStkArpeggiator} 
+                                        // endIcon={<AnimationIcon />}
+                                        >
+                                            Arp Inst
+                                    </Button>
+                                    {programIsOn && (
+                                    <Box sx={{position: "relative", display: "flex", flexDirection: "column", textAlign: "center"}}>
+                                        <Box sx={{position: "relative", display: "flex", flexDirection: "row", textAlign: "center", justifyContent: "center"}}>
+
+                                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                                {currentNumerCountColToDisplay} 
+                                            </Typography>
+                                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                                {currentDenomCount}
+                                            </Typography>
+                                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                                {currentPatternCount}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                    )}
+                                </Box>
+
+                <Box sx={{position:"absolute", left: 0, bottom: 0, color: "red", fontFamily: "Menlo", height: "50%", width: "80px"}}>
+                    {/* <CustomAriaLive selectRef={selectRef} tune={tune} currentMicroTonalScale={currentMicroTonalScale} /> */}
+
+                        <>{currentNotesDownDisplay.current}</>
+                        <>{currentNotesKeyValDownDisplay.current}</>
+                    {/* <Box>{currentVirtualKeyNotesDownDisplay.length > 1 && [currentVirtualKeyNotesDownDisplay].map((i: any) => {
+          <Box>{i}</Box>
+                    })}</Box> */}
+                </Box>
                 {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
-                    <Box key={babylonKey} sx={{ left: '0', display: 'flex', flexDirection: 'row' }}>
-                        <Box sx={{ height: "80%", bottom: "10%", top: "10%", left: "10%", width: "80%", right: "10%", position: "absolute", pointerEvents: "none" }}>
+                    <Box sx={{width: "100%", height: "100vh", textAlign: "center"}}>
+                        {!chuckHook && (
+                            <Box
+                                className={styles.card}
+                                sx={{top: '48px', height: "100%"}}
+                            >
+                                <Button 
+                                    
+                                    style={{ 
+                                        background: 'rbga(0,0,0,.91)', 
+                                        position: "relative",
+                                        color: 'rgba(0,0,0,1)', 
+                                        zIndex: '9999',
+                                    }} 
+                                    sx={{ 
+                                        minWidth: '200px',
+                                        minHeight: '120px', 
+                                        top: "40%",
+                                        width: programIsOn ? "104px" : "25vw",
+                                        height: programIsOn ? "48px" : "8vw",
+                                        paddingLeft: '24px',
+                                        // maxHeight: '40px',
+                                        fontSize: programIsOn ? "16px" : "32px",
+                                        color: 'rgba(0,0,0,.98)',
+                                        backgroundColor: 'rgba(158, 210, 162, 1)', 
+                                        border: '0.5px solid #b2b2b2',
+                                        '&:hover': {
+                                            color: '#f5f5f5 !important',
+                                            border: '1px solid #1976d2',
+                                            background: 'rgba(0,0,0,.98)',
+                                        }
+                                    }} 
+                                    variant="contained" 
+                                    id="initChuckButton" 
+                                    onClick={initChuck} 
+                                    endIcon={<PlayArrowIcon 
+                                    style={{pointerEvents: "none"}} />}>
+                                        Begin
+                                </Button>
+                            </Box>
+                        )}    
+
+
+
+
+                        <Box 
+                            key={babylonKey} 
+                            sx={{ 
+                                left: '0', 
+                                display: 'flex', 
+                                flexDirection: 'row' 
+                            }}>
+                        <Box 
+                            sx={{ 
+                                bottom: '0px',
+                                top: '0px',
+                                width: '100%',
+                                left: '210px',
+                                position: 'absolute',
+                                pointerEvents: 'none'
+                            }}>
                             {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
                             {isAnalysisPopupOpen &&
                                 <LineChartWrapper
@@ -4371,333 +5434,403 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                                     handleChangeAnalysisSource={handleChangeAnalysisSource}
                                     analysisSourceRadioValue={analysisSourceRadioValue}
                                 />}
-                        </Box>
-                        <FXRouting
-                            key={fXChainKey + fxRadioValue}
-                            fxChainNeedsUpdate={fxChainNeedsUpdate}
-                            fxData={allFxPersistent.current}
-                            width={size.width}
-                            height={size.height}
-                            handleShowFX={handleShowFX}
-                            showFX={showFX}
-                            fxValsRef={fxFX.current}
-                            handleFXGroupChange={handleFXGroupChange}
-                            updateCheckedFXList={updateCheckedFXList}
-                            fxGroupsArrayList={fxGroupOptions}
-                            checkedFXList={checkedFXList.current}
-                            fxFX={fxFX.current}
-                            handleClickName={handleClickName}
-                            setClickFXChain={setClickFXChain}
-                            clickFXChain={clickFXChain}
-                            updateFXInputRadio={updateFXInputRadio}
-                            fxRadioValue={fxRadioValue}
-                            updateStkKnobs={updateStkKnobs}
-                            setStkValues={setStkValues}
-                            stkValues={stkValues}
-                            updateCurrentFXScreen={updateCurrentFXScreen}
-                            currentScreen={currentScreen.current}
-                            playUploadedFile={playUploadedFile}
-                            lastFileUpload={lastFileUpload}
-                            updateFileUploads={updateFileUploads}
-                            babylonGame={babylonGame.current}
-                        />
-                        <FileManager
-                            onSubmit={onSubmit}
-                            handleSubmit={handleSubmit}
-                            register={register}
-                            watch={watch}
-                        />
-                        <Box sx={{boxSizing: 'border-box', width: window.innerWidth, height: window.innerHeight, display: !showFX ? "" : "hidden"}}>
-                            <BabylonLayer
-                                game={babylonGame.current}
-                                    handleUpdateSliderVal={handleUpdateSliderVal}
-                                    fxKnobsCount={fxKnobsCount}
-                                    needsUpdate={needsUpdate}
-                                    handleResetNeedsUpdate={() => setNeedsUpdate(false)}
-                                    // effects={moogGrandmotherEffects.current}
-                                    effects={currentFX.current}
-                                    visibleFXKnobs={visibleFXKnobs.current}
-                                    chuckUpdateNeeded={chuckUpdateNeeded}
-                                    handleTurnKnob={handleTurnKnob}
-                                    runChuck={runChuck}
-                                showFX={{showFX}}
-                            />
-                        </Box>
-   
-                        <Box
-                            sx={{
-                                left: '0px',
-                                position: 'absolute',
-                                top: '0px',
-                                paddingLeft: '12px',
-                                width: '100%',
-                                paddingTop: '12px',
-                                paddingBottom: '12px',
-                                background: 'rbga(0,0,0,.91)',
-                                display: 'flex',
-                                zIndex: 9999,
-                            }}
-                        >
-                            {!chuckHook && (<Button style={{ 
-                                background: 'rbga(0,0,0,.91)', 
-                                minWidth: '104px', 
-                                color: 'rgba(0,0,0,1)' }} 
-                                sx={{ 
-                                    minWidth: '76px', 
-                                    paddingLeft: '24px',
-                                    maxHeight: '40px',
-                                    color: 'rgba(0,0,0,.98)',
-                                    backgroundColor: 'rgba(158, 210, 162, 1)', 
-                                    border: '0.5px solid #b2b2b2',
-                                    '&:hover': {
-                                        color: '#f5f5f5 !important',
-                                        border: '1px solid #1976d2',
-                                        background: 'rgba(0,0,0,.98)',
-                                    }
-                                }} variant="contained" id="initChuckButton" onClick={initChuck} endIcon={<PlayArrowIcon />}>In</Button>)}
-                            {chuckHook && (
-                                <Button 
-                                    style={{ 
-                                        background: 'rbga(0,0,0,.91)', 
-                                        minWidth: '104px', 
-                                        color: 'rgba(0,0,0,1)',           
-                                    }} 
-                                    sx={{ 
-                                        minWidth: '76px', 
-                                        paddingLeft: '24px', 
-                                        maxHeight: '40px',
-                                        border: '0.5px solid #b2b2b2',
-                                        '&:hover': {
-                                            color: '#f5f5f5 !important',
-                                            background: 'rgba(0,0,0,.98)',
-                                            border: 'solid 1px #1976d2',
-                                          }
-                                    }} 
-                                    variant="contained" 
-                                    id="runChuckButton" 
-                                    onClick={runChuck} 
-                                    endIcon={
-                                        <PlayCircleFilledIcon />
-                                    }>
-                                        Pl
-                                </Button>)}
-                            {chuckHook && (
-                                <Button 
-                                    style={{ 
-                                        // background: 'rbga(0,0,0,.91)', 
-                                        minWidth: '104px',
-                                        color: 'rgba(0,0,0,1)' 
-                                    }} 
-                                    sx={{ 
-                                        minWidth: '76px', 
-                                        paddingLeft: '24px', 
-                                        maxHeight: '40px', 
-                                        marginLeft: '8px', 
-                                        border: '0.5px solid #b2b2b2',
-                                        '&:hover': {
-                                            color: '#f5f5f5 !important',
-                                            background: 'rgba(0,0,0,.98)',
-                                            border: '1px solid #1976d2',
-                                        }
-                                    }} 
-                                    variant="contained" 
-                                    id="stopChuckButton" 
-                                    onClick={stopChuckInstance} 
-                                    endIcon={<StopCircleIcon />}>
-                                        St
-                                </Button>)}
-
-                            {chuckHook && (
-                                <Button 
-                                    style={{ 
-                                        color: 'rgba(0,0,0,1)', 
-                                        background: 'rbga(0,0,0,.91)' 
-                                    }} 
-                                    sx={{ 
-                                        backgroundColor: 'rgba(232, 82, 82, 1)', 
-                                        background: 'rgba(232, 82,82, 1)', 
-                                        minWidth: '104px', 
-                                        marginLeft: '8px', 
-                                        maxHeight: '40px', 
-                                        border: '0.5px solid #b2b2b2',
-                                        '&:hover': {
-                                            color: '#f5f5f5 !important',
-                                            background: 'rgba(0,0,0,.98)',
-                                            border: '1px solid #1976d2',
-                                        }
-                                    }} 
-                                    variant="contained" 
-                                    id="micStartRecordButton" 
-                                    onClick={chuckMicButton} 
-                                    endIcon={<KeyboardVoiceIcon />}>
-                                        Rc
-                                    </Button>
-                                )
-                            }
-                            {chuckHook && (<Button 
-                                style={{ 
-                                    minWidth: '104px', 
-                                    color: 'rgba(0,0,0,1)', 
-                                    background: 'rbga(0,0,0,.91)' 
-                                }} 
-                                sx={{ 
-                                    minWidth: '76px', 
-                                    paddingLeft: '24px', 
-                                    maxHeight: '40px', 
-                                    marginLeft: '8px',
-                                    border: '0.5px solid #b2b2b2',
-                                    '&:hover': {
-                                        color: '#f5f5f5 !important',
-                                        background: 'rgba(0,0,0,.98)',
-                                        border: '1px solid #1976d2',
-                                    } 
-                                }} 
-                                variant="contained" 
-                                id="analyzeChuckButton" 
-                                onClick={closeAnalysisPopup} 
-                                endIcon={<AutoGraphIcon />}>
-                                    An
-                                </Button>)}
-
-                            <Button 
-                                sx={{                     
-                                    color: 'rgba(0,0,0,.98)',
-                                    backgroundColor: 'rgba(147, 206, 214, 1)', 
-                                    background: 'rbga(0,0,0,.91)', 
-                                    position: 'absolute', 
-                                    border: '0.5px solid #b2b2b2',
-                                    left: '0px', 
-                                    minWidth: '104px', 
-                                    marginLeft: '12px', 
-                                    top: '232px', 
-                                    maxHeight: '40px',
-                                    '&:hover': {
-                                        color: '#f5f5f5',
-                                        background: 'rgba(0,0,0,.98)',
-                                        border: '1px solid #1976d2',
-                                    } 
-                                }} 
-                                variant="outlined" 
-                                onClick={handleShowBPM} 
-                                endIcon={<AccessTimeIcon />}>
-                                    BPM
-                                </Button>
-
-
-
-
-                                <Button 
-                                    sx={{                     
-                                        color: 'rgba(0,0,0,.98)',
-                                        backgroundColor: 'rgba(158, 210, 162, 1)', 
-                                        background: 'rbga(0,0,0,.91)', 
-                                        position: 'absolute', 
-                                        border: '0.5px solid #b2b2b2',
-                                        left: '0px', 
-                                        minWidth: '104px', 
-                                        marginLeft: '12px', 
-                                        top: '276px', 
-                                        maxHeight: '40px',
-                                        '&:hover': {
-                                            color: '#f5f5f5',
-                                            background: 'rgba(0,0,0,.98)',
-                                            border: '1px solid #1976d2',
-                                        } 
-                                    }} 
-                                    variant="outlined" 
-                                    onClick={handleShowSTK} 
-                                    endIcon={<DeblurIcon />}>
-                                        STK
-                                </Button>
-
-                                
-                                <Button 
-                                    sx={{                     
-                                        color: 'rgba(0,0,0,.98)',
-                                        background: 'rgba(147, 206, 214, 1)', 
-                                        position: 'absolute', 
-                                        border: '0.5px solid #b2b2b2',
-                                        left: '0px', 
-                                        minWidth: '104px', 
-                                        marginLeft: '12px', 
-                                        top: '320px',
-                                        backgroundColor: arpeggiatorOn ? "#1976d2" : 'rgba(147, 206, 214, 1)', 
-                                        maxHeight: '40px',
-                                        '&:hover': {
-                                            color: '#f5f5f5',
-                                            background: 'rgba(0,0,0,.98)',
-                                            border: '1px solid #1976d2',
-                                        } 
-                                    }} 
-                                    variant="outlined" 
-                                    onClick={handleToggleArpeggiator} 
-                                    endIcon={<AnimationIcon />}>
-                                        ARP
-                                </Button>
-
-                                <Button 
-                                    sx={{                     
-                                        color: 'rgba(0,0,0,.98)',
-                                        background: 'rgba(158, 210, 162, 1)', 
-                                        position: 'absolute', 
-                                        border: '0.5px solid #b2b2b2',
-                                        left: '0px', 
-                                        minWidth: '104px', 
-                                        marginLeft: '12px', 
-                                        top: '364px',
-                                        backgroundColor: stkArpeggiatorOn ? "#1976d2" : 'rgba(158, 210, 162, 1)', 
-                                        maxHeight: '40px',
-                                        '&:hover': {
-                                            color: '#f5f5f5',
-                                            background: 'rgba(0,0,0,.98)',
-                                            border: '1px solid #1976d2',
-                                        } 
-                                    }} 
-                                    variant="outlined" 
-                                    onClick={handleToggleStkArpeggiator} 
-                                    endIcon={<AnimationIcon />}>
-                                        S-ARP
-                                </Button>
-
-
-
-                            <ControlPopup
-                                bpm={bpm}
-                                handleChangeBPM={handleChangeBPM}
-                                handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                                beatsNumerator={beatsNumerator}
-                                beatsDenominator={beatsDenominator}
-                                handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                                submitMingus={submitMingus}
-                                audioKey={audioKey}
-                                octave={octave}
-                                audioScale={audioScale}
-                                audioChord={audioChord}
-                                handleChangeChord={handleChangeChord}
-                                handleChangeScale={handleChangeScale}
-                                handleShowFX={handleShowFX}
-                                showFX={showFX}
-                                showBPM={showBPM}
-                                handleShowBPM={handleShowBPM}
-                                // uploadedFilesCodeString={uploadedFilesCodeString.current} 
-                                // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
-                                filesToProcess={filesToProcess.current}
-                            />
-                            <ToggleFXView 
-                                stkCount={stkFX.current.length}
-                                fxCount={checkedFXList.current.length}
-                                handleReturnToSynth={handleReturnToSynth} />
-                        </Box>
                     </Box>
-                )}
-                <Box sx={{position:"absolute", left: 0, bottom: 0, color: "red", fontFamily: "Menlo", height: "50%", width: "80px"}}>
-                    <>{currentNotesDownDisplay.current}</>
-                    <>{currentNotesKeyValDownDisplay.current}</>
-                    {/* <Box>{currentVirtualKeyNotesDownDisplay.length > 1 && [currentVirtualKeyNotesDownDisplay].map((i: any) => {
-          <Box>{i}</Box>
-                    })}</Box> */}
+    
+            
+    {/* BABYLON LAYER */}
+                            <Box sx={{
+                                boxSizing: 'border-box', 
+                                width: window.innerWidth, 
+                                height: window.innerHeight, 
+                                display: !showFX ? "" : "hidden"}}>
+                                <BabylonLayer
+                                    game={babylonGame.current}
+                                        handleUpdateSliderVal={handleUpdateSliderVal}
+                                        fxKnobsCount={fxKnobsCount}
+                                        needsUpdate={needsUpdate}
+                                        handleResetNeedsUpdate={() => setNeedsUpdate(false)}
+                                        // effects={moogGrandmotherEffects.current}
+                                        effects={currentFX.current}
+                                        visibleFXKnobs={visibleFXKnobs.current}
+                                        chuckUpdateNeeded={chuckUpdateNeeded}
+                                        handleTurnKnob={handleTurnKnob}
+                                        runChuck={runChuck}
+                                        chuckHook={chuckHook}
+                                        hasHexKeys={hasHexKeys.current}
+                                        // formats={formats}
+                                    showFX={{showFX}}
+                                    programIsOn={programIsOn}
+                                    microTonalArr={microTonalLetters}
+                                    updateHasHexKeys={updateHasHexkeys}
+                                />
+                            </Box>
+                    {programIsOn && (
+                            <Box sx={{position: "absolute", top: "50px"}}>
+
+    {/* PLAY CHUCK */}
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                {
+                                    showBPM && (
+                                    <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
+                                        <BPMModule 
+                                            bpm={bpm} 
+                                            handleChangeBPM={handleChangeBPM}
+                                            beatsNumerator={beatsNumerator}
+                                            beatsDenominator={beatsDenominator}
+                                            handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                            handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                        />
+                                    </Box>)
+                                }
+
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                                        {chuckHook && (
+                                            <Button 
+                                                style={{ 
+                                                    background: 'rbga(0,0,0,0.8)', 
+                                                    minWidth: '208px', 
+                                                    color: 'rgba(0,0,0,1)',
+                                                    marginLeft: '0px'      
+                                                }} 
+                                                sx={{ 
+                                                    minWidth: '208px', 
+                                                    opacity: '0.8',
+                                                    paddingLeft: '24px', 
+                                                    maxHeight: '40px',
+                                                    border: '0.5px solid #b2b2b2',
+                                                    '&:hover': {
+                                                        color: '#f5f5f5 !important',
+                                                        background: 'rgba(0,0,0,.98)',
+                                                        border: 'solid 1px #1976d2',
+                                                        }
+                                                }} 
+                                                variant="contained" 
+                                                id="runChuckButton" 
+                                                onClick={runChuck} 
+                                                endIcon={
+                                                    <PlayCircleFilledIcon />
+                                                }>
+                                                    Play
+                                            </Button>
+                                        )}
+                                    </Box>
+                                </Box>
+
+    {/* STOP CHUCK */}
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                                        {chuckHook && (
+                                            <Button 
+                                                style={{ 
+                                                    // background: 'rbga(0,0,0,.91)', 
+                                                    minWidth: '208px',
+                                                    color: 'rgba(0,0,0,1)',
+                                                    marginLeft: '0px' 
+                                                }} 
+                                                sx={{ 
+                                                    minWidth: '208px', 
+                                                    paddingLeft: '24px',
+                                                    opacity: '0.8', 
+                                                    maxHeight: '40px', 
+                                                    marginLeft: '8px', 
+                                                    border: '0.5px solid #b2b2b2',
+                                                    '&:hover': {
+                                                        color: '#f5f5f5 !important',
+                                                        background: 'rgba(0,0,0,.98)',
+                                                        border: '1px solid #1976d2',
+                                                    }
+                                                }} 
+                                                variant="contained" 
+                                                id="stopChuckButton" 
+                                                onClick={stopChuckInstance} 
+                                                endIcon={<StopCircleIcon />}>
+                                                Stop
+                                            </Button>
+                                        )}
+                                    </Box>
+                                </Box>
+
+
+    {/* BPM */}
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+
+                                        <Button 
+                                            sx={{                     
+                                                color: 'rgba(0,0,0,.98)',
+                                                backgroundColor: 'rgba(147, 206, 214, 0.8)', 
+                                                background: 'rbga(0,0,0,.0.8)', 
+                                                position: 'relative', 
+                                                border: '0.5px solid #b2b2b2',
+                                                left: '0px', 
+                                                minWidth: '208px', 
+                                                marginLeft: '0px', 
+                                                // top: '232px', 
+                                                maxHeight: '40px',
+                                                display: programIsOn ? "flex" : "none",
+                                                '&:hover': {
+                                                    color: '#f5f5f5',
+                                                    background: 'rgba(0,0,0,.98)',
+                                                    border: '1px solid #1976d2',
+                                                } 
+                                            }}
+                                            className="ui_SynthLayerButton"
+                                            variant="outlined" 
+                                            onClick={handleShowBPM} 
+                                            endIcon={<AccessTimeIcon />}>
+                                            BPM
+                                        </Button>
+                                    </Box>
+                            
+
+        {/* PATTERN CONTROL */}
+                                    <Box sx={{display: "flex", flexDirection: "column"}}>
+                                        <Box sx={{display: "flex", flexDirection: "row"}}>
+                                            <ControlPopup
+                                                bpm={bpm}
+                                                handleChangeBPM={handleChangeBPM}
+                                                handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                                beatsNumerator={beatsNumerator}
+                                                beatsDenominator={beatsDenominator}
+                                                handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                                submitMingus={submitMingus}
+                                                audioKey={audioKey}
+                                                octave={octave}
+                                                audioScale={audioScale}
+                                                audioChord={audioChord}
+                                                handleChangeChord={handleChangeChord}
+                                                handleChangeScale={handleChangeScale}
+                                                handleShowFX={handleShowFX}
+                                                showFX={showFX}
+                                                showBPM={showBPM}
+                                                handleShowBPM={handleShowBPM}
+                                                // uploadedFilesCodeString={uploadedFilesCodeString.current} 
+                                                // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
+                                                filesToProcess={filesToProcess.current}
+                                                programIsOn={programIsOn}
+                                            />
+                                        </Box>
+                                    </Box>
+                                </Box>
+
+    {/* ANALYSIS */}
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                                        {chuckHook && (<Button 
+                                            style={{ 
+                                                minWidth: '208px',
+                                                color: 'rgba(0,0,0,0.8)', 
+                                                background: 'rbga(0,0,0,.7)' 
+                                            }} 
+                                            sx={{ 
+                                                minWidth: '76px', 
+                                                paddingLeft: '24px', 
+                                                maxHeight: '40px', 
+                                                marginLeft: '0px',
+                                                border: '0.5px solid #b2b2b2',
+                                                backgroundColor: 'rgba(147, 206, 214, 0.8)', 
+                                                background: 'rbga(0,0,0,.7)', 
+                                                '&:hover': {
+                                                    color: '#f5f5f5 !important',
+                                                    background: 'rgba(0,0,0,.98)',
+                                                    border: '1px solid #1976d2',
+                                                } 
+                                            }} 
+                                            variant="contained" 
+                                            id="analyzeChuckButton" 
+                                            onClick={closeAnalysisPopup} 
+                                            endIcon={<AutoGraphIcon />}>
+                                            Analysis
+                                        </Button>)}
+                                    </Box>
+                                </Box>
+
+
+    {/* STK */}
+                                <Box sx={{display: "flex", flexDirection: "row"}}>
+                                    <Button 
+                                        sx={{                     
+                                            color: 'rgba(0,0,0,.98)',
+                                            backgroundColor: 'rgba(158, 210, 162, 0.8)', 
+                                            background: 'rbga(0,0,0,.7)', 
+                                            position: 'relative', 
+                                            border: '0.5px solid #b2b2b2',
+                                            marginLeft: '0px', 
+                                            minWidth: '208px', 
+                                            // marginLeft: '12px', 
+                                            // top: '276px', 
+                                            maxHeight: '40px',
+                                            display: programIsOn ? "flex" : "none",
+                                            '&:hover': {
+                                                color: '#f5f5f5',
+                                                background: 'rgba(0,0,0,.98)',
+                                                border: '1px solid #1976d2',
+                                            } 
+                                        }} 
+                                        variant="outlined" 
+                                        onClick={handleShowSTK} 
+                                        className="ui_SynthLayerButton"
+                                        endIcon={<DeblurIcon />}>
+                                            Instruments
+                                    </Button>
+                                </Box>
+
+
+    {/* EFFECTS */}
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                                        <FXRouting
+                                            key={fXChainKey + fxRadioValue}
+                                            fxChainNeedsUpdate={fxChainNeedsUpdate}
+                                            fxData={allFxPersistent.current}
+                                            width={size.width}
+                                            height={size.height}
+                                            handleShowFX={handleShowFX}
+                                            showFX={showFX}
+                                            fxValsRef={fxFX.current}
+                                            handleFXGroupChange={handleFXGroupChange}
+                                            updateCheckedFXList={updateCheckedFXList}
+                                            fxGroupsArrayList={fxGroupOptions}
+                                            checkedFXList={checkedFXList.current}
+                                            fxFX={fxFX.current}
+                                            handleClickName={handleClickName}
+                                            setClickFXChain={setClickFXChain}
+                                            clickFXChain={clickFXChain}
+                                            updateFXInputRadio={updateFXInputRadio}
+                                            fxRadioValue={fxRadioValue}
+                                            updateStkKnobs={updateStkKnobs}
+                                            setStkValues={setStkValues}
+                                            stkValues={stkValues}
+                                            updateCurrentFXScreen={updateCurrentFXScreen}
+                                            currentScreen={currentScreen.current}
+                                            playUploadedFile={playUploadedFile}
+                                            lastFileUpload={lastFileUpload}
+                                            updateFileUploads={updateFileUploads}
+                                            babylonGame={babylonGame.current}
+                                            programIsOn={programIsOn}
+                                        />
+                                    </Box>
+                                </Box>
+    {/* FILES */}
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                    
+                                        <FileManager
+                                            onSubmit={onSubmit}
+                                            handleSubmit={handleSubmit}
+                                            register={register}
+                                            watch={watch}
+                                            beginProgram={beginProgram}
+                                            programIsOn={programIsOn}
+                                        />     
+                                    </Box>
+                                </Box> 
+
+    {/* RECORD */}
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                                        {chuckHook && (
+                                            <Button 
+                                                style={{ 
+                                                    color: 'rgba(0,0,0,1)', 
+                                                    background: 'rbga(0,0,0,.91)' 
+                                                }} 
+                                                sx={{ 
+                                                    backgroundColor: 'rgba(232, 82, 82, 0.8)', 
+                                                    background: 'rgba(232, 82,82, 0.8)', 
+                                                    minWidth: '208px', 
+                                                    marginLeft: '0px', 
+                                                    maxHeight: '40px', 
+                                                    border: '0.5px solid #b2b2b2',
+                                                    '&:hover': {
+                                                        color: '#f5f5f5 !important',
+                                                        background: 'rgba(0,0,0,.98)',
+                                                        border: '1px solid #1976d2',
+                                                    }
+                                                }} 
+                                                variant="contained" 
+                                                id="micStartRecordButton" 
+                                                onClick={chuckMicButton} 
+                                                endIcon={<KeyboardVoiceIcon />}>
+                                                    Record
+                                                </Button>
+                                            )
+                                        }
+                                    </Box>
+                                </Box>
+
+
+
+
+
+
+    {/* TOGGLE KNOBS VIEW */}
+
+                                <Box sx={{display: "flex", flexDirection: "column"}}>
+                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                                        <ToggleFXView 
+                                            stkCount={stkFX.current.length}
+                                            fxCount={checkedFXList.current.length}
+                                            handleReturnToSynth={handleReturnToSynth} 
+                                            programIsOn={programIsOn}
+                                        />
+                                    </Box>
+                                </Box>
+
+    {/* TOGGLE KEYBOARD */}
+
+                                {/* <Box> */}
+                                    {/* <Button
+                                        sx={{ 
+                                            color: 'rgba(0,0,0,.98)',
+                                            backgroundColor: 'rgba(255, 255, 255, 0.7)', 
+                                            // background: 'rgba(232, 82,82, 1)', 
+                                            // background: 'rgba(147, 206, 214, 1)', 
+                                            minWidth: '208px', 
+                                            marginLeft: '0px', 
+                                            maxHeight: '40px', 
+                                            border: '0.5px solid #b2b2b2',
+                                            display: programIsOn ? "flex" : "none",
+                                            '&:hover': {
+                                                color: '#f5f5f5 !important',
+                                                background: 'rgba(0,0,0,.98)',
+                                                border: '1px solid #1976d2',
+                                            }
+                                        }} 
+                                        variant="outlined" 
+                                        className="ui_SynthLayerButton"
+                                        onClick={toggleKeyboard}
+                                    >Toggle Keyboard</Button> */}
+                                {/* </Box> */}
+
+                            </Box> )}
+                    </Box>
                 </Box>
-                <Box id="fxViewController" sx={{
+                )}
+
+                <Box
+                    sx={{
+                        position: "absolute",
+                        bottom: "0px",
+                        right: "0px",
+                    }}
+                // width={window.innerWidth} height={window.innerHeight/4}
+                >
+         
+                            <Keyboard 
+                                chuckHook={chuckHook}
+                                keysVisible={keysVisible}
+                                keysReady={keysReady}
+                                organizeRows={organizeRows}
+                                organizeLocalStorageRows={organizeLocalStorageRows}
+                                playChuckNote={playChuckNote}
+                                compare={compare}
+                                // keyWid={vizWid}
+                                keyWid={`100vw`}
+                            />
+
+                        </Box> 
+                {/* <Box id="fxViewController" sx={{
                         position: "absolute",
                         left: "0",
                         bottom: "0",
@@ -4720,29 +5853,30 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                         <Button onClick={handleUpdateFXView}>Audio In</Button>
                         {allFxPersistent.current.AudioIn.map((i: any) => <Button key={`updateFXView_AudioIn_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
                     </Box>
-                </Box>
+                </Box> */}
                 <Box
                     sx={{position: "absolute", display: "flex", color:"white", bottom: 0, left: 0}}
                 >
+                    
                     <CheckedFXRadioBtns 
                         handleCheckedFXToShow={handleCheckedFXToShow} 
                         checkedEffectsListHook={checkedEffectsListHook}>
                     </CheckedFXRadioBtns>
                 </Box>  
                 <Box sx={{ position: "absolute", color: "white", top: "12px", right: "12px"}}>
-                    {
+                    {/* {
                         showBPM && (
-                    <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
-                        <BPMModule 
-                            bpm={bpm} 
-                            handleChangeBPM={handleChangeBPM}
-                            beatsNumerator={beatsNumerator}
-                            beatsDenominator={beatsDenominator}
-                            handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                            handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                        />
-                    </Box>)
-                    }
+                            <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
+                                <BPMModule 
+                                    bpm={bpm} 
+                                    handleChangeBPM={handleChangeBPM}
+                                    beatsNumerator={beatsNumerator}
+                                    beatsDenominator={beatsDenominator}
+                                    handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                    handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                />
+                            </Box>)
+                    } */}
                     {
                         showSTKManager && (
                             <STKManagerDropdown
@@ -4752,20 +5886,6 @@ for (0 => int i; i < voice.cap() - 1; i++) {
                             ></STKManagerDropdown>
                         )
                     }
-                    <Box sx={{position: "relative", display: "flex", flexDirection: "column", textAlign: "center"}}>
-                        <Box sx={{position: "relative", display: "flex", flexDirection: "row", textAlign: "center", justifyContent: "center"}}>
-                            <Button sx={{color: hold === 1 ? "green" : "blue", position: "relative", display: "flex", zIndex: "9999"}} onClick={() => handleUpdateHold()}>HOLD</Button>
-                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                {currentNumerCountColToDisplay} 
-                            </Typography>
-                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                {currentDenomCount}
-                            </Typography>
-                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                {currentPatternCount}
-                            </Typography>
-                        </Box>
-                    </Box>
                     <Box sx={{
                         backgroundColor: 'rgba(30,34,26,0.96)', 
                         width:'100%', 

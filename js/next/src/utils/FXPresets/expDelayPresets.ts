@@ -28,7 +28,7 @@ const expDelayPresets = {
         max: 2.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun",
+        type: "float_needsFun_expDelay",
         group: 1,
     },
     delay: {
@@ -39,7 +39,7 @@ const expDelayPresets = {
         max: 7,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "dur_needsFun",
+        type: "dur_needsFun_expDelay",
         group: 1,
     },
     durcurve: {
@@ -50,7 +50,7 @@ const expDelayPresets = {
         max: 2.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun",
+        type: "float_needsFun_expDelay",
         group: 1,
     },
     // max: {
@@ -71,7 +71,7 @@ const expDelayPresets = {
         max: 1.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun",
+        type: "float_needsFun_expDelay",
         group: 1,
     },
     reps: {
@@ -82,7 +82,7 @@ const expDelayPresets = {
         max: 32,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_expDelay",
         group: 1,
     },
     gain: {
@@ -93,7 +93,7 @@ const expDelayPresets = {
         max: 12.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun",
+        type: "float_needsFun_expDelay",
         group: 1,
     },
 };

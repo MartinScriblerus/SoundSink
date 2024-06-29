@@ -9,7 +9,7 @@ import { Noto_Sans } from 'next/font/google'
 const notoSans = Noto_Sans({ subsets: ['latin'] })
 
 
-const BPMModule = (props: BPMModule) => {
+const BPMModuleFun = (props: BPMModule) => {
     const { 
         bpm, 
         handleChangeBPM, 
@@ -31,8 +31,8 @@ const BPMModule = (props: BPMModule) => {
                 flexDirection: 'row',
                 padding: '12px',
                 justifyContent: 'center',
-                minWidth: '30%',
-                minHeight: '24vh'
+                width: '108%',
+                height: '100%'
             }}>
                 <FormControl
                     sx={{
@@ -184,4 +184,4 @@ const BPMModule = (props: BPMModule) => {
         </ThemeProvider>
     )
 }
-export default BPMModule;
+export default BPMModuleFun;

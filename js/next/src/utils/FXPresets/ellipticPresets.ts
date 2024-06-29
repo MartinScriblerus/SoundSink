@@ -28,7 +28,7 @@ const ellipticPresets = {
         max: 1200,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_elliptic",
         group: 5,
     },
     midFilter: {
@@ -39,7 +39,7 @@ const ellipticPresets = {
         max: 1200,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_elliptic",
         group: 5,
     },
     highFilter: {
@@ -50,7 +50,7 @@ const ellipticPresets = {
         max: 1200,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_elliptic",
         group: 5,
     },
     atten: {
@@ -61,7 +61,7 @@ const ellipticPresets = {
         max: 100.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun",
+        type: "float_needsFun_elliptic",
         group: 5,
     },
     ripple: {
@@ -72,7 +72,7 @@ const ellipticPresets = {
         max: 12.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun",
+        type: "float_needsFun_elliptic",
         group: 5,
     },
     filterMode: {
@@ -83,7 +83,7 @@ const ellipticPresets = {
         max: 2,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_elliptic",
         group: 5,
     }
 };

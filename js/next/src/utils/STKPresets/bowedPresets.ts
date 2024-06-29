@@ -61,7 +61,7 @@ const bowedPresets = {
         label: "Gain",
         value: 3,
         min: 0,
-        max: 6,
+        max: 12,
         screenInterface: "knob",
         fxType: "stk",
     },

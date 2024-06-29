@@ -28,7 +28,7 @@ const spectaclePresets = {
         max: 8,
         fxType: "fx",
         screenInterface: "intspinner", // power of two exponent
-        type: "int_needsFun",
+        type: "int_needsFun_spectacle",
         group: 7,
     },
     delay: {
@@ -39,7 +39,7 @@ const spectaclePresets = {
         max: 7,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "dur_needsFun",
+        type: "dur_needsFun_spectacle",
         group: 7,
     },
     eq: { 
@@ -50,7 +50,7 @@ const spectaclePresets = {
         max: 85,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_spectacle",
         group: 7,
     },
     feedback: {
@@ -61,7 +61,7 @@ const spectaclePresets = {
         max: 1,
         fxType: "fx",
         screenInterface: "knob", // need a knob for -1 0 1
-        type: "float_needsFun",
+        type: "float_needsFun_spectacle",
         group: 7,
     },
     fftlen: {
@@ -72,7 +72,7 @@ const spectaclePresets = {
         max: 8, // this will be exponent for powers of 2
         fxType: "fx",
         screenInterface: "intspinner", // should this be a float knob?
-        type: "int_needsFun",
+        type: "int_needsFun_spectacle",
         group: 7,
     },
     freqMax: { 
@@ -83,7 +83,7 @@ const spectaclePresets = {
         max: 5000,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_spectacle",
         group: 7,
     },
     freqMin: {
@@ -94,7 +94,7 @@ const spectaclePresets = {
         max: 600,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_spectacle",
         group: 7,
     },
     mix: { // # of comb filters (default 5)
@@ -105,7 +105,7 @@ const spectaclePresets = {
         max: 1.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun",
+        type: "float_needsFun_spectacle",
         group: 7,
     },
     overlap: { // # of comb filters (default 5)
@@ -116,7 +116,7 @@ const spectaclePresets = {
         max: 6,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun",
+        type: "int_needsFun_spectacle",
         group: 7,
     },
    
@@ -130,7 +130,7 @@ const spectaclePresets = {
         max: 8,
         fxType: "fx",
         screenInterface: "intspinner",
-        type: "int_needsFun_spectacleTable",
+        type: "int_needsFun_spectacleTable_spectacle",
         group: 7,
     },
 };

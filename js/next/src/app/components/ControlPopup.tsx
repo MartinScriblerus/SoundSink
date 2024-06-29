@@ -34,7 +34,10 @@ interface ControlProps {
     showBPM: boolean;
     handleShowBPM: (e: any) => void;
     filesToProcess: string[];
+    programIsOn: boolean;
 }
+
+
 
 export default function ControlPopup(props: ControlProps) {
   const {
@@ -56,6 +59,7 @@ export default function ControlPopup(props: ControlProps) {
     showBPM,
     handleShowBPM,
     filesToProcess,
+    programIsOn,
   } = props;
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
@@ -82,27 +86,30 @@ export default function ControlPopup(props: ControlProps) {
   const id = open ? 'simple-popup' : undefined;
 
   return (
-    <Box sx={{height: '100%', width: '100%', bottom: '60px'}}>
+    <Box sx={{height: '100%', width: '100%'}}>
       <Button 
         sx={{
           borderColor: 'rgba(228,225,209,1)', 
-          position: 'absolute', 
-          minWidth: '104px',
+          position: 'relative', 
+          minWidth: '208px',
           color: 'rgba(0,0,0,.98)',
-          backgroundColor: 'rgba(158, 210, 162, 1)',
-          left: '12px', 
-          top: '100px',
+          backgroundColor: 'rgba(147, 206, 214, 0.8)', 
+          background: 'rbga(0,0,0,.0.8)', 
+          marginLeft: '0px', 
+          // top: '100px',
+          display: programIsOn ? "flex" : "none",
           '&:hover': {
             color: '#f5f5f5',
             background: 'rgba(0,0,0,.98)',
           }
         }} 
         aria-describedby={id} 
+        className="ui_SynthLayerButton"
         variant="outlined" 
         onClick={handleClick} 
         endIcon={<CalendarViewMonthIcon />}
       >
-        Pat
+        Pattern
       </Button>
 
       <BasePopup style={{display: "flex", transform: 'translate(0px,0px)', flexDirection: "column", left: '94px', right: '94px', top: '56px', position: 'absolute'}} width={window.innerWidth}  id={id} open={open} anchor={anchor}>
@@ -110,26 +117,26 @@ export default function ControlPopup(props: ControlProps) {
 
           <Box sx={{display: "flex", flexDirection: "row", width: "100%"}}>
             <>    
-                  <Box 
-                    sx={{
-                      backgroundColor: 'rgba(30,34,26,0.96)', 
-                      width:'100%', 
-                      display:'flex', 
-                      flexDirection: 'column',
-                      minHeight:'100%',
-                      justifyContent: 'center',
-                      alignItems: 'center'
-                    }}>
-                      <MingusPopup 
-                        submitMingus={submitMingus}
-                        audioKey={audioKey}
-                        octave={octave}
-                        audioScale={audioScale}
-                        audioChord={audioChord}
-                        handleChangeScale={handleChangeScale}
-                        handleChangeChord={handleChangeChord}
-                    />
-                  </Box>
+                <Box 
+                  sx={{
+                    backgroundColor: 'rgba(30,34,26,0.96)', 
+                    width:'100%', 
+                    display:'flex', 
+                    flexDirection: 'column',
+                    minHeight:'100%',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}>
+                    <MingusPopup 
+                      submitMingus={submitMingus}
+                      audioKey={audioKey}
+                      octave={octave}
+                      audioScale={audioScale}
+                      audioChord={audioChord}
+                      handleChangeScale={handleChangeScale}
+                      handleChangeChord={handleChangeChord}
+                  />
+                </Box>
                 {/* } */}
                 {filesToProcess.length > 0 && <Button sx={{
                   color: 'rgba(228,225,209,1)', 

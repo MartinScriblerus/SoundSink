@@ -63,11 +63,9 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
   };
 
   const handleClickNameTriggerOpenFX = (e: any) => {
-    console.log('wtf e OPEN FX?? ', e.target)
     handleClickName(e.target.id.split('_')[0], 'openfx');
   }
   const handleClickNameTriggerClose = (e: any) => {
-     console.log('wtf e TRIGGER CLOSE? ', e.target.id)
     handleClickName(e.target.id.split('_')[0], 'remove');
   }
   const handleSwitchFX = (id: any) => {
@@ -189,7 +187,6 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
     if (typeof yStart === "undefined" || typeof yEnd === "undefined") {
       return;
     }
-    console.log('wtf i???? ', i);
     return (
       <path
         // key={i}

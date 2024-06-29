@@ -3,7 +3,7 @@ export const virtualKeyMapping = (rootNote: number, msgDownOrUp: number) => {
     return `
     ${msgDownOrUp} => int msgDownOrUp;
 
-    <<< "VIRTUALKEYUPDATE_", msgDownOrUp, msg.key >>>;
+    <<< "VIRTUALKEYUPDATE_", msgDownOrUp, msg.key, msg.which >>>;
 
     if ( msg.which == 9 ) {
         if (msgDownOrUp == 0) {
@@ -12,6 +12,15 @@ export const virtualKeyMapping = (rootNote: number, msgDownOrUp: number) => {
             ${0} => oCp.playNotes;
         }
     }
+
+    if ( msg.which == 48 ) {
+        if (msgDownOrUp == 0) {
+            <<< "DID HIT 48 DOWN" >>>;
+        } else if (msgDownOrUp == 1) {
+            <<< "DID HIT 48 UP" >>>;
+        }
+    }
+
 
     if ( msg.which == 49 ) {
         if (msgDownOrUp == 0) {
@@ -253,7 +262,9 @@ export const virtualKeyMapping = (rootNote: number, msgDownOrUp: number) => {
             <<< "GOT L DOWN! ", ${33} >>>;
         }
     }
-
+    else {
+        <<< "MSG WHICH IN ELSE IS ", msg.which >>>;
+    }
 
 
 

@@ -11,24 +11,27 @@ type Props = {
     stkCount: number;
     fxCount: number;
     handleReturnToSynth: () => void;
+    programIsOn: boolean;
 };
 
-const ToggleFXView = ({stkCount, fxCount, handleReturnToSynth}: Props) => {
+const ToggleFXView = ({stkCount, fxCount, handleReturnToSynth, programIsOn}: Props) => {
 
     const stkCountHandler = stkCount ? stkCount : 0;
     const fxCountHandler = fxCount? fxCount : 0;
 
     return (
-        <Stack direction="row" spacing={2} style={{
-            position:"absolute", 
-            left: "12px", 
-            top: "144px"}}>
+        // <Stack direction="row" spacing={2} style={{
+        //     position:"relative", 
+        //     left: "12px", 
+        //     top: "0px"}}>
             <Button 
                 sx={{
-                    minWidth: '104px', 
+                    minWidth: '208px', 
                     color: 'rgba(0,0,0,.98)',
-                    background: 'rgba(147, 206, 214, 1)',
+                    backgroundColor: 'rgba(219, 230, 161, 0.8)', 
                     border: '0.5px solid #b2b2b2',
+                    display: programIsOn ? "flex" : "none",
+                    marginLeft: '0px',
                     '&:hover': {
                         color: '#f5f5f5',
                         background: 'rgba(0,0,0,.98)',
@@ -39,9 +42,9 @@ const ToggleFXView = ({stkCount, fxCount, handleReturnToSynth}: Props) => {
                 onClick={handleReturnToSynth} 
                 variant="outlined" 
                 endIcon={<PianoIcon />}>
-                {/* FX View */}Synth
+                {/* FX View */}Toggle View
             </Button>
-        </Stack>
+    //     </Stack>
     );
 };
 export default ToggleFXView;

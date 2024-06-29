@@ -1,10 +1,10 @@
-const nCol = 16;
-const nRow = 4;
-const alphabet: Array<any> = [];
+const nCol = 4;
+const nRow = 1;
+const patternarr: Array<any> = [];
 let counter = 0;
-Array.from(Array(64)).forEach(()=>{
+Array.from(Array(7)).forEach(()=>{
   counter += 1;
-  alphabet.push(counter);
+  patternarr.push(counter);
 });
 
 
@@ -15,9 +15,9 @@ let heatmapData: HeatmapData = [];
 for (let x = 0; x < nCol; x++) {
   for (let y = 0; y < nRow; y++) {
     heatmapData.push({
-      x: alphabet[x],
-      y: alphabet[y],
-      value: x % 4 === 2 ? 0 : y * (x % 4),
+      x: patternarr[x],
+      y: patternarr[y],
+      value: x % 2 === 0 ? 0 : x,
     });
   }
 }

@@ -67,7 +67,7 @@ const delayPresets = {
         max: 1.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun_delay",
+        type: "float_needsFun_delay_",
         group: 1,
     },
     b0: {
@@ -78,7 +78,7 @@ const delayPresets = {
         max: 1.0,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun_delay",
+        type: "float_needsFun_delay_",
         group: 1,
     },
     b1: {
@@ -89,7 +89,7 @@ const delayPresets = {
         max: 1,
         fxType: "fx",
         screenInterface: "knob",
-        type: "float_needsFun_delay",
+        type: "float_needsFun_delay_",
         group: 1,
     },
 };

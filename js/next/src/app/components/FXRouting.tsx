@@ -69,6 +69,7 @@ interface Props {
   lastFileUpload: string;
   updateFileUploads: (e: any) => void;
   babylonGame: any;
+  programIsOn: boolean;
 }
 
 export default function FXRouting(props: Props) {
@@ -98,7 +99,8 @@ export default function FXRouting(props: Props) {
     playUploadedFile,
     lastFileUpload,
     updateFileUploads,
-    babylonGame
+    babylonGame,
+    programIsOn
   } = props;
 
   // const [visibleFXCols, setVisibleFXCols] = useState<number>(0);
@@ -176,17 +178,36 @@ export default function FXRouting(props: Props) {
 
 // console.log("links ref is broken! ", linksRef.current);
   return (
-    <Box sx={{
-      background: "black", 
-      // width: "100vw", 
-      position: "absolute", 
+    <>
+          {
+        showFX &&
+        <FXCheckboxLabels 
+            fxValsRef={fxFX} 
+            handleFXGroupChange={handleFXGroupChange}
+            updateCheckedFXList={updateCheckedFXList} 
+            fxGroupsArrayList={fxGroupsArrayList} 
+            checkedFXList={checkedFXList}
+        />
+      }
+      <Box sx={{
+      // background: "green", 
+      display: "flex",
+      flexDirection: "row",
+      position: "relative", 
       height: "100%",
+      top: '0px',
+      width: "10%",
       // zIndex: showFX ? 9999 : -1
     }}>
-      <Box style={{position: 'absolute', top: '56px', zIndex: 1200}}>
-        <ShowFXView handleShowFX={handleShowFX}/>
-      </Box>
-      {showFX && <Box
+
+
+        <ShowFXView 
+          programIsOn={programIsOn}
+          handleShowFX={handleShowFX}
+        />
+  
+      {showFX && 
+      <Box
         key={`arcDiagramOuterWrapper_${Object.values(linksRef.current).map((l:any) => l.source + "_")}`}
         sx={{
           display: 'flex',
@@ -224,7 +245,7 @@ export default function FXRouting(props: Props) {
             lastFileUpload={lastFileUpload}
             // updateFileUploads={updateFileUploads}
           />
-          <Box 
+          {/* <Box 
             // key={`${fxRadioValue}_arcDiagramInnerWrapper`} 
             sx={{
               display: 'flex', 
@@ -238,8 +259,8 @@ export default function FXRouting(props: Props) {
               // borderRight: '1px solid rgba(147, 206, 214, 1)',
               borderLeft: '1px solid rgba(147, 206, 214, 1)'
             }}
-          > 
-            <ArcDiagram 
+          >  */}
+            {/* <ArcDiagram 
               // key={arcDiagramKey} 
               width={width / 3 + 48} 
               height={height - 48} 
@@ -249,12 +270,12 @@ export default function FXRouting(props: Props) {
               updateCheckedFXList={updateCheckedFXList}
               handleUpdateFXChain={handleUpdateFXChain}
 
-            />
-          </Box>
+            /> */}
+          {/* </Box> */}
         </Box>
-
+{/* <>SANITY CHECK {showFX}</> */}
           {/* <HexBin widthProp={width} heightProp={height} /> */}
-          {
+          {/* {
           showFX &&
           <FXCheckboxLabels 
               fxValsRef={fxFX} 
@@ -263,9 +284,10 @@ export default function FXRouting(props: Props) {
               fxGroupsArrayList={fxGroupsArrayList} 
               checkedFXList={checkedFXList}
           />
-      }
+      } */}
       </Box>}
-    </Box>
+      </Box>
+    </>
   );
 }
 

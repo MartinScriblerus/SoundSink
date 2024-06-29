@@ -24,9 +24,14 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                     alignItems:'right', 
                     flexDirection:'row',
                     width:'100%',
-                    overflow: 'hidden'
+                    // width: '400px',
+                    overflow: 'hidden',
+                    outline: 'none',
+                    height: '32px',
+                    // height: '48px',
+                    // top: '32px'
                 }}>    
-                <Button 
+                {/* <Button 
                     sx={{
                         color: 'rgba(228,225,209,1)', 
                         borderColor: 'rgba(228,225,209,1)'
@@ -34,38 +39,40 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                     id='submitMingus' 
                     onClick={submitMingus}>
                         SUBMIT
-                    </Button>
+                </Button> */}
 
                 <Box sx={{
                     display: 'flex', 
                     flexDirection:'row', 
-                    width: '100%', 
-                    paddingTop: '48px',
-                    paddingRight: '12px',
-                    paddingLeft: '12px'
+                    outline: 'none',
+                    marginTop: '-12px',
+                    // top: '32px'
+                    // width: '160px', 
                 }}>
                     <Box sx={{
-                        width: '100%',
-                        paddingRight: '12px',
-                        paddingLeft: '12px'
+                        display: 'flex', 
+                        flexDirection:'row', 
+                        // width: '160px',
+                        paddingRight: '6px',
+                        paddingLeft: '6px'
                     }}>
                         <FormControl 
                             sx={{color:'rgba(228,225,209,1)'}}
                             fullWidth>
-                            <InputLabel
+                            {/* <InputLabel
                                 id={"audioKey-simple-select-label"} 
                                 sx={{ 
-                                    minWidth: '2rem', 
+                                    minWidth: '80px', 
                                     color: 'white !important', 
                                     fontFamily: 'text.primary'
                                 }}
                             >
                                 Key
-                            </InputLabel>
+                            </InputLabel> */}
                             <Select
                                 sx={{
                                     color: 'white', 
-                                    minWidth: '2rem', 
+                                    minWidth: '80px', 
                                     fontWeight: 'bold', 
                                     fontSize: MIDDLE_FONT_SIZE, 
                                     fontFamily: 'typography.fontFamily',
@@ -91,12 +98,25 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                             </Select>
                         </FormControl>
 
+                    </Box>
+                    <Box sx={{
+                        display: 'flex', 
+                        flexDirection:'row', 
+                        // width: '160px', 
+                        paddingRight: '6px',
+                        paddingLeft: '6px'
+                    }}>
                         <FormControl 
                             sx={{color:'rgba(228,225,209,1)'}}
                             fullWidth>
-                            <InputLabel
-                                id={"octave-simple-select-label"} sx={{ minWidth: '2rem', color: 'white !important', fontFamily: 'text.primary'}}>Octave
-                            </InputLabel>
+                            {/* <InputLabel
+                                id={"octave-simple-select-label"} 
+                                sx={{ 
+                                    minWidth: '80px', 
+                                    color: 'white !important',
+                                    fontFamily: 'text.primary'}}>
+                                        Octave
+                            </InputLabel> */}
                             <Select
                                 sx={{
                                     color: 'white', 
@@ -121,20 +141,28 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                             </Select>
                         </FormControl>
                     </Box>
-                    <Box sx={{width: '100%'}}>
+                    <Box sx={{
+                        display: 'flex', 
+                        flexDirection:'row', 
+                        // width: '160px', 
+                        paddingRight: '6px',
+                        paddingLeft: '6px',
+                        outline: 'none',
+                    }}>
                         <FormControl 
-                            sx={{color:'rgba(228,225,209,1)'}}
+                            sx={{outline: 'none', color:'rgba(228,225,209,1)'}}
                             fullWidth
+                            
                         >
-                            <InputLabel
+                            {/* <InputLabel
                                 id={"scale-simple-select-label"} 
                                 sx={{ 
-                                    minWidth: '2rem', 
+                                    minWidth: '60px', 
                                     color: 'white !important', 
                                     fontFamily: 'text.primary'
                                 }}>
                                     Scale
-                            </InputLabel>
+                            </InputLabel> */}
                             <Select
                                 sx={{color: 'white', fontWeight: 'bold', fontSize: MIDDLE_FONT_SIZE}}
                                 labelId="scale-simple-select-label"
@@ -164,13 +192,25 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                                 <MenuItem value={'Fifths'}>Fifths</MenuItem>
                             </Select>
                         </FormControl>
+                    </Box>
+                    <Box sx={{
+                        display: 'flex', 
+                        flexDirection:'row', 
+                        // width: '160px', 
+                        paddingRight: '6px',
+                        paddingLeft: '6px'
+                    }}>
                         <FormControl 
                             fullWidth
                             sx={{color:'rgba(228,225,209,1)'}}
                         >
-                            <InputLabel
-                                id={"chord-simple-select-label"} sx={{ minWidth: '2rem', color: 'white !important', fontFamily: 'text.primary'}}>Chord
-                            </InputLabel>
+                            {/* <InputLabel
+                                id={"chord-simple-select-label"} sx={{ 
+                                    minWidth: '60px', 
+                                    color: 'white !important', 
+                                    fontFamily: 'text.primary'}}>
+                                        Chord
+                            </InputLabel> */}
                             <Select
                                 labelId="chord-simple-select-label"
                                 id="chord-simple-select"

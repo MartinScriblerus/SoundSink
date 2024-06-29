@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import styles from './page.module.css'
-import React, { useEffect, useState, useDeferredValue } from 'react'
+import React, { useDeferredValue } from 'react'
 import Button from '@mui/material/Button';
 import { Chuck } from 'webchuck'
 import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
@@ -82,9 +82,11 @@ interface MediaStreamAudioDestinationNode extends AudioNode {
     stream: MediaStream;
 }
 
- 
+
+
 // If loading a variable font, you don't need to specify the font weight
 const inter = Inter({ subsets: ['latin'] })
+
 
 export default async function InitializationStyle(
     // props: {preloadedFiles: any}
@@ -135,6 +137,7 @@ export default async function InitializationStyle(
     // useEffect(() => {
         // awaitNote('A4');
     // }, []);
+
 
     return (
         <ThemeProvider theme={theme}>
