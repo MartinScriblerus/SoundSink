@@ -5127,6 +5127,7 @@ export default function InitializationComponent() {
                         updateHasHexKeys={updateHasHexkeys}
                         handleFormat={handleFormat}
                         formats={formats}
+                        chuckHook={chuckHook}
                     />
                 </Box>
 

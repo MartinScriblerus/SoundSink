@@ -18,6 +18,7 @@ import { SelectChangeEvent, ToggleButton, ToggleButtonGroup } from '@mui/materia
 import PianoIcon from '@mui/icons-material/Piano';
 import HexagonIcon from '@mui/icons-material/Hexagon';
 import { useEffect } from 'react';
+import { Chuck } from 'webchuck';
 
 const pages = ['Instructions', 'Experimental'];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
@@ -38,6 +39,7 @@ export interface KeysAppBarProps {
   updateHasHexKeys: (msg: boolean) => void;
   handleFormat: any;
   formats: string[];
+  chuckHook: Chuck | undefined;
 }
 
 function ResponsiveAppBar(props: KeysAppBarProps) {
@@ -55,7 +57,8 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
     programIsOn,
     updateHasHexKeys,
     handleFormat,
-    formats
+    formats,
+    chuckHook
   } = props;
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -78,6 +81,8 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
   };
 
 
+  console.log("prog is on",  chuckHook);
+
   return (
     <AppBar position="static">
       <Container sx={{height: "48px"}} maxWidth="xl">
@@ -94,16 +99,14 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               <MenuIcon />
             </IconButton>
             
-            {/* /////TOGGLE BTNS BEGIN */}
+
+{chuckHook !== undefined && (
             <ToggleButtonGroup
               value={formats}
               onChange={handleFormat}                                                                     
               aria-label="text formatting"
               sx={{color: "#f5f5f5"}} 
             >
-              {/* <ToggleButton value="tradKey" aria-label="tradKey">
-                <PianoIcon></PianoIcon>
-              </ToggleButton> */}
               <ToggleButton sx={{color: "#f5f5f5"}} value="hexKey" aria-label="hexKey">
                 <PianoIcon sx={{color: "#f5f5f5"}} /> 
                 <>
@@ -111,7 +114,8 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 </>
               </ToggleButton>
             </ToggleButtonGroup>
-            {/* /////TOGGLE BTNS END */}
+)}
+
 
             <Menu
               id="menu-appbar"
@@ -154,15 +158,14 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 {page}
               </Button>
             ))}
-            {/* /////TOGGLE BTNS BEGIN */}
+
+          {chuckHook !== undefined && (
+
             <ToggleButtonGroup
               value={formats}
               onChange={handleFormat}                                                                     
               aria-label="text formatting"
             >
-              {/* <ToggleButton value="tradKey" aria-label="tradKey">
-                <PianoIcon></PianoIcon>
-              </ToggleButton> */}
               <ToggleButton sx={{color: "#f5f5f5"}} value="hexKey" aria-label="hexKey">
                 <PianoIcon sx={{color: "#f5f5f5"}}  /> 
                 <>
@@ -170,12 +173,13 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 </>
               </ToggleButton>
             </ToggleButtonGroup>
-            {/* /////TOGGLE BTNS END */}
+          )}
+
           </Box>
 
 
-
-
+{chuckHook !== undefined && (
+<>
           {formats && formats.length > 0 && formats.indexOf('hexKey') !== -1 && formats[0] === 'hexKey' ? (
             <Box sx={{
                 zIndex: 9999, 
@@ -200,7 +204,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               />
         
           }
-
+</>)}
 
 
           <Box sx={{ flexGrow: 0, paddingTop: '4px' }}>
