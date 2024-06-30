@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import React, {useState, useEffect, SetStateAction} from 'react';
+import React, {useState, useEffect, SetStateAction, ReactElement, useRef} from 'react';
 // import { store } from '../app/store';
 
 interface Props {
@@ -9,17 +9,58 @@ interface Props {
     // setKeyboard: React.Dispatch<SetStateAction<any>>;
     organizeRows: (rowNum: number, note: string) => Promise<void>;
     organizeLocalStorageRows: (theNote: any) => Promise<void>;
-    playChuckNote: (note:any) => any;
+    playChuckNote: (note:any, idString: string, midiHz: any, midiNote: any) => any;
     compare: (a: any, b: any) => number;
     keyWid: string;
-    // is17EqualTemperament: boolean;
+    notesAddedDetails: any;
 };
 
-const Keyboard = ({chuckHook, keysVisible, keysReady, organizeRows, organizeLocalStorageRows, playChuckNote, compare, keyWid}:Props) => {
-    console.log("CHUCK HOOK IN KEYBOARD: ", chuckHook);
+const Keyboard = ({
+    chuckHook, 
+    keysVisible, 
+    keysReady, 
+    organizeRows, 
+    organizeLocalStorageRows, 
+    playChuckNote, 
+    compare, 
+    keyWid, 
+    notesAddedDetails
+}:Props) => {
 
     const [keysToDisplay, setKeysToDisplay] = useState<any>([]);
+    const addedDetails = useRef<any>([]);
     
+    useEffect(() => {
+        (async() => {
+            const theKeys = !keysReady && await createKeys();
+            
+            if(theKeys && keysToDisplay.length < 1) {
+                setKeysToDisplay(theKeys);
+            }
+        })();
+    }, [keysVisible])
+
+    useEffect(() => {
+        if (notesAddedDetails.length > 0) {
+            addedDetails.current = notesAddedDetails;
+        } else {
+            return;
+        }
+    }, [chuckHook]);
+
+    const tryPlayChuckNote = (e: any) => {
+        console.log("HEY E! ", e.target);
+
+        const removeHyphen = e.target.id.replace('-','');
+        const convertPound_theNote = removeHyphen.replace('♯','#');
+
+        addedDetails.current && addedDetails.current.length > 0 && addedDetails.current.forEach(async (d: any, idx: number) => {
+            if (convertPound_theNote === d.name) {
+                playChuckNote(e, e.target.id, d.midiHz, d.midiNote);
+            }
+        });
+    }
+
     const createKeys = async () => {
         
         if (keysReady) {
@@ -47,7 +88,7 @@ const Keyboard = ({chuckHook, keysVisible, keysReady, organizeRows, organizeLoca
             } else {
                 
                 [`C${i}`, `C♯${i}`, `D${i}`, `D♯${i}`, `E${i}`, `F${i}`, `F♯${i}`, `G${i}`, `G♯${i}`, `A${i}`, `A♯${i}`, `B${i}`].forEach((note) => {
-                    console.log("WHAT IS NOTE? ", i, note);
+                    // console.log("WHAT IS NOTE? ", i, note);
                     organizeRows(i, note);
                 });
             }
@@ -55,30 +96,30 @@ const Keyboard = ({chuckHook, keysVisible, keysReady, organizeRows, organizeLoca
             const octave: any = i &&
 
                     
-                    <React.Fragment key={`octSpanWrapper-${i}`}>
-                        <li id={`C-${i}`} key={`C-${i}`} onClick={(e) => playChuckNote(e)} className="white">{`C${i}`} </li>
-                        <li id={`C♯-${i}`} key={`C♯-${i}`} onClick={(e) => playChuckNote(e)} className="black">{`C♯${i}`}</li>
-                        <li id={`D-${i}`} key={`D-${i}`} onClick={(e) => playChuckNote(e)} className="white offset">{`D${i}`}</li>
-                        <li id={`D♯-${i}`} key={`D♯-${i}`} onClick={(e) => playChuckNote(e)} className="black">{`D♯${i}`}</li>
-                        <li id={`E-${i}`} key={`E-${i}`} onClick={(e) => playChuckNote(e)} className="white offset half">{`E${i}`}</li>
-                        <li id={`F-${i}`} key={`F-${i}`} onClick={(e) => playChuckNote(e)} className="white">{`F${i}`}</li>
-                        <li id={`F♯-${i}`} key={`F♯-${i}`} onClick={(e) => playChuckNote(e)} className="black">{`F♯${i}`}</li>
-                        <li id={`G-${i}`} key={`G-${i}`} onClick={(e) => playChuckNote(e)} className="white offset">{`G${i}`}</li>
-                        <li id={`G♯-${i}`} key={`G♯-${i}`} onClick={(e) => playChuckNote(e)} className="black">{`G♯${i}`}</li>
-                        <li id={`A-${i + 1}`} key={`A-${i + 1}`} onClick={(e) => playChuckNote(e)} className="white offset">{`A${i + 1}`}</li>
-                        <li id={`A♯-${i + 1}`} key={`A♯-${i + 1}`} onClick={(e) => playChuckNote(e)} className="black">{`A♯${i + 1}`}</li>
-                        <li id={`B-${i + 1}`}  key={`B-${i + 1}`} onClick={(e) => playChuckNote(e)} className="white offset half">{`B${i + 1}`}</li>
+                    <span key={`octSpanWrapper-${i}`}>
+                        <li id={`C-${i}`} key={`C-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white">{`C${i}`} </li>
+                        <li id={`C♯-${i}`} key={`C♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`C♯${i}`}</li>
+                        <li id={`D-${i}`} key={`D-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`D${i}`}</li>
+                        <li id={`D♯-${i}`} key={`D♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`D♯${i}`}</li>
+                        <li id={`E-${i}`} key={`E-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset half">{`E${i}`}</li>
+                        <li id={`F-${i}`} key={`F-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white">{`F${i}`}</li>
+                        <li id={`F♯-${i}`} key={`F♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`F♯${i}`}</li>
+                        <li id={`G-${i}`} key={`G-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`G${i}`}</li>
+                        <li id={`G♯-${i}`} key={`G♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`G♯${i}`}</li>
+                        <li id={`A-${i + 1}`} key={`A-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`A${i + 1}`}</li>
+                        <li id={`A♯-${i + 1}`} key={`A♯-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`A♯${i + 1}`}</li>
+                        <li id={`B-${i + 1}`}  key={`B-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset half">{`B${i + 1}`}</li>
                     
                     
         
                     {/* </span> */}
-                </React.Fragment>
+                </span>
 
             const addBreak = <span className="break" key={`octaveBreakWrapper_${i}`}><br key={`octaveBreak_${i}`} /></span>;
-            console.log("WTF OCTAVE? ", octave);
+       
             octaves.push(octave);
             const isOdd = i % 2;
-            console.log("GETTING OCTAVE? ", octave);
+            // console.log("GETTING OCTAVE? ", octave);
             if (isOdd > 0 && window.innerWidth < 900) {
                 octaves.push(addBreak);
                 octaves.map((o: any) => {
@@ -105,18 +146,7 @@ const Keyboard = ({chuckHook, keysVisible, keysReady, organizeRows, organizeLoca
         return octaves;
     }
 
-    useEffect(() => {
-        (async() => {
-            console.log("KEYS VISIBLE IN CHILD: ", keysVisible)
-            const theKeys = !keysReady && await createKeys();
-            
-            if(theKeys && keysToDisplay.length < 1) {
-                console.log("THE KEYS ", theKeys);
-                setKeysToDisplay(theKeys);
-            }
-        })();
-    }, [keysVisible])
-
+  
     useEffect(() => {
         console.log("KEYS TO DISPLAY: ", keysToDisplay);
     }, [keysToDisplay]);
@@ -141,7 +171,6 @@ const Keyboard = ({chuckHook, keysVisible, keysReady, organizeRows, organizeLoca
                     >
                         <ul id="keyboard" key={"keyboard"} >
                             {keysToDisplay && keysToDisplay.length > 0 && keysToDisplay.map((data: any, idx: number) => {
-                                console.log("OY DATA: ", data);
                                 if (data === 0) {
                                     return;
                                 }
@@ -152,7 +181,6 @@ const Keyboard = ({chuckHook, keysVisible, keysReady, organizeRows, organizeLoca
                             })}
                         </ul>
                     </Box>
-  
             }
         </div>
     )

@@ -77,22 +77,6 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
     setAnchorElUser(null);
   };
 
-  // const handleFormat = (
-  //   event: React.MouseEvent<HTMLElement>,
-  //   newFormats: string[],
-  // ) => {
-  //   setFormats(newFormats);
-  // };
-
-  // useEffect(() => {
-  //   console.log("WTF IS FORMATS??? ", formats);
-  //   // if (formats && formats.length > 1) {
-  //   //   // handleFormat(formats.reverse())
-  //   // } else {
-  //     // handleFormat(formats)
-  //   // }
-  // }, [formats]);
-  
 
   return (
     <AppBar position="static">
@@ -115,12 +99,16 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               value={formats}
               onChange={handleFormat}                                                                     
               aria-label="text formatting"
+              sx={{color: "#f5f5f5"}} 
             >
               {/* <ToggleButton value="tradKey" aria-label="tradKey">
                 <PianoIcon></PianoIcon>
               </ToggleButton> */}
-              <ToggleButton value="hexKey" aria-label="hexKey">
-                <PianoIcon />
+              <ToggleButton sx={{color: "#f5f5f5"}} value="hexKey" aria-label="hexKey">
+                <PianoIcon sx={{color: "#f5f5f5"}} /> 
+                <>
+                  Keys
+                </>
               </ToggleButton>
             </ToggleButtonGroup>
             {/* /////TOGGLE BTNS END */}
@@ -175,8 +163,11 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               {/* <ToggleButton value="tradKey" aria-label="tradKey">
                 <PianoIcon></PianoIcon>
               </ToggleButton> */}
-              <ToggleButton value="hexKey" aria-label="hexKey">
-                <PianoIcon />
+              <ToggleButton sx={{color: "#f5f5f5"}} value="hexKey" aria-label="hexKey">
+                <PianoIcon sx={{color: "#f5f5f5"}}  /> 
+                <>
+                  Keys
+                </>
               </ToggleButton>
             </ToggleButtonGroup>
             {/* /////TOGGLE BTNS END */}
@@ -212,10 +203,10 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
 
 
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, paddingTop: '4px' }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, marginTop: "-18px" }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar alt="Remy Sharp" src={"/static/reilly_portfolio_small.jpg"} />
               </IconButton>
             </Tooltip>
             <Menu

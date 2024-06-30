@@ -1,9 +1,10 @@
-import { Box, FormControl, TextField, Input } from '@mui/material';
+import { Box, FormControl, TextField, Input, Button, } from '@mui/material';
 import React from 'react';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import { BPMModule } from '@/interfaces/audioInterfaces';
 import InputField from './InputField';
 import { Noto_Sans } from 'next/font/google'
+import ToggleFXView from './ToggleFXView';
 
 // If loading a variable font, you don't need to specify the font weight
 const notoSans = Noto_Sans({ subsets: ['latin'] })
@@ -16,11 +17,19 @@ const BPMModuleFun = (props: BPMModule) => {
         handleChangeBeatsNumerator, 
         beatsNumerator, 
         handleChangeBeatsDenominator, 
-        beatsDenominator} = props;
+        beatsDenominator,
+        programIsOn,
+        handleToggleArpeggiator,
+        handleToggleStkArpeggiator,
+        handleReturnToSynth,
+        checkedFXList,
+        stkFX,
+        keysVisible,
+    } = props;
     const theme = useTheme();
 
     return (
-        <ThemeProvider theme={theme}>
+
             <Box sx={{
                 fontFamily: notoSans,
                 fontSize: '24px',
@@ -29,7 +38,7 @@ const BPMModuleFun = (props: BPMModule) => {
                 border: '1px solid rgba(255,255,255,.5)',
                 display: 'flex',
                 flexDirection: 'row',
-                padding: '12px',
+                // padding: '12px',
                 justifyContent: 'center',
                 width: '108%',
                 height: '100%'
@@ -52,21 +61,23 @@ const BPMModuleFun = (props: BPMModule) => {
                                 color: 'primary.contrastText',
                                 // fontFamily: notoSans,
                                 fontSize: '24px',
+                                width:'100%'
                             } 
                         }}
                         sx={{
                             input: { color: 'primary.contrastText' },
-                            minWidth: "2rem",
+                            // minWidth: "2rem",
                             backgroundColor: 'status.danger',
                             color: 'status.text',
-                            paddingTop: 0,
+                            // paddingTop: 0,
                             fontFamily: notoSans,
+                            display: 'block',
                             fontSize: '32px',
                             alignItems: 'center',
                             paddingBottom: 0,
                             // margin: "1rem",
                             // maxWidth: "6rem",
-                            width: '100%',
+                            width: '84px',
                         }}
                         label={"BPM"}
                         placeholder="BPM"
@@ -179,9 +190,83 @@ const BPMModuleFun = (props: BPMModule) => {
                             }
                         />
                     </FormControl>
-                </Box>      
+                </Box>   
+
+                <Box sx={{display: 'flex', flexDirection: 'column'}}>
+                    <Box sx={{display: 'flex', flexDirection: 'column'}}>
+                        <Button 
+                            sx={{ 
+                                color: 'rgba(0,0,0,.98) !important',
+                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                                marginLeft: '0px', 
+                                // maxWidth: '28px',
+                                minWidth: '60px',
+                                maxWidth: '60px',
+                                maxHeight: '40px',
+                                display: programIsOn ? "flex" : "none",
+                                border: '0.5px solid #b2b2b2',
+                                '&:hover': {
+                                    color: '#f5f5f5 !important',
+                                    background: 'rgba(0,0,0,.98)',
+                                    border: '1px solid #1976d2',
+                                }
+                            }} 
+                            variant="outlined" 
+                            className="ui_SynthLayerButton"
+                            onClick={handleToggleArpeggiator} 
+                            // endIcon={<AnimationIcon />}
+                            >
+                                Arp1
+                        </Button>
+    {/* S-ARP */}
+                        <Button 
+                            sx={{ 
+                                color: 'rgba(0,0,0,.98) !important',
+                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                                minWidth: '60px',
+                                maxWidth: '60px',
+                                maxHeight: '40px',
+                    
+                                // background: 'rgba(232, 82,82, 1)', 
+                                // background: 'rgba(147, 206, 214, 1)', 
+                                // minWidth: '208px', 
+                                marginLeft: '0px', 
+                                border: '0.5px solid #b2b2b2',
+                                display: programIsOn ? "flex" : "none",
+                                '&:hover': {
+                                    color: '#f5f5f5 !important',
+                                    background: 'rgba(0,0,0,.98)',
+                                    border: '1px solid #1976d2',
+                                }
+                            }} 
+                            variant="outlined" 
+                            className="ui_SynthLayerButton"
+                            onClick={handleToggleStkArpeggiator} 
+                            // endIcon={<AnimationIcon />}
+                            >
+                                Arp2
+                        </Button>
+
+                        <Box sx={{display: "flex", flexDirection: "column"}}>
+                            <Box sx={{display: "flex", flexDirection: "row"}}>
+                                <ToggleFXView 
+                                    stkCount={stkFX.current.length}
+                                    fxCount={checkedFXList.length}
+                                    handleReturnToSynth={handleReturnToSynth} 
+                                    programIsOn={programIsOn}
+                                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                    handleToggleArpeggiator={handleToggleArpeggiator}
+                                    stkFX={stkFX.current}
+                                    checkedFXList={checkedFXList}
+                                    keysVisible={keysVisible}
+                                />
+                            </Box>
+                        </Box>   
+
+                    </Box>
+                </Box>
             </Box>
-        </ThemeProvider>
+
     )
 }
 export default BPMModuleFun;

@@ -261,12 +261,27 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
         <Box>
         
         </Box>
-        <Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row-reverse',
+            minHeight: '60px',
+            marginRight: '80px',
+            backgroundColor: "rgba(0, 0, 0,1)",
+          }}
+        >
           <RadioGroup
             aria-labelledby="demo2-controlled-radio-buttons-group"
             name="controlled-radio-buttons-group2"
             value={analysisSourceRadioValue}
-            sx={{color: "rgba(147, 206, 214, 1)", pointerEvents: "all", backgroundColor: "rgba(0, 0, 0,0.91)"}}
+            sx={{
+              color: "rgba(147, 206, 214, 1)", 
+              pointerEvents: "all", 
+              display: "flex", 
+              flexDirection: "row", 
+              backgroundColor: "rgba(0, 0, 0,1)",
+              minHeight: "60px",
+            }}
             onChange={handleChangeAnalysisSource}
           >
             <FormControlLabel 

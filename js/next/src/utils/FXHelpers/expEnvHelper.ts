@@ -2,7 +2,7 @@ const expEnvHelper = (name: string, value: any, presets: any) => {
     const indexOfNameInPresets = presets.map((i: any) => i.name).indexOf(name);
     const thePreset = presets[indexOfNameInPresets];
     // freq: any, radius: any, T60: any, gain: any, duration: any
-    console.log(`%cWTF IS NAME IN HELPER: ${name} // WTF IS VAL IN HELPER: ${value} // thePreset: ${thePreset} // PRESETS: ${presets}`, 'color: yellow;');
+    console.log(`%cNAME IN HELPER: ${name} // VAL IN HELPER: ${value} // thePreset: ${thePreset} // PRESETS: ${presets}`, 'color: yellow;');
     return `
     1000 => s.freq;
     0.999 => expenv_o1.radius;

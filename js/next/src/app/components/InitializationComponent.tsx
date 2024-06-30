@@ -199,7 +199,7 @@ export default function InitializationComponent() {
     const [audioScale, setAudioScale] = useState('Major');
     const [audioChord, setAudioChord] = useState('M');
     const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
-    const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState('Sampler');
+    const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState('Osc');
     const [showBPM, setShowBPM] = useState<boolean>(true);
     const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
 
@@ -298,7 +298,7 @@ export default function InitializationComponent() {
 
     const currentMicroTonalScale = (scale: any) => {
         let theScale;
-        console.log("WTF SCALE? ", scale);
+        console.log("MICROTONAL SCALE: ", scale);
         if (typeof scale === 'string') {
         
             theScale = '12-19';
@@ -737,10 +737,6 @@ export default function InitializationComponent() {
         },
         audioIn: {},
     });
-
-
-
-    // console.log("HEYOOOOOOOOO ", filesToProcess.current);
 
 
 
@@ -1224,10 +1220,7 @@ export default function InitializationComponent() {
         });
 
         console.log("DOES ALLFX DO WHAT WE WANT? ", allFx);
-        allFx.flat().forEach((fx: any) => {
-            console.log("WTF IS FXCURRENT??? ", fxFX.current);
-            
- 
+        allFx.flat().forEach((fx: any) => { 
             if (fxFX.current && fxFX.current.filter((fx: any) => fx.visible === true && fx).map((u: any) => u.var).indexOf(fx.effectVar) === -1) {
                 fxFX.current.push({
                     presets: getFX1Preset(fx.effectVar)[0].presets,
@@ -1885,7 +1878,6 @@ export default function InitializationComponent() {
                             console.log("hey final sampler is here: ", finalSamplerFxStringToChuck.current[theIndex]);
                         }
                         else {
-                            console.log("WTF PRESET ", preset);
                             // if (preset.visible === true) {
                             finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};` });
                             // }
@@ -1956,7 +1948,6 @@ export default function InitializationComponent() {
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
             Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async (preset: any, idx: number) => {
-                console.log("WTF IS PRESET??? ", preset);
                 // ******** TODO change to read type directly from o1.type
                 if (preset.type.includes("_needsFun")) {
                     if (preset.type.includes("_winFuncEnv")) {
@@ -2182,7 +2173,6 @@ export default function InitializationComponent() {
         // allFxPersistent.current.STK.presets && Object.values(allFxPersistent.current.STK.presets).length > 0 && Object.values(allFxPersistent.current.STK.filter((i: any) => i.fxType !== "stk" && i)).map((stk1: any) => {
             allFxPersistent.current.STK.map((i: any) => i.fxType === "fx").length > 0 && allFxPersistent.current.STK.filter((i: any) => i.fxType === "fx" && i).map((stk1: any) => {
             // if ((!stk1.fxType || stk1.fxType !== "stk") && stkFXStringToChuck.current.indexOf(`${stk1.var}_stk1`) !== -1 && stk1.presets && stk1.presets.length > 0) {
-            console.log("THIS IS THE FUCKING PROB ", stk1, "****", stkFXStringToChuck.current);
             if (stkFXStringToChuck.current.indexOf(`${stk1.var}_stk1`) === -1){
             
                 if (stk1.var === "pittrack") {
@@ -2251,11 +2241,9 @@ export default function InitializationComponent() {
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
             Object.values(stk1.presets).length > 0 && Object.values(stk1.presets).map(async (effect: any, idx: number) => {
-                console.log("FUCKING PRESET FUCKING STK ", effect.type)
         
                 // ******** TODO change to read type directly from o1.type
                 if (effect && effect.length > 0 && effect.type && effect.type.includes("_needsFun") && effect.fxType !== "stk") {
-                    console.log('ug1 preset type: ', effect.type, effect.name);
                     if (effect.type.includes("_winFuncEnv")) {
                         if (effect.name === "attackTime") {
                             winFuncEnvFinalHelper.current.stk.attackTime = Math.pow(2, Number(effect.value));
@@ -2349,7 +2337,7 @@ export default function InitializationComponent() {
                             delayAFinalHelper.current.stk.syncDelay = effect.value;
                         }
                     }
-                    console.log("EEEEESHSHSHSHSHSH WTF EFFECT TYPE INCLUDES THE PROB HERE??? ", effect)
+
                     if (effect.type.includes("delayL")) {
                         if (effect.name === "delay") {
                             delayLFinalHelper.current.stk.delay = effect.value;
@@ -2418,7 +2406,6 @@ export default function InitializationComponent() {
                     }
                 } else {
                     if (!effect.preset) {
-                        console.log("WTFFFFFFFF ", effect); // this is correct
                         return '';
                     }
                     const addDurMs = effect.type.indexOf('dur') !== -1 ? '::ms' : '';
@@ -2432,7 +2419,6 @@ export default function InitializationComponent() {
                             console.log("hey final stk is here: ", finalStkFxStringToChuck.current[theIndex]);
                         }
                         else {
-                            console.log("WTF PRESET ", effect.preset);
                             const preventdupes = finalStkFxStringToChuck.current.map((i:any) => i.var).indexOf(effect.var) === -1; 
                             console.log(`PREVENT DUPES??? , ${preventdupes}`);
                             if (effect && effect.length > 0 && effect.visible === true && effect.fxType === "fx") {
@@ -2462,94 +2448,73 @@ export default function InitializationComponent() {
     };
     const logOnly: any = [];
 
-    const awaitNote = async (note: string) => {
-
-        console.log('KR ', keysReady);
-        if(keysReady) {
-            return;
-        }
-
-        // const stateData = store.getState();
-        // console.log("HAVE WE GOT STATE? ", stateData);
-        // return new Promise((resolve) => {
-        //     let getVals: any;
-
-        //     console.log("WHAT IS NOTE> ", note);
-        //     console.log("WHAT ARE REQ OPTS? ", requestOptions);
-        //         getVals = axios.get(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/note/${"A"}`, 
-                
-        //         {headers: {
-        //             'Content-Type': 'application/json'
-        //         }})
-                
-        //         // requestOptions);
-        //         resolve(getVals);
-            
-        // }).then(async (res: any) => {
-        //     console.log("WTF IS RES? ", res);
-        //     logOnly.push({'note': note, 'data': res.data});
-        //     if(note === `B8` || note === `17equal_B-9`) {
-        //         console.log('GET THIS IN A FILE: ', JSON.stringify(logOnly));
-        //         // setKeysReady(true);
-        //     }
-        //     return await res.data;
-        // });
-    };
+    const [notesAddedDetails, setNotesAddedDetails] = useState<any>([])
+    
     const organizeRows = async(rowNum: number, note: string) => {
-        if (keysReady) {
+        if (keysReady || !keysVisible) {
             return;
         }
         // noteReady is single note data returned from server
         // const noteReady = await awaitNote(note);
         
+
+
         const noteReady = {
             midiNote: undefined,
-            midiHz: undefined,    
+            midiHz: undefined,
+            name: '',    
         };
 
         
         note = note.replace("♯", "#");
-        console.log("ROW NUM ", rowNum, "NOTE: ", note);
         const getNote: any = Note.get(note);
         noteReady.midiNote = getNote.midi;
         noteReady.midiHz = getNote.freq;
-        console.log("%cNOTEREADY", "color: red; ", noteReady);
+        noteReady.name = note;
+        
 
-        getMingusData({...noteReady, note, rowNum});
-        if (noteReady) {
+        // const mingData = getMingusData({...noteReady, note, rowNum}); // <<< redundant
+        // console.log("%cNOTEREADY", "color: magenta; ", noteReady);
+ 
+
+        if (noteReady && notesAddedDetails.filter((i: any) => i.id = noteReady.name && i).length < 1) {
+            setNotesAddedDetails((m: any) => [...m, noteReady]);
             setKeysReady(true);
         } else {
             return;
         }
 
-        const parsedNote = note.charAt(1) === '♯' ? note.slice(0, 2) + "-" + note.slice(2) : note.slice(0, 1) + "-" + note.slice(1);
-        console.log("PARSED??? ", parsedNote);
-        const el: any = await document.getElementById(parsedNote);
-        if (el && !el['data-midiNote'] && !el['data-midiHz']) {
-            el.key = `keyRow_${rowNum}_${noteReady.midiHz}`;
-            el.classList.add(`keyRow`);
-            el.classList.add(`keyRow_${rowNum}`);
-            el.setAttribute('data-midiNote', await noteReady.midiNote);
-            el.setAttribute('data-midiHz', await noteReady.midiHz);
-            el.setAttribute('onClick', playChuckNote(noteReady.midiHz));
-        }
     }
 
-    const organizeLocalStorageRows = async(theNote: any) => {
+    const organizeLocalStorageRows = async(note: any) => {
         // getMingusData({...theNote});
                         // const tune = new Tune();
                 // console.log("YO MICROTONES! ", microtoneDescsData);
        
+                const noteReady = {
+                    midiNote: undefined,
+                    midiHz: undefined,
+                    name: '',    
+                };
+        
+                
+                note = note.replace("♯", "#");
+                // console.log("ROW NUM ", rowNum, "NOTE: ", note);
+                const getNote: any = Note.get(note);
+                noteReady.midiNote = getNote.midi;
+                noteReady.midiHz = getNote.freq;
+                noteReady.name = note;
+                
 
-        const parsedNote = theNote.note.charAt(1) === '♯' ? theNote.note.slice(0, 2) + "-" + theNote.note.slice(2) : theNote.note.slice(0, 1) + "-" + theNote.note.slice(1);
-        const el: any = await document.getElementById(parsedNote);
-        if (el && !el['data-midiNote'] && !el['data-midiHz']) {
-            el.classList.add(`keyRow`);
-            el.classList.add(`keyRow_${theNote.rowNum}`);
-            el.setAttribute('data-midiNote', await theNote.midiNote);
-            el.setAttribute('data-midiHz', await theNote.midiHz);
-            el.setAttribute('onClick', playChuckNote(theNote.midiHz));
-        }
+        // const parsedNote = theNote.note.charAt(1) === '♯' ? theNote.note.slice(0, 2) + "-" + theNote.note.slice(2) : theNote.note.slice(0, 1) + "-" + theNote.note.slice(1);
+        // const el: any = await document.getElementById(parsedNote);
+        // if (el && !el['data-midiNote'] && !el['data-midiHz']) {
+        //     el.classList.add(`keyRow`);
+        //     el.classList.add(`keyRow_${theNote.rowNum}`);
+        //     el.setAttribute('data-midiNote', await theNote.midiNote);
+        //     el.setAttribute('data-midiHz', await theNote.midiHz);
+        //     el.setAttribute('onClick', playChuckNote(theNote.midiHz));
+        // }
     }
 
     function compare( a: any, b: any ) {
@@ -2587,13 +2552,6 @@ export default function InitializationComponent() {
     useEffect(() => {
         console.log('!!!!! ', allFxPersistent.current, Object.values(allFxPersistent.current.Osc1));
         
-        // allFxPersistent.current && allFxPersistent.current.length > 0 && Object.entries(allFxPersistent.current.map((k: any, v: any, index: number) => {
-        //     if (k === "Sampler" && v.length > 0) {
-        //         console.log("KEY VAL INDEX FXFX: ", k, v, index);
-        //         console.log("KEY VAL INDEX OBJ VALS FXFX: ", k, Object.values(v), index);
-        //     }
-        // }));
-
         if (allFxPersistent.current.Osc1 && allFxPersistent.current.Osc1[0] && Object.values(allFxPersistent.current.Osc1[0].presets).length > 0) {
             osc1FXToString();
         }
@@ -2607,7 +2565,6 @@ export default function InitializationComponent() {
             samplerFXToString();
         }
         if (allFxPersistent.current.STK && allFxPersistent.current.STK.map((i:any) => i.fxType === "fx").length > 0 && allFxPersistent.current.STK[0].presets && Object.values(allFxPersistent.current.STK[0].presets).length > 0) {
-            console.log('YO! -- all ok')
 
             stkFXToString();
 
@@ -2618,7 +2575,6 @@ export default function InitializationComponent() {
     const shredCount = useRef<number>(0);
 
        useEffect(() => {
-        console.log('HERE YOOOOO! ')
         const subscription = watch(() => handleSubmit(onSubmit)())
         console.log('SUBSCRIPTION: ', subscription);
         return () => subscription.unsubscribe();
@@ -2642,13 +2598,10 @@ export default function InitializationComponent() {
         // if (chuckUpdateNeeded !== false) {setChuckUpdateNeeded(true)}
         // if (chuckUpdateNeeded === false) {
 
-
-        console.log("&&&&&& I NEED SANITY ", getStk1String)
-
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
             if (initialShredCount === 0) {
                 initialShredCount = shredCount.current;
-   
+
             }
             console.log('WHAT IS SHRED COUNT? ', shredCount.current);
             console.log('FILES TO PROCESS: ', filesToProcess);
@@ -2663,7 +2616,7 @@ export default function InitializationComponent() {
 
             // console.log('STK STRING HERE: ', getStk1String());
 //             const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}[12]` : '';
-// console.log("HEYOHEYOHEYO ", connector1Stk);
+
             // const connectorStk1DirectToDac = getStk1String && getStk1String.length > 0 && useStkDirect ? `
             //     ${getStk1String[2]} => WinFuncEnv winfuncenv_stk1 => dac; 
             //     winfuncenv_stk1.setHann(); 
@@ -2699,7 +2652,7 @@ export default function InitializationComponent() {
             const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
             const spectacleCodeStringOsc1 = osc1SpectacleOn.current ? spectacleString('o1', spectacleFinalHelper.current.osc1.bands, spectacleFinalHelper.current.osc1.delay, spectacleFinalHelper.current.osc1.eq, spectacleFinalHelper.current.osc1.feedback, spectacleFinalHelper.current.osc1.fftlen, spectacleFinalHelper.current.osc1.freqMax, spectacleFinalHelper.current.osc1.freqMin, spectacleFinalHelper.current.osc1.mix, spectacleFinalHelper.current.osc1.overlap, spectacleFinalHelper.current.osc1.table) : '';
 
-            console.log('sanity check exp delay: ', expDelayCodeStringOsc1);
+            console.log('exp delay: ', expDelayCodeStringOsc1);
             // DELAY LINES
             const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
             const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
@@ -2770,36 +2723,10 @@ export default function InitializationComponent() {
             const delayCodeStringStk = stkDelayOn.current ? delayString('stk1', delayFinalHelper.current.stk.delay, delayFinalHelper.current.stk.lines, delayFinalHelper.current.stk.syncDelay, delayFinalHelper.current.stk.zero, delayFinalHelper.current.stk.b0, delayFinalHelper.current.stk.b1) : '';
             const delayACodeStringStk = stkDelayAOn.current ? delayAString('stk1', delayAFinalHelper.current.stk.delay, delayAFinalHelper.current.stk.lines, delayAFinalHelper.current.stk.syncDelay, delayAFinalHelper.current.stk.zero, delayAFinalHelper.current.stk.b0, delayAFinalHelper.current.stk.b1) : '';
             const delayLCodeStringStk = stkDelayLOn.current ? delayLString('stk1', delayLFinalHelper.current.stk.delay, delayLFinalHelper.current.stk.lines, delayLFinalHelper.current.stk.syncDelay, delayLFinalHelper.current.stk.zero, delayLFinalHelper.current.stk.b0, delayLFinalHelper.current.stk.b1) : '';
-
-
-
                     
-            console.log("*2: ", winFuncCodeStringStk)
-            console.log("*3: ", powerADSRCodeStringStk)
-            console.log("*4: ", expEnvCodeStringStk)
-            console.log("*5: ", wpDiodeLadderCodeStringStk)
-            console.log("*6: ", stkPowerADSROn.current)
-            
-            console.log("*7: ", ellipticCodeStringStk)
-            console.log("*8: ", expDelayCodeStringStk)
-      
-
-            // ${modulateDeclarationStk}
-            console.log("*9: ", delayDeclarationStk)
-            console.log("*10: ", delayADeclarationStk)
-            console.log("*11: ", delayLDeclarationStk)
-
-           
-            console.log("*12: ", delayCodeStringStk)
-            console.log("*13: ", delayACodeStringStk)
-            console.log("*14: ", delayLCodeStringStk)
-            console.log("*15: ", modulateCodeStringStk)
-            console.log("*16: ", spectacleCodeStringStk)
-            console.log("*17: ", stkFxStringNeedsBlackhole.current)
-
 
             ////////////////////////////
-            console.log("WHAT R STKS? ", stkFX.current);
+            console.log("what are STKS? ", stkFX.current);
             ////////////////////////////
 
 
@@ -2809,8 +2736,6 @@ export default function InitializationComponent() {
             // NOTE! => I removed ${connector1stk} from between saw1 & diodeladder below... this was breaking longer playing stks (& all else when they were chosen).
             const osc1ChuckToOutlet: string = ` SawOsc saw1 => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
 
-            // console.log("AND WTF IS THIS? ", samplerFXStringToChuck.current);
-
             ////// ************************* WHY IS THIS TAKING IN WHAT SHOULD BE APPLIED TO STK??? 
             // alert(`MUST BEGIN HERE... ${stkFXStringToChuck.current}`)
             const samplerChuckToOutlet: string = `limiter_Sampler ${samplerFXStringToChuck.current} => ${winFuncDeclarationSampler} ${ellipticDeclarationSampler} ${powerADSRDeclarationSampler} ${expEnvDeclarationSampler} ${expDelayDeclarationSampler} ${modulateDeclarationSampler} `;
@@ -2819,17 +2744,6 @@ export default function InitializationComponent() {
 
             const stkChuckToOutlet: string = `${stkFXStringToChuck.current} ${transitionhandlerSimpleToComplex} ${winFuncDeclarationStk} ${ellipticDeclarationStk} ${powerADSRDeclarationStk} ${expEnvDeclarationStk} ${expDelayDeclarationStk} ${modulateDeclarationStk} `;
             
-
-            console.log("FUCKING SANITY 1: ", stkFXStringToChuck.current)
-            console.log("FUCKING SANITY 2: ", winFuncDeclarationStk)
-            console.log("FUCKING SANITY 3: ", ellipticDeclarationStk)
-            console.log("FUCKING SANITY 4: ", powerADSRDeclarationStk)
-            console.log("FUCKING SANITY 5: ", expEnvDeclarationStk)
-            console.log("FUCKING SANITY 6: ", expDelayDeclarationStk)
-            console.log("FUCKING SANITY 7: ", stkFXStringToChuck.current)
-
-            console.log("WHAT THE FUCK IS THIS???? ", stkChuckToOutlet);
-
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice[i] ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
 
             samplerFxStringNeedsBlackhole.current = samplerFxStringToChuckNeedsBlackhole.current.length > 0 ? `sample1 ${samplerFxStringToChuckNeedsBlackhole.current[0].string}` : '';
@@ -2837,35 +2751,23 @@ export default function InitializationComponent() {
 
             const osc2ChuckToOutlet: string = ` SawOsc saw2 => lpf;`;
 
-            console.log("GOOOOOOOSH WTF IS THIS? ", finalStkFxStringToChuck.current);
-            console.log("GOOOOOOOSH WTF IS THIS TRYYYY SAMPLER? ", stkFXString.current);
-
             const finalOsc1Code = finalOsc1FxStringToChuck.current && finalOsc1FxStringToChuck.current.length > 0 ? finalOsc1FxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
             const finalSamplerCode = finalSamplerFxStringToChuck.current && finalSamplerFxStringToChuck.current.length > 0 ? finalSamplerFxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
             // const finalStkCode = finalStkFxStringToChuck.current && finalStkFxStringToChuck.current.length > 0 ? finalStkFxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
             const finalStkCode = finalStkFxStringToChuck.current && finalStkFxStringToChuck.current.length > 0 ? finalStkFxStringToChuck.current.map((i: any) => i.string).join(' ').replace(',', '') : '';
-            console.log("*1: ", finalStkCode);
-            console.log("FUCKING SANITY 8: ", finalStkFxStringToChuck.current);
-            console.log("FUCKING SANITY 9: ", finalStkCode);
+
             
             // bring back sync mode on this eventually -> // ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
             //  allAnalysisBlocks.current.forEach((block: any) => allAnalysisBlocksCodeGen.concat(block.code));
 
        
             const filesArray = filesToProcess.current.map((f: any) => f.name) || [];
-            console.log("****sanity check osc1 declaration: ", chuckUpdateNeeded, "FUYC ", osc1ChuckToOutlet);
-     
 
         
             // BE SURE TO ADD DURATION DIVISIONS (AND ALSO ELSEWHERE)
             const playSTKOn = () => {
-                console.log("FUCK SHIT FUCK SHIT: ", allFxPersistent.current.STK);
-                console.log("FUCK SHIT STKFX ", stkFX.current);
-
                 
                 let getFXOnly = allFxPersistent.current.STK.filter((i: any) => i.fxType === "stk" && i);
-                console.log("FUCKING SANITY 10******: ", allFxPersistent.current.STK);
-                console.log("FUCK HELL HELL HELL ", getFXOnly)
                 if (stkFX.current && stkFX.current.length > 0 || (!getFXOnly || getFXOnly.length < 1) ) {
                         allFxPersistent.current.STK.push(stkFX.current);
                         getFXOnly = [stkFX.current];
@@ -2873,11 +2775,8 @@ export default function InitializationComponent() {
                 
                 if (getFXOnly && getFXOnly.length > 0 && getFXOnly[0].var) {
                     
-                    console.log("$$$$ ", getFXOnly[0].var);
-             
-
-
-
+                    console.log("getFXOnly_var: ", getFXOnly[0].var);
+   
                     if (getFXOnly[0].var === "sit") {                     
                         return `
                     
@@ -2945,7 +2844,6 @@ export default function InitializationComponent() {
                             }
                         `;
                     } else if (getFXOnly[0].var === "brs") {
-                        alert("hit brass in")
                         return `
                             notesToPlay[i] + 36 => Std.mtof => ${getFXOnly[0].var}[i-1].freq;
                             1 => ${getFXOnly[0].var}[i-1].noteOn;    
@@ -2960,9 +2858,6 @@ export default function InitializationComponent() {
                             
                             ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
 
-      
-                            
-                            
                             if (${stkArpeggiatorOn} == 1) {
                                 duration - (now % duration)  => now;
                                 
@@ -4121,7 +4016,7 @@ export default function InitializationComponent() {
                 
                 0.7 => oscs_masterGain.gain;
                 
-                <<< "EEEESH WTF ARE NOTES: ", notes.cap() >>>;
+                <<< "(from ChucK) NOTES: ", notes.cap() >>>;
 
                 if (${arpeggiatorOn} == 0 && notes.cap() > 0) {
                     oscs_masterGain.gain() / notes.cap() => oscs_masterGain.gain;
@@ -4752,8 +4647,6 @@ export default function InitializationComponent() {
         console.log('Get stkFX?!!?  ', stkFX.current);
 
         const getStk1String: any = await stkFXToStringPrepare();
-        console.log("%cDO WE EVEN HJAVE STK! STRING TO PASSSSS??? ", "color: orange;", getStk1String);
-
 
 
         // if (!getStk1String) {
@@ -4795,7 +4688,7 @@ export default function InitializationComponent() {
     }
 
     const handleClickUploadedFiles = (e: any) => {
-        console.log("WHY IS THIS NOT WORKING?: ", e.target.innerText);
+        console.log("clicked uploaded file: ", e.target);
       }
     
 
@@ -4828,31 +4721,35 @@ export default function InitializationComponent() {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
 
+    const theNotes = useRef<any>([]);
+
     const noteOn = (noteLetter: string, theMidiNum: number, theMidiHz: any, mysteryArg=100) => {
         console.log("IN NOTE ON: ", noteLetter, theMidiNum, theMidiHz, mysteryArg);
     }
 
-    const playChuckNote = (note: any) => {  
-        // console.log('NOTE! ', note);    
+    const playChuckNote = (note: any, idString: string, midiHz: any, midiNote: any) => {  
+        console.log("??? ", note, idString, midiHz, midiNote);
         if (!note || !note.target ) { 
             return null;
         }
-        console.log("NOTE IN PLAY CHUCK: ", note); 
+        // console.log('NOTE TARGET: ', note.target);
+        // console.log('ID STRING: ', idString);
+        console.log('midiHz: ', midiHz);
+        console.log('midiNote ', midiNote);  
    
-        try {
-            const noteReady = note.target.attributes[2].value;
-            console.log('what are options? ', note.target.attributes);
-            const theNoteLetter = note.target.attributes[0].value.replace('-','');
-            const theMidiNum = parseInt(note.target.attributes[2].value);
-            const theMidiHz = parseFloat(note.target.attributes[3].value).toFixed(2);
-            console.log('NOTE READYYY? ', Math.round(noteReady));
-            // chuckHook.runCode(` SinOsc osc => dac; 0.2 => osc.gain; ${Math.round(noteReady)} => osc.freq; 3::second => now; `);
-            // noteOn(Math.round(noteReady), 100);
-            noteOn(theNoteLetter, theMidiNum, theMidiHz, 100);
-            return noteReady;
-        } catch {
-            return null;
-        }
+        // try {
+        const noteReady = note.target.attributes[0].value;
+        // console.log('what are options? ', note.target.attributes);
+        const theNoteLetter = idString.replace('-','');
+        const theMidiNum = parseFloat(midiNote);
+        const theMidiHz = parseFloat(midiHz).toFixed(2);
+        // chuckHook.runCode(` SinOsc osc => dac; 0.2 => osc.gain; ${Math.round(noteReady)} => osc.freq; 3::second => now; `);
+        // noteOn(Math.round(noteReady), 100);
+        noteOn(theNoteLetter, theMidiNum, theMidiHz, 100);
+        return noteReady;
+        // } catch {
+        //     return null;
+        // }
     };
 
     useEffect(() => {
@@ -4913,8 +4810,6 @@ export default function InitializationComponent() {
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     const handleUpdateSliderVal = (obj: any, value: any) => {
-        console.log("COULD THIS BE MUCH SIMPLER ", obj)
-        console.log("CHRIKES CURR SCREEN ", currentScreen.current, currentFX.current);
 
         if (obj.fxType === "stk") {
             stkFX.current.presets[`${obj.name}`].value = value;
@@ -4924,7 +4819,7 @@ export default function InitializationComponent() {
             let index: any = Object.values(allFxPersistent.current[`${fxRadioValue}`].map((i: any) => i.presets)).filter((i: any, idx: number) => i && i.length > 0 && i.var === obj.name && i)[0];
       
             if (!index || index.length < 1) {
-                console.log('this should replace... ', allFxPersistent.current[`${fxRadioValue}`].length - 1);
+                console.log('all persistent fx new radio val: ', allFxPersistent.current[`${fxRadioValue}`].length - 1);
                 index = allFxPersistent.current[`${fxRadioValue}`].length - 1;
            
                 allFxPersistent.current[`${fxRadioValue}`][index].presets[`${obj.name}`].value = value;
@@ -5021,7 +4916,7 @@ export default function InitializationComponent() {
             // currentNotesKeyValDownDisplay.current = [];
             if (parsedLastChuckMessage.current) {
                 // currentNotesKeyValDownDisplay.current.push(parsedLastChuckMessage.current[2]);
-                console.log("WTF KEY VALS DOWN??   ", parsedLastChuckMessage.current);
+                console.log("KEY VALS DOWN??   ", parsedLastChuckMessage.current);
             } 
             else if (parsedLastChuckMessage.current[1] === 0) {
                 const theIndex = currentNotesKeyValDownDisplay.current.indexOf(parsedLastChuckMessage.current[2]);
@@ -5035,13 +4930,13 @@ export default function InitializationComponent() {
             const removeComma: string = parseString[0].replace(/,\s*$/, "");
             const countToNum: number = +removeComma && +removeComma;
 
-            // if (Math.ceil(countToNum/numeratorSignature) !== 0) {
+            if (Math.ceil(countToNum/numeratorSignature) !== 0) {
 
-            //     setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
-            //     setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
-            // }
-            // setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
-            // setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+                setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+                setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+            }
+            setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+            setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
         };
 
         if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
@@ -5201,16 +5096,7 @@ export default function InitializationComponent() {
         event: React.MouseEvent<HTMLElement>,
         newFormats: string[],
     ) => {
-        // console.log("NEW FORMAT? ", newFormats)
-        // if (newFormats.length > 0) {
-        //     if (formats.indexOf("tradKeys") !== -1) {
-        //         setFormats(['hexKeys']);
-        //     } else {
-        //         setFormats(['tradKeys']);
-        //     }
-        // } else {
-        //     setFormats(['tradKeys']);
-        // }
+
         console.log("NEW FORMATS ", newFormats);
         if (newFormats.length > 1) {
             setFormats(newFormats.reverse());
@@ -5219,33 +5105,10 @@ export default function InitializationComponent() {
         }
     };
 
-    // const change = (arr: Array<any>, fromIndex: number, toIndex: number) => {
-    //     if (toIndex === fromIndex || toIndex >= arr.length) return arr;
-      
-    //     const toMove = arr[fromIndex];
-    //     const movedForward = fromIndex < toIndex;
-      
-    //     return arr.reduce((res, next, index) => {
-    //       if (index === fromIndex) return res;
-    //       if (index === toIndex) return res.concat(
-    //         movedForward ? [next, toMove] : [toMove, next]
-    //       );
-      
-    //       return res.concat(next);
-    //     }, []);
-    //   };
-
-
-    // const handleUpdateFXView = (e: any) => {
-    //     console.log("e target: ", e.target.innerText);
-    //     //currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
-    //     // const getIndex = allFxPersistent.current[fxRadioValue].map((i: any) => i.var).indexOf(e.target.innerText.toLowerCase());
-    //     selectedEffect.current = e.target.innerText.toLowerCase();
-    // };
 
     return (
-        <ThemeProvider theme={theme}>
-            {/* <Box sx={{ height: size.width, boxSizing: "border-box", width: size.width, display: 'flex', flexDirection: 'row' }}> */}
+     
+
             <Box>
                 <Box sx={{position: "absolute", width: "100vw", maxHeight: "36px" }} >
 
@@ -5267,88 +5130,88 @@ export default function InitializationComponent() {
                     />
                 </Box>
 
-    {/* ARP */}
-                                <Box sx={{display: "flex", position: "absolute", left: '208px', top: '48px', flexDirection: "row"}}>
-                                <Box sx={{display: "flex", flexDirection: "row"}}></Box>
-                                    <Button 
-                                        sx={{ 
-                                            color: 'rgba(0,0,0,.98)',
-                                            backgroundColor: 'rgba(219, 230, 161, 0.8)', 
-                                            // borderRadius: '50%',
-                                            // background: 'rgba(232, 82,82, 1)', 
-                                            // background: 'rgba(147, 206, 214, 0.8)', 
-                                            // minWidth: '208px', 
-                                            marginLeft: '0px', 
-                                            maxHeight: '40px', 
-                                            display: programIsOn ? "flex" : "none",
-                                            border: '0.5px solid #b2b2b2',
-                                            '&:hover': {
-                                                color: '#f5f5f5 !important',
-                                                background: 'rgba(0,0,0,.98)',
-                                                border: '1px solid #1976d2',
-                                            }
-                                        }} 
-                                        variant="outlined" 
-                                        className="ui_SynthLayerButton"
-                                        onClick={handleToggleArpeggiator} 
-                                        // endIcon={<AnimationIcon />}
-                                        >
-                                            Arp S
-                                    </Button>
+                <Box sx={{
+                    display: "flex", 
+                    left: '208px', 
+                    top: '50px', 
+                    flexDirection: "column"
+                }}>
+                    {programIsOn && (
+                        <Box sx={{
+                            position: "relative", 
+                            display: "flex", 
+                            flexDirection: "column", 
+                            textAlign: "center",
+                            pointerEvents: "none",
+                        }}>
+                            <Box 
+                                id="countWrapper"
+                                sx={{
+                                    position: "relative", 
+                                    pointerEvents: "none",
+                                    display: "flex", 
+                                    flexDirection: "row", 
+                                    textAlign: "center", 
+                                    justifyContent: "center",
+                                    background: "transparent",
+                                    width: "200px",
+                                    // left: "325px",
+                                    top: "8px",
+                                }}>
 
-    {/* S-ARP */}
-                                    <Button 
-                                        sx={{ 
-                                            color: 'rgba(0,0,0,.98)',
-                                            backgroundColor: 'rgba(219, 230, 161, 0.8)', 
-                                            // background: 'rgba(232, 82,82, 1)', 
-                                            // background: 'rgba(147, 206, 214, 1)', 
-                                            // minWidth: '208px', 
-                                            marginLeft: '0px', 
-                                            maxHeight: '40px', 
-                                            border: '0.5px solid #b2b2b2',
-                                            // borderRadius: '50%',
-                                            display: programIsOn ? "flex" : "none",
-                                            '&:hover': {
-                                                color: '#f5f5f5 !important',
-                                                background: 'rgba(0,0,0,.98)',
-                                                border: '1px solid #1976d2',
-                                            }
-                                        }} 
-                                        variant="outlined" 
-                                        className="ui_SynthLayerButton"
-                                        onClick={handleToggleStkArpeggiator} 
-                                        // endIcon={<AnimationIcon />}
-                                        >
-                                            Arp Inst
-                                    </Button>
-                                    {programIsOn && (
-                                    <Box sx={{position: "relative", display: "flex", flexDirection: "column", textAlign: "center"}}>
-                                        <Box sx={{position: "relative", display: "flex", flexDirection: "row", textAlign: "center", justifyContent: "center"}}>
-
-                                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                                {currentNumerCountColToDisplay} 
-                                            </Typography>
-                                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                                {currentDenomCount}
-                                            </Typography>
-                                            <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                                {currentPatternCount}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                    )}
-                                </Box>
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentNumerCountColToDisplay} 
+                                </Typography>
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentDenomCount}
+                                </Typography>
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentPatternCount}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    )}
+                </Box>
 
                 <Box sx={{position:"absolute", left: 0, bottom: 0, color: "red", fontFamily: "Menlo", height: "50%", width: "80px"}}>
-                    {/* <CustomAriaLive selectRef={selectRef} tune={tune} currentMicroTonalScale={currentMicroTonalScale} /> */}
-
                         <>{currentNotesDownDisplay.current}</>
                         <>{currentNotesKeyValDownDisplay.current}</>
-                    {/* <Box>{currentVirtualKeyNotesDownDisplay.length > 1 && [currentVirtualKeyNotesDownDisplay].map((i: any) => {
-          <Box>{i}</Box>
-                    })}</Box> */}
                 </Box>
+
+                <Box 
+                    sx={{ 
+                        bottom: '0px',
+                        top: '50px',
+                        height: 'calc(100% - 304px)',
+                        left: '210px',
+                        position: 'absolute',
+                        pointerEvents: 'none'
+                    }}>
+                    {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
+                    {isAnalysisPopupOpen &&
+                        <LineChartWrapper
+                            centroid={centroid}
+                            flux={flux}
+                            rms={rMS}
+                            mfccEnergy={mFCCEnergy}
+                            mfccVals={mFCCVals}
+                            rollOff50={rollOff50}
+                            rollOff85={rollOff85}
+                            chroma={chroma}
+                            xCross={xCross}
+                            dct={dct}
+                            featureFreq={featureFreq}
+                            featureGain={featureGain}
+                            kurtosis={kurtosis}
+                            sfm={sFM}
+                            sampleRate={sampleRate}
+                            timeNow={timeNow}
+                            closeAnalysisPopup={closeAnalysisPopup}
+                            handleChangeAnalysisSource={handleChangeAnalysisSource}
+                            analysisSourceRadioValue={analysisSourceRadioValue}
+                        />}
+                </Box>
+
                 {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
                     <Box sx={{width: "100%", height: "100vh", textAlign: "center"}}>
                         {!chuckHook && (
@@ -5386,7 +5249,8 @@ export default function InitializationComponent() {
                                     id="initChuckButton" 
                                     onClick={initChuck} 
                                     endIcon={<PlayArrowIcon 
-                                    style={{pointerEvents: "none"}} />}>
+                                    style={{pointerEvents: "none"}} />}
+                                    >
                                         Begin
                                 </Button>
                             </Box>
@@ -5402,39 +5266,39 @@ export default function InitializationComponent() {
                                 display: 'flex', 
                                 flexDirection: 'row' 
                             }}>
-                        <Box 
-                            sx={{ 
-                                bottom: '0px',
-                                top: '0px',
-                                width: '100%',
-                                left: '210px',
-                                position: 'absolute',
-                                pointerEvents: 'none'
-                            }}>
-                            {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
-                            {isAnalysisPopupOpen &&
-                                <LineChartWrapper
-                                    centroid={centroid}
-                                    flux={flux}
-                                    rms={rMS}
-                                    mfccEnergy={mFCCEnergy}
-                                    mfccVals={mFCCVals}
-                                    rollOff50={rollOff50}
-                                    rollOff85={rollOff85}
-                                    chroma={chroma}
-                                    xCross={xCross}
-                                    dct={dct}
-                                    featureFreq={featureFreq}
-                                    featureGain={featureGain}
-                                    kurtosis={kurtosis}
-                                    sfm={sFM}
-                                    sampleRate={sampleRate}
-                                    timeNow={timeNow}
-                                    closeAnalysisPopup={closeAnalysisPopup}
-                                    handleChangeAnalysisSource={handleChangeAnalysisSource}
-                                    analysisSourceRadioValue={analysisSourceRadioValue}
-                                />}
-                    </Box>
+                            {/* <Box 
+                                sx={{ 
+                                    bottom: '0px',
+                                    top: '50px',
+                                    height: 'calc(100% - 304px)',
+                                    left: '210px',
+                                    position: 'absolute',
+                                    pointerEvents: 'none'
+                                }}>
+                                {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
+                                {isAnalysisPopupOpen &&
+                                    <LineChartWrapper
+                                        centroid={centroid}
+                                        flux={flux}
+                                        rms={rMS}
+                                        mfccEnergy={mFCCEnergy}
+                                        mfccVals={mFCCVals}
+                                        rollOff50={rollOff50}
+                                        rollOff85={rollOff85}
+                                        chroma={chroma}
+                                        xCross={xCross}
+                                        dct={dct}
+                                        featureFreq={featureFreq}
+                                        featureGain={featureGain}
+                                        kurtosis={kurtosis}
+                                        sfm={sFM}
+                                        sampleRate={sampleRate}
+                                        timeNow={timeNow}
+                                        closeAnalysisPopup={closeAnalysisPopup}
+                                        handleChangeAnalysisSource={handleChangeAnalysisSource}
+                                        analysisSourceRadioValue={analysisSourceRadioValue}
+                                    />}
+                            </Box> */}
     
             
     {/* BABYLON LAYER */}
@@ -5479,6 +5343,13 @@ export default function InitializationComponent() {
                                             beatsDenominator={beatsDenominator}
                                             handleChangeBeatsNumerator={handleChangeBeatsNumerator}
                                             handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                            programIsOn={programIsOn}
+                                            handleToggleArpeggiator={handleToggleArpeggiator}
+                                            handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                            handleReturnToSynth={handleReturnToSynth}
+                                            checkedFXList={checkedFXList.current}
+                                            stkFX={stkFX}
+                                            keysVisible={keysVisible}
                                         />
                                     </Box>)
                                 }
@@ -5553,7 +5424,7 @@ export default function InitializationComponent() {
 
     {/* BPM */}
                                 <Box sx={{display: "flex", flexDirection: "column"}}>
-                                    <Box sx={{display: "flex", flexDirection: "row"}}>
+                                    {/* <Box sx={{display: "flex", flexDirection: "row"}}>
 
                                         <Button 
                                             sx={{                     
@@ -5565,7 +5436,6 @@ export default function InitializationComponent() {
                                                 left: '0px', 
                                                 minWidth: '208px', 
                                                 marginLeft: '0px', 
-                                                // top: '232px', 
                                                 maxHeight: '40px',
                                                 display: programIsOn ? "flex" : "none",
                                                 '&:hover': {
@@ -5581,7 +5451,7 @@ export default function InitializationComponent() {
                                             BPM
                                         </Button>
                                     </Box>
-                            
+                             */}
 
         {/* PATTERN CONTROL */}
                                     <Box sx={{display: "flex", flexDirection: "column"}}>
@@ -5758,56 +5628,11 @@ export default function InitializationComponent() {
                                         }
                                     </Box>
                                 </Box>
-
-
-
-
-
-
-    {/* TOGGLE KNOBS VIEW */}
-
-                                <Box sx={{display: "flex", flexDirection: "column"}}>
-                                    <Box sx={{display: "flex", flexDirection: "row"}}>
-                                        <ToggleFXView 
-                                            stkCount={stkFX.current.length}
-                                            fxCount={checkedFXList.current.length}
-                                            handleReturnToSynth={handleReturnToSynth} 
-                                            programIsOn={programIsOn}
-                                        />
-                                    </Box>
-                                </Box>
-
-    {/* TOGGLE KEYBOARD */}
-
-                                {/* <Box> */}
-                                    {/* <Button
-                                        sx={{ 
-                                            color: 'rgba(0,0,0,.98)',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.7)', 
-                                            // background: 'rgba(232, 82,82, 1)', 
-                                            // background: 'rgba(147, 206, 214, 1)', 
-                                            minWidth: '208px', 
-                                            marginLeft: '0px', 
-                                            maxHeight: '40px', 
-                                            border: '0.5px solid #b2b2b2',
-                                            display: programIsOn ? "flex" : "none",
-                                            '&:hover': {
-                                                color: '#f5f5f5 !important',
-                                                background: 'rgba(0,0,0,.98)',
-                                                border: '1px solid #1976d2',
-                                            }
-                                        }} 
-                                        variant="outlined" 
-                                        className="ui_SynthLayerButton"
-                                        onClick={toggleKeyboard}
-                                    >Toggle Keyboard</Button> */}
-                                {/* </Box> */}
-
                             </Box> )}
                     </Box>
                 </Box>
                 )}
-
+                
                 <Box
                     sx={{
                         position: "absolute",
@@ -5816,7 +5641,8 @@ export default function InitializationComponent() {
                     }}
                 // width={window.innerWidth} height={window.innerHeight/4}
                 >
-         
+                        
+
                             <Keyboard 
                                 chuckHook={chuckHook}
                                 keysVisible={keysVisible}
@@ -5827,9 +5653,11 @@ export default function InitializationComponent() {
                                 compare={compare}
                                 // keyWid={vizWid}
                                 keyWid={`100vw`}
+                                notesAddedDetails={notesAddedDetails}
                             />
 
-                        </Box> 
+
+                </Box> 
                 {/* <Box id="fxViewController" sx={{
                         position: "absolute",
                         left: "0",
@@ -5902,6 +5730,6 @@ export default function InitializationComponent() {
                   </Box>
                 </Box>
             </Box>
-        </ThemeProvider>
+   
     )
 };

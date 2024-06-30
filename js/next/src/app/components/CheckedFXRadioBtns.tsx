@@ -17,7 +17,7 @@ const CheckedFXRadioBtns = (props: Props) => {
 
     return (
         <FormControl>
-            <FormLabel id="demo-row-radio-buttons-group-label-selfx">Selected Effects</FormLabel>
+            {/* <FormLabel id="demo-row-radio-buttons-group-label-selfx">Selected Effects</FormLabel> */}
             <RadioGroup
             row
             aria-labelledby="demo-row-radio-buttons-group-label-checkedFX"

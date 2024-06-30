@@ -159,9 +159,8 @@ export default function FXRouting(props: Props) {
           //   fxChainNeedsUpdate(linksRef.current[fxRadioValue]);
           // }
         } else if (idx > 0) {
-          console.log("???????*** ", linksRef.current[idx] && linksRef.current[idx - 1].source && Object.values(linksRef.current[idx]), linksRef.current[idx - 1]);
           // Object.values(linksRef.current[idx]) && linksRef.current[idx - 1].length > 0 && linksRef.current[idx - 1].source;
-          console.log("LINKS REF WTF: ", linksRef.current);
+          console.log("LINKS REF: ", linksRef.current);
           // Object.values(linksRef.current[idx]).target = linksRef.current[idx] && linksRef.current[idx - 1] 
           if (clickFXChain) {
             fxChainNeedsUpdate(linksRef.current);
