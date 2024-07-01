@@ -1,0 +1,1 @@
+export const MIDDLE_FONT_SIZE = '14px';
