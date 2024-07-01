@@ -31,6 +31,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
   //
   // Compute the nodes
   //
+  console.log('we getting data in arc diagram? ', data);
   const d3FxChainSvg = useRef<any>(0);
   const parentContainer = useRef<any>(0) as any;
 
@@ -45,7 +46,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
 
   const allNodeGroups = [...new Set(Object.values(data.nodes).map((node) => node.group))];
 
-  const yScale = d3.scalePoint().range([0, boundsHeight]).domain(allNodeNames);
+  const yScale: any = d3.scalePoint().range([0, boundsHeight]).domain(allNodeNames);
   const xScale = d3.scalePoint().range([0, boundsWidth]).domain(allNodeNames);
   const colorScale = d3
     .scaleOrdinal<string>()
@@ -184,7 +185,7 @@ export const ArcDiagram = ({ handleClickName, width, height, data, updateChecked
     const yEnd = yScale(link.target);
     const xEnd: any = xScale(link.target);
     // console.log('XSTART/END! ', xStart, xEnd)
-    if (typeof yStart === "undefined" || typeof yEnd === "undefined") {
+    if (typeof yStart !== "number" || typeof yEnd === "number") {
       return;
     }
     return (
@@ -237,6 +238,7 @@ const verticalArcGenerator = (
   xEnd: number,
   yEnd: number
 ) => {
+  if (!xStart || !yStart || typeof xStart !== "number" || typeof yStart !== "number") return;
   return [
     // the arc starts at the coordinate xStart, yStart
     "M",

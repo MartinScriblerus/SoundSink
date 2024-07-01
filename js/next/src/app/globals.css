@@ -728,12 +728,13 @@ ul {
   background-color: linear-gradient(45deg, rgba(0,172,224,0.88) 0%, rgba(17,110,224,0.88) 40%);
 }
 
-#countWrapper {
+.countWrapper {
   left: 325px;
 }
 
 @media screen and (max-width: 900px) {
-  #countWrapper {
+  .countWrapper {
+    position: inherit;
     left: 120px;
   }
 }

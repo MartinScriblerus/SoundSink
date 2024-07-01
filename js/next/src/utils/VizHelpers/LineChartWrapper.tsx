@@ -3,57 +3,8 @@ import { LineChart } from "./LineChart";
 import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 export interface VizDataProps {
-  centroid: {
-    source: string;
-    value: number;
-  }
-  flux: {
-    source: string;
-    value: number;
-  }
-  rms: {
-    source: string;
-    value: number;
-  }
-  mfccEnergy: {
-    source: string;
-    value: number;
-  }
-  mfccVals: {
-    source: string;
-    value: Array<number>;
-  }
-  rollOff50: {
-    source: string;
-    value: number;
-  };
-  rollOff85: {
-    source: string;
-    value: number;
-  };
-  chroma: {
-    source: string;
-    value: number[];
-  };
-  xCross: number;
-  dct: Array<number>;
-  featureFreq: {
-    source: string;
-    value: number;
-  };
-  featureGain: {
-    source: string;
-    value: number;
-  };
-  kurtosis: {
-    source: string;
-    value: number;
-  };
-  sfm: {
-    source: string;
-    value: number[];
-  };
-  sampleRate: number;
+
+  analysisObject: any;
   timeNow: number;
   closeAnalysisPopup: () => void;
   handleChangeAnalysisSource: (e: any) => void;
@@ -62,21 +13,7 @@ export interface VizDataProps {
 
 export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}) => {
   const {
-    centroid, 
-    flux, 
-    rms, 
-    mfccEnergy, 
-    mfccVals, 
-    rollOff50, 
-    rollOff85, 
-    chroma, 
-    xCross, 
-    dct, 
-    featureFreq, 
-    featureGain, 
-    kurtosis, 
-    sfm, 
-    sampleRate, 
+    analysisObject,
     timeNow, 
     closeAnalysisPopup, 
     handleChangeAnalysisSource,
@@ -87,53 +24,38 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   const [mockData, setMockData] = useState<Array<any>>([]);
   const [currentVisualization, setCurrentVisualization] = useState<string>('centroid');
   
+
   const value = ""
 
   useMemo(() => {
     // console.log('EEEESH PROPS: ', props);
-
     // EFFECTS W TIME ON X-AXIS
-    if (currentVisualization === "centroid") {
-      console.log('$$$ ', centroid);
-      setMockData((data: any) => [...data, {x: timeNow, 
-        y: centroid.value, 
-        y_flux: flux.value,
-        y_rms: rms.value,
-        y_rolloff50: rollOff50.value,
-        y_rolloff85: rollOff85.value,
-        // y_mfccEnergy: mfccEnergy.value,
-        // y_mfccVals: mfccVals.value,
-        // y_chroma: chroma.value,
-        y_xCross: xCross,
-      }]);
-    } else if (currentVisualization === "flux") {
-      const dataParsedForNaN = typeof flux !== "number" && 0;
-      setMockData((data: any) => [...data, {x: timeNow, y: flux.value || 0}]);
-    } else if (currentVisualization === "rms") {
-      setMockData((data: any) => [...data, {x: timeNow, y: rms.value || 0}]);
-    }  else if (currentVisualization === "rollOff50") {
-      setMockData((data: any) => [...data, {x: timeNow, y: rollOff50.value || 0}]);
-    }  else if (currentVisualization === "rollOff85") {
-      setMockData((data: any) => [...data, {x: timeNow, y: rollOff85.value || 0}]);
-    }  else if (currentVisualization === "xCross") {
-      setMockData((data: any) => [...data, {x: timeNow, y: xCross || 0}]);
-    }  else if (currentVisualization === "freq") {
-      console.log("YOYOYO: ", featureFreq);
-      setMockData((data: any) => [...data, {x: timeNow, y: featureFreq.value}]);
-    }  else if (currentVisualization === "gain") {
-      setMockData((data: any) => [...data, {x: timeNow, y: featureGain.value}]);
-    }  else if (currentVisualization === "kurtosis") {
-      setMockData((data: any) => [...data, {x: timeNow, y: kurtosis.value}]);
-    }  else if (currentVisualization === "sfm") {
-      setMockData((data: any) => [...data, {x: timeNow, y: sfm.value}]);
-    } 
+    // if (currentVisualization === "centroid") {
 
-    
-  },[timeNow])
+    if (analysisObject.current[analysisSourceRadioValue.toLowerCase()].length === 0) return;
+    // console.log('$$$ ', analysisObject[analysisSourceRadioValue.toLowerCase()]);
+      setMockData((data: any) => [...data, {
+        x: timeNow, 
+        // x: Date.now(),
+        centroid: analysisObject.current[analysisSourceRadioValue.toLowerCase()].centroid, 
+        flux: analysisObject.current[analysisSourceRadioValue.toLowerCase()].flux,
+        rms: analysisObject.current[analysisSourceRadioValue.toLowerCase()].rms,
+        rolloff50: analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff50,
+        rolloff85: analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff85,
+        mfccEnergy: analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccEnergy,
+        mfccVals: analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccVals,
+        chroma: analysisObject.current[analysisSourceRadioValue.toLowerCase()].chroma,
+        xCross: analysisObject.current[analysisSourceRadioValue.toLowerCase()].xcross,
+        dct: analysisObject.current[analysisSourceRadioValue.toLowerCase()].dct,
+        featureFreq: analysisObject.current[analysisSourceRadioValue.toLowerCase()].featureFreq,
+        featureGain: analysisObject.current[analysisSourceRadioValue.toLowerCase()].featureGain,
+        kurtosis: analysisObject.current[analysisSourceRadioValue.toLowerCase()].kurtosis,
+    }]);
+  },[analysisObject.current, timeNow]); 
 
   const handleChange = (selectedViz: any) => {
-    console.log("SELECTED VIZ: ", selectedViz.target.value);
     setCurrentVisualization(selectedViz.target.value);
+
   };
 
   return (
@@ -144,32 +66,22 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
         <CloseIcon onClick={closeAnalysisPopup} sx={{ position: "relative", display: "flex", flexDirection: "column", alignText: "right", justifyContent: "right" }} />
         
         <Box sx={{ position: "relative", display: "flex", flexDirection: "row" }}>
-          <LineChart
+          {
+          mockData && 
+          (<LineChart
               key={`${currentVisualization}`}
-              data={mockData}
+              // data={analysisObject.current[analysisSourceRadioValue][`${currentVisualization}`]}
+              data={mockData.map((i: any) => {return {x: i.x, y: i[`${currentVisualization}`]}})}
               width={width}
               height={height}
               cursorPosition={cursorPosition}
               setCursorPosition={setCursorPosition}
               color={"rgba(228,225,209,1)"}          
-              centroid={centroid} 
-              flux={flux} 
-              rms={rms} 
-              mfccEnergy={mfccEnergy} 
-              mfccVals={mfccVals} 
-              rollOff50={rollOff50} 
-              rollOff85={rollOff85} 
-              chroma={chroma} 
-              xCross={xCross} 
-              dct={dct} 
-              featureFreq={featureFreq} 
-              featureGain={featureGain} 
-              kurtosis={kurtosis} 
-              sfm={sfm}
-              sampleRate={sampleRate}
+              // analysisObject={analysisObject}
+              // analysisSourceRadioValue={analysisSourceRadioValue}
               selectedViz={`${currentVisualization}`}
               timeNow={timeNow}
-          />
+          />)}
 
           <RadioGroup
             aria-labelledby="demo-controlled-radio-buttons-group-feature-viz"

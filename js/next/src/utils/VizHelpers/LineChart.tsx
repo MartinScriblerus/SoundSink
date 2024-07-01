@@ -17,61 +17,10 @@ type LineChartProps = {
   selectedViz: string;
   width: number;
   height: number;
-  data: DataPoint[];
+  data: DataPoint[] | any;
   color: string;
   cursorPosition: number | null;
   setCursorPosition: (position: number | null) => void;
-  centroid:  {
-    source: string;
-    value: number;
-  };
-  flux: {
-    source: string;
-    value: number;
-  }; 
-  rms: {
-    source: string;
-    value: number;
-  };
-  mfccEnergy: {
-    source: string;
-    value: number;
-  }; 
-  mfccVals: {
-    source: string;
-    value: Array<any>;
-  }; 
-  rollOff50: {
-    source: string;
-    value: number;
-  }; 
-  rollOff85: {
-    source: string;
-    value: number;
-  }; 
-  chroma: {
-    source: string;
-    value: number[];
-  }; 
-  xCross: number; 
-  dct: Array<any>; 
-  featureFreq: {
-    source: string;
-    value: number;
-  };
-  featureGain: {
-    source: string;
-    value: number;
-  };
-  kurtosis: {
-    source: string;
-    value: number;
-  };
-  sfm: {
-    source: string;
-    value: number[];
-  };
-  sampleRate: number;
   timeNow: number;
 };
 
@@ -83,34 +32,20 @@ export const LineChart = ({
   cursorPosition,
   setCursorPosition,
   color,
-  centroid,
-  flux, 
-  rms,
-  mfccEnergy,
-  mfccVals,
-  rollOff50, 
-  rollOff85, 
-  chroma, 
-  xCross, 
-  dct, 
-  featureFreq, 
-  featureGain, 
-  kurtosis, 
-  sfm,
-  sampleRate,
   timeNow,
 }: LineChartProps) => {
 
-  if (!data || data.length === 0) return;
- 
+  // if (!data || data.length === 0) return;
+
   // bounds = area inside the graph axis = calculated by substracting the margins
   const axesRef = useRef(null);
   const boundsWidth = width && width - MARGIN.right - MARGIN.left;
   const boundsHeight = height && height - MARGIN.top - MARGIN.bottom;
 
   const normalizeMax = data.length > 70 ? data.length - 70 : data ? (data.length * 3)/4 : 1;
+
   // Y axis
-  const [min, max] = d3.extent(data.slice(normalizeMax, data.length), (d) => d.y);
+  const [min, max]: any = d3.extent(data.slice(normalizeMax, data.length), (d: any) => d.y);
   const handleMinVariation: any = min && min >= 0 ? 0 : min ? min - min/4 : 0;
   const handleMaxVariation: any = max && max + (max/4) || 0;
 
@@ -119,17 +54,23 @@ export const LineChart = ({
       .scaleLinear()
       .domain([handleMinVariation, handleMaxVariation])
       .range([boundsHeight, 0]);
-  }, [data, height]);
+  }, [data, height, timeNow]);
+
+
 
   // X axis
-  const [xMin, xMax] = d3.extent(data, (d) => d.x);
+  const [xMin, xMax]: any = d3.extent(data, (d: any) => d.x);
+
+  // const getDomain: any = [xMax ? xMax - 10 : xMin, xMax || 0];
+  const getDomain: any = [Math.floor(timeNow-10), Math.floor(timeNow)];
+  // console.log("check get domain: ", getDomain);
   const xScale = useMemo(() => {
     return d3
       .scaleLinear()
       // .domain([0, xMax || 0])
-      .domain([xMax ? xMax - 10 : 0, xMax || 0])
+      .domain(getDomain)
       .range([0, boundsWidth]);
-  }, [data, width]);
+  }, [data, width, timeNow]);
 
   // Render the X and Y axis using d3.js, not react
   useEffect(() => {
@@ -151,52 +92,22 @@ export const LineChart = ({
     svgElement.append("g")
       .attr("transform", "translate(" + boundsWidth + ", 0)") 
       .call(yAxisGenerator);
-  }, [xScale, yScale, boundsHeight]);
+  }, [xScale, yScale, boundsHeight, timeNow]);
 
   // Build the line
   const lineBuilder = d3
-    .line<DataPoint>()
-    .x((d) => xScale(d.x))
-    .y((d) => yScale(d.y));
+    .line<any>()
+    .x((d: any) => xScale(d.x))
+    .y((d: any) => yScale(d.y));
   
-  const fluxLineBuilder = d3
-    .line<DataPoint>()
-    .x((d) => xScale(d.x))
-    .y((d) => yScale(d.y_flux));
-  
-  const rmsLineBuilder = d3
-    .line<DataPoint>()
-    .x((d) => xScale(d.x))
-    .y((d) => yScale(d.y_rms));
-  
-  const rollOff50LineBuilder = d3
-   .line<DataPoint>()
-   .x((d) => xScale(d.x))
-   .y((d) => yScale(d.y_rollOff50));
 
-  const rollOff85LineBuilder = d3
-   .line<DataPoint>()
-   .x((d) => xScale(d.x))
-   .y((d) => yScale(d.y_rollOff85));
-  
-  const xCrossLineBuilder = d3
-   .line<DataPoint>()
-   .x((d) => xScale(d.x))
-   .y((d) => yScale(d.y_xCross));
   
   const linePath = lineBuilder(data);
-  const fluxLinePath = fluxLineBuilder(data);
-  const rmsLinePath = rmsLineBuilder(data);
-  const rollOff50LinePath = rollOff50LineBuilder(data);
-  const rollOff85LinePath = rollOff85LineBuilder(data);
-  const xCrossLinePath = xCrossLineBuilder(data);
 
-
-  if (!linePath || !fluxLinePath || !rmsLinePath || !rollOff50LinePath || !rollOff85LinePath || !xCrossLinePath) {
+  if (!linePath) {
     return null;
   }
 
-  //
   const getClosestPoint = (cursorPixelPosition: number) => {
     const x = xScale.invert(cursorPixelPosition);
 
@@ -223,6 +134,8 @@ export const LineChart = ({
 
     closest && setCursorPosition(xScale(closest.x));
   };
+
+
 
   return (
     <div style={{width: "100%"}}>

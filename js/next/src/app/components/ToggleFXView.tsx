@@ -1,13 +1,7 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
-import DeleteIcon from '@mui/icons-material/Delete';
-import KeyboardTabIcon from '@mui/icons-material/KeyboardTab';
-import Stack from '@mui/material/Stack';
-import PianoIcon from '@mui/icons-material/Piano';
 
 type Props = {
-    // currentFXScreen: string;
-    // setCurrentFXScreen: React.Dispatch<React.SetStateAction<string>>;
     stkCount: number;
     fxCount: number;
     handleReturnToSynth: () => void;

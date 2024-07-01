@@ -271,7 +271,7 @@ export default function InitializationComponent() {
     }, []);
 
     async function convertFrequency(freq: number, microFreq: any, microMidiNum: any) { 
-        console.log("YYYYYYY ", freq);
+
         const freqLets: string[] = [];
         Object.values(notefreqchart).forEach((val: any, idx: number) => {
             if (
@@ -279,7 +279,7 @@ export default function InitializationComponent() {
                 newMicroTonalArr.map((i:any) => i.freq).indexOf(microFreq) === -1 && 
                 Object.keys(notefreqchart)[idx - 1]
             ) {
-                console.log("WHAT IS VAL? ", val, Object.keys(notefreqchart)[idx - 1])
+                // console.log("WHAT IS VAL? ", val, Object.keys(notefreqchart)[idx - 1])
                 // freqLets.push(Object.keys(notefreqchart)[idx - 1])
                 newMicroTonalArr.push({
                     freq: microFreq,
@@ -290,7 +290,7 @@ export default function InitializationComponent() {
             }
         });
         // console.log("FREQLETS: ", freqLets);
-        console.log("NEW MICRO ARR: ", newMicroTonalArr);
+        // console.log("NEW MICRO ARR: ", newMicroTonalArr);
         return freqLets;
     }
 
@@ -387,6 +387,72 @@ export default function InitializationComponent() {
 
     const filesChuckToDac = useRef<string>('');
     const filesGenericCodeString = useRef<any>('');
+    const analysisObject = useRef<any>({
+        osc: {
+            centroid: [],
+            flux: [],
+            rms: [],
+            mfccEnergy: [],
+            mfccVals: [],
+            rolloff50: [],
+            rolloff85: [],
+            xcross: [],
+            dct: [],
+            featureGain: [],
+            featureFreq: [],
+            kurtosis: [],
+            sfm: [],
+            sampleRate: [],
+        },
+        stk: {
+            centroid: [],
+            flux: [],
+            rms: [],
+            mfccEnergy: [],
+            mfccVals: [],
+            rolloff50: [],
+            rolloff85: [],
+            xcross: [],
+            dct: [],
+            featureGain: [],
+            featureFreq: [],
+            kurtosis: [],
+            sfm: [],
+            sampleRate: [],
+        },
+        sampler: {
+            centroid: [],
+            flux: [],
+            rms: [],
+            mfccEnergy: [],
+            mfccVals: [],
+            rolloff50: [],
+            rolloff85: [],
+            xcross: [],
+            dct: [],
+            featureGain: [],
+            featureFreq: [],
+            kurtosis: [],
+            sfm: [],
+            sampleRate: [],
+        },
+        audioIn: {
+            centroid: [],
+            flux: [],
+            rms: [],
+            mfccEnergy: [],
+            mfccVals: [],
+            rolloff50: [],
+            rolloff85: [],
+            xcross: [],
+            dct: [],
+            featureGain: [],
+            featureFreq: [],
+            kurtosis: [],
+            sfm: [],
+            sampleRate: [],
+        },
+    });
 
     const selectedEffect = useRef<string>('')
     const currentScreen = useRef<string>('synth');
@@ -2594,7 +2660,7 @@ export default function InitializationComponent() {
         setCheckedEffectToShow(msg);
     }
 
-    const runMainChuckCode = async (aChuck: Chuck, getStk1String: any) => {
+    const runMainChuckCode = async (aChuck: Chuck) => {
         // if (chuckUpdateNeeded !== false) {setChuckUpdateNeeded(true)}
         // if (chuckUpdateNeeded === false) {
 
@@ -2606,12 +2672,12 @@ export default function InitializationComponent() {
             console.log('WHAT IS SHRED COUNT? ', shredCount.current);
             console.log('FILES TO PROCESS: ', filesToProcess);
 
+            filesToProcess.current && 
+            filesToProcess.current.length > 0 && 
             filesToProcess.current.map(async (i: any) => {
                 const filename: string = i.name;
                 const filedata: Uint8Array | string = i.data;
                 aChuck && aChuck?.createFile("", filename, filedata);
-                console.log("ACHUCK IS HERE: ", aChuck);
-
             });
 
             // console.log('STK STRING HERE: ', getStk1String());
@@ -2652,7 +2718,7 @@ export default function InitializationComponent() {
             const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
             const spectacleCodeStringOsc1 = osc1SpectacleOn.current ? spectacleString('o1', spectacleFinalHelper.current.osc1.bands, spectacleFinalHelper.current.osc1.delay, spectacleFinalHelper.current.osc1.eq, spectacleFinalHelper.current.osc1.feedback, spectacleFinalHelper.current.osc1.fftlen, spectacleFinalHelper.current.osc1.freqMax, spectacleFinalHelper.current.osc1.freqMin, spectacleFinalHelper.current.osc1.mix, spectacleFinalHelper.current.osc1.overlap, spectacleFinalHelper.current.osc1.table) : '';
 
-            console.log('exp delay: ', expDelayCodeStringOsc1);
+            // console.log('exp delay: ', expDelayCodeStringOsc1);
             // DELAY LINES
             const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
             const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
@@ -2692,9 +2758,6 @@ export default function InitializationComponent() {
 
 
             // const newStkFXString = useRef<string>('');
-      
-
-
             const winFuncDeclarationStk = stkWinEnvOn.current ? ' WinFuncEnv winfuncenv_stk1 =>' : '';
             const powerADSRDeclarationStk = stkPowerADSROn.current ? ' PowerADSR poweradsr_stk1 =>' : '';
             const expEnvDeclarationStk = stkExpEnvOn.current ? ' ExpEnv expenv_stk1 =>' : '';
@@ -2736,12 +2799,9 @@ export default function InitializationComponent() {
             // NOTE! => I removed ${connector1stk} from between saw1 & diodeladder below... this was breaking longer playing stks (& all else when they were chosen).
             const osc1ChuckToOutlet: string = ` SawOsc saw1 => ${wpDiodeLadderDeclarationOsc1} LPF lpf => ADSR adsr => Dyno limiter ${osc1FXStringToChuck.current} => ${winFuncDeclarationOsc1} ${ellipticDeclarationOsc1} ${powerADSRDeclarationOsc1} ${expEnvDeclarationOsc1} ${expDelayDeclarationOsc1} outlet;`;
 
-            ////// ************************* WHY IS THIS TAKING IN WHAT SHOULD BE APPLIED TO STK??? 
-            // alert(`MUST BEGIN HERE... ${stkFXStringToChuck.current}`)
             const samplerChuckToOutlet: string = `limiter_Sampler ${samplerFXStringToChuck.current} => ${winFuncDeclarationSampler} ${ellipticDeclarationSampler} ${powerADSRDeclarationSampler} ${expEnvDeclarationSampler} ${expDelayDeclarationSampler} ${modulateDeclarationSampler} `;
             const transitionhandlerSimpleToComplex = stkFXStringToChuck.current.length > 0 ? `=>` : ``;
-            // const stkChuckToOutlet: string = stkFXStringToChuck.current && stkFXStringToChuck.current.length > 0 ? `${stkFXStringToChuck.current} ${transitionhandlerSimpleToComplex} ${winFuncDeclarationStk} ${ellipticDeclarationStk} ${powerADSRDeclarationStk} ${expEnvDeclarationStk} ${expDelayDeclarationStk} ${modulateDeclarationStk} `: '';
-
+   
             const stkChuckToOutlet: string = `${stkFXStringToChuck.current} ${transitionhandlerSimpleToComplex} ${winFuncDeclarationStk} ${ellipticDeclarationStk} ${powerADSRDeclarationStk} ${expEnvDeclarationStk} ${expDelayDeclarationStk} ${modulateDeclarationStk} `;
             
             osc1FxStringNeedsBlackhole.current = osc1FxStringToChuckNeedsBlackhole.current.length > 0 ? `voice[i] ${osc1FxStringToChuckNeedsBlackhole.current[0].string}` : '';
@@ -3375,23 +3435,13 @@ export default function InitializationComponent() {
 
             virtualKeyMapUp.current = currentNotesDownDisplay.current.length > 1 ? await virtualKeyMapping(48, 0) : "";
 
-            console.log("1111111 ", currentNotesDownDisplay.current);
+            console.log("Are we getting notes down?: ", currentNotesDownDisplay.current);
 ;      
 
             stkOn.current = await playSTKOn();
 
             stkPolyKeyOff.current = await playSTKOff(); 
                         
-            
-            console.log("WHAT IS THIS STKON? ", stkOn.current);
-
-
-            console.log("WHAT IS FILE ARRAY? ", filesArray);
-            console.log("help please: ", allFxPersistent.current);
-
-
-            // console.log("SO TEDIOUS! ", newStkFXString);
-
     
              const stkShouldPlay = () => {
                 if (stkFX.current && stkFX.current.length > 0 && stkFX.current.filter((i: any) => i.fxType === "stk" && i).length > 0) {
@@ -3401,21 +3451,19 @@ export default function InitializationComponent() {
                 };
              } 
              const SHD_STK_PLAY = stkShouldPlay(); 
+             console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
 
             const chuckCode = `
             
             [0] @=> int notes[];
             
-            // webchuck keyboard device
             0 => int device;
             
-            // HID input and HID message
             Hid hid;
             HidMsg msg;
             
-            // open keyboard device
             if( !hid.openKeyboard( device ) ) me.exit();
-            // <<< "keyboard '" + hid.name() + "' ready", "" >>>;
+            <<< "keyboard '" + hid.name() + "' ready", "" >>>;
             
             
 
@@ -3429,8 +3477,6 @@ export default function InitializationComponent() {
             ((secLenBeat * 1000) * 2)::ms => dur whole;
             (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
                 
-   
-
             
             private class UniversalAnalyzer {
                 FeatureCollector combo => blackhole;
@@ -3461,15 +3507,9 @@ export default function InitializationComponent() {
             
                 fun void declarationCode(UGen @ source) {
                     source => fft;
-                    // a thing for collecting multiple features into one vector
-                    
-                    // add spectral feature: Centroid
                     fft =^ centroid =^ combo;
-                    // add spectral feature: Flux
                     fft =^ flux =^ combo;
-                    // add spectral feature: RMS
                     fft =^ rms =^ combo;
-                    // add spectral feature: MFCC
                     fft =^ mfcc =^ combo;
                     fft =^ rolloff =^ combo;
                     fft =^ chroma =^ combo;
@@ -3478,6 +3518,7 @@ export default function InitializationComponent() {
                     source => flip =^ zerox => blackhole;
                 
                     fft =^ sfm => blackhole;
+
                     //-----------------------------------------------------------------------------
                     // setting analysis parameters -- also should match what was used during extration
                     //-----------------------------------------------------------------------------
@@ -3553,25 +3594,24 @@ export default function InitializationComponent() {
                         }
                     }
                     
-                    if (count % 16 == 0) {
-                        // <<< "FEATURES VALS: ", 
-                        // centroid.fval(0) + " " 
-                        // + flux.fval(0) + " " 
-                        // + rms.fval(0) + " " 
-                        // + mfccString + " " 
-                        // + rolloff.fval(0) + " " 
-                        // + chromaString + " "
-                        // + sourceName >>>;
+                    if (count % 8 == 0) {
+                        <<< "FEATURES VALS: ", 
+                        centroid.fval(0) + " " 
+                        + flux.fval(0) + " " 
+                        + rms.fval(0) + " " 
+                        + mfccString + " " 
+                        + rolloff.fval(0) + " " 
+                        + chromaString + " "
+                        + sourceName >>>;
                     }
                 }
             
                 fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
-                    // window
                     Windowing.hamming( win.size() ) => win.window;
                     float finalObj[2];
                 
                     0 => int count;
-                    // go for it
+
                     while( true )
                     {
                         // take fft
@@ -3613,9 +3653,7 @@ export default function InitializationComponent() {
                         }
                 
                         winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
-                        // fire!
                         this.TrackingFile.the_event.broadcast();
-
                         count++;
                     }
                 }
@@ -3653,9 +3691,10 @@ export default function InitializationComponent() {
                 }
             
                 fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
-                    // <<< "SOURCE IS: ", source, mfccString >>>;
+                    <<< "SOURCE IS: ", source, mfccString >>>;
                     
                     while (true) {
+                        <<< "TIME: ", now >>>;
                         spork ~ this.upchuckRealTimeFeatures(
                             this.combo, 
                             this.mfccString, 
@@ -3671,14 +3710,14 @@ export default function InitializationComponent() {
                         spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
                         spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
                         
-                        // // <<< "TIME: ", now >>>;
-                        // <<< "FREQ: ", 
-                        //     this.TrackingFile.the_freq, 
-                        //     this.TrackingFile.the_gain, 
-                        //     this.the_sfm, 
-                        //     this.TrackingFile.the_kurtosis,
-                        //     sourceVarName 
-                        // >>>;
+                        
+                        <<< "FREQ: ", 
+                            this.TrackingFile.the_freq, 
+                            this.TrackingFile.the_gain, 
+                            this.the_sfm, 
+                            this.TrackingFile.the_kurtosis,
+                            sourceVarName 
+                        >>>;
                         
                         // beat => now;
                         whole / 4 => now; 
@@ -4170,21 +4209,27 @@ export default function InitializationComponent() {
                 files[3] => buffers[3].read;
 
 
-            if (1 == 2) {
-                // UniversalAnalyzer uA; < -- added mock condition to stop this from running
-                // "${analysisSourceRadioValue}" => string analysisSource;
+     
+                UniversalAnalyzer uA;
+                "${analysisSourceRadioValue}" => string analysisSource;
            
                 // if (analysisSource == "Sampler") { 
-                //     uA.declarationCode(testing);
+                //     uA.declarationCode(hpf);
                 //     files[3].find('.') || 0 => int handleDotWav;
                 //     files[3] => string fileName;
                 //     if (handleDotWav) {
                 //         fileName.replace(handleDotWav, "_");
                 //     } 
-                //     // spork ~ uA.getAnalysisForSource(testing, fileName);
+                //     // spork ~ uA.getAnalysisForSource(hpf fileName);
             
                 // }
-            }
+                <<< "WHAT IS ANALYSIS SOURCE? ", analysisSource >>>;
+                // if (analysisSource == "Osc1") { 
+                    uA.declarationCode(hpf);
+                    spork ~ uA.getAnalysisForSource(hpf, "Osc1");
+            
+                // }
+      
                 fun void SilenceAllBuffers()
                 {
                     buffers[0].samples() => buffers[0].pos;
@@ -4540,7 +4585,7 @@ export default function InitializationComponent() {
 
 
 
-        if (chuckUpdateNeeded === false) {    
+        if (chuckCode && chuckCode.length > 0 && chuckUpdateNeeded === false) {    
       
             aChuck.runCode(chuckCode);
 
@@ -4592,7 +4637,9 @@ export default function InitializationComponent() {
 
 
         aChuck.chuckPrint = (message) => {
-            console.log('WHAT IS MSG? ', message);
+            if (message.includes("NUM_COUNT") && !message.includes("NumShreds")) {
+                console.log('WHAT IS MSG? ', message);
+            }
             if (message) {
                 setLastChuckMessage(message);
             }
@@ -4609,6 +4656,7 @@ export default function InitializationComponent() {
 
         console.log("running chuck now... ", chuckUpdateNeeded);
         if (chuckUpdateNeeded) {
+            console.log("just called for chuck update at #1: ");
             setChuckUpdateNeeded(false);
         }
 
@@ -4632,33 +4680,21 @@ export default function InitializationComponent() {
         });
 
 
-        // if (osc1FXString.current && osc1FXString.current.length < 1) {
-        //     osc1FXToString();
-        // }
-        // tk tk getOsc1String
         const OSC_1_Code = osc1FXString.current;
-        console.log("WHAT IS OSC 1 FX String? ", osc1FXString.current)
+
         if (osc1FXString.current && osc1FXString.current.length < 1) return;
 
         // const getStk1String: any = stkFX.current && stkFX.current.length > 0 && await stkFXToStringPrepare();
 
-        console.log("%cARE WE PREPARING??? ", "color: magenta;", await stkFXToStringPrepare())
-
-        console.log('Get stkFX?!!?  ', stkFX.current);
-
-        const getStk1String: any = await stkFXToStringPrepare();
-
-
-        // if (!getStk1String) {
-        //     alert(`hereeeeees NOOOOOO stk1string ${getStk1String}`);
-        // }
+        // const getStk1String: any = await stkFXToStringPrepare();
 
         // ` : '';
 
-        // setStk1Code(STK_1_Code);
         setOsc1Code(OSC_1_Code);
 
-        runMainChuckCode(aChuck, getStk1String);
+        if (aChuck) {
+            runMainChuckCode(aChuck);
+        }
 
 
     }
@@ -4737,37 +4773,27 @@ export default function InitializationComponent() {
         console.log('midiHz: ', midiHz);
         console.log('midiNote ', midiNote);  
    
-        // try {
         const noteReady = note.target.attributes[0].value;
-        // console.log('what are options? ', note.target.attributes);
         const theNoteLetter = idString.replace('-','');
         const theMidiNum = parseFloat(midiNote);
         const theMidiHz = parseFloat(midiHz).toFixed(2);
-        // chuckHook.runCode(` SinOsc osc => dac; 0.2 => osc.gain; ${Math.round(noteReady)} => osc.freq; 3::second => now; `);
-        // noteOn(Math.round(noteReady), 100);
+
         noteOn(theNoteLetter, theMidiNum, theMidiHz, 100);
         return noteReady;
-        // } catch {
-        //     return null;
-        // }
     };
 
     useEffect(() => {
         if (!formats || formats.length < 1 || formats.indexOf('tradKey') !== -1) {
             setKeysVisible(true);
-            // updateHasHexkeys(false);
         }
         if (formats && formats.length > 0 && keysVisible && formats.indexOf('tradKey') === -1) {
             setKeysVisible(false);
-            // updateHasHexkeys(true);
         }
         if (formats && formats.length > 0 && formats.indexOf('hexKey') !== -1) {
             updateHasHexkeys(true);
-            // setKeysVisible(false);
         }
         if (formats && formats.length > 0 && keysVisible && formats.indexOf('hexKey') === -1) {
             updateHasHexkeys(false);
-            // setKeysVisible(true);
         }
     }, [formats]);
 
@@ -4897,8 +4923,8 @@ export default function InitializationComponent() {
 
     const parsedLastChuckMessage = useRef<any>()
 
-    const initialTimeNow = useRef<number>();
-    const initialSampNow = useRef<number>();
+    const initialTimeNow = useRef<number>(0);
+    const initialSampNow = useRef<number>(0);
 
     useEffect(() => {
         if (Math.floor(currentNumerCount/(numeratorSignature)) === 0) return;
@@ -4964,82 +4990,39 @@ export default function InitializationComponent() {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(2);
             console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current);
             const source = parsedLastChuckMessage.current[35].replace(/\W/g, '');
-            setCentroid((i: any) => {
-                if(source) { 
-                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4))}
-                }
-                return i;
-            });
-            setFlux((i: any) => {
-                if(source) { 
-                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4))}
-                }
-                return i;
-            });
-            setRMS((i: any) => {
-                if(source) { 
-                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(4))}
-                }
-                return i;
-            });
-            setMFCCEnergy((i: any) => {
-                if(source) { 
-                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[3]).toFixed(4))}
-                }
-                return i;            
-            });
-            setMFCCVals((i: any) => parsedLastChuckMessage.current.slice(4, 23).map((i: any) => {
-                if(source) { 
-                    return {...i, source: source, value: Number(parseFloat(i).toFixed(4))}
-                }
-                return i;
-            }));
-            setRollOff50((i: any) => { 
-                if(source) { 
-                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[24]).toFixed(4))}
-                }
-                return i;    
-            });
-            setRollOff85((i: any) => {
-                    if(source) { 
-                        return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[25]).toFixed(4))}
-                    }
-                    return i;
-            });
-            setChroma((i: any) => parsedLastChuckMessage.current.slice(26, parsedLastChuckMessage.current.length - 2).map((i: any) => Number(parseFloat(i).toFixed(4))));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].centroid = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].flux = Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rms = Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(4));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccEnergy = Number(parseFloat(parsedLastChuckMessage.current[3]).toFixed(4));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccVals = parsedLastChuckMessage.current.slice(4, 23).map((i: any) => Number(parseFloat(i).toFixed(4)));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff50 = Number(parseFloat(parsedLastChuckMessage.current[24]).toFixed(7));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff85 = Number(parseFloat(parsedLastChuckMessage.current[25]).toFixed(7));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].chroma = parsedLastChuckMessage.current.slice(26, parsedLastChuckMessage.current.length - 2).map((i: any) => Number(parseFloat(i).toFixed(4)))
+
         }
 
         if (lastChuckMessage.includes('XCROSS')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
-            setXCross(Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4)));
-            setDCT(parsedLastChuckMessage.current.slice(1, 4).map((i: any) => Number(parseFloat(i).toFixed(4))));
-            // console.log('to Milliseconds: ', parsedLastChuckMessage.current[5]);
-            setSampleRate(Number(parseFloat(parsedLastChuckMessage.current[5])));
+
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].xcross = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].dct = parsedLastChuckMessage.current.slice(1, 4).map((i: any) => Number(parseFloat(i).toFixed(4)));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].sampleRate = Number(parseFloat(parsedLastChuckMessage.current[5]))
+
         }
 
         if (lastChuckMessage && lastChuckMessage.includes('FREQ')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
             const source = parsedLastChuckMessage.current[parsedLastChuckMessage.current.length - 2].replace(/\W/g, '');
-            setFeatureFreq((i: any) => {
-                if(source) { 
-                    return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4))}
-                }
-                return i;
-        });
-            setFeatureGain(
-                (i: any) => {
-                    if(source) { 
-                        return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4))}
-                    }
-                    return i;
-            });
-            setKurtosis(
-                (i: any) => {
-                    if(source) { 
-                        return {...i, source: source, value: Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(4))}
-                    }
-                    return i;
-            });
+
+
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].featureFreq = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
+
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].featureGain = Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4));
+
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].kurtosis = Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(8));
+
+            // analysisObject.current[analysisSourceRadioValue.toLowerCase()].sfm = Number(parseFloat(parsedLastChuckMessage.current[3]).toFixed(4));
+            
             // setSFM(parsedLastChuckMessage.current.slice(3, parsedLastChuckMessage.current.length - 1).map(
             //     (i: any) => {
             //         if(source) { 
@@ -5057,7 +5040,10 @@ export default function InitializationComponent() {
                 initialSampNow.current = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
                 setTimeNow(0);
             } else {
+                // setTimeNow(timeNow + (Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4)) - initialTimeNow.current) / 44100);
+                // initialTimeNow.current = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
                 setTimeNow((Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4)) - initialTimeNow.current) / 44100);
+   
             }
         }
 
@@ -5146,7 +5132,7 @@ export default function InitializationComponent() {
                             pointerEvents: "none",
                         }}>
                             <Box 
-                                id="countWrapper"
+                                className="countWrapper"
                                 sx={{
                                     position: "relative", 
                                     pointerEvents: "none",
@@ -5191,25 +5177,11 @@ export default function InitializationComponent() {
                     {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
                     {isAnalysisPopupOpen &&
                         <LineChartWrapper
-                            centroid={centroid}
-                            flux={flux}
-                            rms={rMS}
-                            mfccEnergy={mFCCEnergy}
-                            mfccVals={mFCCVals}
-                            rollOff50={rollOff50}
-                            rollOff85={rollOff85}
-                            chroma={chroma}
-                            xCross={xCross}
-                            dct={dct}
-                            featureFreq={featureFreq}
-                            featureGain={featureGain}
-                            kurtosis={kurtosis}
-                            sfm={sFM}
-                            sampleRate={sampleRate}
+                            analysisObject={analysisObject}
                             timeNow={timeNow}
                             closeAnalysisPopup={closeAnalysisPopup}
                             handleChangeAnalysisSource={handleChangeAnalysisSource}
-                            analysisSourceRadioValue={analysisSourceRadioValue}
+                            analysisSourceRadioValue={analysisSourceRadioValue.toLowerCase()}
                         />}
                 </Box>
 
@@ -5267,41 +5239,7 @@ export default function InitializationComponent() {
                                 display: 'flex', 
                                 flexDirection: 'row' 
                             }}>
-                            {/* <Box 
-                                sx={{ 
-                                    bottom: '0px',
-                                    top: '50px',
-                                    height: 'calc(100% - 304px)',
-                                    left: '210px',
-                                    position: 'absolute',
-                                    pointerEvents: 'none'
-                                }}>
-                                {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
-                                {isAnalysisPopupOpen &&
-                                    <LineChartWrapper
-                                        centroid={centroid}
-                                        flux={flux}
-                                        rms={rMS}
-                                        mfccEnergy={mFCCEnergy}
-                                        mfccVals={mFCCVals}
-                                        rollOff50={rollOff50}
-                                        rollOff85={rollOff85}
-                                        chroma={chroma}
-                                        xCross={xCross}
-                                        dct={dct}
-                                        featureFreq={featureFreq}
-                                        featureGain={featureGain}
-                                        kurtosis={kurtosis}
-                                        sfm={sFM}
-                                        sampleRate={sampleRate}
-                                        timeNow={timeNow}
-                                        closeAnalysisPopup={closeAnalysisPopup}
-                                        handleChangeAnalysisSource={handleChangeAnalysisSource}
-                                        analysisSourceRadioValue={analysisSourceRadioValue}
-                                    />}
-                            </Box> */}
-    
-            
+                
     {/* BABYLON LAYER */}
                             <Box sx={{
                                 boxSizing: 'border-box', 
@@ -5334,7 +5272,7 @@ export default function InitializationComponent() {
 
     {/* PLAY CHUCK */}
                                 <Box sx={{display: "flex", flexDirection: "column"}}>
-                                {
+                                {/* {
                                     showBPM && (
                                     <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
                                         <BPMModule 
@@ -5353,7 +5291,7 @@ export default function InitializationComponent() {
                                             keysVisible={keysVisible}
                                         />
                                     </Box>)
-                                }
+                                } */}
 
                                     <Box sx={{display: "flex", flexDirection: "row"}}>
                                         {chuckHook && (
@@ -5386,6 +5324,7 @@ export default function InitializationComponent() {
                                             </Button>
                                         )}
                                     </Box>
+                                    
                                 </Box>
 
     {/* STOP CHUCK */}
@@ -5425,34 +5364,7 @@ export default function InitializationComponent() {
 
     {/* BPM */}
                                 <Box sx={{display: "flex", flexDirection: "column"}}>
-                                    {/* <Box sx={{display: "flex", flexDirection: "row"}}>
-
-                                        <Button 
-                                            sx={{                     
-                                                color: 'rgba(0,0,0,.98)',
-                                                backgroundColor: 'rgba(147, 206, 214, 0.8)', 
-                                                background: 'rbga(0,0,0,.0.8)', 
-                                                position: 'relative', 
-                                                border: '0.5px solid #b2b2b2',
-                                                left: '0px', 
-                                                minWidth: '208px', 
-                                                marginLeft: '0px', 
-                                                maxHeight: '40px',
-                                                display: programIsOn ? "flex" : "none",
-                                                '&:hover': {
-                                                    color: '#f5f5f5',
-                                                    background: 'rgba(0,0,0,.98)',
-                                                    border: '1px solid #1976d2',
-                                                } 
-                                            }}
-                                            className="ui_SynthLayerButton"
-                                            variant="outlined" 
-                                            onClick={handleShowBPM} 
-                                            endIcon={<AccessTimeIcon />}>
-                                            BPM
-                                        </Button>
-                                    </Box>
-                             */}
+                           
 
         {/* PATTERN CONTROL */}
                                     <Box sx={{display: "flex", flexDirection: "column"}}>
@@ -5525,7 +5437,7 @@ export default function InitializationComponent() {
                                             backgroundColor: 'rgba(158, 210, 162, 0.8)', 
                                             background: 'rbga(0,0,0,.7)', 
                                             position: 'relative', 
-                                            border: '0.5px solid #b2b2b2',
+                                            // border: '0.5px solid #b2b2b2',
                                             marginLeft: '0px', 
                                             minWidth: '208px', 
                                             // marginLeft: '12px', 
@@ -5538,9 +5450,9 @@ export default function InitializationComponent() {
                                                 border: '1px solid #1976d2',
                                             } 
                                         }} 
-                                        variant="outlined" 
+                                        // variant="outlined" 
                                         onClick={handleShowSTK} 
-                                        className="ui_SynthLayerButton"
+                                        // className="ui_SynthLayerButton"
                                         endIcon={<DeblurIcon />}>
                                             Instruments
                                     </Button>
@@ -5629,6 +5541,28 @@ export default function InitializationComponent() {
                                         }
                                     </Box>
                                 </Box>
+
+
+                                {
+                                    showBPM && (
+                                    <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
+                                        <BPMModule 
+                                            bpm={bpm} 
+                                            handleChangeBPM={handleChangeBPM}
+                                            beatsNumerator={beatsNumerator}
+                                            beatsDenominator={beatsDenominator}
+                                            handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                            handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                            programIsOn={programIsOn}
+                                            handleToggleArpeggiator={handleToggleArpeggiator}
+                                            handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                            handleReturnToSynth={handleReturnToSynth}
+                                            checkedFXList={checkedFXList.current}
+                                            stkFX={stkFX}
+                                            keysVisible={keysVisible}
+                                        />
+                                    </Box>)
+                                }
                             </Box> )}
                     </Box>
                 </Box>
@@ -5693,19 +5627,7 @@ export default function InitializationComponent() {
                     </CheckedFXRadioBtns>
                 </Box>  
                 <Box sx={{ position: "absolute", color: "white", top: "12px", right: "12px"}}>
-                    {/* {
-                        showBPM && (
-                            <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
-                                <BPMModule 
-                                    bpm={bpm} 
-                                    handleChangeBPM={handleChangeBPM}
-                                    beatsNumerator={beatsNumerator}
-                                    beatsDenominator={beatsDenominator}
-                                    handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                                    handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                                />
-                            </Box>)
-                    } */}
+
                     {
                         showSTKManager && (
                             <STKManagerDropdown

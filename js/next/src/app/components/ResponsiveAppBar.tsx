@@ -80,9 +80,6 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
     setAnchorElUser(null);
   };
 
-
-  console.log("prog is on",  chuckHook);
-
   return (
     <AppBar position="static">
       <Container sx={{height: "48px"}} maxWidth="xl">

@@ -120,16 +120,16 @@ const Keyboard = ({
             octaves.push(octave);
             const isOdd = i % 2;
             // console.log("GETTING OCTAVE? ", octave);
-            if (isOdd > 0 && window.innerWidth < 900) {
-                octaves.push(addBreak);
-                octaves.map((o: any) => {
-                    if (o.className === "break") {
-                        // o.style.display = "flex";
-                        o.removeChild();
-                    }
-                });
+            // if (isOdd > 0 && window.innerWidth < 900) {
+            //     octaves.push(addBreak);
+            //     octaves.map((o: any) => {
+            //         if (o.className === "break") {
+            //             // o.style.display = "flex";
+            //             o.removeChild();
+            //         }
+            //     });
                 
-            } else {
+            // } else {
                 // const breaks = document.getElementsByClassName("break")
                 octaves.map((o: any) => {
                     if (o.className === "break") {
@@ -138,7 +138,7 @@ const Keyboard = ({
                     }
                 });
 
-            }
+            // }
         }
 
 
