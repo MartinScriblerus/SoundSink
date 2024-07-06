@@ -91,7 +91,7 @@ export default function ControlPopup(props: ControlProps) {
         sx={{
           borderColor: 'rgba(228,225,209,1)', 
           position: 'relative', 
-          minWidth: '208px',
+          minWidth: window.innerWidth < 900 ? '140px' : '208px',
           color: 'rgba(0,0,0,.98)',
           backgroundColor: 'rgba(147, 206, 214, 0.8)', 
           background: 'rbga(0,0,0,.0.8)', 
