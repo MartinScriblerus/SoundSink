@@ -398,15 +398,11 @@ export default function InitializationComponent() {
             rms: [],
             mfccEnergy: [],
             mfccVals: [],
-            rolloff50: [],
-            rolloff85: [],
-            xcross: [],
+            rolloff: [],
             dct: [],
-            featureGain: [],
-            featureFreq: [],
+            gain: [],
+            freq: [],
             kurtosis: [],
-            sfm: [],
-            sampleRate: [],
         },
         stk: {
             centroid: [],
@@ -414,15 +410,11 @@ export default function InitializationComponent() {
             rms: [],
             mfccEnergy: [],
             mfccVals: [],
-            rolloff50: [],
-            rolloff85: [],
-            xcross: [],
+            rolloff: [],
             dct: [],
-            featureGain: [],
-            featureFreq: [],
+            gain: [],
+            freq: [],
             kurtosis: [],
-            sfm: [],
-            sampleRate: [],
         },
         sampler: {
             centroid: [],
@@ -430,15 +422,11 @@ export default function InitializationComponent() {
             rms: [],
             mfccEnergy: [],
             mfccVals: [],
-            rolloff50: [],
-            rolloff85: [],
-            xcross: [],
+            rolloff: [],
             dct: [],
-            featureGain: [],
-            featureFreq: [],
+            gain: [],
+            freq: [],
             kurtosis: [],
-            sfm: [],
-            sampleRate: [],
         },
         audioIn: {
             centroid: [],
@@ -446,15 +434,11 @@ export default function InitializationComponent() {
             rms: [],
             mfccEnergy: [],
             mfccVals: [],
-            rolloff50: [],
-            rolloff85: [],
-            xcross: [],
+            rolloff: [],
             dct: [],
-            featureGain: [],
-            featureFreq: [],
+            gain: [],
+            freq: [],
             kurtosis: [],
-            sfm: [],
-            sampleRate: [],
         },
     });
 
@@ -3639,35 +3623,34 @@ export default function InitializationComponent() {
                     dct.upchuck();
 
                     zerox.upchuck() @=> UAnaBlob blobZero;
-                    cherr <= "SFM: ";
-                    for( int i; i < sfm.fvals().size(); i++ )
-                    {
-                        Math.round(sfm.fval(i) * 10) / 10 => float tmp;
-                        cherr <= tmp <= (tmp == 1 || tmp == 0?".0":"") <= " ";
-                    }
 
-                    <<< "FEATURES VALS: ", 
-                    centroid.fval(0) + " " 
-                    + flux.fval(0) + " " 
-                    + rms.fval(0) + " " 
-                    + mfccString + " " 
-                    + rolloff.fval(0) + " " 
+
+                    <<< "FEATURES: " 
+                    + "/centroid: "
+                    + centroid.fval(0) + " " 
+                    + "/flux: " 
+                    + flux.fval(0) + " "
+                    + "/rms: " 
+                    + rms.fval(0) + " "
+                    + "/mfcc: " 
+                    + mfccString + " "
+                    + "/rolloff: " 
+                    + rolloff.fval(0) + " "
+                    + "/chroma: " 
                     + chromaString + " "
-                    + fft.fval(3) + " "
-
-                    + blob.fvals()[0] + " " 
-                    + fft.fval(0) + " " 
-                    + fft.fval(1) + " " 
-                    + fft.fval(2) + " " 
-                    + fft.fval(3) + " "
-                    + this.TrackingFile.the_freq + " " 
-                    + this.TrackingFile.the_gain + " " 
-                    + dct.fval(0) + " " 
+                    + "/freq: "
+                    + this.TrackingFile.the_freq + " "
+                    + "/gain: " 
+                    + this.TrackingFile.the_gain + " "
+                    + "/dct: " 
+                    + dct.fval(0) + " "
                     + dct.fval(1) + " "
-                    + dct.fval(2) + " "  
-                    + dct.fval(3) + " " 
-                    + blobZero.fvals()[0] + " "
-                    + cherr
+                    + dct.fval(2) + " "
+                    + dct.fval(3) + " "
+                    + "/kurtosis: "
+                    + this.TrackingFile.the_kurtosis + " "
+                    + "/zerox: " 
+                    + blobZero.fvals()[0] 
                     >>>;
                     // me.yield();
                 }
@@ -4938,17 +4921,46 @@ export default function InitializationComponent() {
         }
 
         if (lastChuckMessage && lastChuckMessage.includes('FEATURES')) {
-            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(2);
-            console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current);
-            const source = parsedLastChuckMessage.current[35].replace(/\W/g, '');
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].centroid = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].flux = Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rms = Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(4));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccEnergy = Number(parseFloat(parsedLastChuckMessage.current[3]).toFixed(4));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccVals = parsedLastChuckMessage.current.slice(4, 23).map((i: any) => Number(parseFloat(i).toFixed(4)));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff50 = Number(parseFloat(parsedLastChuckMessage.current[24]).toFixed(7));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff85 = Number(parseFloat(parsedLastChuckMessage.current[25]).toFixed(7));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].chroma = parsedLastChuckMessage.current.slice(26, parsedLastChuckMessage.current.length - 2).map((i: any) => Number(parseFloat(i).toFixed(4)))
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[/]+/);
+            console.log('parsedLastChuckMessage.current: ', parsedLastChuckMessage.current.filter((i: any, idx: number) => [idx, i]));
+
+            const allFeatures = parsedLastChuckMessage.current.filter((i: any, idx: number) => [idx, i]);
+
+            const centroid = allFeatures.find((i: any) => i.includes("centroid")).split(":")[1];
+            const flux = allFeatures.find((i: any) => i.includes("flux")).split(":")[1];
+            const rms = allFeatures.find((i: any) => i.includes("rms")).split(":")[1];
+            const mfcc = allFeatures.find((i: any) => i.includes("mfcc")).split(":")[1].split(" ");
+            const mfccEnergy = mfcc.filter((i: any) => parseFloat(i) && parseFloat(i))[0];
+            const mfccVals = mfcc.filter((i: any) => parseFloat(i) && parseFloat(i)).slice(1);
+            const rolloff = allFeatures.find((i: any) => i.includes("rolloff")).split(":")[1];
+            const freq = allFeatures.find((i: any) => i.includes("freq")).split(":")[1];
+
+            const gain = allFeatures.find((i: any) => i.includes("gain")).split(":")[1];
+
+            const dct = allFeatures.find((i: any) => i.includes("dct")).split(":")[1].split(" ").filter((j: any) => parseFloat(j));
+
+            const zerox = allFeatures.find((i: any) => i.includes("zerox")).split(":")[1].replace("/","");
+
+            const chroma = allFeatures.find((i: any) => i.includes("chroma")).split(":")[1].split(" ").filter((j: any) => parseFloat(j));
+
+            const kurtosis = allFeatures.find((i: any) => i.includes("kurtosis")).split(":")[1].replace("/","");
+
+            // const source = parsedLastChuckMessage.current[35].replace(/\W/g, '');
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].centroid = Number(parseFloat(centroid));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].flux = Number(parseFloat(flux));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].freq = Number(parseFloat(freq));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].gain = Number(parseFloat(gain));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].dct = dct.map((i: any) => Number(parseFloat(i)));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].zerox = Number(parseFloat(zerox));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rms = Number(parseFloat(rms));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].kurtosis = Number(parseFloat(kurtosis));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccEnergy = Number(parseFloat(mfccEnergy));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].mfccVals = mfccVals.map((i: any) => Number(parseFloat(i)));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff = Number(parseFloat(rolloff));
+            // analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff85 = Number(parseFloat(parsedLastChuckMessage.current[25]).toFixed(7));
+            analysisObject.current[analysisSourceRadioValue.toLowerCase()].chroma = chroma.map((i: any) => Number(parseFloat(i)));
+
+            console.log("GOT ANALYSIS OBJ? ", analysisObject);
 
         }
 
