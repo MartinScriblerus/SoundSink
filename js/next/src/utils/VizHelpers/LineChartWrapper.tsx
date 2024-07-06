@@ -59,11 +59,29 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   };
 
   return (
-    <Box>
+    <Box
+      className="findme"
+      sx={{
+        top: "26px",
+        // position: "absolute",
+        pointerEvents: "none",
+   
+        borderRadius: "24px",
+        // background: "pink",
+        width: "100%"
+      }}
+    >
 
-      <Box sx={{position: "relative", flexDirection: "row-reverse", width: "100%", display: "flex", background: "rgba(0,0,0,0.98)"}}>
+      <Box sx={{
+        pointerEvents: "none", 
+        position: "relative", 
+        flexDirection: "row-reverse", 
+        width: "calc(100% - 240px)",
+        left: "240px", 
+        display: "inline-flex", 
+        background: "rgba(0,0,0,0.98)"}}>
         
-        <CloseIcon onClick={closeAnalysisPopup} sx={{ position: "relative", display: "flex", flexDirection: "column", alignText: "right", justifyContent: "right" }} />
+        <CloseIcon onClick={closeAnalysisPopup} sx={{ pointerEvents: "all", position: "relative", display: "flex", flexDirection: "column", alignText: "right", zIndex: 120, justifyContent: "right" }} />
         
         <Box sx={{ position: "relative", display: "flex", flexDirection: "row" }}>
           {
@@ -82,6 +100,83 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
               selectedViz={`${currentVisualization}`}
               timeNow={timeNow}
           />)}
+
+<Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row-reverse',
+            // minHeight: '60px',
+            // marginRight: '80px',
+            // backgroundColor: "rgba(0, 0, 0,1)",
+            color: 'rgba(228,225,209,1)',
+            position: 'absolute',
+            maxWidth: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '12px',
+            left: '208px',
+            zIndex: 9999,
+            background: 'transparent',
+            backgroundColor: 'transparent'
+          }}
+        >
+          
+          <RadioGroup
+            aria-labelledby="demo2-controlled-radio-buttons-group"
+            name="controlled-radio-buttons-group2"
+            value={analysisSourceRadioValue}
+            sx={{
+              // color: "rgba(147, 206, 214, 1)", 
+   
+              color: 'rgba(228,225,209,1)',
+              pointerEvents: "all", 
+              display: "flex", 
+              flexDirection: "row", 
+              backgroundColor: "transparent",
+              background: "transparent",
+              minHeight: "60px",
+            }}
+            onChange={handleChangeAnalysisSource}
+          >
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)',
+                    background: 'transparent',
+                    backgroundColor: "transparent",
+                }} 
+                value="Osc" 
+                control={<Radio />} 
+                label="Osc" />
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)',
+                    background: 'transparent',
+                    backgroundColor: "transparent",
+                }} 
+                value="STK" 
+                control={<Radio />} 
+                label="STK" />
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)',
+                    background: 'transparent',
+                    backgroundColor: "transparent",
+                }} 
+                value="Sampler" 
+                control={<Radio />} 
+                label="Sampler" 
+            />
+            <FormControlLabel 
+                sx={{
+                    color: 'rgba(228,225,209,1)',
+                    background: 'transparent',
+                    backgroundColor: "transparent",
+                }} 
+                value="AudioIn" 
+                control={<Radio />} 
+                label="Audio In" />
+            </RadioGroup>
+        </Box>
 
           <RadioGroup
             aria-labelledby="demo-controlled-radio-buttons-group-feature-viz"
@@ -173,7 +268,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
         <Box>
         
         </Box>
-        <Box
+        {/* <Box
           sx={{
             display: 'flex',
             flexDirection: 'row-reverse',
@@ -226,7 +321,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
                 control={<Radio />} 
                 label="Audio In" />
             </RadioGroup>
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   );

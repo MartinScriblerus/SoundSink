@@ -16,7 +16,7 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
         <Stack direction="row" spacing={2}>
             <Button 
                 sx={{
-                    minWidth: '208px', 
+                    minWidth: window.innerWidth < 900 ? '140px' : '208px', 
                     color: 'rgba(0,0,0,.98)',
                     backgroundColor: 'rgba(158, 210, 162, 0.8)', 
                     background: 'rbga(0,0,0,.7)', 

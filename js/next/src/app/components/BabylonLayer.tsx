@@ -370,7 +370,7 @@ function BabylonScene(props: {
 
 
     if (chuckUpdateNeeded) {
-        runChuck();
+        // runChuck();
     }
 
 
@@ -460,7 +460,7 @@ function BabylonScene(props: {
         <div style={{position: 'absolute', right: '0', top: '54px', zIndex: '6', width: '4rem', height: '4rem'}}>
             <button id="one" onClick={handleDebugLayer}> Babylon DevTools </button>
         </div>
-        <Box sx={{visibility: programIsOn ? "visible" : "hidden", marginLeft: "20vh", marginTop: "10px", minWidth: "800px", minHeight:"600px",height:"80vh", width: "80vw"}}>
+        <Box sx={{visibility: programIsOn ? "visible" : "hidden", marginLeft: window.innerWidth < 900 ? '0vh': "8vh", marginTop: "10px", minWidth: "800px", minHeight:"600px",height:"80vh", width: "80vw"}}>
             <canvas style={{display: showFX  ? "visible":"none",background: 'transparent', width:'100%', height:'100%', overflow: 'hidden'}} id={`babylonCanvas`} ref={elem => game.canvas = elem}></canvas>
         </Box>
     </ThemeProvider>)

@@ -50,9 +50,12 @@ const Keyboard = ({
 
     const tryPlayChuckNote = (e: any) => {
         console.log("HEY E! ", e.target);
+        e.preventDefault();
 
         const removeHyphen = e.target.id.replace('-','');
         const convertPound_theNote = removeHyphen.replace('♯','#');
+
+        console.log('what are added deails??? ', addedDetails.current);
 
         addedDetails.current && addedDetails.current.length > 0 && addedDetails.current.forEach(async (d: any, idx: number) => {
             if (convertPound_theNote === d.name) {

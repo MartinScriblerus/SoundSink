@@ -125,6 +125,9 @@ export default function InitializationComponent() {
     const [updateUIAfterInit, setUpdateUIAfterInit] = useState<boolean>(false);
     const [microTonalLetters, setMicroTonalLetters] = useState<any>([]);
     const [formats, setFormats] = React.useState<any>(() => []);
+    // const [currNotes, setCurrNotes] = useState<any>([]);
+    const currNotes = useRef<any>([40]);
+    const [notesNeedUpdate, setNotesNeedUpdate] = useState<boolean>(false);
 
     const osc1WinEnvOn = useRef<any>(false);
     const osc1PowerADSROn = useRef<any>(false);
@@ -367,6 +370,7 @@ export default function InitializationComponent() {
         linesIn: Array<any>;
     }
 
+
     const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(
         {
             // master: ["whole/4"],
@@ -484,6 +488,7 @@ export default function InitializationComponent() {
     const osc1FxStringNeedsBlackhole = useRef<string>('');
     const samplerFxStringNeedsBlackhole = useRef<string>('');
     const stkFxStringNeedsBlackhole = useRef<string>('');
+    const shredCount = useRef<number>(0);
     
     const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
     const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
@@ -952,6 +957,32 @@ export default function InitializationComponent() {
 
     const {getMingusData} = useMingusData();
 
+
+    const noteOnPlay = (theMidiNum: number, theMidiHz: any, mysteryArg=100) => {
+
+        if (currNotes.current.indexOf(theMidiNum) === -1) {
+            currNotes.current.push(theMidiNum);
+            setNotesNeedUpdate(true);
+        } 
+        // else {
+        //     // const idx = currNotes.current.indexOf(theMidiNum);
+        //     // alert(`GOT IDX: ${idx}`)
+        //     const temp = currNotes.current.filter((i:any) => i !== theMidiNum && i);
+        //     currNotes.current = temp;
+        //     console.log('IS THIS RIGHT??? ', currNotes.current);
+        //     setNotesNeedUpdate(true);
+        //     // return;
+        // }   
+    }
+
+    const noteOffPlay = (theMidiNum: number) => {
+        if (currNotes.current.indexOf(theMidiNum) !== -1) {
+            const temp = currNotes.current.filter((i: any) => i.toString() !== theMidiNum);
+            currNotes.current = temp;
+            setNotesNeedUpdate(true);
+        }
+    }
+
     const handleUpdateFXView = (e: any) => {
         console.log("e target: ", e.target.innerText);
         // SAVED STATE HERE ???
@@ -1093,7 +1124,8 @@ export default function InitializationComponent() {
     }
 
     const handleChangeAnalysisSource = (e: any) => {
-        setAnalysisSourceRadioValue(e.target.value);
+        console.log("getting event??? ", e);
+        setAnalysisSourceRadioValue(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1));
     };
 
     const handleFXGroupChange = (e: any) => {
@@ -1165,6 +1197,8 @@ export default function InitializationComponent() {
             setStkArpeggiatorOn(0);
         }
     }
+
+    const chuckRunning = useRef<boolean>(false);
 
     useEffect(() => {
         console.log("SHOW FX CHANGES: ", showFX)
@@ -2293,14 +2327,14 @@ export default function InitializationComponent() {
                             const preventdupes = stkFXStringToChuck.current.includes(stk1.var); 
 
                     if ( !stkFXStringToChuck.current || stkFXStringToChuck.current.length < 1 && stk1.fxType === "stk") {
-                        alert("case A");
+                        
                         stkFXStringToChuck.current = `${stk1.type} ${stk1.var}_stk1`
                     } else {
-                        alert("case B");
+                        
                         stkFXStringToChuck.current = !preventdupes ? stkFXStringToChuck.current.concat(`=> ${stk1.type} ${stk1.var}_stk1 `) : stkFXStringToChuck.current;
                     }
                     // stkFXStringToChuck.current = stkFXStringToChuck.current.concat(`=> ${stk1.type} ${stk1.var}_stk1 `)
-                    alert(`THIS IS NOW... ${stkFXStringToChuck.current}`)
+                   
                 }
             }
             console.log("Make sure we get into part 2: ", Object.values(stk1.presets))
@@ -2499,7 +2533,7 @@ export default function InitializationComponent() {
                     } else {
                         if (stkFXString.current.fxType === "fx") {
                         //     stkFXString.current = `${formattedValue} => ${stk1.var}_stk1.${effect.name};`;
-                            alert(`WE DO HAVE STKFXSTRING:  ${stkFXString.current}`);
+                            
 
                         
                             console.log('saniiiiity?? ', `${formattedValue} => ${stk1.var}_stk1.${effect.name};`);
@@ -2636,9 +2670,9 @@ export default function InitializationComponent() {
 
         }
         if (chuckUpdateNeeded) {setChuckUpdateNeeded(false)}
-    }, [chuckUpdateNeeded])
+    }, [chuckUpdateNeeded]) // if there are problems, switch back to [${chuckUpdateNeeded}]
 
-    const shredCount = useRef<number>(0);
+
 
        useEffect(() => {
         const subscription = watch(() => handleSubmit(onSubmit)())
@@ -3327,10 +3361,8 @@ export default function InitializationComponent() {
 
 
 
-                } else {
-                    console.log("WHY NO NAME?");
-                    return ``;
                 }
+
             }
 
             const playSTKOff = () => {
@@ -3357,7 +3389,7 @@ export default function InitializationComponent() {
                             ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
                         `;
                     } else if (getFXOnly[0].var === "brs") {
-                        alert('hit brass off')
+                       
                         return `
                             ${stkFX.current.presets.stopBlowing.value} => ${getFXOnly[0].var}[i-1].stopBlowing;
                             1 => ${getFXOnly[0].var}[i-1].noteOff;
@@ -3435,10 +3467,10 @@ export default function InitializationComponent() {
 
             virtualKeyMapUp.current = currentNotesDownDisplay.current.length > 1 ? await virtualKeyMapping(48, 0) : "";
 
-            console.log("Are we getting notes down?: ", currentNotesDownDisplay.current);
+          console.log("Are we getting notes down?: ", currentNotesDownDisplay.current);
 ;      
 
-            stkOn.current = await playSTKOn();
+            stkOn.current = await playSTKOn() || '';
 
             stkPolyKeyOff.current = await playSTKOff(); 
                         
@@ -3452,10 +3484,10 @@ export default function InitializationComponent() {
              } 
              const SHD_STK_PLAY = stkShouldPlay(); 
              console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
-
+             
             const chuckCode = `
             
-            [0] @=> int notes[];
+            [${currNotes.current}] @=> int notes[];
             
             0 => int device;
             
@@ -3465,8 +3497,6 @@ export default function InitializationComponent() {
             if( !hid.openKeyboard( device ) ) me.exit();
             <<< "keyboard '" + hid.name() + "' ready", "" >>>;
             
-            
-
             ((60.0 / ${bpm})) => float secLenBeat;
             (secLenBeat * 1000)::ms => dur beat;
 
@@ -3519,6 +3549,8 @@ export default function InitializationComponent() {
                 
                     fft =^ sfm => blackhole;
 
+                    int div;
+
                     //-----------------------------------------------------------------------------
                     // setting analysis parameters -- also should match what was used during extration
                     //-----------------------------------------------------------------------------
@@ -3553,29 +3585,14 @@ export default function InitializationComponent() {
                     fft.size()::samp * NUM_FRAMES => dur EXTRACT_TIME;
             
                     // initialize separately (due to a bug)
-                    // new Event @=> TrackingFile.the_event;
+                    new Event @=> TrackingFile.the_event;
             
                     // analysis
                     source => PoleZero dcblock => FFT fftTrack => blackhole;
             
                     // set to block DC
                     .99 => dcblock.blockZero;
-                }
-            
-                fun void upchuckRealTimeFeatures(
-                    FeatureCollector @ combo, 
-                    string mfccString, 
-                    MFCC @ mfcc, 
-                    string chromaString, 
-                    Chroma @ chroma, 
-                    Centroid @ centroid, 
-                    Flux @ flux, 
-                    RMS @ rms,
-                    RollOff @ rolloff,
-                    string sourceName
-                ) {
-                    combo.upchuck();
-                
+
                     "" => mfccString;
                     for (0 => int i; i < mfcc.fvals().cap(); i++) {
                         if (i < mfcc.fvals().cap() - 1) {
@@ -3593,142 +3610,72 @@ export default function InitializationComponent() {
                             chroma.fvals()[i] +=> chromaString;
                         }
                     }
-                    
-                    if (count % 8 == 0) {
-                        <<< "FEATURES VALS: ", 
-                        centroid.fval(0) + " " 
-                        + flux.fval(0) + " " 
-                        + rms.fval(0) + " " 
-                        + mfccString + " " 
-                        + rolloff.fval(0) + " " 
-                        + chromaString + " "
-                        + sourceName >>>;
-                    }
-                }
-            
-                fun void pitchTrackADC(FFT @win, Kurtosis @ winKurtosis, SFM @ winSfm, string sourceVarName) {
-                    Windowing.hamming( win.size() ) => win.window;
-                    float finalObj[2];
-                
-                    0 => int count;
 
-                    while( true )
+                    fft.upchuck() @=> UAnaBlob blob;
+                    0 => float max; float where;
+                    for( int i; i < blob.fvals().size()/8; i++ )
                     {
-                        // take fft
-                        win.upchuck() @=> UAnaBlob blob;
-                        winKurtosis.upchuck();
-                        winSfm.upchuck();
-                        
-                        // find peak
-                        0 => float max; float where;
-                        for( int i; i < blob.fvals().size()/8; i++ )
+                        // compare
+                        if( blob.fvals()[i] > max )
                         {
-                            // compare
-                            if( blob.fvals()[i] > max )
-                            {
-                                // save
-                                blob.fvals()[i] => max;
-                                i => where;
-                            }
+                            // save
+                            blob.fvals()[i] => max;
+                            i => where;
                         }
-                        
-                        // set freq
-                        (where / win.size() * (second / samp)) => this.TrackingFile.the_freq;
-                        // set gain
-                        (max / .5) => this.TrackingFile.the_gain;
-                        // clamp
-                        if( this.TrackingFile.the_gain > 1 )
-                            1 => this.TrackingFile.the_gain;
-            
-                        ((win.size()/4) * (second/samp)) * 1000 => float toMilliseconds;
-                        toMilliseconds :: ms => now;
-            
-                        "" => string sfmString;
-                        
-                        for( int i; i < winSfm.fvals().size(); i++ )
-                        {
-                            Math.round(winSfm.fval(i) * 10) / 10 => float tmp;
-                            sfmString + " " + tmp => sfmString;
-                            sfmString => this.the_sfm;
-                        }
-                
-                        winKurtosis.fval(0) => this.TrackingFile.the_kurtosis;
-                        this.TrackingFile.the_event.broadcast();
-                        count++;
                     }
-                }
-                
-                fun void getDCT_XCrossing(DCT @ winDct, ZeroX @ winZerox, Flip @ winFlip) {
-                    // set parameters
-                    8 => winDct.size;
-                
-                    int div;
-                
-                    4096 => winFlip.size;
-                
-                    0 => int countCrossLog;
-                
-                    // control loop
-                    while( true )
+
+                    (where / fft.size() * (second / samp)) => this.TrackingFile.the_freq;
+                    (max / .5) => this.TrackingFile.the_gain;
+                    if( this.TrackingFile.the_gain > 1 )
+                        1 => this.TrackingFile.the_gain;
+        
+
+                    kurtosis.fval(0) => this.TrackingFile.the_kurtosis;
+                    this.TrackingFile.the_event.broadcast();
+
+                    dct.size()/2 %=> div;
+    
+                    // take dct
+                    dct.upchuck();
+
+                    zerox.upchuck() @=> UAnaBlob blobZero;
+                    cherr <= "SFM: ";
+                    for( int i; i < sfm.fvals().size(); i++ )
                     {
-                        // set srate
-                        second / samp => float srate;
-                        (winFlip.size() / srate) * 1000 => float toMilliseconds;
-                
-                        // winDct.size()/2 %=> div;
-                        winZerox.upchuck() @=> UAnaBlob blob;
-                
-                        winDct.size()/2 %=> div;
-                        winDct.upchuck();
-                
-                        // advance time
-                        (toMilliseconds)::ms => now;
-                        if (countCrossLog % (this.fft.size() * 4) == 0) {
-                            <<< "XCROSS: ", blob.fvals()[0], winDct.fval(0), winDct.fval(1), winDct.fval(2), winDct.fval(3), toMilliseconds >>>;
-                        }
-                        countCrossLog++;
+                        Math.round(sfm.fval(i) * 10) / 10 => float tmp;
+                        cherr <= tmp <= (tmp == 1 || tmp == 0?".0":"") <= " ";
                     }
+
+                    <<< "FEATURES VALS: ", 
+                    centroid.fval(0) + " " 
+                    + flux.fval(0) + " " 
+                    + rms.fval(0) + " " 
+                    + mfccString + " " 
+                    + rolloff.fval(0) + " " 
+                    + chromaString + " "
+                    + fft.fval(3) + " "
+
+                    + blob.fvals()[0] + " " 
+                    + fft.fval(0) + " " 
+                    + fft.fval(1) + " " 
+                    + fft.fval(2) + " " 
+                    + fft.fval(3) + " "
+                    + this.TrackingFile.the_freq + " " 
+                    + this.TrackingFile.the_gain + " " 
+                    + dct.fval(0) + " " 
+                    + dct.fval(1) + " "
+                    + dct.fval(2) + " "  
+                    + dct.fval(3) + " " 
+                    + blobZero.fvals()[0] + " "
+                    + cherr
+                    >>>;
+                    // me.yield();
                 }
-            
-                fun void getAnalysisForSource(UGen @ source, string sourceVarName) {
-                    <<< "SOURCE IS: ", source, mfccString >>>;
-                    
-                    while (true) {
-                        <<< "TIME: ", now >>>;
-                        spork ~ this.upchuckRealTimeFeatures(
-                            this.combo, 
-                            this.mfccString, 
-                            this.mfcc, 
-                            this.chromaString, 
-                            this.chroma, 
-                            this.centroid, 
-                            this.flux, 
-                            this.rms,
-                            this.rolloff,
-                            sourceVarName
-                        );
-                        spork ~ this.pitchTrackADC(this.fft, this.kurtosis, this.sfm, sourceVarName);
-                        spork ~ this.getDCT_XCrossing(this.dct, this.zerox, this.flip);
-                        
-                        
-                        <<< "FREQ: ", 
-                            this.TrackingFile.the_freq, 
-                            this.TrackingFile.the_gain, 
-                            this.the_sfm, 
-                            this.TrackingFile.the_kurtosis,
-                            sourceVarName 
-                        >>>;
-                        
-                        // beat => now;
-                        whole / 4 => now; 
-                    }
-                }
+                me.yield();
             }
             
-            
+        
     
-            
-            
             class SynthVoice extends Chugraph
                 {
       
@@ -4210,24 +4157,7 @@ export default function InitializationComponent() {
 
 
      
-                UniversalAnalyzer uA;
-                "${analysisSourceRadioValue}" => string analysisSource;
-           
-                // if (analysisSource == "Sampler") { 
-                //     uA.declarationCode(hpf);
-                //     files[3].find('.') || 0 => int handleDotWav;
-                //     files[3] => string fileName;
-                //     if (handleDotWav) {
-                //         fileName.replace(handleDotWav, "_");
-                //     } 
-                //     // spork ~ uA.getAnalysisForSource(hpf fileName);
-            
-                // }
-                <<< "WHAT IS ANALYSIS SOURCE? ", analysisSource >>>;
-                // if (analysisSource == "Osc1") { 
-                    uA.declarationCode(hpf);
-                    spork ~ uA.getAnalysisForSource(hpf, "Osc1");
-            
+                        
                 // }
       
                 fun void SilenceAllBuffers()
@@ -4296,35 +4226,45 @@ export default function InitializationComponent() {
                 }
             
                 SilenceAllBuffers();
-            
+
+                UniversalAnalyzer uA;
             
             
                 fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration) {
-                    <<< "PLAYSYNTH_ON" >>>;
+                    <<< "PLAYSYNTH_ON ", notesToPlay >>>;
+
                     myEvent => now;
              
                     
                     0 => int runningShreds;
                     0 => int runningSynthShreds;
-            
+
+                    
+                    "Osc" => string analysisSource;
+
+                    
                     while(true) {
                         "" => string notesToPlayMsg;
                         Machine.numShreds() => runningShreds;
-// TK *******************************                      
+                        // TK *******************************                      
+                        // <<< "RUNNING SHREDS: ", runningShreds >>>;
+                        uA.declarationCode(hpf);
+                        // spork ~ uA.getAnalysisForSource(hpf, "Osc1");
 
-                        for (1 => int i; i < notesToPlay.size(); i++) {                 
+                        for (0 => int i; i < notesToPlay.cap(); i++) {                 
                             if (${arpeggiatorOn} == 1 && notesToPlay.cap() > 0) {
-                                notesToPlay[i] => voice[i-1].keyOn;
-                                duration/notesToPlay.size() - (now % duration/notesToPlay.size()) => now;
-                                if (i == 1) {
-                                    0 => voice[i-1].gain;
-                                }
-                                if (${hold} != 1) {
-                                    1 => voice[i-1].keyOff;
-                                }
-                                // break;
+                                notesToPlay[i] => voice[i].keyOn;
+                                duration/${numeratorSignature} => now;
+                                // if (i == 1) {
+                                //     0 => voice[i-1].gain;
+                                // }
+                                1 => voice[i].keyOff;
+                                // if (${hold} != 1) {
+                                //     1 => voice[i].keyOff;
+                                // }
+                              
                             } else if (notesToPlay.cap() > 0) {
-                                notesToPlay[i] => voice[i-1].keyOn;
+                                notesToPlay[i] => voice[i].keyOn;
                                
                             }
                             notesToPlayMsg + " " + notesToPlay[i] => notesToPlayMsg;
@@ -4337,13 +4277,19 @@ export default function InitializationComponent() {
                             duration - (now % duration)  => now;
                            
                             for (1 => int i; i <= notesToPlay.size(); i++) {
-                                1 => voice[i-1].keyOff;
+                                1 => voice[i].keyOff;
                             }
-                        } 
+                        }
+                        
+                        // else {
+                        //     duration - (now % duration)  => now;
+                        // }
                  
-                        me.yield();
+                       
+                        <<< "NumShreds: ", Machine.numShreds() >>>;
+
                     }
-                    me.exit();
+                    
                     
                 }
             
@@ -4352,50 +4298,38 @@ export default function InitializationComponent() {
                     mySTKEvent => now;
                   
                    
-                   
                     ${stkFX.current.type || 'UGen'} ${stkFX.current.var || 'ugen'}[12] => EffectsModuleSTK effectsModuleSTK => Gain stk_masterGain => dac;
                     0.6/notes.cap() => stk_masterGain.gain; 
 
     
-                    while (true) {
-                        if (${stkFX.current.length} < 1) {
-                            me.exit();
-                        }
+                    while (${!chuckUpdateNeeded}) {
+                        // if (${stkFX.current.length} < 1) {
+                        //     me.exit();
+                        // }
                         <<< "NOTES TO PLAAAAAAY ", notesToPlay >>>;
                         
-                        if (notesToPlay.size() > 1){
-                            for (1 => int i; i <= notesToPlay.size(); i++) {
-
-                                // if (notesToPlay[i] && notesToPlay[i] > 0 && notesToPlay[i] < 127 && notesToPlay.size() > 0) {
-                                    if (notesToPlay[i] && notesToPlay.size() > 0) {
-                
+                        if (${stkFX.current.length > 0 && stkOn.current.length > 0}){
+                            for (0 => int i; i <= notesToPlay.size(); i++) {
+                                if (notesToPlay[i] && notesToPlay.size() > 0) {
                                     ${stkOn.current}
-                                
                                 } 
-                                
                                 // me.yield();
                             }
                           
                             if (${stkArpeggiatorOn} == 0) {
-                                duration - (now % duration)  => now;
+                                // duration - (now % duration)  => now;
                                 for (1 => int i; i <= notesToPlay.cap(); i++) {
                                     ${stkPolyKeyOff.current}
-                                    // me.yield();
                                 }
-                                // me.yield();
-                                // me.exit();
-                            } 
-                            // else {
-                            //     duration - (now % duration)  => now;
-                            // }
-                            // me.yield();                
+                            } else {
+                                duration - (now % duration) => now;
+                            }
+                                    (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;               
                         } else {
-                            // duration - (now % duration) => now;
+                            // (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
                             me.yield();
                         
                         }
-                        // me.yield();   
-                        // me.exit();
                     }
                     me.exit();
                 }
@@ -4410,12 +4344,12 @@ export default function InitializationComponent() {
                     dur duration
                 ) {                
                     // count % (notesToPlay.size()) => int sampler1Idx;
-                    <<< "SAMPLE_ON" >>>;
-                    <<< "samples notes/pattern to play ", notesToPlay.cap() >>>; 
-                    <<< "samples arr pos", samplesArrayPos.cap() >>>;
+                    // <<< "SAMPLE_ON" >>>;
+                    // <<< "samples notes/pattern to play ", notesToPlay.cap() >>>; 
+                    // <<< "samples arr pos", samplesArrayPos.cap() >>>;
                     mySampleEvent => now;
                     0 => int samplerCount;
-                    // while (${!chuckUpdateNeeded}) {
+                    
                     while(true) {
                         count % (notesToPlay.size()) => int sampler1Idx;
                         // for (0 => int i; i < notesToPlay.size(); i++) {
@@ -4441,8 +4375,9 @@ export default function InitializationComponent() {
                         
                         samplerCount++;
                         // me.yield();
+                        // me.exit();
                     }
-                    me.exit();
+                   
                 }
             
                 [[1,3],[2,4]] @=> int notesArr[][];
@@ -4464,7 +4399,7 @@ export default function InitializationComponent() {
 
                 
                 private class ChordProvider {
-               
+                    
                     
                     fun void playNotes(int note) {
                         int existingIndex;
@@ -4476,7 +4411,7 @@ export default function InitializationComponent() {
                             }
                         }
                         if (!existingIndex) {
-                            notes << note;    
+                        notes << note;
                         }
                     }
                     fun void releaseNotes (int note) {
@@ -4487,7 +4422,7 @@ export default function InitializationComponent() {
                         for (0 => int i; i < notes.cap(); i++)
                         {
                             
-                            if (note == notes[i]) {
+                            if (note == notes[i] && i > 0) {
                                 notes.erase(i);
                                                   
                             }
@@ -4504,77 +4439,64 @@ export default function InitializationComponent() {
                     
                 ChordProvider oCp;
                 
-                fun void advanceTime() {
-                    (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
-                    <<< "TICK" >>>;
-                    // synthShred.exit();
-                  
-                    if (count < ${numeratorSignature * denominatorSignature} ) {
-                        count++;
-                        oTp.globalCount++;
-                    } else {
-                        0 => count;
-                        0 => oTp.globalCount;
-                    }
-                    me.exit();
-                }
             
-                spork ~ PlaySTK(mySTKEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred shredSTK;  
+                if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
+                    spork ~ PlaySTK(mySTKEvent, [${currNotes.current}], whole/${currentNoteVals.oscs[0]}) @=> Shred shredSTK;  
+                }
              
                 spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred shredSynth; 
                 
                 spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]}) @=> Shred shredSample;
-     
-                
+
+
                 // me.yield();
 
-                // while(${chuckUpdateNeeded === false}) {
-                while(true) {
-                 
-                    // wait for HID event
-                    hid => now;
-            
-                    // get HID message
-                    while( hid.recv( msg ) )
-                    {
-                        if( msg.isButtonDown() ) {
-                    
-                                mySTKEvent.signal();
-                  
+                while(true) {         
+                    // while(${!chuckUpdateNeeded}) {
+                        
+                        <<< "NumShreds: ", Machine.numShreds() >>>;
+                        // wait for HID event
+                        hid => now;
+                        mySampleEvent.signal();
+                        // get HID message
+                        while( hid.recv( msg ) )
+                        {
+                            int msgDownOrUp;
+                            if( msg.isButtonDown() ) {
+                                // if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
+                                //     mySTKEvent.signal();
+                                // }
+                
                             
-                            myEvent.signal();
+                                // myEvent.signal();  
+                                // <<< "[key]", msg.key, "(ascii)", msg.which >>>;
+                                ${virtualKeyMapDown.current}
                             
-
-                            <<< "[key]", msg.key, "(ascii)", msg.which >>>;
-                            ${virtualKeyMapDown.current}
                             
-                            // me.yield();
-                        } else if (msg.isButtonUp()) {
-                           
+                            } else if (msg.isButtonUp()) {
+                        
                                 ${virtualKeyMapUp.current}
-                           
-                            // me.yield();
-                        }
-                        else  {
-                            <<< "IN HID ELSE!" >>>;
+                        
                             
+                            }
                             // me.yield();
                         }
-                        // me.yield();
-                    }
-
+                        <<< "NumShreds: ", Machine.numShreds() >>>;
+                        if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
+                            mySTKEvent.signal();
+                        }
+        
                     
-                    mySampleEvent.broadcast();
-
+                        myEvent.signal();  
+                        mySampleEvent.broadcast();
+                        // (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
+                 
+                        <<< "NumShreds: ", Machine.numShreds() >>>;
+                        // me.yield();
+                    }   
                
-                    spork ~ advanceTime();
-
-   
-                    <<< "NumShreds: ", Machine.numShreds() >>>;
-                    me.yield();
-                }                            
+                // }                         
             `;
-
 
 
 
@@ -4583,36 +4505,24 @@ export default function InitializationComponent() {
                 console.log("CHUCK CODE!!! ", chuckCode);
 
 
+        // const shredCountNow = await aChuck.runCode(`Machine.numShreds();`);
 
-
-        if (chuckCode && chuckCode.length > 0 && chuckUpdateNeeded === false) {    
-      
+        if (chuckCode && chuckCode.length > 0 && !chuckUpdateNeeded) {    
+            console.log("run!");
+            chuckRunning.current = true;
             aChuck.runCode(chuckCode);
-
         } else {
-
-            const shredCount = await aChuck.runCode(`Machine.numShreds();`);
+            // const shredCount = await aChuck.runCode(`Machine.numShreds();`);
             
-            console.log('Shred Count in ELSE: ', await shredCount);
-            aChuck.runCode('Machine.removeAllShreds();')
-            aChuck.runCode(`Machine.resetShredID();`);
-            // aChuck.runCode(chuckCode);
-            // runChuck();
+            console.log('Shred Count in ELSE: ', await shredCount.current);
             // Array.from(new Array(shredCount)).forEach((s: any, i: number) => {
             //     const shredActive: any = aChuck.isShredActive(i);
-            //     if (i < shredCount && shredActive) {
+            //     if (i < shredCount.current && shredActive) {
             //         aChuck.runCode(`${i} => Machine.remove;`);
             //     }
             // });
-            
-
-
-
-
-
-
-
-
+            aChuck.runCode('Machine.removeAllShreds();')
+            aChuck.runCode(`Machine.resetShredID();`);
             
         }
     }
@@ -4638,7 +4548,7 @@ export default function InitializationComponent() {
 
         aChuck.chuckPrint = (message) => {
             if (message.includes("NUM_COUNT") && !message.includes("NumShreds")) {
-                console.log('WHAT IS MSG? ', message);
+                // console.log('WHAT IS MSG? ', message);
             }
             if (message) {
                 setLastChuckMessage(message);
@@ -4699,7 +4609,7 @@ export default function InitializationComponent() {
 
     }
 
-    // useEffect(() => { runChuck() }, [chuckUpdateNeeded]);
+    useEffect(() => { runChuck() }, [chuckUpdateNeeded]);
 
 
     // AUDIO IN
@@ -4757,11 +4667,12 @@ export default function InitializationComponent() {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
 
-    const theNotes = useRef<any>([]);
 
-    const noteOn = (noteLetter: string, theMidiNum: number, theMidiHz: any, mysteryArg=100) => {
-        console.log("IN NOTE ON: ", noteLetter, theMidiNum, theMidiHz, mysteryArg);
-    }
+    useEffect(() => {
+        if (notesNeedUpdate) {
+            setNotesNeedUpdate(false);
+        }
+    }, [notesNeedUpdate, currNotes.current.length])
 
     const playChuckNote = (note: any, idString: string, midiHz: any, midiNote: any) => {  
         console.log("??? ", note, idString, midiHz, midiNote);
@@ -4778,7 +4689,7 @@ export default function InitializationComponent() {
         const theMidiNum = parseFloat(midiNote);
         const theMidiHz = parseFloat(midiHz).toFixed(2);
 
-        noteOn(theNoteLetter, theMidiNum, theMidiHz, 100);
+        noteOnPlay(theMidiNum, theMidiHz, 100);
         return noteReady;
     };
 
@@ -4950,6 +4861,45 @@ export default function InitializationComponent() {
             }
         }
 
+        if(lastChuckMessage && lastChuckMessage.includes("UPDATE_NOTE_ON")) {
+            const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
+
+            const removeComma: string = parseString[0].replace(/,\s*$/, "");
+
+            const noteOnArr: any[] = removeComma.split(" - ");
+
+            const noteNum: number = +noteOnArr[0] && +noteOnArr[0];
+            const noteHz: number = +noteOnArr[1] && +noteOnArr[1];
+
+            if (noteNum > 0 && noteNum < 128) {
+                const theNum: number = noteNum;
+                const theHz: number = noteHz;
+                noteOnPlay(theNum, theHz, 100)
+            }
+        }
+
+        if(lastChuckMessage && lastChuckMessage.includes("UPDATE_NOTE_OFF")) {
+            const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
+
+            const removeComma: string = parseString[0].replace(/,\s*$/, "");
+            alert(removeComma);
+            const noteOnArr: any[] = removeComma.split(" - ");
+
+            const noteNum: number = +noteOnArr[0] && +noteOnArr[0];
+            const noteHz: number = +noteOnArr[1] && +noteOnArr[1];
+
+            if (noteNum > 0 && noteNum < 128) {
+                const theNum: number = noteNum;
+                const theHz: number = noteHz;
+                // noteOnPlay(theNum, theHz, 100)
+                noteOffPlay(theNum);
+            }
+        }
+
+
+
+
+
         if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT")) {
             const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
 
@@ -4960,9 +4910,10 @@ export default function InitializationComponent() {
 
                 setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
                 setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+            } else {
+                setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+                setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
             }
-            setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
-            setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
         };
 
         if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
@@ -5001,37 +4952,6 @@ export default function InitializationComponent() {
 
         }
 
-        if (lastChuckMessage.includes('XCROSS')) {
-            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
-
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].xcross = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].dct = parsedLastChuckMessage.current.slice(1, 4).map((i: any) => Number(parseFloat(i).toFixed(4)));
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].sampleRate = Number(parseFloat(parsedLastChuckMessage.current[5]))
-
-        }
-
-        if (lastChuckMessage && lastChuckMessage.includes('FREQ')) {
-            parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
-            const source = parsedLastChuckMessage.current[parsedLastChuckMessage.current.length - 2].replace(/\W/g, '');
-
-
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].featureFreq = Number(parseFloat(parsedLastChuckMessage.current[0]).toFixed(4));
-
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].featureGain = Number(parseFloat(parsedLastChuckMessage.current[1]).toFixed(4));
-
-            analysisObject.current[analysisSourceRadioValue.toLowerCase()].kurtosis = Number(parseFloat(parsedLastChuckMessage.current[2]).toFixed(8));
-
-            // analysisObject.current[analysisSourceRadioValue.toLowerCase()].sfm = Number(parseFloat(parsedLastChuckMessage.current[3]).toFixed(4));
-            
-            // setSFM(parsedLastChuckMessage.current.slice(3, parsedLastChuckMessage.current.length - 1).map(
-            //     (i: any) => {
-            //         if(source) { 
-            //             return {...i, source: source, value: Number(parseFloat(i).toFixed(4))}
-            //         }
-            //         return i;
-            // }));
-        }
-
         if (lastChuckMessage.includes('TIME')) {
             parsedLastChuckMessage.current = lastChuckMessage.split(/[\s,]+/).slice(1);
 
@@ -5061,18 +4981,6 @@ export default function InitializationComponent() {
     const closeAnalysisPopup = () => {
         setIsAnalysisPopupOpen(!isAnalysisPopupOpen);
     };
-
-    useEffect(() => {
-        console.log("CHUCK UPDATE NEEDED USE EFECT ", chuckUpdateNeeded);
-        if (chuckUpdateNeeded) {
-            setChuckUpdateNeeded(false);
-            runChuck();
-            beginProgram(true);
-            
-        }
-    }, [chuckUpdateNeeded]);
-
-
     
     const updateHasHexkeys = (msg: boolean) => {
         hasHexKeys.current = msg;
@@ -5119,7 +5027,7 @@ export default function InitializationComponent() {
 
                 <Box sx={{
                     display: "flex", 
-                    left: '208px', 
+                    left: window.innerWidth < 900 ? '140px' : '208px', 
                     top: '50px', 
                     flexDirection: "column"
                 }}>
@@ -5168,13 +5076,15 @@ export default function InitializationComponent() {
                 <Box 
                     sx={{ 
                         bottom: '0px',
-                        top: '50px',
-                        height: 'calc(100% - 304px)',
-                        left: '210px',
+                        top: '54px',
+                        // height: 'calc(100% - 304px)',
+                        left: "146px",
+                        width: "calc(100% - 146px)",
                         position: 'absolute',
                         pointerEvents: 'none'
-                    }}>
-                    {featureFreq.length && <span>FREQ!!!!! {featureFreq}</span>}
+                    }}
+                    className="popupAnalysisBox">
+ 
                     {isAnalysisPopupOpen &&
                         <LineChartWrapper
                             analysisObject={analysisObject}
@@ -5268,7 +5178,10 @@ export default function InitializationComponent() {
                                 />
                             </Box>
                     {programIsOn && (
-                            <Box sx={{position: "absolute", top: "50px"}}>
+                            <Box sx={{
+                                position: "absolute", 
+                                top: "50px"
+                            }}>
 
     {/* PLAY CHUCK */}
                                 <Box sx={{display: "flex", flexDirection: "column"}}>
@@ -5298,12 +5211,12 @@ export default function InitializationComponent() {
                                             <Button 
                                                 style={{ 
                                                     background: 'rbga(0,0,0,0.8)', 
-                                                    minWidth: '208px', 
+                                                    minWidth: window.innerWidth < 900 ? '140px' : '208px',
                                                     color: 'rgba(0,0,0,1)',
                                                     marginLeft: '0px'      
                                                 }} 
                                                 sx={{ 
-                                                    minWidth: '208px', 
+                                                    minWidth: window.innerWidth < 900 ? '140px' : '208px', 
                                                     opacity: '0.8',
                                                     paddingLeft: '24px', 
                                                     maxHeight: '40px',
@@ -5334,12 +5247,12 @@ export default function InitializationComponent() {
                                             <Button 
                                                 style={{ 
                                                     // background: 'rbga(0,0,0,.91)', 
-                                                    minWidth: '208px',
+                                                    minWidth: window.innerWidth < 900 ? '140px' : '208px',
                                                     color: 'rgba(0,0,0,1)',
                                                     marginLeft: '0px' 
                                                 }} 
                                                 sx={{ 
-                                                    minWidth: '208px', 
+                                                    minWidth: window.innerWidth < 900 ? '140px' : '208px', 
                                                     paddingLeft: '24px',
                                                     opacity: '0.8', 
                                                     maxHeight: '40px', 
@@ -5401,7 +5314,7 @@ export default function InitializationComponent() {
                                     <Box sx={{display: "flex", flexDirection: "row"}}>
                                         {chuckHook && (<Button 
                                             style={{ 
-                                                minWidth: '208px',
+                                                minWidth: window.innerWidth < 900 ? '140px' : '208px',
                                                 color: 'rgba(0,0,0,0.8)', 
                                                 background: 'rbga(0,0,0,.7)' 
                                             }} 
@@ -5439,7 +5352,7 @@ export default function InitializationComponent() {
                                             position: 'relative', 
                                             // border: '0.5px solid #b2b2b2',
                                             marginLeft: '0px', 
-                                            minWidth: '208px', 
+                                            minWidth: window.innerWidth < 900 ? '140px' : '208px', 
                                             // marginLeft: '12px', 
                                             // top: '276px', 
                                             maxHeight: '40px',
@@ -5521,7 +5434,7 @@ export default function InitializationComponent() {
                                                 sx={{ 
                                                     backgroundColor: 'rgba(232, 82, 82, 0.8)', 
                                                     background: 'rgba(232, 82,82, 0.8)', 
-                                                    minWidth: '208px', 
+                                                    minWidth: window.innerWidth < 900 ? '140px' : '208px', 
                                                     marginLeft: '0px', 
                                                     maxHeight: '40px', 
                                                     border: '0.5px solid #b2b2b2',
@@ -5545,7 +5458,7 @@ export default function InitializationComponent() {
 
                                 {
                                     showBPM && (
-                                    <Box sx={{position: "relative", display: "flex", flexDirection: "row"}}>
+                                    <Box sx={{position: "relative", display: "flex", flexDirection: window.innerWidth < 900 ? "column" : "row"}}>
                                         <BPMModule 
                                             bpm={bpm} 
                                             handleChangeBPM={handleChangeBPM}
@@ -5564,6 +5477,7 @@ export default function InitializationComponent() {
                                     </Box>)
                                 }
                             </Box> )}
+                            
                     </Box>
                 </Box>
                 )}
@@ -5593,30 +5507,7 @@ export default function InitializationComponent() {
 
 
                 </Box> 
-                {/* <Box id="fxViewController" sx={{
-                        position: "absolute",
-                        left: "0",
-                        bottom: "0",
-                        height: "20%",
-                        width: "20%"
-                    }}>
-                    <Box>
-                        <Button onClick={(e) => handleUpdateFXView(e)}>Osc</Button>
-                        {allFxPersistent.current.Osc1.map((i: any) => <Button key={`updateFXView_Osc_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
-                    </Box>
-                    <Box>
-                        <Button onClick={handleUpdateFXView}>STK</Button>
-                        {allFxPersistent.current.STK.map((i: any) => <Button key={`updateFXView_Stk_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
-                    </Box>
-                    <Box>
-                        <Button onClick={handleUpdateFXView}>Sampler</Button>
-                        {allFxPersistent.current.Sampler.map((i: any) => <Button key={`updateFXView_Sampler_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
-                    </Box>
-                    <Box>
-                        <Button onClick={handleUpdateFXView}>Audio In</Button>
-                        {allFxPersistent.current.AudioIn.map((i: any) => <Button key={`updateFXView_AudioIn_${i.var}`} onClick={handleUpdateFXView}>{i.var}</Button>)}
-                    </Box>
-                </Box> */}
+
                 <Box
                     sx={{position: "absolute", display: "flex", color:"white", bottom: 0, left: 0}}
                 >
@@ -5626,7 +5517,7 @@ export default function InitializationComponent() {
                         checkedEffectsListHook={checkedEffectsListHook}>
                     </CheckedFXRadioBtns>
                 </Box>  
-                <Box sx={{ position: "absolute", color: "white", top: "12px", right: "12px"}}>
+                <Box sx={{ position: "absolute", background: "rgba(0,0,0,0.78)", color: "white", top: "60px", right: "12px"}}>
 
                     {
                         showSTKManager && (

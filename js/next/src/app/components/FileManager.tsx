@@ -29,7 +29,7 @@ const FileManager = (props: Props) => {
                     color: 'rgba(0,0,0,.98)',
                     backgroundColor: 'rgba(158, 210, 162, 0.8)',
                     position: 'relative', 
-                    minWidth: '208px',
+                    width: window.innerWidth < 900 ? '140px' : '208px',
                     background: 'rbga(0,0,0,.91)', 
                     marginLeft: '0px', 
                     // top: '188px',
@@ -46,7 +46,7 @@ const FileManager = (props: Props) => {
                 variant="outlined" 
                 endIcon={<FileUploadIcon />}
             >
-                File Upload
+                {window.innerWidth < 900 ? <>File</> : <>File Upload</>}
 
                
                     <input

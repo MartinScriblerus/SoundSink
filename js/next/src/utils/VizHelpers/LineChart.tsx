@@ -138,7 +138,7 @@ export const LineChart = ({
 
 
   return (
-    <div style={{width: "100%"}}>
+    <div style={{width: "100%", backgroundColor: "transparent",}}>
       <svg width={width} height={height} style={{background: "rgba(0,0,0,.91)", minHeight: "100%", flexDirection: "row-reverse", overflowX: "scroll"}}>
         <g
           width={boundsWidth}

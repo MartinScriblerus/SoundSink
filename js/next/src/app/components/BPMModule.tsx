@@ -29,7 +29,7 @@ const BPMModuleFun = (props: BPMModule) => {
     const theme = useTheme();
 
     return (
-
+        <Box sx={{display: "flex", flexDirection: window.innerWidth < 900 ? "column" : "row"}}>
             <Box sx={{
                 fontFamily: notoSans,
                 fontSize: '24px',
@@ -40,8 +40,9 @@ const BPMModuleFun = (props: BPMModule) => {
                 flexDirection: 'row',
                 // padding: '12px',
                 justifyContent: 'center',
-                width: '108%',
-                height: '100%'
+                width: window.innerWidth < 900 ? '140px' : '208px',
+                height: '100%',
+                minHeight: '136px'
             }}>
                 <FormControl
                     sx={{
@@ -191,82 +192,149 @@ const BPMModuleFun = (props: BPMModule) => {
                         />
                     </FormControl>
                 </Box>   
-
+                {/* <Box sx={{display: 'flex', flexDirection: window.innerWidth < 900 ? "row" : 'column'}}>
+                <Box sx={{display: 'flex', flexDirection: window.innerWidth < 900 ? "row" : 'column'}}> */}
                 <Box sx={{display: 'flex', flexDirection: 'column'}}>
-                    <Box sx={{display: 'flex', flexDirection: 'column'}}>
-                        <Button 
-                            sx={{ 
-                                color: 'rgba(0,0,0,.98) !important',
-                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                                marginLeft: '0px', 
-                                // maxWidth: '28px',
-                                minWidth: '60px',
-                                maxWidth: '60px',
-                                maxHeight: '40px',
-                                display: programIsOn ? "flex" : "none",
-                                border: '0.5px solid #b2b2b2',
-                                '&:hover': {
-                                    color: '#f5f5f5 !important',
-                                    background: 'rgba(0,0,0,.98)',
-                                    border: '1px solid #1976d2',
-                                }
-                            }} 
-                            variant="outlined" 
-                            className="ui_SynthLayerButton"
-                            onClick={handleToggleArpeggiator} 
-                            // endIcon={<AnimationIcon />}
-                            >
-                                Arp1
-                        </Button>
-    {/* S-ARP */}
-                        <Button 
-                            sx={{ 
-                                color: 'rgba(0,0,0,.98) !important',
-                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                                minWidth: '60px',
-                                maxWidth: '60px',
-                                maxHeight: '40px',
-                    
-                                // background: 'rgba(232, 82,82, 1)', 
-                                // background: 'rgba(147, 206, 214, 1)', 
-                                // minWidth: '208px', 
-                                marginLeft: '0px', 
-                                border: '0.5px solid #b2b2b2',
-                                display: programIsOn ? "flex" : "none",
-                                '&:hover': {
-                                    color: '#f5f5f5 !important',
-                                    background: 'rgba(0,0,0,.98)',
-                                    border: '1px solid #1976d2',
-                                }
-                            }} 
-                            variant="outlined" 
-                            className="ui_SynthLayerButton"
-                            onClick={handleToggleStkArpeggiator} 
-                            // endIcon={<AnimationIcon />}
-                            >
-                                Arp2
-                        </Button>
+                <Box sx={{display: 'flex', flexDirection: 'column'}}>
+                    <Button 
+                        sx={{ 
+                            color: 'rgba(0,0,0,.98) !important',
+                            backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                            marginLeft: '0px', 
+                            // maxWidth: '28px',
+                            minWidth: '60px',
+                            maxWidth: '60px',
+                            maxHeight: '40px',
+                            display: programIsOn ? "flex" : "none",
+                            border: '0.5px solid #b2b2b2',
+                            '&:hover': {
+                                color: '#f5f5f5 !important',
+                                background: 'rgba(0,0,0,.98)',
+                                border: '1px solid #1976d2',
+                            }
+                        }} 
+                        variant="outlined" 
+                        className="ui_SynthLayerButton"
+                        onClick={handleToggleArpeggiator} 
+                        // endIcon={<AnimationIcon />}
+                        >
+                            Arp1
+                    </Button>
 
-                        <Box sx={{display: "flex", flexDirection: "column"}}>
-                            <Box sx={{display: "flex", flexDirection: "row"}}>
-                                <ToggleFXView 
-                                    stkCount={stkFX.current.length}
-                                    fxCount={checkedFXList.length}
-                                    handleReturnToSynth={handleReturnToSynth} 
-                                    programIsOn={programIsOn}
-                                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
-                                    handleToggleArpeggiator={handleToggleArpeggiator}
-                                    stkFX={stkFX.current}
-                                    checkedFXList={checkedFXList}
-                                    keysVisible={keysVisible}
-                                />
-                            </Box>
-                        </Box>   
+                    <Button 
+                        sx={{ 
+                            color: 'rgba(0,0,0,.98) !important',
+                            backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                            minWidth: '60px',
+                            maxWidth: '60px',
+                            maxHeight: '40px',
+                            marginLeft: '0px', 
+                            border: '0.5px solid #b2b2b2',
+                            display: programIsOn ? "flex" : "none",
+                            '&:hover': {
+                                color: '#f5f5f5 !important',
+                                background: 'rgba(0,0,0,.98)',
+                                border: '1px solid #1976d2',
+                            }
+                        }} 
+                        variant="outlined" 
+                        className="ui_SynthLayerButton"
+                        onClick={handleToggleStkArpeggiator} 
+                        // endIcon={<AnimationIcon />}
+                        >
+                            Arp2
+                    </Button>
 
-                    </Box>
+                    <Box sx={{display: "flex", flexDirection: "column"}}>
+                        <Box sx={{display: "flex", flexDirection: "row"}}>
+                            <ToggleFXView 
+                                stkCount={stkFX.current.length}
+                                fxCount={checkedFXList.length}
+                                handleReturnToSynth={handleReturnToSynth} 
+                                programIsOn={programIsOn}
+                                handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                handleToggleArpeggiator={handleToggleArpeggiator}
+                                stkFX={stkFX.current}
+                                checkedFXList={checkedFXList}
+                                keysVisible={keysVisible}
+                            />
+                        </Box>
+                    </Box>   
+
                 </Box>
             </Box>
 
+            </Box>
+            {/* <Box sx={{display: 'flex', flexDirection: window.innerWidth < 900 ? "row" : 'column'}}>
+                <Box sx={{display: 'flex', flexDirection: window.innerWidth < 900 ? "row" : 'column'}}>
+                    <Button 
+                        sx={{ 
+                            color: 'rgba(0,0,0,.98) !important',
+                            backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                            marginLeft: '0px', 
+                            // maxWidth: '28px',
+                            minWidth: '60px',
+                            maxWidth: '60px',
+                            maxHeight: '40px',
+                            display: programIsOn ? "flex" : "none",
+                            border: '0.5px solid #b2b2b2',
+                            '&:hover': {
+                                color: '#f5f5f5 !important',
+                                background: 'rgba(0,0,0,.98)',
+                                border: '1px solid #1976d2',
+                            }
+                        }} 
+                        variant="outlined" 
+                        className="ui_SynthLayerButton"
+                        onClick={handleToggleArpeggiator} 
+                        // endIcon={<AnimationIcon />}
+                        >
+                            Arp1
+                    </Button>
+
+                    <Button 
+                        sx={{ 
+                            color: 'rgba(0,0,0,.98) !important',
+                            backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                            minWidth: '60px',
+                            maxWidth: '60px',
+                            maxHeight: '40px',
+                            marginLeft: '0px', 
+                            border: '0.5px solid #b2b2b2',
+                            display: programIsOn ? "flex" : "none",
+                            '&:hover': {
+                                color: '#f5f5f5 !important',
+                                background: 'rgba(0,0,0,.98)',
+                                border: '1px solid #1976d2',
+                            }
+                        }} 
+                        variant="outlined" 
+                        className="ui_SynthLayerButton"
+                        onClick={handleToggleStkArpeggiator} 
+                        // endIcon={<AnimationIcon />}
+                        >
+                            Arp2
+                    </Button>
+
+                    <Box sx={{display: "flex", flexDirection: "column"}}>
+                        <Box sx={{display: "flex", flexDirection: "row"}}>
+                            <ToggleFXView 
+                                stkCount={stkFX.current.length}
+                                fxCount={checkedFXList.length}
+                                handleReturnToSynth={handleReturnToSynth} 
+                                programIsOn={programIsOn}
+                                handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                handleToggleArpeggiator={handleToggleArpeggiator}
+                                stkFX={stkFX.current}
+                                checkedFXList={checkedFXList}
+                                keysVisible={keysVisible}
+                            />
+                        </Box>
+                    </Box>   
+
+                </Box>
+            </Box> */}
+        </Box>
     )
 }
 export default BPMModuleFun;

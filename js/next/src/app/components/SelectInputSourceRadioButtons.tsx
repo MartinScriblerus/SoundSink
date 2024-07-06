@@ -40,7 +40,8 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                 justifyContent: 'top !important',
                 alignItems: 'top',
                 padding: '24px',
-                color: 'rgba(147, 206, 214, 1)',
+                // color: 'rgba(147, 206, 214, 1)',
+                color: 'white',
                 height: '100%',
             }}>
                 <FormLabel 
@@ -62,7 +63,8 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                     aria-labelledby="demo-controlled-radio-buttons-group"
                     name="controlled-radio-buttons-group"
                     value={value}
-                    sx={{color: "rgba(147, 206, 214, 1)"}}
+                    // sx={{color: "rgba(147, 206, 214, 1)"}}
+                    sx={{color: "rgba(255,255,255,1)"}}
                     onChange={handleChange}
                 >
                     <FormControlLabel 
