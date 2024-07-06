@@ -28,15 +28,11 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   const value = ""
 
   useMemo(() => {
-    // console.log('EEEESH PROPS: ', props);
-    // EFFECTS W TIME ON X-AXIS
-    // if (currentVisualization === "centroid") {
 
     if (analysisObject.current[analysisSourceRadioValue.toLowerCase()].length === 0) return;
-    // console.log('$$$ ', analysisObject[analysisSourceRadioValue.toLowerCase()]);
+
       setMockData((data: any) => [...data, {
         x: timeNow, 
-        // x: Date.now(),
         centroid: analysisObject.current[analysisSourceRadioValue.toLowerCase()].centroid, 
         flux: analysisObject.current[analysisSourceRadioValue.toLowerCase()].flux,
         rms: analysisObject.current[analysisSourceRadioValue.toLowerCase()].rms,
@@ -63,11 +59,8 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
       className="findme"
       sx={{
         top: "26px",
-        // position: "absolute",
         pointerEvents: "none",
-   
         borderRadius: "24px",
-        // background: "pink",
         width: "100%"
       }}
     >
@@ -252,13 +245,13 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
                 value="kurtosis" 
                 control={<Radio />} 
                 label="Kurtosis" />
-            {/* <FormControlLabel 
+            <FormControlLabel 
                 sx={{
                     color: 'rgba(228,225,209,1)'
                 }} 
                 value="sfm" 
                 control={<Radio />} 
-                label="SFM" /> */}
+                label="SFM" />
           </RadioGroup>
         </Box>
 
@@ -268,60 +261,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
         <Box>
         
         </Box>
-        {/* <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row-reverse',
-            minHeight: '60px',
-            marginRight: '80px',
-            backgroundColor: "rgba(0, 0, 0,1)",
-          }}
-        >
-          <RadioGroup
-            aria-labelledby="demo2-controlled-radio-buttons-group"
-            name="controlled-radio-buttons-group2"
-            value={analysisSourceRadioValue}
-            sx={{
-              color: "rgba(147, 206, 214, 1)", 
-              pointerEvents: "all", 
-              display: "flex", 
-              flexDirection: "row", 
-              backgroundColor: "rgba(0, 0, 0,1)",
-              minHeight: "60px",
-            }}
-            onChange={handleChangeAnalysisSource}
-          >
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="Osc" 
-                control={<Radio />} 
-                label="Osc" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="STK" 
-                control={<Radio />} 
-                label="STK" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="Sampler" 
-                control={<Radio />} 
-                label="Sampler" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="AudioIn" 
-                control={<Radio />} 
-                label="Audio In" />
-            </RadioGroup>
-        </Box> */}
+
       </Box>
     </Box>
   );
