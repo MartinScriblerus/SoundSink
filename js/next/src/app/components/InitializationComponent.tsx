@@ -3446,7 +3446,7 @@ export default function InitializationComponent() {
                 }
             }
             
-
+            
             virtualKeyMapDown.current = await virtualKeyMapping(48, 1);
 
             virtualKeyMapUp.current = currentNotesDownDisplay.current.length > 1 ? await virtualKeyMapping(48, 0) : "";
@@ -3468,7 +3468,7 @@ export default function InitializationComponent() {
              } 
              const SHD_STK_PLAY = stkShouldPlay(); 
              console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
-             
+             console.log("NORMALIZED!! ", normalizedCentroids.current);
             const chuckCode = `
             
             [${currNotes.current}] @=> int notes[];
@@ -3491,6 +3491,7 @@ export default function InitializationComponent() {
             ((secLenBeat * 1000) * 2)::ms => dur whole;
             (secLenBeat * ${numeratorSignature} * ${denominatorSignature})::ms => dur bar;
                 
+            MLP model;
             
             private class UniversalAnalyzer {
                 FeatureCollector combo => blackhole;
@@ -3624,7 +3625,6 @@ export default function InitializationComponent() {
 
                     zerox.upchuck() @=> UAnaBlob blobZero;
 
-
                     <<< "FEATURES: " 
                     + "/centroid: "
                     + centroid.fval(0) + " " 
@@ -3652,6 +3652,24 @@ export default function InitializationComponent() {
                     + "/zerox: " 
                     + blobZero.fvals()[0] 
                     >>>;
+
+                    model.init([3, 5, 5, 2]);
+
+
+                        // input observations
+                        [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]] @=> float X[][];
+                        // output observations
+                        [[0.1, 0.2], [0.3, 0.4]] @=> float Y[][];
+                        model.train(X,Y,0.1, 100);
+                        [0.7, 0.8, 0.9] @=> float x[];
+                        // array to how output
+                        float y[2];
+                        // predict output given input
+                        model.predict(x, y);
+                        // print the output
+                        <<< "PREDICTEDMLP: " + y[0] + y[1] >>>;
+              
+
                     // me.yield();
                 }
                 me.yield();
@@ -4826,6 +4844,11 @@ export default function InitializationComponent() {
         setCurrentPatternCount(Math.floor(currentNumerCount/(numeratorSignature * denominatorSignature))); //
     }, [currentNumerCount]);
 
+    const centroids = useRef<any>([]);
+    const normalizedCentroids = useRef<any>([]);
+    const centroidMax = useRef<number>(0);
+    const centroidMin = useRef<number>(0);
+
     useEffect(() => {
 
         if(lastChuckMessage && lastChuckMessage.includes("VIRTUALKEYUPDATE_")){
@@ -4927,6 +4950,15 @@ export default function InitializationComponent() {
             const allFeatures = parsedLastChuckMessage.current.filter((i: any, idx: number) => [idx, i]);
 
             const centroid = allFeatures.find((i: any) => i.includes("centroid")).split(":")[1];
+            centroids.current.push(centroid);
+            if (centroid > centroidMax.current) {
+                centroidMax.current = centroid;
+            }
+            if (centroid < centroidMin.current) {
+                centroidMin.current = centroid;
+            }
+            normalizedCentroids.current.push((centroid - centroidMin.current)/(centroidMax.current - centroidMin.current)); 
+            
             const flux = allFeatures.find((i: any) => i.includes("flux")).split(":")[1];
             const rms = allFeatures.find((i: any) => i.includes("rms")).split(":")[1];
             const mfcc = allFeatures.find((i: any) => i.includes("mfcc")).split(":")[1].split(" ");
@@ -4945,6 +4977,10 @@ export default function InitializationComponent() {
 
             const kurtosis = allFeatures.find((i: any) => i.includes("kurtosis")).split(":")[1].replace("/","");
 
+            console.log("NORMALIZED CENTROIDS: ", normalizedCentroids.current);
+
+    
+
             // const source = parsedLastChuckMessage.current[35].replace(/\W/g, '');
             analysisObject.current[analysisSourceRadioValue.toLowerCase()].centroid = Number(parseFloat(centroid));
             analysisObject.current[analysisSourceRadioValue.toLowerCase()].flux = Number(parseFloat(flux));
@@ -4962,6 +4998,19 @@ export default function InitializationComponent() {
 
             console.log("GOT ANALYSIS OBJ? ", analysisObject);
 
+            
+
+
+
+
+        }
+
+        if (lastChuckMessage && lastChuckMessage.includes('PREDICTEDMLP')) {
+            console.log("YOOOOOOOOO ", parsedLastChuckMessage.current);
+            parsedLastChuckMessage.current = lastChuckMessage.split(/[/]+/);
+            console.log('parsedLastPREDICTEDMLP.current: ', parsedLastChuckMessage.current);
+
+      
         }
 
         if (lastChuckMessage.includes('TIME')) {
@@ -5143,8 +5192,8 @@ export default function InitializationComponent() {
                                     variant="contained" 
                                     id="initChuckButton" 
                                     onClick={initChuck} 
-                                    endIcon={<PlayArrowIcon 
-                                    style={{pointerEvents: "none"}} />}
+                                    endIcon={<PlayArrowIcon
+                                    style={{height: '100%', pointerEvents: "none"}} />}
                                     >
                                         Begin
                                 </Button>
@@ -5488,7 +5537,88 @@ export default function InitializationComponent() {
                                         />
                                     </Box>)
                                 }
+
                             </Box> )}
+
+
+
+
+
+{/* ARPS */}
+<Box sx={{display: 'flex', flexDirection: 'row', bottom: '204px', position: 'absolute'}}>
+                    <Button 
+                        sx={{ 
+                            color: 'rgba(0,0,0,.98) !important',
+                            backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                            marginLeft: '0px', 
+                            // maxWidth: '28px',
+                            minWidth: '60px',
+                            maxWidth: '60px',
+                            maxHeight: '40px',
+                            display: programIsOn ? "flex" : "none",
+                            border: '0.5px solid #b2b2b2',
+                            '&:hover': {
+                                color: '#f5f5f5 !important',
+                                background: 'rgba(0,0,0,.98)',
+                                border: '1px solid #1976d2',
+                            }
+                        }} 
+                        variant="outlined" 
+                        className="ui_SynthLayerButton"
+                        onClick={handleToggleArpeggiator} 
+                        // endIcon={<AnimationIcon />}
+                        >
+                            Arp1
+                    </Button>
+
+                    <Button 
+                        sx={{ 
+                            color: 'rgba(0,0,0,.98) !important',
+                            backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                            minWidth: '60px',
+                            maxWidth: '60px',
+                            maxHeight: '40px',
+                            marginLeft: '0px', 
+                            border: '0.5px solid #b2b2b2',
+                            display: programIsOn ? "flex" : "none",
+                            '&:hover': {
+                                color: '#f5f5f5 !important',
+                                background: 'rgba(0,0,0,.98)',
+                                border: '1px solid #1976d2',
+                            }
+                        }} 
+                        variant="outlined" 
+                        className="ui_SynthLayerButton"
+                        onClick={handleToggleStkArpeggiator} 
+                        // endIcon={<AnimationIcon />}
+                        >
+                            Arp2
+                    </Button>
+
+                    <Box sx={{display: "flex", flexDirection: "column"}}>
+                        <Box sx={{display: "flex", flexDirection: "row"}}>
+                            <ToggleFXView 
+                                stkCount={stkFX.current.length}
+                                fxCount={checkedFXList.current.length}
+                                handleReturnToSynth={handleReturnToSynth} 
+                                programIsOn={programIsOn}
+                                handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                handleToggleArpeggiator={handleToggleArpeggiator}
+                                stkFX={stkFX.current}
+                                checkedFXList={checkedFXList.current}
+                                keysVisible={keysVisible}
+                            />
+                        </Box>
+                    </Box>   
+
+                </Box>
+
+
+
+
+
+
+
                             
                     </Box>
                 </Box>
