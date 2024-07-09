@@ -33,7 +33,7 @@ const FileManager = (props: Props) => {
                     background: 'rbga(0,0,0,.91)', 
                     marginLeft: '0px', 
                     // top: '188px',
-                    zIndex: 1000,
+                    zIndex: 60,
                     display: programIsOn ? "flex" : "none",
                     maxHeight: '40px',
                     '&:hover': {

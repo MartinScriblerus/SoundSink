@@ -3493,6 +3493,9 @@ export default function InitializationComponent() {
                 
             MLP model;
             
+
+
+
             private class UniversalAnalyzer {
                 FeatureCollector combo => blackhole;
                 FFT fft;
@@ -3625,6 +3628,14 @@ export default function InitializationComponent() {
 
                     zerox.upchuck() @=> UAnaBlob blobZero;
 
+
+
+            [[0.0]] @=> float singleInputArr[][];
+            [[0.0]] @=> float storedInputArr[][];
+            [[0.0]] @=> float oldestStoredInputArr[][];
+
+
+
                     <<< "FEATURES: " 
                     + "/centroid: "
                     + centroid.fval(0) + " " 
@@ -3650,25 +3661,64 @@ export default function InitializationComponent() {
                     + "/kurtosis: "
                     + this.TrackingFile.the_kurtosis + " "
                     + "/zerox: " 
-                    + blobZero.fvals()[0] 
-                    >>>;
+                    + blobZero.fvals()[0] + " " >>>;
 
-                    model.init([3, 5, 5, 2]);
+                    if(storedInputArr != [[0.0]]) {
+                        storedInputArr @=> oldestStoredInputArr;
+                    } 
+
+                    if (singleInputArr != [[0.0]]) {
+                        singleInputArr @=> storedInputArr;
+                    } 
+
+                    [
+                        [centroid.fval(0)],
+                        [flux.fval(0)],
+                        [rms.fval(0)],
+                        // [mfccString],
+                        [rolloff.fval(0)],
+                        // [chromaString],
+                        [this.TrackingFile.the_freq],
+                        [this.TrackingFile.the_gain],
+                        [dct.fval(0)],
+                        [dct.fval(1)],
+                        [dct.fval(2)],
+                        [dct.fval(3)],
+                        [this.TrackingFile.the_kurtosis],
+                        [blobZero.fvals()[0]]
+                    ] @=> singleInputArr;
 
 
-                        // input observations
-                        [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]] @=> float X[][];
+
+                    if (oldestStoredInputArr != [[0.0]]) {
+
+                        model.init([12, 5, 5, 12]);
+
+                        oldestStoredInputArr @=> float X[][];
                         // output observations
-                        [[0.1, 0.2], [0.3, 0.4]] @=> float Y[][];
+                        storedInputArr @=> float Y[][];
                         model.train(X,Y,0.1, 100);
-                        [0.7, 0.8, 0.9] @=> float x[];
+                        [
+                            centroid.fval(0),
+                            flux.fval(0),
+                            rms.fval(0),
+                            rolloff.fval(0),
+                            this.TrackingFile.the_freq,
+                            this.TrackingFile.the_gain,
+                            dct.fval(0),
+                            dct.fval(1),
+                            dct.fval(2),
+                            dct.fval(3),
+                            this.TrackingFile.the_kurtosis,
+                            blobZero.fvals()[0]
+                        ] @=> float x[];
                         // array to how output
-                        float y[2];
+                        float y[12];
                         // predict output given input
                         model.predict(x, y);
                         // print the output
-                        <<< "PREDICTEDMLP: " + y[0] + y[1] >>>;
-              
+                        <<< "PREDICTIONS: ", y[0], y[1], y[2], y[3], y[4], y[5], y[6], y[7], y[8], y[9], y[10], y[11] >>>;
+                    }
 
                     // me.yield();
                 }
@@ -5005,7 +5055,7 @@ export default function InitializationComponent() {
 
         }
 
-        if (lastChuckMessage && lastChuckMessage.includes('PREDICTEDMLP')) {
+        if (lastChuckMessage && lastChuckMessage.includes('PREDICTIONS')) {
             console.log("YOOOOOOOOO ", parsedLastChuckMessage.current);
             parsedLastChuckMessage.current = lastChuckMessage.split(/[/]+/);
             console.log('parsedLastPREDICTEDMLP.current: ', parsedLastChuckMessage.current);
@@ -5545,7 +5595,7 @@ export default function InitializationComponent() {
 
 
 {/* ARPS */}
-<Box sx={{display: 'flex', flexDirection: 'row', bottom: '204px', position: 'absolute'}}>
+<Box sx={{display: 'flex', flexDirection: 'row', bottom: '204px', right: '0px', position: 'absolute'}}>
                     <Button 
                         sx={{ 
                             color: 'rgba(0,0,0,.98) !important',
