@@ -118,7 +118,6 @@ interface MixingBoard {
 
 export default function InitializationComponent() {
     const [programIsOn, setProgramIsOn] = useState<boolean>(false);
-
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
     const [lastChuckMessage, setLastChuckMessage] = useState<any>("");
@@ -234,8 +233,12 @@ export default function InitializationComponent() {
     const [numeratorSignature, setNumeratorSignature] = useState(4);
     const [denominatorSignature, setDenominatorSignature] = useState(4);
 
+    const [currentBeatCount, setCurrentBeatCount] = useState<number>(0);
+    const [currentBeatSynthCount, setCurrentBeatSynthCount] = useState<number>(0);
+    const [currentBeatCountToDisplay, setCurrentBeatCountToDisplay] = useState<number>(0);
     const [currentNumerCount, setCurrentNumerCount] = useState<number>(0);
     const [currentNumerCountColToDisplay, setCurrentNumerCountColToDisplay] = useState<number>(0);
+
     const [currentDenomCount, setCurrentDenomCount] = useState<number>(0);
     const [currentPatternCount, setCurrentPatternCount] = useState<number>(0);
 
@@ -263,6 +266,13 @@ export default function InitializationComponent() {
     const [toggleSTKvsFX, setToggleSTKvsFX] = useState<any>(true);
     const [checkedEffectToShow, setCheckedEffectToShow] = useState<any>(true);
     const [microtonalScale, setMicrotonalScale] = useState<string>('05-19');
+
+    useEffect(() => {
+        console.log("YO ", currentNumerCountColToDisplay);
+        console.log("GABBA: ", currentNumerCount);
+        console.log("GABBAX2: ", currentDenomCount);
+        console.log("PATTERN ", currentPatternCount);
+    }, [currentNumerCountColToDisplay, currentNumerCount, currentPatternCount]);
 
     const selectRef: any = React.useCallback((selectedMicrotone: string, i: any) => {
         if (selectedMicrotone) {
@@ -379,12 +389,31 @@ export default function InitializationComponent() {
             // samples: ["whole/4"],
             // linesIn: ["whole/4"]
             master: [4],
-            oscs: [4],
+            oscs: [8],
             stks: [4],
             samples: [4],
             linesIn: [4]
         }
     )
+
+    const handleOscRateUpdate = (val: any) => {
+        console.log("VALLLLLL ", val.target.value);
+        setCurrentNoteVals({...currentNoteVals, oscs: [val.target.value]});
+        // setChuckUpdateNeeded(true);
+    }
+    const handleStkRateUpdate = (val: any) => {
+        setCurrentNoteVals({...currentNoteVals, stks: [val.target.value]});
+        // setChuckUpdateNeeded(true);
+    }
+    const handleSamplerRateUpdate = (val: any) => {
+        setCurrentNoteVals({...currentNoteVals, samples: [val.target.value]});
+        // setChuckUpdateNeeded(true);
+    }
+    const handleAudioInRateUpdate = (val: any) => {
+        setCurrentNoteVals({...currentNoteVals, linesIn: [val.target.value]});
+        
+    }
+
 
     const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
 
@@ -3560,8 +3589,9 @@ export default function InitializationComponent() {
                     // get number of total feature dimensions
                     combo.fvals().size() => int NUM_DIMENSIONS;
             
-                    // set FFT size
-                    4096 => fft.size;
+                    // set FFT size (do we need 4410 for file?)
+                    // 4096 => fft.size;
+                    4410 => fft.size;
                     // set window type and size
                     Windowing.hann(fft.size()) => fft.window;
                     // our hop size (how often to perform analysis)
@@ -3630,9 +3660,9 @@ export default function InitializationComponent() {
 
 
 
-            [[0.0]] @=> float singleInputArr[][];
-            [[0.0]] @=> float storedInputArr[][];
-            [[0.0]] @=> float oldestStoredInputArr[][];
+                    [[0.0]] @=> float singleInputArr[][];
+                    [[0.0]] @=> float storedInputArr[][];
+                    [[0.0]] @=> float oldestStoredInputArr[][];
 
 
 
@@ -3716,9 +3746,87 @@ export default function InitializationComponent() {
                         float y[12];
                         // predict output given input
                         model.predict(x, y);
-                        // print the output
+                        // print the output -- this is the minimal implementation (needs quite a bit of thought & will wait til all sources are in)
                         <<< "PREDICTIONS: ", y[0], y[1], y[2], y[3], y[4], y[5], y[6], y[7], y[8], y[9], y[10], y[11] >>>;
                     }
+
+
+
+
+
+
+// PROBABLY REMOVE THIS OUTPUT UNTIL READY TO INTEGRATE
+                    //------------------------------------------------------------------------------
+// OUTPUT: prepare for output
+//------------------------------------------------------------------------------
+me.dir() + "model.txt" => string OUTPUT_FILE;
+// a feature frame
+float featureFrame[NUM_DIMENSIONS];
+// how many input files
+0 => int NUM_FILES;
+
+// output reference, default is error stream (cherr)
+cherr @=> IO @ theOut;
+// instantiate
+FileIO fout;
+// output file
+if( OUTPUT_FILE != "" )
+{
+    // print
+    // <<< "opening file for output:", OUTPUT_FILE >>>;
+    // open
+    fout.open( OUTPUT_FILE, FileIO.WRITE );
+    // test
+    if( !fout.good() )
+    {
+        <<< " |- cannot open file for writing...", "" >>>;
+        me.exit();
+    }
+    // override
+    fout @=> theOut;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     // me.yield();
                 }
@@ -4239,7 +4347,7 @@ export default function InitializationComponent() {
               
                     if(select == 0)
                     {
-                        buffers[0].samples() => buffers[0].pos; 
+                        buffers[0].samples()/2 => buffers[0].pos; 
                         0.5 => buffers[0].gain;
                     }
                     if(select == 1)
@@ -4262,7 +4370,8 @@ export default function InitializationComponent() {
                         0.5 => sample1.gain; 
                         // sample1.samples()/3 => sample1.pos;
                         0 => sample1.pos;
-                        Math.random2f(0.98,1.0) => sample1.rate;
+                        // Math.random2f(0.98,1.0) => sample1.rate;
+                        1.0 => sample1.rate;
                     }
 
          
@@ -4271,7 +4380,7 @@ export default function InitializationComponent() {
                     0 => sample1.rate;
 
                     SilenceAllBuffers();
-                    me.exit();
+                    // me.exit();
                     
                    
                 }
@@ -4302,40 +4411,45 @@ export default function InitializationComponent() {
                         uA.declarationCode(hpf);
                         // spork ~ uA.getAnalysisForSource(hpf, "Osc1");
 
+                        0 => int synthNumCount;
+
                         for (0 => int i; i < notesToPlay.cap(); i++) {                 
                             if (${arpeggiatorOn} == 1 && notesToPlay.cap() > 0) {
                                 notesToPlay[i] => voice[i].keyOn;
-                                duration/${numeratorSignature} => now;
-                                // if (i == 1) {
-                                //     0 => voice[i-1].gain;
-                                // }
+                                // duration/${numeratorSignature} => now;
+                                // duration => now;
+                                duration - (now % duration)  => now;
+                    
                                 1 => voice[i].keyOff;
-                                // if (${hold} != 1) {
-                                //     1 => voice[i].keyOff;
+                                // if (notesToPlay.size() > 0) {
+                                //     notesToPlay.popOut(i);
                                 // }
+                                0 => voice[0].gain;
                               
-                            } else if (notesToPlay.cap() > 0) {
+                            } 
+                            else if (notesToPlay.cap() > 0) {
                                 notesToPlay[i] => voice[i].keyOn;
-                               
                             }
                             notesToPlayMsg + " " + notesToPlay[i] => notesToPlayMsg;
+                            synthNumCount + 1 => synthNumCount;
+                            <<< "NUM_COUNT_SYNTH ", synthNumCount >>>;
                             me.yield();
                         }
 
                         // <<< "NOTESDOWN", notesToPlayMsg >>>;
                         
                         if (${arpeggiatorOn} == 0) {
-                            duration - (now % duration)  => now;
-                           
+                            // duration - (now % duration)  => now;
+                            // duration - (now % duration)  => now;
+                            duration => now;
+
+                            0 => voice[0].gain;
+
                             for (1 => int i; i <= notesToPlay.size(); i++) {
                                 1 => voice[i].keyOff;
+                                notesToPlay.popOut(i);
                             }
                         }
-                        
-                        // else {
-                        //     duration - (now % duration)  => now;
-                        // }
-                 
                        
                         <<< "NumShreds: ", Machine.numShreds() >>>;
 
@@ -4417,16 +4531,14 @@ export default function InitializationComponent() {
                             if (samplerCount % 4 == 2) {
                                 spork ~ Drum(1, duration);
                                 
-                            }    
-                            // me.yield();                                                     
+                            }                                                        
                         }   
-                        // duration => now;
+  
                         duration - (now % duration) => now;
-                        <<< "NUM_COUNT ", samplerCount >>>;
+                        <<< "NUM_COUNT_SAMPLER ", samplerCount >>>;
                         
                         samplerCount++;
-                        // me.yield();
-                        // me.exit();
+                        
                     }
                    
                 }
@@ -4538,7 +4650,7 @@ export default function InitializationComponent() {
                         }
         
                     
-                        myEvent.signal();  
+                        myEvent.broadcast();  
                         mySampleEvent.broadcast();
                         // (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
                  
@@ -4598,21 +4710,29 @@ export default function InitializationComponent() {
 
 
         aChuck.chuckPrint = (message) => {
-            if (message.includes("NUM_COUNT") && !message.includes("NumShreds")) {
-                // console.log('WHAT IS MSG? ', message);
+            if (message.includes("NUM_COUNT_SAMPLER") || message.includes("NUM_COUNT_SYNTH") && !message.includes("NumShreds")) {
+                console.log('WHAT IS MSG? ', message);
             }
             if (message) {
                 setLastChuckMessage(message);
             }
-            // if (aChuck) {
-            //     (async () => {
-            //         shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
-            //         console.log('shred count!!!: ', shredCount);
-            //         if (shredCount.current > 4) {
-
-            //         }
-            //     })
-            // }
+            if (aChuck) {
+                (async () => {
+                    shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
+                    console.log('shred count!!!: ', shredCount);
+                    if (shredCount.current > 600) {
+                        const shredCount = await aChuck.runCode(`Machine.numShreds();`);
+            
+                        // console.log('Shred Count in ELSE: ', await shredCount);
+                        Array.from(new Array(shredCount)).forEach((s: any, i: number) => {
+                            const shredActive: any = aChuck.isShredActive(i);
+                            if (i < shredCount && shredActive) {
+                                aChuck.runCode(`${i} => Machine.remove;`);
+                            }
+                        });
+                    }
+                })
+            }
         }
 
         console.log("running chuck now... ", chuckUpdateNeeded);
@@ -4956,12 +5076,13 @@ export default function InitializationComponent() {
 
 
 
-        if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT")) {
+        if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT_SAMPLER")) {
             const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
 
             const removeComma: string = parseString[0].replace(/,\s*$/, "");
             const countToNum: number = +removeComma && +removeComma;
-
+            setCurrentBeatCount(countToNum);
+            setCurrentBeatCountToDisplay(Math.ceil(countToNum) % (numeratorSignature) + 1); //) % (numeratorSignature * denominatorSignature)); //
             if (Math.ceil(countToNum/numeratorSignature) !== 0) {
 
                 setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
@@ -4970,6 +5091,23 @@ export default function InitializationComponent() {
                 setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
                 setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
             }
+        };
+
+        if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT_SYNTH")) {
+            const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
+
+            const removeComma: string = parseString[0].replace(/,\s*$/, "");
+            const countToNum: number = +removeComma && +removeComma;
+            setCurrentBeatSynthCount(countToNum);
+            // // setCurrentBeatCountToDisplay(Math.ceil(countToNum) % (numeratorSignature) + 1); //) % (numeratorSignature * denominatorSignature)); //
+            // if (Math.ceil(countToNum/numeratorSignature) !== 0) {
+
+            //     setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+            //     // setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+            // } else {
+            //     setCurrentNumerCount(Math.ceil(countToNum/numeratorSignature)); //
+            //     // setCurrentNumerCountColToDisplay(Math.ceil(countToNum/numeratorSignature) % (numeratorSignature * denominatorSignature)); //
+            // }
         };
 
         if (lastChuckMessage && lastChuckMessage.includes('NOTESDOWN')) {
@@ -5027,7 +5165,7 @@ export default function InitializationComponent() {
 
             const kurtosis = allFeatures.find((i: any) => i.includes("kurtosis")).split(":")[1].replace("/","");
 
-            console.log("NORMALIZED CENTROIDS: ", normalizedCentroids.current);
+            // console.log("NORMALIZED CENTROIDS: ", normalizedCentroids.current);
 
     
 
@@ -5046,7 +5184,7 @@ export default function InitializationComponent() {
             // analysisObject.current[analysisSourceRadioValue.toLowerCase()].rolloff85 = Number(parseFloat(parsedLastChuckMessage.current[25]).toFixed(7));
             analysisObject.current[analysisSourceRadioValue.toLowerCase()].chroma = chroma.map((i: any) => Number(parseFloat(i)));
 
-            console.log("GOT ANALYSIS OBJ? ", analysisObject);
+            // console.log("GOT ANALYSIS OBJ? ", analysisObject);
 
             
 
@@ -5056,11 +5194,9 @@ export default function InitializationComponent() {
         }
 
         if (lastChuckMessage && lastChuckMessage.includes('PREDICTIONS')) {
-            console.log("YOOOOOOOOO ", parsedLastChuckMessage.current);
+            // console.log("YOOOOOOOOO ", parsedLastChuckMessage.current);
             parsedLastChuckMessage.current = lastChuckMessage.split(/[/]+/);
             console.log('parsedLastPREDICTEDMLP.current: ', parsedLastChuckMessage.current);
-
-      
         }
 
         if (lastChuckMessage.includes('TIME')) {
@@ -5164,7 +5300,9 @@ export default function InitializationComponent() {
                                     // left: "325px",
                                     top: "8px",
                                 }}>
-
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentBeatCountToDisplay} 
+                                </Typography>
                                 <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
                                     {currentNumerCountColToDisplay} 
                                 </Typography>
@@ -5415,6 +5553,14 @@ export default function InitializationComponent() {
                                                 // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
                                                 filesToProcess={filesToProcess.current}
                                                 programIsOn={programIsOn}
+                                                handleOscRateUpdate={handleOscRateUpdate} 
+                                                handleStkRateUpdate={handleStkRateUpdate} 
+                                                handleSamplerRateUpdate={handleSamplerRateUpdate} 
+                                                handleAudioInRateUpdate={handleAudioInRateUpdate}
+                                                currentBeatCount={currentBeatCount}
+                                                currentBeatSynthCount={currentBeatSynthCount}
+                                                currentNumerCount={currentNumerCount}
+                                                currentDenomCount={currentDenomCount}
                                             />
                                         </Box>
                                     </Box>

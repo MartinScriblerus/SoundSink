@@ -41,11 +41,12 @@ const KeyboardControls = (
                 backgroundColor: 'rgba(30,34,26,0.96)', 
                 // width:'100%', 
                 display:'flex', 
-                flexDirection: 'column',
+                flexDirection: 'row',
                 // minHeight:'100%',
                 justifyContent: 'center',
                 alignItems: 'center'
             }}>
+                
             <MingusPopup 
                 submitMingus={submitMingus}
                 audioKey={audioKey}

@@ -612,6 +612,21 @@ ul {
   padding-right: 3rem; 
 }
 
+.MuiSlider-valueLabel {
+  background-color: unset;
+  color: white;
+}
+
+.MuiSlider-track {
+  background-color: unset;
+  color: white;
+}
+
+.MuiSlider-rail {
+  /* background-color: unset; */
+  color: white;
+}
+
 /* .MuiBox-root {
   z-index: 20;
 } */
