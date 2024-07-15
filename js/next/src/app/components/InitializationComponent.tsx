@@ -1481,7 +1481,7 @@ export default function InitializationComponent() {
             1 => win.keyOn; 
             
             value => now;
-            while (1)  {
+            while (true)  {
                 1.0 => win.gain;
                 1 => win.keyOn;
                 value => now;
@@ -2835,6 +2835,8 @@ export default function InitializationComponent() {
             const delayLCodeStringStk = stkDelayLOn.current ? delayLString('stk1', delayLFinalHelper.current.stk.delay, delayLFinalHelper.current.stk.lines, delayLFinalHelper.current.stk.syncDelay, delayLFinalHelper.current.stk.zero, delayLFinalHelper.current.stk.b0, delayLFinalHelper.current.stk.b1) : '';
                     
 
+            let chuckCode = "";
+
             ////////////////////////////
             console.log("what are STKS? ", stkFX.current);
             ////////////////////////////
@@ -3488,18 +3490,19 @@ export default function InitializationComponent() {
             stkPolyKeyOff.current = await playSTKOff(); 
                         
     
-             const stkShouldPlay = () => {
-                if (stkFX.current && stkFX.current.length > 0 && stkFX.current.filter((i: any) => i.fxType === "stk" && i).length > 0) {
-                    return 1;
-                } else {
-                    return 0;
-                };
-             } 
-             const SHD_STK_PLAY = stkShouldPlay(); 
-             console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
-             console.log("NORMALIZED!! ", normalizedCentroids.current);
-            const chuckCode = `
+            const stkShouldPlay = () => {
+            if (stkFX.current && stkFX.current.length > 0 && stkFX.current.filter((i: any) => i.fxType === "stk" && i).length > 0) {
+                return 1;
+            } else {
+                return 0;
+            };
+            } 
+            const SHD_STK_PLAY = stkShouldPlay(); 
+            console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
+            console.log("NORMALIZED!! ", normalizedCentroids.current);
+            chuckCode = `
             
+            // [${currNotes.current}] @=> int notes[];
             [${currNotes.current}] @=> int notes[];
             
             0 => int device;
@@ -3652,7 +3655,7 @@ export default function InitializationComponent() {
                     this.TrackingFile.the_event.broadcast();
 
                     dct.size()/2 %=> div;
-    
+
                     // take dct
                     dct.upchuck();
 
@@ -3750,94 +3753,16 @@ export default function InitializationComponent() {
                         <<< "PREDICTIONS: ", y[0], y[1], y[2], y[3], y[4], y[5], y[6], y[7], y[8], y[9], y[10], y[11] >>>;
                     }
 
-
-
-
-
-
-// PROBABLY REMOVE THIS OUTPUT UNTIL READY TO INTEGRATE
-                    //------------------------------------------------------------------------------
-// OUTPUT: prepare for output
-//------------------------------------------------------------------------------
-me.dir() + "model.txt" => string OUTPUT_FILE;
-// a feature frame
-float featureFrame[NUM_DIMENSIONS];
-// how many input files
-0 => int NUM_FILES;
-
-// output reference, default is error stream (cherr)
-cherr @=> IO @ theOut;
-// instantiate
-FileIO fout;
-// output file
-if( OUTPUT_FILE != "" )
-{
-    // print
-    // <<< "opening file for output:", OUTPUT_FILE >>>;
-    // open
-    fout.open( OUTPUT_FILE, FileIO.WRITE );
-    // test
-    if( !fout.good() )
-    {
-        <<< " |- cannot open file for writing...", "" >>>;
-        me.exit();
-    }
-    // override
-    fout @=> theOut;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     // me.yield();
                 }
                 me.yield();
             }
             
         
-    
+
             class SynthVoice extends Chugraph
                 {
-      
+        
                     ${osc1ChuckToOutlet}
             
                     // saw1 ${osc1FXStringToChuck.current} => dac;
@@ -4207,11 +4132,11 @@ if( OUTPUT_FILE != "" )
                 Event myEvent;
                 Event mySampleEvent;
                 Event mySTKEvent;
-               
+                
 
                 class EffectsModuleSTK extends Chugraph
                 {
-                 
+                    
                     inlet => Gain drySTK => outlet;
 
                     0.1 => limiter_STK.slopeAbove;
@@ -4249,17 +4174,17 @@ if( OUTPUT_FILE != "" )
         
 
                 }
-               
+                
 
         
                 
-             
+                
                 // Start Buffers below
                 SndBuf buffers[4] => dac;
                 
                 private class EffectsModule extends Chugraph
                 {
-               
+                
                     inlet => Gain dry => outlet;
                     dry => ${samplerChuckToOutlet} ${spectacleDeclarationSampler} outlet;
 
@@ -4273,14 +4198,14 @@ if( OUTPUT_FILE != "" )
                     
                     ${ellipticCodeStringSampler}
                     ${expDelayCodeStringSampler}
-              
+                
 
                     // ${modulateDeclarationSampler}
                     ${delayDeclarationSampler}
                     ${delayADeclarationSampler}
                     ${delayLDeclarationSampler}
 
-                   
+                    
                     ${delayCodeStringSampler}
                     ${delayACodeStringSampler}
                     ${delayLCodeStringSampler}
@@ -4288,7 +4213,7 @@ if( OUTPUT_FILE != "" )
                     ${spectacleCodeStringSampler}
                     ${samplerFxStringNeedsBlackhole.current}
                     
-                   
+                    
                     0.1 => limiter_Sampler.slopeAbove;
                     1.0 => limiter_Sampler.slopeBelow;
                     0.5 => limiter_Sampler.thresh;
@@ -4298,7 +4223,7 @@ if( OUTPUT_FILE != "" )
                 }
                 
                 SndBuf sample1 => EffectsModule effectsModule => Gain sampler_masterGain => dac;
-     
+        
                 0.3 => sampler_masterGain.gain;
 
                 
@@ -4315,10 +4240,10 @@ if( OUTPUT_FILE != "" )
                 files[3] => buffers[3].read;
 
 
-     
+        
                         
                 // }
-      
+        
                 fun void SilenceAllBuffers()
                 {
                     buffers[0].samples() => buffers[0].pos;
@@ -4327,7 +4252,7 @@ if( OUTPUT_FILE != "" )
                     buffers[3].samples() => buffers[3].pos;
                     sample1.samples() => sample1.pos;
                 }
-                  
+                    
                 fun void playWindow(WinFuncEnv @ win, dur attack, dur release) {
                     win.attackTime(attack);
                     win.releaseTime(release);
@@ -4344,7 +4269,7 @@ if( OUTPUT_FILE != "" )
             
                 fun void Drum(int select, dur duration)
                 {
-              
+                
                     if(select == 0)
                     {
                         buffers[0].samples()/2 => buffers[0].pos; 
@@ -4372,17 +4297,19 @@ if( OUTPUT_FILE != "" )
                         0 => sample1.pos;
                         // Math.random2f(0.98,1.0) => sample1.rate;
                         1.0 => sample1.rate;
+                        me.yield();
                     }
 
-         
-                   // <<< "DRUM_ON" >>>;
+            
+                    // <<< "DRUM_ON" >>>;
                     duration - (now % duration)  => now;
                     0 => sample1.rate;
 
                     SilenceAllBuffers();
                     // me.exit();
+                    // me.yield();
                     
-                   
+                    
                 }
             
                 SilenceAllBuffers();
@@ -4394,7 +4321,7 @@ if( OUTPUT_FILE != "" )
                     <<< "PLAYSYNTH_ON ", notesToPlay >>>;
 
                     myEvent => now;
-             
+                
                     
                     0 => int runningShreds;
                     0 => int runningSynthShreds;
@@ -4405,16 +4332,14 @@ if( OUTPUT_FILE != "" )
                     
                     while(true) {
                         "" => string notesToPlayMsg;
-                        Machine.numShreds() => runningShreds;
-                        // TK *******************************                      
-                        // <<< "RUNNING SHREDS: ", runningShreds >>>;
+                        // Machine.numShreds() => runningShreds;
                         uA.declarationCode(hpf);
-                        // spork ~ uA.getAnalysisForSource(hpf, "Osc1");
 
                         0 => int synthNumCount;
-
-                        for (0 => int i; i < notesToPlay.cap(); i++) {                 
-                            if (${arpeggiatorOn} == 1 && notesToPlay.cap() > 0) {
+        
+                        for (0 => int i; i < notes.cap(); i++) {                 
+                            if (${arpeggiatorOn} == 1 & notesToPlay.cap() > 0) {
+                                
                                 notesToPlay[i] => voice[i].keyOn;
                                 // duration/${numeratorSignature} => now;
                                 // duration => now;
@@ -4424,8 +4349,8 @@ if( OUTPUT_FILE != "" )
                                 // if (notesToPlay.size() > 0) {
                                 //     notesToPlay.popOut(i);
                                 // }
-                                0 => voice[0].gain;
-                              
+                                // 0 => voice[0].gain;
+                                
                             } 
                             else if (notesToPlay.cap() > 0) {
                                 notesToPlay[i] => voice[i].keyOn;
@@ -4433,41 +4358,41 @@ if( OUTPUT_FILE != "" )
                             notesToPlayMsg + " " + notesToPlay[i] => notesToPlayMsg;
                             synthNumCount + 1 => synthNumCount;
                             <<< "NUM_COUNT_SYNTH ", synthNumCount >>>;
-                            me.yield();
+                            me.yield(); 
                         }
 
                         // <<< "NOTESDOWN", notesToPlayMsg >>>;
                         
                         if (${arpeggiatorOn} == 0) {
                             // duration - (now % duration)  => now;
-                            // duration - (now % duration)  => now;
-                            duration => now;
+                            duration - (now % duration)  => now;
+                            // duration => now;
 
                             0 => voice[0].gain;
 
                             for (1 => int i; i <= notesToPlay.size(); i++) {
                                 1 => voice[i].keyOff;
-                                notesToPlay.popOut(i);
+                                // notesToPlay.popOut(i);
                             }
                         }
-                       
+                        
                         <<< "NumShreds: ", Machine.numShreds() >>>;
 
                     }
                     
-                    
+                    me.yield();
                 }
-            
+
                 fun void PlaySTK(Event mySTKEvent, int notesToPlay[], dur duration){
                     <<< "PLAYSTK_ON ", notesToPlay.cap() >>>;
                     mySTKEvent => now;
-                  
-                   
+                    
+                    
                     ${stkFX.current.type || 'UGen'} ${stkFX.current.var || 'ugen'}[12] => EffectsModuleSTK effectsModuleSTK => Gain stk_masterGain => dac;
                     0.6/notes.cap() => stk_masterGain.gain; 
 
-    
-                    while (${!chuckUpdateNeeded}) {
+
+                    while (true) {
                         // if (${stkFX.current.length} < 1) {
                         //     me.exit();
                         // }
@@ -4480,7 +4405,7 @@ if( OUTPUT_FILE != "" )
                                 } 
                                 // me.yield();
                             }
-                          
+                            
                             if (${stkArpeggiatorOn} == 0) {
                                 // duration - (now % duration)  => now;
                                 for (1 => int i; i <= notesToPlay.cap(); i++) {
@@ -4508,7 +4433,7 @@ if( OUTPUT_FILE != "" )
                     int notesToPlay[], 
                     dur duration
                 ) {                
-                    // count % (notesToPlay.size()) => int sampler1Idx;
+                    count % (notesToPlay.size()) => int sampler1Idx;
                     // <<< "SAMPLE_ON" >>>;
                     // <<< "samples notes/pattern to play ", notesToPlay.cap() >>>; 
                     // <<< "samples arr pos", samplesArrayPos.cap() >>>;
@@ -4519,7 +4444,7 @@ if( OUTPUT_FILE != "" )
                         count % (notesToPlay.size()) => int sampler1Idx;
                         // for (0 => int i; i < notesToPlay.size(); i++) {
                         for (0 => int i; i < ${numeratorSignature * denominatorSignature}; i++) {
-                            // <<< "NOTE!!! ", notesToPlay[i] >>>;
+                            // <<< "NOTE IN SAMPLER!!! ", notesToPlay[i] >>>;
                             if (i % ${numeratorSignature} == 0) {
                                 spork ~ Drum(4, duration);
                                 
@@ -4533,18 +4458,18 @@ if( OUTPUT_FILE != "" )
                                 
                             }                                                        
                         }   
-  
+
                         duration - (now % duration) => now;
                         <<< "NUM_COUNT_SAMPLER ", samplerCount >>>;
                         
                         samplerCount++;
                         
                     }
-                   
+                    
                 }
             
                 [[1,3],[2,4]] @=> int notesArr[][];
-              
+                
                 [3] @=> int sample1Notes[];
                 [1,1,1,1] @=> int sample1TestNotes[];
                 [1, 4, 1, 3] @=> int sample2Notes[];
@@ -4552,7 +4477,7 @@ if( OUTPUT_FILE != "" )
                 [1,2] @=> int stkNotes[];
             
                 
-  
+
                 
                 private class TimeProvider {
                     0 => static int globalCount;
@@ -4578,7 +4503,7 @@ if( OUTPUT_FILE != "" )
                         }
                     }
                     fun void releaseNotes (int note) {
-                       
+                        
                         <<< "NOTE TO RELEASE: ", note >>>;
                         <<< "ALL NOTES: ", notes >>>;
 
@@ -4587,7 +4512,7 @@ if( OUTPUT_FILE != "" )
                             
                             if (note == notes[i] && i > 0) {
                                 notes.erase(i);
-                                                  
+                                                    
                             }
                             // if (${hold} == 1 && notes.cap() > 2) {
                             //     notes.popFront();
@@ -4595,7 +4520,7 @@ if( OUTPUT_FILE != "" )
                             // if (notes.cap() > 2) {
                             //     notes.popFront();
                             // }
-                  
+                    
                         }
                     }
                 }
@@ -4606,29 +4531,40 @@ if( OUTPUT_FILE != "" )
                 if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
                     spork ~ PlaySTK(mySTKEvent, [${currNotes.current}], whole/${currentNoteVals.oscs[0]}) @=> Shred shredSTK;  
                 }
-             
+                spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]}) @=> Shred shredSample;
+
                 spork ~ PlaySynthNotes(myEvent, notes, whole/${currentNoteVals.oscs[0]}) @=> Shred shredSynth; 
                 
-                spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]}) @=> Shred shredSample;
+                // spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]}) @=> Shred shredSample;
 
 
                 // me.yield();
 
+                while (true) {
+                    spork ~ myEvent.broadcast();
+                    spork ~ mySampleEvent.broadcast();
+                    //(whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
+                    whole/${currentNoteVals.oscs[0]} => now;
+                }
+
                 while(true) {         
                     // while(${!chuckUpdateNeeded}) {
-                        
+                        mySampleEvent.broadcast();
                         <<< "NumShreds: ", Machine.numShreds() >>>;
                         // wait for HID event
                         hid => now;
-                        mySampleEvent.signal();
+                        
+
+
+
                         // get HID message
                         while( hid.recv( msg ) )
                         {
                             int msgDownOrUp;
                             if( msg.isButtonDown() ) {
-                                // if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
-                                //     mySTKEvent.signal();
-                                // }
+                                if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
+                                    spork ~ mySTKEvent.signal();
+                                }
                 
                             
                                 // myEvent.signal();  
@@ -4642,50 +4578,57 @@ if( OUTPUT_FILE != "" )
                         
                             
                             }
-                            // me.yield();
+                            me.yield();
                         }
                         <<< "NumShreds: ", Machine.numShreds() >>>;
                         if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
-                            mySTKEvent.signal();
+                            spork ~ mySTKEvent.signal();
                         }
         
                     
-                        myEvent.broadcast();  
-                        mySampleEvent.broadcast();
+                        spork ~ myEvent.broadcast();  
+                        spork ~ mySampleEvent.broadcast();
                         // (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
-                 
+                    
                         <<< "NumShreds: ", Machine.numShreds() >>>;
-                        // me.yield();
+                        me.yield();
                     }   
-               
+                
                 // }                         
             `;
 
+            
 
 
 
 
-                console.log("CHUCK CODE!!! ", chuckCode);
+
+        console.log("CHUCK CODE!!! ", chuckCode);
 
 
         // const shredCountNow = await aChuck.runCode(`Machine.numShreds();`);
 
         if (chuckCode && chuckCode.length > 0 && !chuckUpdateNeeded) {    
             console.log("run!");
-            chuckRunning.current = true;
+            // chuckRunning.current = true;
             aChuck.runCode(chuckCode);
         } else {
             // const shredCount = await aChuck.runCode(`Machine.numShreds();`);
-            
+       
             console.log('Shred Count in ELSE: ', await shredCount.current);
-            // Array.from(new Array(shredCount)).forEach((s: any, i: number) => {
-            //     const shredActive: any = aChuck.isShredActive(i);
-            //     if (i < shredCount.current && shredActive) {
-            //         aChuck.runCode(`${i} => Machine.remove;`);
-            //     }
-            // });
+            Array.from(new Array(shredCount)).forEach((s: any, i: number) => {
+                const shredActive: any = aChuck.isShredActive(i);
+                if (i < shredCount.current && shredActive) {
+                    aChuck.runCode(`${i} => Machine.remove;`);
+                }
+            });
             aChuck.runCode('Machine.removeAllShreds();')
             aChuck.runCode(`Machine.resetShredID();`);
+            // aChuck.runCode(chuckCode);
+            // runMainChuckCode(aChuck);
+            // aChuck.replaceCode(chuckCode);
+            // runChuck();
+        
             
         }
     }
@@ -4770,17 +4713,33 @@ if( OUTPUT_FILE != "" )
         // const getStk1String: any = await stkFXToStringPrepare();
 
         // ` : '';
+        console.log("GOT HERE!");
 
         setOsc1Code(OSC_1_Code);
 
         if (aChuck) {
+            if (shredCount.current > 0) {
+                aChuck.runCode('Machine.removeAllShreds();')
+                aChuck.runCode(`Machine.resetShredID();`);
+            }
             runMainChuckCode(aChuck);
+        } else {
+            console.log("NO aChuck!");
         }
 
 
     }
 
-    useEffect(() => { runChuck() }, [chuckUpdateNeeded]);
+    useEffect(() => { 
+        if (!chuckRunning.current) {
+            console.log("Calling runChuck")
+            runChuck() 
+            chuckRunning.current = true;
+        } else {
+            chuckRunning.current = false;
+        }
+    // }, [chuckUpdateNeeded]);
+    }, []);
 
 
     // AUDIO IN
@@ -4842,6 +4801,7 @@ if( OUTPUT_FILE != "" )
     useEffect(() => {
         if (notesNeedUpdate) {
             setNotesNeedUpdate(false);
+            setChuckUpdateNeeded(true);
         }
     }, [notesNeedUpdate, currNotes.current.length])
 
@@ -4853,7 +4813,7 @@ if( OUTPUT_FILE != "" )
         // console.log('NOTE TARGET: ', note.target);
         // console.log('ID STRING: ', idString);
         console.log('midiHz: ', midiHz);
-        console.log('midiNote ', midiNote);  
+        console.log('midiNote*** ', midiNote);  
    
         const noteReady = note.target.attributes[0].value;
         const theNoteLetter = idString.replace('-','');
