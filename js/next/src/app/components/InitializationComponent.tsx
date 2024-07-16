@@ -975,7 +975,7 @@ export default function InitializationComponent() {
 
         if (currNotes.current.indexOf(theMidiNum) === -1) {
             currNotes.current.push(theMidiNum);
-            setNotesNeedUpdate(true);
+            // setNotesNeedUpdate(true);
         } 
         // else {
         //     // const idx = currNotes.current.indexOf(theMidiNum);
@@ -992,7 +992,7 @@ export default function InitializationComponent() {
         if (currNotes.current.indexOf(theMidiNum) !== -1) {
             const temp = currNotes.current.filter((i: any) => i.toString() !== theMidiNum);
             currNotes.current = temp;
-            setNotesNeedUpdate(true);
+            // setNotesNeedUpdate(true);
         }
     }
 
@@ -4800,10 +4800,10 @@ export default function InitializationComponent() {
 
     useEffect(() => {
         if (notesNeedUpdate) {
-            setNotesNeedUpdate(false);
+            // setNotesNeedUpdate(false);
             setChuckUpdateNeeded(true);
         }
-    }, [notesNeedUpdate, currNotes.current.length])
+    }, [currNotes.current.length])
 
     const playChuckNote = (note: any, idString: string, midiHz: any, midiNote: any) => {  
         console.log("??? ", note, idString, midiHz, midiNote);
