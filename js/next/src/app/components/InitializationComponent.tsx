@@ -2786,6 +2786,7 @@ export default function InitializationComponent() {
         // chuckHook && chuckHook?.clearChuckInstance();
         chuckHook && chuckHook.runCode(`Machine.removeAllShreds();`);
         chuckHook && chuckHook.runCode(`Machine.resetShredID();`);
+        setChuckUpdateNeeded(true)
     }
 
     let initialShredCount = 0;
@@ -2796,6 +2797,16 @@ export default function InitializationComponent() {
     }
 
     const runMainChuckCode = async (aChuck: Chuck) => {
+        if (chuckUpdateNeeded) {
+            const shredCount = await aChuck.runCode(`Machine.numShreds();`);
+            console.log('Shred Count in ELSE: ', await shredCount);
+            Array.from(new Array(shredCount-1)).forEach((s: any, i: number) => {
+                const shredActive: any = aChuck.isShredActive(i);
+                if (i < shredCount && shredActive) {
+                    aChuck.runCode(`${i} => Machine.remove;`);
+                }
+            });
+        }
         // if (chuckUpdateNeeded !== false) {setChuckUpdateNeeded(true)}
         // if (chuckUpdateNeeded === false) {
             shredCount.current = await aChuck.runCode(`Machine.numShreds();`);
@@ -3576,11 +3587,11 @@ export default function InitializationComponent() {
                         
     
             const stkShouldPlay = () => {
-            if (stkFX.current && stkFX.current.length > 0 && stkFX.current.filter((i: any) => i.fxType === "stk" && i).length > 0) {
-                return 1;
-            } else {
-                return 0;
-            };
+                if (stkFX.current && stkFX.current.length > 0 && stkFX.current.filter((i: any) => i.fxType === "stk" && i).length > 0) {
+                    return 1;
+                } else {
+                    return 0;
+                };
             } 
             const SHD_STK_PLAY = stkShouldPlay(); 
             console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
@@ -4423,7 +4434,7 @@ export default function InitializationComponent() {
                         uA.declarationCode(hpf);
 
                         0 => int synthNumCount;
-        
+
                         for (0 => int i; i < notes.cap(); i++) {                 
                             if (${arpeggiatorOn} == 1 & notesToPlay.cap() > 0) {
                                 
@@ -4464,7 +4475,7 @@ export default function InitializationComponent() {
                         }
                         
                         <<< "NumShreds: ", Machine.numShreds() >>>;
-
+                        
                     }
                     
                     me.yield();
@@ -4628,9 +4639,9 @@ export default function InitializationComponent() {
                 // me.yield();
 
                 while (true) {
-                    myEvent.broadcast();
-                    mySampleEvent.broadcast();
-                    //(whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
+                    spork ~ myEvent.broadcast();
+                    spork ~ mySampleEvent.broadcast();
+                    // (whole)/${currentNoteVals.master[0]} - (now % (whole)/${currentNoteVals.master[0]}) => now;
                     // whole/${currentNoteVals.oscs[0]} => now;
                     1::ms=>now;
                     me.yield();
@@ -4656,11 +4667,11 @@ export default function InitializationComponent() {
             // chuckRunning.current = true;
             aChuck.runCode(chuckCode);
         } else {
-            // const shredCount = await aChuck.runCode(`Machine.numShreds();`);
-            console.log('Shred Count in ELSE: ', await shredCount.current);
-            Array.from(new Array(shredCount)).forEach((s: any, i: number) => {
+            const shredCount = await aChuck.runCode(`Machine.numShreds();`);
+            console.log('Shred Count in ELSE: ', await shredCount);
+            Array.from(new Array(shredCount-1)).forEach((s: any, i: number) => {
                 const shredActive: any = aChuck.isShredActive(i);
-                if (i < shredCount.current && shredActive) {
+                if (i < shredCount && shredActive) {
                     aChuck.runCode(`${i} => Machine.remove;`);
                 }
             });
@@ -4671,7 +4682,7 @@ export default function InitializationComponent() {
             // runMainChuckCode(aChuck);
             // aChuck.replaceCode(chuckCode);
             // runChuck();
-        
+            runMainChuckCode(aChuck);
             
         }
     }
@@ -4977,7 +4988,7 @@ export default function InitializationComponent() {
     const handleTurnKnob = () => {
         console.log("HITTING THIS KNOB STUFF?")
         // console.log('WHAT R STKVALS? ', currentFX.current);
-        setChuckUpdateNeeded(true);
+        // setChuckUpdateNeeded(true);
     }
 
     const handleShowFX = (closeOnly?: boolean) => {
@@ -5081,6 +5092,7 @@ export default function InitializationComponent() {
 
         if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT_SAMPLER")) {
             const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
+            console.log("PARSE STRING SAMPLER: ", parseString);
 
             const removeComma: string = parseString[0].replace(/,\s*$/, "");
             const countToNum: number = +removeComma && +removeComma;
@@ -5098,7 +5110,7 @@ export default function InitializationComponent() {
 
         if (lastChuckMessage && lastChuckMessage.includes("NUM_COUNT_SYNTH")) {
             const parseString: string = lastChuckMessage.split(/[\s,]+/).slice(1);
-
+            console.log("PARSE STRING SYNTH: ", parseString);
             const removeComma: string = parseString[0].replace(/,\s*$/, "");
             const countToNum: number = +removeComma && +removeComma;
             setCurrentBeatSynthCount(countToNum);
