@@ -165,7 +165,7 @@ const Keyboard = ({
                 &&
                     <Box 
                     // key={Math.random()}
-                    key="keyboardInnerWrapper"
+                    // key="keyboardInnerWrapper"
                       sx={{
                         position: 'relative', 
                         display: 'inline-block', 
