@@ -22,7 +22,7 @@ function BabylonScene(props: {
     visibleFXKnobs: any,
     chuckUpdateNeeded: boolean; 
     handleTurnKnob: () => void;
-    runChuck: () => void;
+    // runChuck: () => void;
     showFX: any;
     programIsOn:boolean;
     microTonalArr: any[];
@@ -39,7 +39,7 @@ function BabylonScene(props: {
         visibleFXKnobs, 
         chuckUpdateNeeded, 
         handleTurnKnob, 
-        runChuck,
+        // runChuck,
         showFX,
         programIsOn,
         microTonalArr,

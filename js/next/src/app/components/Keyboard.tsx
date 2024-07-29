@@ -99,7 +99,7 @@ const Keyboard = ({
             const octave: any = i &&
 
                     
-                    <span key={`octSpanWrapper-${i}`}>
+                    <span id={`octSpanWrapper-${i}`} key={`octSpanWrapper-${i}`}>
                         <li id={`C-${i}`} key={`C-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white">{`C${i}`} </li>
                         <li id={`C♯-${i}`} key={`C♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`C♯${i}`}</li>
                         <li id={`D-${i}`} key={`D-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`D${i}`}</li>
@@ -119,8 +119,9 @@ const Keyboard = ({
                 </span>
 
             const addBreak = <span className="break" key={`octaveBreakWrapper_${i}`}><br key={`octaveBreak_${i}`} /></span>;
-       
+       if (!document.querySelector(`#octSpanWrapper-${i}`)) {
             octaves.push(octave);
+       
             const isOdd = i % 2;
             // console.log("GETTING OCTAVE? ", octave);
             // if (isOdd > 0 && window.innerWidth < 900) {
@@ -140,7 +141,7 @@ const Keyboard = ({
                         o.removeChild();
                     }
                 });
-
+            }
             // }
         }
 
@@ -154,6 +155,7 @@ const Keyboard = ({
         console.log("KEYS TO DISPLAY: ", keysToDisplay);
     }, [keysToDisplay]);
     let key = 1;
+    
     return (
         <div id="keyboardWrapper" key="keyboardWrapper" style={{overflowX: "scroll"}}>
             {
@@ -162,7 +164,8 @@ const Keyboard = ({
                 && keysVisible
                 &&
                     <Box 
-                    key={Math.random()}
+                    // key={Math.random()}
+                    // key="keyboardInnerWrapper"
                       sx={{
                         position: 'relative', 
                         display: 'inline-block', 

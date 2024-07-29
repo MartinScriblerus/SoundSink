@@ -35,6 +35,14 @@ interface ControlProps {
     handleShowBPM: (e: any) => void;
     filesToProcess: string[];
     programIsOn: boolean;
+    handleOscRateUpdate: (val: any) => void;
+    handleStkRateUpdate: (val: any) => void;
+    handleSamplerRateUpdate: (val: any) => void;
+    handleAudioInRateUpdate: (val: any) => void;
+    currentBeatCount: number;
+    currentBeatSynthCount: number;
+    currentNumerCount: number;
+    currentDenomCount: number;
 }
 
 
@@ -60,6 +68,14 @@ export default function ControlPopup(props: ControlProps) {
     handleShowBPM,
     filesToProcess,
     programIsOn,
+    handleOscRateUpdate,
+    handleStkRateUpdate,
+    handleSamplerRateUpdate,
+    handleAudioInRateUpdate,
+    currentBeatCount,
+    currentBeatSynthCount,
+    currentNumerCount,
+    currentDenomCount
   } = props;
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
 
@@ -112,8 +128,9 @@ export default function ControlPopup(props: ControlProps) {
         Pattern
       </Button>
 
-      <BasePopup style={{display: "flex", transform: 'translate(0px,0px)', flexDirection: "column", left: '94px', right: '94px', top: '56px', position: 'absolute'}} width={window.innerWidth}  id={id} open={open} anchor={anchor}>
-        <Box>
+      <BasePopup style={{zIndex: 40, display: "flex", transform: 'translate(0px,0px)', flexDirection: "column", left: '94px', right: '94px', top: '56px', position: 'absolute'}} width={window.innerWidth}  id={id} open={open} anchor={anchor}>
+
+        <Box sx={{zIndex:40}}>
 
           <Box sx={{display: "flex", flexDirection: "row", width: "100%"}}>
             <>    
@@ -127,17 +144,7 @@ export default function ControlPopup(props: ControlProps) {
                     justifyContent: 'center',
                     alignItems: 'center'
                   }}>
-                    <MingusPopup 
-                      submitMingus={submitMingus}
-                      audioKey={audioKey}
-                      octave={octave}
-                      audioScale={audioScale}
-                      audioChord={audioChord}
-                      handleChangeScale={handleChangeScale}
-                      handleChangeChord={handleChangeChord}
-                  />
                 </Box>
-                {/* } */}
                 {filesToProcess.length > 0 && <Button sx={{
                   color: 'rgba(228,225,209,1)', 
                   borderColor: 'rgba(228,225,209,1)', 
@@ -148,7 +155,6 @@ export default function ControlPopup(props: ControlProps) {
                     color: '#f5f5f5',
                     background: 'rgba(0,0,0,.98)',
                   }
-                  // top: '232px'
                 }} 
                 aria-describedby={id} 
                 variant="outlined" 
@@ -163,7 +169,15 @@ export default function ControlPopup(props: ControlProps) {
           <Heatmap 
             width={window.innerWidth - 128} 
             height={window.innerHeight / 2} 
-            data={heatmapData}
+            // data={heatmapData}
+            currentBeatCount={currentBeatCount}
+            currentNumerCount={currentNumerCount}
+            currentDenomCount={currentDenomCount}
+            currentBeatSynthCount={currentBeatSynthCount}
+            handleOscRateUpdate={handleOscRateUpdate} 
+            handleStkRateUpdate={handleStkRateUpdate} 
+            handleSamplerRateUpdate={handleSamplerRateUpdate} 
+            handleAudioInRateUpdate={handleAudioInRateUpdate}
           />
         </Box>
       </BasePopup>

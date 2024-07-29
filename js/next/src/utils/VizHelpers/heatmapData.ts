@@ -1,4 +1,4 @@
-const nCol = 4;
+const nCol = 8;
 const nRow = 1;
 const patternarr: Array<any> = [];
 let counter = 0;
@@ -18,8 +18,11 @@ for (let x = 0; x < nCol; x++) {
       x: patternarr[x],
       y: patternarr[y],
       value: x % 2 === 0 ? 0 : x,
+
     });
   }
 }
+
+console.log("what is heatmapData: ", heatmapData)
 
 export { heatmapData };

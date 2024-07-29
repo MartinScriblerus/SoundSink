@@ -9,7 +9,7 @@ type Props = {
     handleToggleStkArpeggiator: () => void;
     handleToggleArpeggiator: () => void;
     stkFX: any;
-    checkedFXList: any[];
+    checkedFXList: any;
     keysVisible: boolean;
 };
 

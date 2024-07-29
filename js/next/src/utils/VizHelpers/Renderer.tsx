@@ -44,7 +44,7 @@ export const Renderer = ({
 
   var colorScale = d3
     .scaleSequential()
-    .interpolator(d3.interpolateBlues)
+    .interpolator(d3.interpolateCool)
     .domain([min, max]);
 
   // Build the rectangles
@@ -79,6 +79,7 @@ export const Renderer = ({
         }}
         onMouseLeave={() => setHoveredCell(null)}
         cursor="pointer"
+        style={{zIndex: 40}}
       />
     );
   });

@@ -20,12 +20,12 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
         <ThemeProvider theme={theme}>
             <Box 
                 sx={{
-                    display: 'flex', 
+                    display: 'inline-flex', 
                     alignItems:'right', 
-                    flexDirection:'row',
+                    // flexDirection:'row',
                     width:'100%',
                     // width: '400px',
-                    overflow: 'hidden',
+                    // overflow: 'hidden',
                     outline: 'none',
                     height: '32px',
                     // height: '48px',
@@ -49,12 +49,13 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                     // top: '32px'
                     // width: '160px', 
                 }}>
+                    
                     <Box sx={{
                         display: 'flex', 
                         flexDirection:'row', 
                         // width: '160px',
-                        paddingRight: '6px',
-                        paddingLeft: '6px'
+                        // paddingRight: '6px',
+                        // paddingLeft: '6px'
                     }}>
                         <FormControl 
                             sx={{color:'rgba(228,225,209,1)'}}
@@ -72,7 +73,7 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                             <Select
                                 sx={{
                                     color: 'white', 
-                                    minWidth: '80px', 
+                                    // minWidth: '80px', 
                                     fontWeight: 'bold', 
                                     fontSize: MIDDLE_FONT_SIZE, 
                                     fontFamily: 'typography.fontFamily',
@@ -103,8 +104,8 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                         display: 'flex', 
                         flexDirection:'row', 
                         // width: '160px', 
-                        paddingRight: '6px',
-                        paddingLeft: '6px'
+                        // paddingRight: '6px',
+                        // paddingLeft: '6px'
                     }}>
                         <FormControl 
                             sx={{color:'rgba(228,225,209,1)'}}
@@ -145,8 +146,8 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                         display: 'flex', 
                         flexDirection:'row', 
                         // width: '160px', 
-                        paddingRight: '6px',
-                        paddingLeft: '6px',
+                        // paddingRight: '6px',
+                        // paddingLeft: '6px',
                         outline: 'none',
                     }}>
                         <FormControl 
@@ -197,20 +198,14 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                         display: 'flex', 
                         flexDirection:'row', 
                         // width: '160px', 
-                        paddingRight: '6px',
-                        paddingLeft: '6px'
+                        // paddingRight: '6px',
+                        // paddingLeft: '6px'
                     }}>
                         <FormControl 
                             fullWidth
                             sx={{color:'rgba(228,225,209,1)'}}
                         >
-                            {/* <InputLabel
-                                id={"chord-simple-select-label"} sx={{ 
-                                    minWidth: '60px', 
-                                    color: 'white !important', 
-                                    fontFamily: 'text.primary'}}>
-                                        Chord
-                            </InputLabel> */}
+      
                             <Select
                                 labelId="chord-simple-select-label"
                                 id="chord-simple-select"
@@ -251,7 +246,7 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                                 <MenuItem value={'m7b5'}>Half Diminished Seventh</MenuItem>
                                 <MenuItem value={'mM7'}>Minor Major Seventh</MenuItem>
                                 <MenuItem value={'dom7'}>Dominant Seventh</MenuItem>
-                                {/* <MenuItem value={'7'}>Dominant Seventh 2</MenuItem> */}
+
                                 <MenuItem value={'7+'}>Augmented Major Seventh</MenuItem>
                                 <MenuItem value={'7#5'}>Augmented Minor Seventh</MenuItem>
                                 <MenuItem value={'7#11'}>Lydian Dominant Seventh</MenuItem>
@@ -270,7 +265,7 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                                 <MenuItem value={'11'}>Eleventh</MenuItem>
                                 <MenuItem value={'m11'}>Minor Eleventh</MenuItem>
                                 <MenuItem value={'add11'}>Add Eleventh</MenuItem>
-                                {/* <MenuItem value={'7b12'}>Hendrix Chord</MenuItem> */}
+        
                                 <MenuItem value={'hendrix'}>Hendrix Chord 2</MenuItem>
                                 <MenuItem value={'M13'}>Major Thirteenth</MenuItem>
                                 <MenuItem value={'m13'}>Minor Thirteenth</MenuItem>
