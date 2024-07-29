@@ -4682,7 +4682,7 @@ export default function InitializationComponent() {
             // runMainChuckCode(aChuck);
             // aChuck.replaceCode(chuckCode);
             // runChuck();
-            runMainChuckCode(aChuck);
+            // runMainChuckCode(aChuck);
             
         }
     }
