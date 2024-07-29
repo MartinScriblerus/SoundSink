@@ -36,20 +36,20 @@ const BPMModuleFun = (props: BPMModule) => {
                 marginRight: '0vw',
                 backgroundColor: 'rgba(0,0,0,1)',
                 border: '1px solid rgba(255,255,255,.5)',
-                display: 'flex',
+                display: 'inline-flex',
                 flexDirection: 'row',
                 // padding: '12px',
                 justifyContent: 'center',
                 width: window.innerWidth < 900 ? '140px' : '208px',
-                height: '100%',
-                minHeight: '136px'
+                // height: 'auto',
+                // minHeight: '136px'
             }}>
                 <FormControl
                     sx={{
                         margin: '8px', 
                         padding: '0', 
                         maxWidth: '100px', 
-                        color:'rgba(228,225,209,1)'
+                        color:'rgba(228,225,209,1)',
                     }}
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -72,12 +72,13 @@ const BPMModuleFun = (props: BPMModule) => {
                             color: 'status.text',
                             // paddingTop: 0,
                             fontFamily: notoSans,
-                            display: 'block',
+                            display: 'flex',
                             fontSize: '32px',
                             alignItems: 'center',
-                            paddingBottom: 0,
+                            // paddingBottom: 0,
                             // margin: "1rem",
                             // maxWidth: "6rem",
+                            height: "100%",
                             width: '84px',
                         }}
                         label={"BPM"}
@@ -192,9 +193,7 @@ const BPMModuleFun = (props: BPMModule) => {
                         />
                     </FormControl>
                 </Box>   
-                <Box sx={{display: 'flex', flexDirection: 'column'}}>
-
-            </Box>
+           
 
             </Box>
         </Box>
