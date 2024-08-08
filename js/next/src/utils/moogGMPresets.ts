@@ -27,7 +27,7 @@ const moogGMPresets = {
     offset: {
         name: "offset",
         label: "Offset",
-        value: 24,
+        value: 0,
         min: 0,
         max: 100,
         fxType: "default",
@@ -90,7 +90,7 @@ const moogGMPresets = {
     oscOffset: {
         name: "oscOffset",
         label: "Oscs Off",
-        value: 12,
+        value: 5,
         min: 0,
         max: 100,
         fxType: "default",
@@ -118,16 +118,16 @@ const moogGMPresets = {
         label: "Attack",
         value: 1,
         min: 0,
-        max: 2000,
+        max: 500,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr attack (0-100) amount over time
     adsrDecay: {
         name: "adsrDecay",
         label: "Decay",
-        value: 100,
+        value: 500,
         min: 0,
-        max: 500,
+        max: 2000,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr decay (0-100)
@@ -143,7 +143,7 @@ const moogGMPresets = {
     adsrRelease: {
         name: "adsrRelease",
         label: "Release",
-        value: 400,
+        value: 200,
         min: 0,
         max: 2000,
         fxType: "default",

@@ -167,6 +167,10 @@ const serverFilesToPreload = [
       serverFilename: "static/WPKorg35.chug.wasm",
       virtualFilename: "/chugins/WPKorg55.chug.wasm"
     },
+    {
+      serverFilename: "/extract.ck",
+      virtualFilename: "extract.ck"
+    },
     // {
     //   serverFilename: "static/WPKorg35-test.ck",
     //   virtualFilename: "WPKorg35-test.ck"

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LineChart } from "./LineChart";
-import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
+import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 export interface VizDataProps {
 
@@ -53,7 +53,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     setCurrentVisualization(selectedViz.target.value);
 
   };
-
+console.log("curr viz! ", currentVisualization);
   return (
     <Box
       className="findme"
@@ -61,22 +61,28 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
         top: "26px",
         pointerEvents: "none",
         borderRadius: "24px",
-        width: "100%"
+        width: "100%",
+        height: "100%",
       }}
     >
 
-      <Box sx={{
-        pointerEvents: "none", 
-        position: "relative", 
-        flexDirection: "row-reverse", 
-        width: "calc(100% - 240px)",
-        left: "240px", 
-        display: "inline-flex", 
-        background: "rgba(0,0,0,0.98)"}}>
+      <Box 
+        sx={{
+          pointerEvents: "none", 
+          position: "relative", 
+          // flexDirection: "row-reverse", 
+          // width: "calc(100% - 240px)",
+          width: "calc(100% - 146px)",
+          // left: "240px", 
+          display: "flex", 
+          // background: "rgba(0,0,0,0.98)",
+          height: "100%",
+          background: "rgba(0,0,0,0.9)"
+        }}
+      >
         
-        <CloseIcon onClick={closeAnalysisPopup} sx={{ pointerEvents: "all", position: "relative", display: "flex", flexDirection: "column", alignText: "right", zIndex: 120, justifyContent: "right" }} />
-        
-        <Box sx={{ position: "relative", display: "flex", flexDirection: "row" }}>
+
+        <Box sx={{ position: "relative", display: "flex", flexDirection: "column" }}>
           {
           mockData && 
           (<LineChart
@@ -94,167 +100,106 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
               timeNow={timeNow}
           />)}
 
-<Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row-reverse',
-            // minHeight: '60px',
-            // marginRight: '80px',
-            // backgroundColor: "rgba(0, 0, 0,1)",
-            color: 'rgba(228,225,209,1)',
-            position: 'absolute',
-            maxWidth: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '12px',
-            left: '208px',
-            zIndex: 9999,
-            background: 'transparent',
-            backgroundColor: 'transparent'
-          }}
-        >
-          
-          <RadioGroup
-            aria-labelledby="demo2-controlled-radio-buttons-group"
-            name="controlled-radio-buttons-group2"
-            value={analysisSourceRadioValue}
+          <Box
             sx={{
-              // color: "rgba(147, 206, 214, 1)", 
-   
+              display: 'flex',
+              flexDirection: 'row',
+              // minHeight: '60px',
+              // marginRight: '80px',
+              // backgroundColor: "rgba(0, 0, 0,1)",
               color: 'rgba(228,225,209,1)',
-              pointerEvents: "all", 
-              display: "flex", 
-              flexDirection: "row", 
-              backgroundColor: "transparent",
-              background: "transparent",
-              minHeight: "60px",
+              // position: 'absolute',
+              maxWidth: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              // padding: '12px',
+              // marginLeft: '12px',
+              // marginRight: '12px'
+        
+              // left: '208px',
+              // zIndex: 9999,
+              // background: 'transparent',
+
             }}
-            onChange={handleChangeAnalysisSource}
           >
-            <FormControlLabel 
+          {['Osc', 'STK', 'Sampler', 'AudioIn'].map((i) => {
+            return (
+              <Button
+                id={`${i}_analysis_btn_setter`}
+                key={`${i}_analysis_btn_setter`}
+                onClick={(e) => handleChangeAnalysisSource(e)}
+                value={i}
                 sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="Osc" 
-                control={<Radio />} 
-                label="Osc" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="STK" 
-                control={<Radio />} 
-                label="STK" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="Sampler" 
-                control={<Radio />} 
-                label="Sampler" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="AudioIn" 
-                control={<Radio />} 
-                label="Audio In" />
-            </RadioGroup>
+                  width: '60px', 
+                  height: '60px', 
+                  // marginRight: '12px', 
+                  pointerEvents: 'all',
+                  zIndex: '99',
+                  cursor: 'pointer',
+                  border: "solid 1px transparent",
+                  borderRadius: "50% !important", 
+                  background: analysisSourceRadioValue === i.toLowerCase() ? 'rgba(219, 230, 161, 0.97)' : 'rgba(147, 206, 214, 0.8)',
+                  fontSize: '14px',
+                  color: "black",
+                  transform: 'scale(0.75)',
+                  '&:hover': {
+                    color: "#f6f6f6",
+                    background: 'rgba(0,0,0,0.7)',
+                    borderColor: '#f6f6f6',
+                  }
+                }}
+              >{i === "Osc" ? "osc": i === "STK" ? "stk": i === "Sampler" ? "sam" : "in"}</Button>)
+            })
+          }
         </Box>
 
-          <RadioGroup
-            aria-labelledby="demo-controlled-radio-buttons-group-feature-viz"
-            name="controlled-radio-buttons-group-feature-viz"
-            value={currentVisualization}
-            sx={{color: "rgba(147, 206, 214, 1)", width: "100%", pointerEvents: "all"}}
-            onChange={(e: any) => handleChange(e)}
-          >
-            <FormControlLabel 
+        <Box sx={{display: 'flex', width: '100%', flexDirection: 'row'}}>
+          {['Centroid', 'Flux', 'RMS', 'Rolloff 50', 'Rolloff 85', 'XCrossings', 'Freq', 'Gain', 'Kurtosis', 'SFM', 'MFCC'].map((j: any, idx: number) => {
+            return (
+              <Button
+                id={`${j}_analysis_btn_setter_features`}
+                key={`${j}_analysis_btn_setter_features`}
+                onClick={(e) => handleChange(e)}
+                value={j}
                 sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="centroid" 
-                control={<Radio />} 
-                label="Centroid" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="flux" 
-                control={<Radio />} 
-                label="Flux" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="rms" 
-                control={<Radio />} 
-                label="RMS" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="rollOff50" 
-                control={<Radio />} 
-                label="Rolloff 50" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="rollOff85" 
-                control={<Radio />} 
-                label="Rolloff 85" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="xCross" 
-                control={<Radio />} 
-                label="X-Crossings" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="freq" 
-                control={<Radio />} 
-                label="Freq" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="gain" 
-                control={<Radio />} 
-                label="Gain" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="kurtosis" 
-                control={<Radio />} 
-                label="Kurtosis" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="sfm" 
-                control={<Radio />} 
-                label="SFM" />
-          </RadioGroup>
+                  width: '60px', 
+                  height: '60px',
+                  pointerEvents: 'all',
+                  display: 'flex',
+                  flexDirection: 'row',
+                  zIndex: 9999,
+                  cursor: 'pointer',
+                  // marginRight: '12px', 
+                  border: "solid 1px transparent",
+                  borderRadius: "50% !important", 
+                  background: currentVisualization === j ? 'rgba(236, 128, 139, 1)' : 'rgba(158, 210, 162, 0.8)',
+                  fontSize: '14px',
+                  color: "black",
+                  transform: 'scale(0.75)',
+                  '&:hover': {
+                    color: "#f6f6f6",
+                    background: 'rgba(0,0,0,0.7)',
+                    borderColor: '#f6f6f6',
+                  }
+                }}
+              >{j === "Centroid" ? "cen" : 
+                j === "Flux" ? "flx": 
+                j === "RMS" ? "rms" :
+                j === "Rolloff 50" ? "rl5" :
+                j === "Rolloff 85" ? "rl8" : 
+                j === "XCrossings" ? "xcr" : 
+                j === "Freq" ? "frq" :
+                j === "Kurtosis" ? "kur" :
+                j === "SFM" ? "sfm" :
+                // i === "MFCC" ? "mfc" :
+                'mfcc'   
+                }</Button>)
+            })
+          }
         </Box>
-
+        </Box>
+        <CloseIcon onClick={closeAnalysisPopup} sx={{ pointerEvents: "all", position: "relative", display: "flex", flexDirection: "column", alignText: "right", zIndex: 120, justifyContent: "right" }} />
+        
       </Box>
 
       <Box>

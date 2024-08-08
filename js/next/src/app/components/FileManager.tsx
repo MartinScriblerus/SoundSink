@@ -29,7 +29,7 @@ const FileManager = (props: Props) => {
                     color: 'rgba(0,0,0,.98)',
                     backgroundColor: 'rgba(158, 210, 162, 0.8)',
                     position: 'relative', 
-                    width: window.innerWidth < 900 ? '140px' : '208px',
+                    width: '140px',
                     background: 'rbga(0,0,0,.91)', 
                     marginLeft: '0px', 
                     // top: '188px',
@@ -39,11 +39,11 @@ const FileManager = (props: Props) => {
                     '&:hover': {
                         color: '#f5f5f5',
                         background: 'rgba(0,0,0,.98)',
-                        border: 'solid 1px #1976d2'
+                        // border: 'solid 1px #1976d2'
                     }
                 }}
                 className="ui_SynthLayerButton"
-                variant="outlined" 
+                // variant="outlined" 
                 endIcon={<FileUploadIcon />}
             >
                 {window.innerWidth < 900 ? <>File</> : <>File Upload</>}

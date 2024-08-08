@@ -17,7 +17,7 @@ const styles: StylesConfig<any, true> = {
     }),
     control: (provided: any) => ({
         ...provided,
-        background: '#000000',
+        background: '#000010',
         borderColor: '#9e9e9e',
         minHeight: '24px',
     }),

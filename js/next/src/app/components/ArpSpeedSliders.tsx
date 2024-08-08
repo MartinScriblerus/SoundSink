@@ -34,10 +34,29 @@ interface SliderProps {
     handleStkRateUpdate: (val: any) => void;
     handleSamplerRateUpdate: (val: any) => void;
     handleAudioInRateUpdate: (val: any) => void;
+
+    filesToProcess: any[];
+    currentNoteVals: any;
 }
 
 export default function DiscreteSlider(props: SliderProps) {
-    const {handleOscRateUpdate, handleStkRateUpdate, handleSamplerRateUpdate, handleAudioInRateUpdate} = props;
+    const {
+        handleOscRateUpdate, 
+        handleStkRateUpdate, 
+        handleSamplerRateUpdate, 
+        handleAudioInRateUpdate,
+        currentNoteVals,
+        filesToProcess
+    } = props;
+
+    if (currentNoteVals.length > 0) {
+        console.log("CURRENT NOTE VALS! ", currentNoteVals);
+    }
+    if (filesToProcess.length > 0) {
+        console.log("FILES TO PROCESS: ", filesToProcess);
+    }
+
+
   return (
     <>
     <Box sx={{ maxHeight: '40px', width: '100%', display: 'flex', flexDirection: 'row' }}>
@@ -45,7 +64,7 @@ export default function DiscreteSlider(props: SliderProps) {
             Osc Rate:
             <Slider
                 aria-label="OscRate"
-                defaultValue={4}
+                defaultValue={currentNoteVals.oscs[0]}
                 getAriaValueText={valuetext}
                 valueLabelDisplay="auto"
                 step={null}
@@ -61,7 +80,7 @@ export default function DiscreteSlider(props: SliderProps) {
             STK Rate:
             <Slider
                 aria-label="StkRate"
-                defaultValue={4}
+                defaultValue={currentNoteVals.stks[0]} //
                 getAriaValueText={valuetext}
                 valueLabelDisplay="auto"
                 step={null}
@@ -78,7 +97,7 @@ export default function DiscreteSlider(props: SliderProps) {
             Sampler Rate: 
             <Slider
                 aria-label="SamplerRate"
-                defaultValue={4}
+                defaultValue={currentNoteVals.samples[0]}
                 getAriaValueText={valuetext}
                 valueLabelDisplay="auto"
                 step={null}

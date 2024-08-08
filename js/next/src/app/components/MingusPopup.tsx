@@ -1,9 +1,15 @@
 import { MIDDLE_FONT_SIZE } from '@/utils/constants';
-import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import { Autocomplete, Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import React from 'react';
 import '../page.module.css';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
+import microtoneDescsData from '../microtone_descriptions.json'; 
 
+interface MicrotonalSearchProps {
+    selectRef: any; 
+    tune: any;
+    currentMicroTonalScale: any;
+}
 interface Props {
     submitMingus: () => any;
     audioKey: string;
@@ -12,64 +18,77 @@ interface Props {
     audioChord: string;
     handleChangeScale: (event: SelectChangeEvent) => void;
     handleChangeChord: (event: SelectChangeEvent) => void;
+    selectRef: any;
+    tune: any;
+    currentMicroTonalScale: any;
 };
 
-const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, handleChangeScale, handleChangeChord}: Props) => {
+const MingusPopup = ({
+    submitMingus, 
+    audioKey, 
+    octave, 
+    audioScale, 
+    audioChord, 
+    handleChangeScale, 
+    handleChangeChord,
+    selectRef,
+    tune,
+    currentMicroTonalScale,
+}: Props) => {
     const theme = useTheme();
+    // const {selectRef, tune, currentMicroTonalScale} = props;
+    const [microtoneDescs, setMicrotoneDescs] = React.useState<any>([]);
+    // console.log("PPPROPS? ", selectRef, currentMicroTonalScale.current);
+  
+    React.useMemo(() => {
+      setMicrotoneDescs(
+        microtoneDescsData.map((i: any, idx: number) => {
+            if (microtoneDescs && microtoneDescs.map((i:any) => i.description).indexOf(i.description) === -1) {
+                return {
+                    index: idx,
+                    label: i.name,
+                    value: i.name,
+                    name: i.name,
+                    description: i.description,
+                }
+            }}));
+    }, []); 
+    const defaultProps = {
+        options: microtoneDescs,
+        getOptionLabel: (option: any) => `${option.name}: ${option.description}`,
+    };
+
+    const handleUpdateMicrotones = (e: any) => {
+        currentMicroTonalScale(e.target.innerText.split(":")[0]);
+    }
+
     return (
         <ThemeProvider theme={theme}>
+            {/* Notes */}
             <Box 
                 sx={{
-                    display: 'inline-flex', 
-                    alignItems:'right', 
-                    // flexDirection:'row',
-                    width:'100%',
-                    // width: '400px',
-                    // overflow: 'hidden',
+                    display: window.innerHeight > 520 ? 'flex' : 'none', 
+                    width: '122px',
                     outline: 'none',
-                    height: '32px',
-                    // height: '48px',
-                    // top: '32px'
                 }}>    
-                {/* <Button 
-                    sx={{
-                        color: 'rgba(228,225,209,1)', 
-                        borderColor: 'rgba(228,225,209,1)'
-                    }} 
-                    id='submitMingus' 
-                    onClick={submitMingus}>
-                        SUBMIT
-                </Button> */}
+       
 
                 <Box sx={{
-                    display: 'flex', 
-                    flexDirection:'row', 
+                    // display: 'flex', 
+                    
+                    flexDirection:'column', 
                     outline: 'none',
-                    marginTop: '-12px',
-                    // top: '32px'
-                    // width: '160px', 
+                    left: '-13px',
                 }}>
                     
                     <Box sx={{
-                        display: 'flex', 
+                        display: window.innerHeight > 760 ? 'flex' : 'none',  
                         flexDirection:'row', 
-                        // width: '160px',
-                        // paddingRight: '6px',
-                        // paddingLeft: '6px'
                     }}>
                         <FormControl 
-                            sx={{color:'rgba(228,225,209,1)'}}
-                            fullWidth>
-                            {/* <InputLabel
-                                id={"audioKey-simple-select-label"} 
-                                sx={{ 
-                                    minWidth: '80px', 
-                                    color: 'white !important', 
-                                    fontFamily: 'text.primary'
-                                }}
-                            >
-                                Key
-                            </InputLabel> */}
+                            sx={{width: '120px',color:'rgba(228,225,209,1)'}}
+                            // fullWidth
+                        >
                             <Select
                                 sx={{
                                     color: 'white', 
@@ -101,15 +120,16 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
 
                     </Box>
                     <Box sx={{
-                        display: 'flex', 
+                        display: window.innerHeight > 670 ? 'flex' : 'none', 
                         flexDirection:'row', 
                         // width: '160px', 
                         // paddingRight: '6px',
                         // paddingLeft: '6px'
                     }}>
                         <FormControl 
-                            sx={{color:'rgba(228,225,209,1)'}}
-                            fullWidth>
+                            sx={{width: '120px',color:'rgba(228,225,209,1)'}}
+                            // fullWidth
+                        >
                             {/* <InputLabel
                                 id={"octave-simple-select-label"} 
                                 sx={{ 
@@ -143,7 +163,7 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                         </FormControl>
                     </Box>
                     <Box sx={{
-                        display: 'flex', 
+                        display: window.innerHeight > 620 ? 'flex' : 'none', 
                         flexDirection:'row', 
                         // width: '160px', 
                         // paddingRight: '6px',
@@ -151,8 +171,8 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                         outline: 'none',
                     }}>
                         <FormControl 
-                            sx={{outline: 'none', color:'rgba(228,225,209,1)'}}
-                            fullWidth
+                            sx={{width: '120px', outline: 'none', color:'rgba(228,225,209,1)'}}
+                            // fullWidth
                             
                         >
                             {/* <InputLabel
@@ -195,15 +215,18 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                         </FormControl>
                     </Box>
                     <Box sx={{
-                        display: 'flex', 
+                        display: window.innerHeight > 580 ? 'flex' : 'none', 
                         flexDirection:'row', 
                         // width: '160px', 
                         // paddingRight: '6px',
                         // paddingLeft: '6px'
                     }}>
                         <FormControl 
-                            fullWidth
-                            sx={{color:'rgba(228,225,209,1)'}}
+                            // fullWidth
+                            sx={{
+                                color:'rgba(228,225,209,1)',
+                                width: '120px'
+                            }}
                         >
       
                             <Select
@@ -273,6 +296,38 @@ const MingusPopup = ({submitMingus, audioKey, octave, audioScale, audioChord, ha
                                 <MenuItem value={'add13'}>Dominant Thirteenth</MenuItem>
                             </Select>
                         </FormControl>
+                    </Box>
+                    <Box sx={{
+                        display: 'flex', 
+                        flexDirection:'row', 
+                        outline: 'none',
+                    }}>
+                    <Autocomplete
+                        {...defaultProps}
+                        id="auto-complete"
+                        autoComplete
+                        includeInputInList
+                        onChange={handleUpdateMicrotones}
+                        sx={{
+                            color: "white !important", 
+                            width: "120px !important", 
+                            // maxWidth: "120px !important", 
+                            overflow: "visible", 
+                            // background: "pink",
+                            outline: 'none',
+                            // maxWidth: '80px'
+                        }}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        renderInput={(params) => (
+                        <TextField {...params} sx={{
+                                color: "white", 
+                                width: "300px", 
+                                fontSize: "12px"
+                            }} 
+                            key={params.id}
+                            label="Microtones" />
+                        )}
+                    />
                     </Box>
                 </Box>
 

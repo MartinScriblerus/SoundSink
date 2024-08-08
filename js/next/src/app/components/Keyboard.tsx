@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import React, {useState, useEffect, SetStateAction, ReactElement, useRef} from 'react';
+import ShowFXView from './ShowFXBtn';
 // import { store } from '../app/store';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
     compare: (a: any, b: any) => number;
     keyWid: string;
     notesAddedDetails: any;
+    keysFullscreen: boolean;
 };
 
 const Keyboard = ({
@@ -24,15 +26,22 @@ const Keyboard = ({
     playChuckNote, 
     compare, 
     keyWid, 
-    notesAddedDetails
+    notesAddedDetails,
+    keysFullscreen
 }:Props) => {
 
     const [keysToDisplay, setKeysToDisplay] = useState<any>([]);
+    // const addedDetails = useRef<any>([]);
     const addedDetails = useRef<any>([]);
     
     useEffect(() => {
+        
         (async() => {
-            const theKeys = !keysReady && await createKeys();
+            const locStorKeys = localStorage.getItem("keyboard")
+            const keyboard = locStorKeys ? JSON.parse(locStorKeys) : undefined;
+            const theKeys = !keysReady && keyboard.length < 1 && await createKeys();
+
+            localStorage.setItem("keyboard", JSON.stringify(theKeys));
             
             if(theKeys && keysToDisplay.length < 1) {
                 setKeysToDisplay(theKeys);
@@ -42,6 +51,7 @@ const Keyboard = ({
 
     useEffect(() => {
         if (notesAddedDetails.length > 0) {
+            // console.log('organizing notes added details ', notesAddedDetails);
             addedDetails.current = notesAddedDetails;
         } else {
             return;
@@ -55,9 +65,10 @@ const Keyboard = ({
         const removeHyphen = e.target.id.replace('-','');
         const convertPound_theNote = removeHyphen.replace('♯','#');
 
-        console.log('what are added deails??? ', addedDetails.current);
+        // console.log('what are added deails??? ', addedDetails.current);
 
-        addedDetails.current && addedDetails.current.length > 0 && addedDetails.current.forEach(async (d: any, idx: number) => {
+        // TODO CONVERT ADDED DETAIL TO A HASH MAP
+        addedDetails.current && addedDetails.current.length > 0 && addedDetails.current.forEach(async (d: any) => {
             if (convertPound_theNote === d.name) {
                 playChuckNote(e, e.target.id, d.midiHz, d.midiNote);
             }
@@ -151,13 +162,20 @@ const Keyboard = ({
     }
 
   
-    useEffect(() => {
-        console.log("KEYS TO DISPLAY: ", keysToDisplay);
-    }, [keysToDisplay]);
+    // useEffect(() => {
+    //     console.log("KEYS TO DISPLAY: ", keysToDisplay);
+    // }, [keysToDisplay]);
     let key = 1;
     
     return (
-        <div id="keyboardWrapper" key="keyboardWrapper" style={{overflowX: "scroll"}}>
+        <div 
+            id="keyboardWrapper" 
+            key="keyboardWrapper" 
+            style={{
+                overflowX: "scroll",
+                borderTop: "1px solid #eee",
+                borderBottom: "1px solid #eee"
+            }}>
             {
                 // chuckHook && Object.values(chuckHook).length && keysVisible
                 chuckHook && Object.values(chuckHook).length 
@@ -170,9 +188,10 @@ const Keyboard = ({
                         position: 'relative', 
                         display: 'inline-block', 
                         // left: "208px",
-                        bottom: "0px",
+                        bottom: '-2px',
                         // width: 'calc(100% - 200px)', 
-                        right: 0, 
+                        right: '0px',
+                        marginLeft: keysFullscreen ? '0px' : '148px', 
                         zIndex: '100'}}
                     >
                         <ul id="keyboard" key={"keyboard"} >

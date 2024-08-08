@@ -64,21 +64,44 @@ function BabylonScene(props: {
     const pivot = useRef<any>({});
     const knobPosition = useRef<any>();
     // const hasHexKeys = useRef<boolean>(false);
-    
+    const isEditingHextiles = useRef<boolean>(false);
+
     useEffect(() => {
-        // alert(hasHexKeys)
-        if (!hasHexKeys) {
-            const hexTiles = game.scene && game.scene.meshes.filter((m: any) => m.name === "hexTile");
-            console.log("ERR HEXTILES ", hexTiles);
-            hexTiles && hexTiles.length > 0 && hexTiles.forEach((h: any) => {
-                h.getChildMeshes().forEach((m: any) => {
-                    m.dispose();
-                });
-                h.dispose();
-            });
-            console.log("check sane: ", game.scene && game.scene.meshes && game.scene.meshes.filter((m: any) => m.name === "hexTile"))
+        if (!hasHexKeys && game.scene) {
+            game.scene.activeCamera = game.scene.cameras[0];
         }
     }, [hasHexKeys])
+
+    useEffect(() => {
+ 
+        // alert(hasHexKeys)
+        // if (!hasHexKeys) {
+        if (!isEditingHextiles.current) {
+            while(game.scene && Object.keys(game.scene).length > 0 && game.scene.meshes.length && game.scene.getMeshByName("hexTile")){
+                game.scene.getMeshByName("hexTile").dispose();
+            }
+            // game.scene && game.scene.meshes.forEach((i: any) => i.name === "hexTile" && i.dispose() && i === null);
+        } else {
+            isEditingHextiles.current = false;
+        }
+        const hexTiles = game.scene && game.scene.meshes.filter((i: any) => i.name === "hexTile" && i);
+
+        while(game.scene && Object.keys(game.scene).length > 0 && game.scene.meshes.length && game.scene.getMeshByName("hexTile")){
+            game.scene.getMeshByName("hexTile").dispose();
+        }
+        // console.log("ERR HEXTILES 1", game.scene && game.scene.meshes.filter((i: any) => i.name === "hexTile" && i));
+        // console.log("check sane: ", game.scene && game.scene.meshes && game.scene.meshes.filter((m: any) => m.name === "hexTile"))
+        console.log("MICRO ARR??? ", microTonalArr);
+        if (chuckHook && 
+            game.scene.meshes && 
+            // game.scene.meshes.filter((m: any) => m.name === "hexTile").length < 1 &&
+            microTonalArr && microTonalArr.length > 0 && 
+            hexTiles.length === 0) {
+                isEditingHextiles.current = true;
+                getHexKeyboard(game, chuckHook, microTonalArr);
+                updateHasHexKeys(true);
+        }
+    }, [hasHexKeys, microTonalArr])
 
 
     if (game && game.engine && !game.scene) {
@@ -120,7 +143,7 @@ function BabylonScene(props: {
 
             game.camera1 = {};
             game.camera1 = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
-            game.camera1.setTarget(new BABYLON.Vector3(-0.4,-0.75,0.0));
+            game.camera1.setTarget(new BABYLON.Vector3(-1.8,-0.8,0.0));
             game.camera1.attachControl(game.scene, false);
             game.camera1.position = new BABYLON.Vector3(0, 0, 12);
             game.camera1.inputs.attached.keyboard.detachControl();
@@ -133,6 +156,8 @@ function BabylonScene(props: {
             game.camera1.inputs.removeByType("ArcRotationCameraInputs");
             game.camera1.wheelDeltaPercentage = 0.0;
             game.camera1.panningSensibility = 0.0;
+            game.camera1.alpha = 1.553;
+            game.camera1.beta = 1.59;
             game.camera1.id = "camera1";
             game.camera1.viewport = new BABYLON.Viewport(0.0, 0.0, 1.0, 1.0);
             if(hasHexKeys) {
@@ -172,7 +197,7 @@ function BabylonScene(props: {
         camera2.inputs.removeByType("ArcRotationCameraInputs");
         camera2.wheelDeltaPercentage = 0.0;
         camera2.panningSensibility = 0.0;
-        camera2.fov = 1.0023;
+        camera2.fov = 0.75;
         camera2.id = "camera2";
         // camera2.alpha = camera2TargetPosition.alpha;
         camera2.alpha = 1.5685;
@@ -298,8 +323,8 @@ function BabylonScene(props: {
 
                             // This is the effects knob: use this to handle "amount" based values (eg. 0.0–1.0 / 1–100)
                             BABYLON.SceneLoader.ImportMesh("", "/", "knob3.glb", game.scene, function (newMeshes: any) {
-                                newMeshes[0].position.y = 6.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3.2);
-                                newMeshes[0].position.x = 6.9 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.2);
+                                newMeshes[0].position.y = 6.8 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -2.7);
+                                newMeshes[0].position.x = 6.5 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
                                 newMeshes[0].position.z = zPos;
 
 
@@ -410,44 +435,46 @@ function BabylonScene(props: {
 
 
 
-    useEffect(() => {
-        updateHasHexKeys(false);
-        if(game.scene && game.scene.cameras && game.scene.cameras.length > 0 &&  game.scene.activeCamera !== game.scene.cameras[0]) {
-            game.scene.activeCamera = game.scene.cameras[0];
-        } else {
-            if (game.scene && game.scene.cameras.length > 0) {
-                game.scene.activeCamera = game.scene.cameras[1];
-            }
-        }
-    }, [microTonalArr, microTonalArr.length])
+    // useEffect(() => {
+    //     // updateHasHexKeys(false);
+    //     // try {
+    //     //     game.scene.meshes.map((i:any) => i.name === "hexTile" && i.dispose());
+    //     // } catch (e) {
+            
+    //     // }
+    //     // if(game.scene && game.scene.cameras && game.scene.cameras.length > 0 &&  game.scene.activeCamera !== game.scene.cameras[0]) {
+    //     //     game.scene.activeCamera = game.scene.cameras[0];
+    //     // // } else {
+    //     //     if (game.scene && game.scene.cameras.length > 0) {
+    //     //         game.scene.activeCamera = game.scene.cameras[1];
+    //     //     }
+    //     //     const hexTiles = game.scene && game.scene.meshes.filter((m: any) => m.name === "hexTile");
+    //     //     console.log("ERR HEXTILES ", hexTiles);
+    //     //     hexTiles && hexTiles.length > 0 && hexTiles.forEach((h: any) => {
+    //     //         h.getChildMeshes().forEach((m: any) => {
+    //     //             m.dispose();
+    //     //         });
+    //     //         h.dispose();
+    //     //     });
+    //         if (chuckHook) {
+    //             getHexKeyboard(game, chuckHook, microTonalArr, hasHexKeys);
+    //         }
+    //     // }
+    // }, [microTonalArr, microTonalArr.length])
 
 
-    if (game.scene && hasHexKeys === false && chuckHook && microTonalArr.length > 0) {
+    if (game.scene && hasHexKeys === true && chuckHook && microTonalArr.length > 0) {
         (async() => {
-            updateHasHexKeys(true);
-            if (!hasHexKeys) {
-                game.scene.activeCamera = game.scene.cameras[0];
-                return;
-            }
+            // updateHasHexKeys(true);
+            // if (!hasHexKeys) {
+            //     game.scene.activeCamera = game.scene.cameras[0];
+            //     return;
+            // }
             game.scene.activeCamera = game.scene.cameras[1];
-            return await getHexKeyboard(game, chuckHook, microTonalArr, hasHexKeys);
+           // return await getHexKeyboard(game, chuckHook, microTonalArr, hasHexKeys);
         })();
     }
 
-    useEffect(() => {
-        if (hasHexKeys) {
-            getHexKeyboard(game, chuckHook, microTonalArr, hasHexKeys);
-        } else {
-            const hexTiles = game.scene && game.scene.meshes.filter((m: any) => m.name === "hexTile");
-            console.log("HEXTILES ", hexTiles);
-            hexTiles && hexTiles.length > 0 && hexTiles.forEach((h: any) => {
-                h.getChildMeshes().forEach((m: any) => {
-                    m.dispose();
-                });
-                h.dispose();
-            });
-        }
-    }, [hasHexKeys])
 
 
 
@@ -457,11 +484,33 @@ function BabylonScene(props: {
 
     return (
     <ThemeProvider theme={theme}>
-        <div style={{position: 'absolute', right: '0', top: '54px', zIndex: '6', width: '4rem', height: '4rem'}}>
+        {/* <div style={{position: 'absolute', right: '0', top: '54px', zIndex: '6', width: '4rem', height: '4rem'}}>
             <button id="one" onClick={handleDebugLayer}> Babylon DevTools </button>
-        </div>
-        <Box sx={{visibility: programIsOn ? "visible" : "hidden", marginLeft: window.innerWidth < 900 ? '0vh': "8vh", marginTop: "10px", minWidth: "800px", minHeight:"600px",height:"80vh", width: "80vw"}}>
-            <canvas style={{display: showFX  ? "visible":"none",background: 'transparent', width:'100%', height:'100%', overflow: 'hidden'}} id={`babylonCanvas`} ref={elem => game.canvas = elem}></canvas>
+        </div> */}
+        <Box sx={{
+                visibility: programIsOn ? "visible" : "hidden", 
+                marginLeft: "140px", 
+                width: "100vw", 
+                minWidth: window.innerWidth-140
+            }}
+        >
+            <canvas 
+                style={{
+                    minWidth: "800px", 
+                    minHeight: "800px", 
+                    // maxWidth: "600px", 
+                    // maxHeight: "600px", 
+                    display: showFX  ? "visible":"none",
+                    background: 'transparent', 
+                    width:'800px', 
+                    height:'800px', 
+                    position: 'relative', 
+                    // maxHeight: `calc(100% - 12rem)`,
+                    // overflow: 'hidden',
+                    // top: '0px',
+
+                }} id={`babylonCanvas`} 
+                ref={elem => game.canvas = elem}></canvas>
         </Box>
     </ThemeProvider>)
 }

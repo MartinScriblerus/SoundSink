@@ -32,6 +32,8 @@ export default function FXCheckboxLabels(props: FXGroupsArray) {
                     right: '0', 
                     top: '48px',
                     width: '20vw',
+                    height: 'calc(100% - 16rem)',
+                    overflow: 'auto'
                 }}
             >
                 {

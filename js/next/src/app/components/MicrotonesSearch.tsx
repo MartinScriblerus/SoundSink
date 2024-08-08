@@ -46,7 +46,7 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
       minHeight: "2rem",
       // position: 'fixed',
       left: '3vh',
-      minWidth: "140px",
+      minWidth: "100%",
       display: isMenuOpen ? 'block' : 'none',
       background: 'rgba(0,0,0,0.875)'
     },
@@ -54,7 +54,8 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
       fontSize: '.75rem',
       fontWeight: 'bold',
       lineHeight: 2,
-      background: 'rgba(0,0,0,1'
+      background: 'rgba(0,0,0,1)',
+      width: '100%'
     },
       menu: {
     // override border radius to match the box
@@ -73,7 +74,9 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
     display: 'flex',
   
     ':before': {
-      paddingTop: 0, paddingBottom: 0, color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", width: '200px',
+      paddingTop: 0, 
+      paddingBottom: 0, 
+      color: "$fff", background:  "rgba(30,34,26,0.96)", width: '200px',
       borderRadius: 10,
       content: '" "',
       display: 'block',
@@ -96,13 +99,13 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
         background: "rgba(30,34,26,0.96)",
         color: "rgba(255,255,255,0.7)",
         height: "100%",
-        width: '140px',
+        width: '100px',
         cursor: isDisabled ? 'not-allowed' : 'default',
       };
     },
     menuList: (styles: any) => ({ ...styles, paddingTop: 0, paddingBottom: 0, color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", width: '200px', right: "80px" }),
 
-    placeholder: (styles:any) => ({ ...styles, ...dot('#ccc') }),
+    placeholder: (styles:any) => ({ ...styles, color: 'rgba(255,255,255,0.78)' }),
     singleValue: (styles:any, { data }:any) => ({ ...styles, ...dot(data.color) }),
   };
 
@@ -179,9 +182,9 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
   return (
     <>
       {!!ariaFocusMessage && !!isMenuOpen && (
-        <blockquote style={{background: "rgba(30,34,26,0.96)"}}>"{ariaFocusMessage}"</blockquote>
+        <blockquote style={{width: '100%', background: "rgba(30,34,26,0.96)"}}>"{ariaFocusMessage}"</blockquote>
       )}
-
+      Microtones Search
       <div       
         id= 'aria-live-region' 
         style={{
@@ -189,8 +192,10 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
           minHeight: '2rem',
           // right: '300px',
           background: "rgba(30,34,26,0.96)",
-          marginBottom: "8px",
-          marginRight: "80px",
+          marginBottom: "180px",
+          marginLeft: '80px',
+          width:'80px'
+          // marginRight: "80px",
           // backgroundColor: "rgba(255,255,255,.96"
         }}
       >
@@ -199,7 +204,7 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
         {/* <label style={style.label} id="aria-label" htmlFor="aria-example-input">
           Select a microtone
         </label> */}
-
+        
         <Select
           aria-labelledby="aria-label"
           ariaLiveMessages={{

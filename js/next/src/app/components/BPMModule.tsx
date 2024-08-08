@@ -29,8 +29,8 @@ const BPMModuleFun = (props: BPMModule) => {
     const theme = useTheme();
 
     return (
-        <Box sx={{display: "flex", flexDirection: window.innerWidth < 900 ? "column" : "row"}}>
-            <Box sx={{
+        <Box sx={{display: "flex", flexDirection: "row"}}>
+            {/* <Box sx={{
                 fontFamily: notoSans,
                 fontSize: '24px',
                 marginRight: '0vw',
@@ -40,16 +40,19 @@ const BPMModuleFun = (props: BPMModule) => {
                 flexDirection: 'row',
                 // padding: '12px',
                 justifyContent: 'center',
-                width: window.innerWidth < 900 ? '140px' : '208px',
+                width: '140px',
                 // height: 'auto',
                 // minHeight: '136px'
-            }}>
+            }}> */}
                 <FormControl
                     sx={{
                         margin: '8px', 
                         padding: '0', 
-                        maxWidth: '100px', 
+                        // maxWidth: '100px', 
                         color:'rgba(228,225,209,1)',
+                        maxWidth: '76px',
+                        width: '50%',
+                        paddingTop: '24px'
                     }}
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -104,7 +107,12 @@ const BPMModuleFun = (props: BPMModule) => {
                 <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
                     <FormControl
                         hiddenLabel
-                        sx={{margin: '4px', padding: '0', maxWidth: '40px',}}
+                        sx={{
+                            margin: '4px', 
+                            padding: '0', 
+                            maxWidth: '40px',
+                        
+                        }}
                         onSubmit={(e) => {
                             e.preventDefault();
                         }
@@ -115,7 +123,7 @@ const BPMModuleFun = (props: BPMModule) => {
                             inputProps={{ 
                                 style: { 
                                     fontSize: '18px',
-                                    textAlign: 'center',
+                                    textAlign: 'right',
                                     color: 'primary.contrastText'
                                 } 
                             }}
@@ -125,7 +133,7 @@ const BPMModuleFun = (props: BPMModule) => {
                                 backgroundColor: 'status.danger',
                                 color: 'status.text',
                                 paddingTop: 0,
-                                alignItems: 'center',
+                                alignItems: 'right',
                                 paddingBottom: 0,
                                 width: '100%',
                                 fontFamily: notoSans,
@@ -161,7 +169,7 @@ const BPMModuleFun = (props: BPMModule) => {
                             inputProps={{ 
                                 style: {
                                     fontSize: '18px',
-                                    textAlign: 'center',
+                                    textAlign: 'right',
                                     color: 'primary.contrastText'
                                 } 
                             }}
@@ -171,7 +179,7 @@ const BPMModuleFun = (props: BPMModule) => {
                                 backgroundColor: 'status.danger',
                                 color: 'status.text',
                                 paddingTop: 0,
-                                alignItems: 'center',
+                                alignItems: 'right',
                                 paddingBottom: 0,
                                 width: '100%',
                             }}
@@ -195,7 +203,7 @@ const BPMModuleFun = (props: BPMModule) => {
                 </Box>   
            
 
-            </Box>
+            {/* </Box> */}
         </Box>
     )
 }
