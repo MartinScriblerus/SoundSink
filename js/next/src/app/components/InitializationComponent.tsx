@@ -2877,7 +2877,7 @@ col = "pink"
 
 
 
-       useEffect(() => {
+    useEffect(() => {
         const subscription = watch(() => handleSubmit(onSubmit)())
         console.log('SUBSCRIPTION: ', subscription);
         return () => subscription.unsubscribe();
@@ -5500,26 +5500,8 @@ col = "pink"
             {/* RESPONSIVE APP BAR */}
             <Box sx={{position: "absolute", width: "100vw" }} >
 
-                <ResponsiveAppBar 
-                    selectRef={selectRef} 
-                    tune={tune} 
-                    currentMicroTonalScale={currentMicroTonalScale}
-                    submitMingus={submitMingus}
-                    audioKey={audioKey}
-                    octave={octave}
-                    audioScale={audioScale}
-                    audioChord={audioChord}
-                    handleChangeChord={handleChangeChord}
-                    handleChangeScale={handleChangeScale}
-                    programIsOn={programIsOn}
-                    updateHasHexKeys={updateHasHexkeys}
-                    handleFormat={handleFormat}
-                    formats={formats}
-                    chuckHook={chuckHook}
-                    runChuck={runChuck}
-                    stopChuckInstance={stopChuckInstance}  
-                />
-                {/* COUNT WRAPPER */}
+
+            {/* COUNT WRAPPER */}
                 <Box sx={{
                     display: "flex", 
                     left: '140px', 
@@ -5568,6 +5550,75 @@ col = "pink"
                         </Box>
                     )}
                 </Box>
+
+                <ResponsiveAppBar 
+                    selectRef={selectRef} 
+                    tune={tune} 
+                    currentMicroTonalScale={currentMicroTonalScale}
+                    submitMingus={submitMingus}
+                    audioKey={audioKey}
+                    octave={octave}
+                    audioScale={audioScale}
+                    audioChord={audioChord}
+                    handleChangeChord={handleChangeChord}
+                    handleChangeScale={handleChangeScale}
+                    programIsOn={programIsOn}
+                    updateHasHexKeys={updateHasHexkeys}
+                    handleFormat={handleFormat}
+                    formats={formats}
+                    chuckHook={chuckHook}
+                    runChuck={runChuck}
+                    stopChuckInstance={stopChuckInstance}  
+                />
+                {/* COUNT WRAPPER
+                <Box sx={{
+                    display: "flex", 
+                    left: '140px', 
+                    top: '0px',
+                    position: 'relative', 
+                    flexDirection: "column"
+                }}>
+                    {programIsOn && (
+                        <Box sx={{
+                            position: "absolute", 
+                            display: "flex", 
+                            flexDirection: "column", 
+                            textAlign: "center",
+                            pointerEvents: "none",
+                            top: '0px'
+                        }}>
+                            <Box 
+                                className="countWrapper"
+                                sx={{
+                                    backgroundColor: '0,0,0,0.4 !important',
+                                    background: '0,0,0,0.4 !important',
+                                    position: "relative", 
+                                    pointerEvents: "none",
+                                    display: "flex", 
+                                    flexDirection: "row", 
+                                    textAlign: "center", 
+                                    justifyContent: "center",
+                                    // background: "transparent",
+                                    width: "200px",
+                                    // left: "325px",
+                                    top: "8px",
+                                }}>
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentBeatCountToDisplay} 
+                                </Typography>
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentNumerCountColToDisplay} 
+                                </Typography>
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentDenomCount}
+                                </Typography>
+                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
+                                    {currentPatternCount}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    )}
+                </Box> */}
             </Box>
 
             <Box 
@@ -5677,99 +5728,23 @@ col = "pink"
                             updateHasHexKeys={updateHasHexkeys}
                         />
                     </Box>
+                    {/* LEFT CONTAINER */}
                     {programIsOn && (
-                            <Box sx={{
-                                    position: "absolute", 
-                                    borderRight: "1px solid #e2e2e2",
-                                    height: "100%",
-                                    top: "50px",
+                    <Box sx={{
+                            position: "absolute", 
+                            borderRight: "1px solid #e2e2e2",
+                            height: "100%",
+                            top: "50px",
 
-                                }}
-                            >
-
-{/* PLAY CHUCK
-                        <Box sx={{
-                            display: "flex", 
-                            flexDirection: "column",
-                            }}
-                        >
-                            <Box sx={{display: "flex", flexDirection: "row"}}>
-                                {chuckHook && (
-                                    <Button 
-                                        style={{ 
-                                            background: 'rbga(0,0,0,0.8)', 
-                                            minWidth: '140px',
-                                            color: 'rgba(0,0,0,1)',
-                                            marginLeft: '0px'      
-                                        }} 
-                                        sx={{ 
-                                            minWidth: '140px', 
-                                            opacity: '0.8',
-                                            paddingLeft: '24px', 
-                                            maxHeight: '40px',
-                                            border: '0.5px solid #b2b2b2',
-                                            '&:hover': {
-                                                color: '#f5f5f5 !important',
-                                                background: 'rgba(0,0,0,.98)',
-                                                border: 'solid 1px #1976d2',
-                                                }
-                                        }} 
-                                        variant="contained" 
-                                        id="runChuckButton" 
-                                        onClick={runChuck} 
-                                        endIcon={
-                                            <PlayCircleFilledIcon />
-                                        }>
-                                            Play
-                                    </Button>
-                                )}
-                            </Box>
-                            
-                        </Box>
-
-{/* STOP CHUCK */}
-                        {/* <Box sx={{display: "flex", flexDirection: "column"}}>
-                            <Box sx={{display: "flex", flexDirection: "row"}}>
-                                {chuckHook && (
-                                    <Button 
-                                        style={{ 
-                                            minWidth: '140px',
-                                            color: 'rgba(0,0,0,1)',
-                                            marginLeft: '0px' 
-                                        }} 
-                                        sx={{ 
-                                            minWidth: '140px', 
-                                            paddingLeft: '24px',
-                                            opacity: '0.8', 
-                                            maxHeight: '40px', 
-                                            marginLeft: '8px', 
-                                            border: '0.5px solid #b2b2b2',
-                                            '&:hover': {
-                                                color: '#f5f5f5 !important',
-                                                background: 'rgba(0,0,0,.98)',
-                                                border: '1px solid #1976d2',
-                                            }
-                                        }} 
-                                        variant="contained" 
-                                        id="stopChuckButton" 
-                                        onClick={stopChuckInstance} 
-                                        endIcon={<StopCircleIcon />}>
-                                        Stop
-                                    </Button>
-                                )}
-                            </Box>
-                        // </Box> */}
-
-
-{/* BPM */}
+                        }}
+                    >
+                        {/* BPM */}
                         <Box sx={{
                                 display: "flex", 
                                 flexDirection: "column"
                             }}
                         >
-                    
-
-{/* PATTERN CONTROL */}
+                            {/* PATTERN CONTROL */}
                             <Box sx={{
                                     display: "flex", 
                                     flexDirection: "column"
@@ -5826,11 +5801,11 @@ col = "pink"
                             </Box>
                         </Box>
 
-{/* ANALYSIS */}
+                        {/* ANALYSIS */}
                         <Box sx={{
-                                display: "flex", 
-                                flexDirection: "column"
-                            }}>
+                            display: "flex", 
+                            flexDirection: "column"
+                        }}>
                             <Box sx={{
                                     display: "flex", 
                                     flexDirection: "row"
