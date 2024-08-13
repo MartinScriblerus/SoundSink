@@ -127,7 +127,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           <Box sx={{
               display: "flex", 
               flexDirection: "row",
-              marginRight: "40px"
+              marginRight: "20px"
             }}
           >
             {/* PLAY CHUCK */}
@@ -140,17 +140,10 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               <Box sx={{display: "flex", flexDirection: "row"}}>
                   {chuckHook && (
                       <Button 
-                          // style={{ 
-                          //     background: 'rbga(0,0,0,0.8)', 
-                          //     minWidth: '140px',
-                          //     color: 'rgba(0,0,0,1)',
-                          //     marginLeft: '0px'      
-                          // }} 
                           sx={{ 
                               minWidth: '140px', 
                               opacity: '0.8',
                               paddingLeft: '24px', 
-                              maxHeight: '40px',
                               border: '0.5px solid #b2b2b2',
                               pointerEvents: 'all',
                               backgroundColor: '0,0,0,0.4 !important',
@@ -160,7 +153,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                               '&:hover': {
                                   color: '#f5f5f5 !important',
                                   background: 'rgba(0,0,0,.98)',
-                                  border: 'solid 1px #1976d2',
+                                  // border: 'solid 1px #1976d2',
                                   }
                           }} 
                           variant="contained" 
@@ -185,11 +178,6 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 <Box sx={{display: "flex", flexDirection: "row"}}>
                     {chuckHook && (
                         <Button 
-                            // style={{ 
-                            //     minWidth: '140px',
-                            //     color: 'rgba(0,0,0,1)',
-                            //     marginLeft: '0px' 
-                            // }} 
                             sx={{ 
                                 minWidth: '140px', 
                                 paddingLeft: '24px',
@@ -218,10 +206,10 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             </Box>
           </Box>
 
-          <Box sx={{ flexGrow: 0, paddingTop: '4px' }}>
+          <Box sx={{ flexGrow: 0, zIndex: 100, wwwdwdfefffffwfpaddingTop: '4px' }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, marginTop: "0px" }}>
-                <Avatar alt="Remy Sharp" src={"/static/reilly_portfolio_small.jpg"} />
+                <Avatar alt="Remy Sharp" src={"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAARVBMVEXw8PBpfN3y8vBfdNz29vFmet2GlODY2+yMmeHT1uvW2ezc3u1bcdx/jt+EkuBjd9zr7O9Ta9v8+/KbpuN1ht5vgd6/xehcBCHdAAACJUlEQVR4nO3cSW4bURBEQao5ikNT1uD7H9Xy0t50fqCaKELxDvCRQRFaEbXZSJIkSZL0U5uinvipt/Mx6JI81vOp6fxru9z1tnvWpzbTcfuy3P6QzGr5VNNZhIT9ZxES9p9FSNh/FiFh/1mEhP1nERL2n0VI2H8WIWH/WYSE/WcREvafRUjYf1at8Lpf7n543y13yWZFT0Wr5kh4uR2CPk9Bh30gfPlKnpqTVfNHItxMwSe6ez/dg880An7/FYOux2RWBMzancL1VW1fs18DERISEhISEhISEhISEhISEhISEhISEhISEhISEhL+U3Kd4fHC84OvRlyyHyHcg0MI2+yl3w++GpHOOr8udpzLPqzKqxFZ0Ver8Atf+ZuorOjfA+FAhITjERKORkg4HiHhaISE4xESjkZIOB4h4WiEhOMREo5GSDgeIeFohIT/vVZ1JqDweEGp8Cs5LXGbk4MQn9FTCbH2tknduY7KIyKut/SdRUjYfxYhYf9ZhIT9ZxES9p9FSNh/FiFh/1mEhP1nERL2n0VI2H8WIWH/WYSE/Wd1FUbnGaJDCF2Fb8s3I/6ejQh+dNNUGF1JyQ6SdBXWRUi41lt1ERKu9VZdhIRrvVUXIeFab9VFSLjWW3UREq71Vl2EhGu9VRch4Vpv1UVIuNZbdRESrvVWXYSEa71VV60wOhMwP1pYt2q63IIjDvPHg4WVq6bghsN3a5ueYpUkSZIkSW36A9+/m8h7H2QPAAAAAElFTkSuQmCC"} />
               </IconButton>
             </Tooltip>
             <Menu

@@ -9,6 +9,15 @@ export interface VizDataProps {
   closeAnalysisPopup: () => void;
   handleChangeAnalysisSource: (e: any) => void;
   analysisSourceRadioValue: string;
+  secLenBeat:number;
+  beatCount: number;
+  numerCount: number;
+  denomCount: number;
+  patternCount: number;
+  filesToProcess: any[];
+  bufferStepLength: number;
+  graphNeedsUpdate: boolean;
+  setGraphNeedsUpdate: any;
 }
 
 export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}) => {
@@ -17,14 +26,24 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     timeNow, 
     closeAnalysisPopup, 
     handleChangeAnalysisSource,
-    analysisSourceRadioValue
+    analysisSourceRadioValue,
+    secLenBeat,
+    beatCount,
+    numerCount,
+    denomCount,
+    patternCount,
+    filesToProcess,
+    bufferStepLength,
+    graphNeedsUpdate,
+    setGraphNeedsUpdate,
   } = props;
   
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [mockData, setMockData] = useState<Array<any>>([]);
   const [currentVisualization, setCurrentVisualization] = useState<string>('centroid');
+  const [isInFileMode, setIsInFileMode] = useState<boolean>(true);
+  const fileTime = useRef<number | undefined | false>();
   
-
   const value = ""
 
   useMemo(() => {
@@ -53,7 +72,28 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     setCurrentVisualization(selectedViz.target.value);
 
   };
-console.log("curr viz! ", currentVisualization);
+  console.log("curr viz! ", currentVisualization);
+
+  const bruteHandleIsInFileMode = () => {
+    setIsInFileMode(!isInFileMode);
+  }
+
+  const getAudioDuration = (arrayBuffer:any, numChannels: number, sampleRate: number, isFloatingPoint: boolean) => {
+    // PCM 16 or Float32
+    const bytesPerSample = (isFloatingPoint ? Float32Array : Uint16Array).BYTES_PER_ELEMENT
+    // total samples/frames
+    const totalSamples = arrayBuffer.byteLength / bytesPerSample / numChannels 
+    // total seconds
+    return totalSamples / sampleRate
+  }
+
+  useEffect(() => {
+    fileTime.current = filesToProcess && filesToProcess.length > 0 && getAudioDuration(filesToProcess[filesToProcess.length -1].data, 2, 44100, true);
+    console.log("CHECK FILE TIME!!! ", fileTime);
+    console.log("FILES TO PROCESS: ", filesToProcess);
+    console.log("Files Data! ",  filesToProcess[filesToProcess.length - 1] &&  filesToProcess[filesToProcess.length - 1].length && filesToProcess[filesToProcess.length - 1].data.map((i: any, idx: number) => {return {x: idx, y: i}}))
+  }, [filesToProcess.length, isInFileMode]);
+
   return (
     <Box
       className="findme"
@@ -65,7 +105,25 @@ console.log("curr viz! ", currentVisualization);
         height: "100%",
       }}
     >
+      <Button 
+        onClick={bruteHandleIsInFileMode}
+        sx={{
+          border: 'solid 1px #000000',
+          backgroundColor: isInFileMode ? '#000000' : 'orange',
+          color: isInFileMode? '#ffffff' : '#000000',
+          fontSize: "14px",
+          padding: "8px 16px",
+          position: "absolute",
+          zIndex: "99",
+          pointerEvents: "all",
+          cursor: "pointer",
+          marginLeft: "16px",
+          borderRadius: "4px",
 
+        }}
+      >
+        File Mode
+      </Button>
       <Box 
         sx={{
           pointerEvents: "none", 
@@ -82,13 +140,27 @@ console.log("curr viz! ", currentVisualization);
       >
         
 
-        <Box sx={{ position: "relative", display: "flex", flexDirection: "column" }}>
+        <Box sx={{ 
+          position: "relative",
+          display: "flex", 
+          flexDirection: "column" }}>
           {
           mockData && 
           (<LineChart
               key={`${currentVisualization}`}
               // data={analysisObject.current[analysisSourceRadioValue][`${currentVisualization}`]}
-              data={mockData.map((i: any) => {return {x: i.x, y: i[`${currentVisualization}`]}})}
+              // data={mockData.map((i: any) => {return {x: i.x, y: i[`${currentVisualization}`]}})}
+              data={isInFileMode && 
+                filesToProcess.length > 0 && 
+                filesToProcess[filesToProcess.length - 1].data 
+                ? 
+                  filesToProcess[filesToProcess.length - 1].data
+                :
+                // filesToProcess[filesToProcess.length - 1].data.map((i: any, idx: number) => {return {x: idx * ((fileTime.current || 1)/filesToProcess[filesToProcess.length - 1].data.length), y: i[`${currentVisualization}`]}})} : 
+                  mockData.map((i: any) => {return {x: i.x, y: i[`${currentVisualization}`]}})
+                
+
+              }
               width={width}
               height={height}
               cursorPosition={cursorPosition}
@@ -98,6 +170,16 @@ console.log("curr viz! ", currentVisualization);
               // analysisSourceRadioValue={analysisSourceRadioValue}
               selectedViz={`${currentVisualization}`}
               timeNow={timeNow}
+              secLenBeat={secLenBeat}
+              beatCount={beatCount}
+              numerCount={numerCount}
+              denomCount={denomCount}
+              patternCount={patternCount}
+              isInFileMode={isInFileMode} 
+              fileTime={fileTime.current}
+              filesToProcess={filesToProcess}
+              graphNeedsUpdate={graphNeedsUpdate}
+              setGraphNeedsUpdate={setGraphNeedsUpdate}
           />)}
 
           <Box

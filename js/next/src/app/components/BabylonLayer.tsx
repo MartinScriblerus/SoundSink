@@ -156,10 +156,12 @@ function BabylonScene(props: {
             game.camera1.inputs.removeByType("ArcRotationCameraInputs");
             game.camera1.wheelDeltaPercentage = 0.0;
             game.camera1.panningSensibility = 0.0;
+            game.camera1.fov = 0.89;
             game.camera1.alpha = 1.553;
-            game.camera1.beta = 1.59;
+            game.camera1.beta = 1.532;
             game.camera1.id = "camera1";
             game.camera1.viewport = new BABYLON.Viewport(0.0, 0.0, 1.0, 1.0);
+
             if(hasHexKeys) {
                 game.scene.activeCamera = game.scene.cameras[1]
             } else {
@@ -225,7 +227,7 @@ function BabylonScene(props: {
                         // create a light for each knob
                         game.light[i] = {};
                         game.light[i][j] = new BABYLON.SpotLight("spotLight", new BABYLON.Vector3(0, 30, -10), new BABYLON.Vector3(0, -1, 0), Math.PI / 3, 2, game.scene);
-                        game.light[i][j].intensity = 0.010;
+                        game.light[i][j].intensity = 0.045;
                             
                         // create a stack panel GUI for each knob
                         const paneL = new GUI.StackPanel();
@@ -484,14 +486,19 @@ function BabylonScene(props: {
 
     return (
     <ThemeProvider theme={theme}>
-        {/* <div style={{position: 'absolute', right: '0', top: '54px', zIndex: '6', width: '4rem', height: '4rem'}}>
+        <div style={{position: 'absolute', right: '0', top: '54px', zIndex: '6', width: '4rem', height: '4rem'}}>
             <button id="one" onClick={handleDebugLayer}> Babylon DevTools </button>
-        </div> */}
+        </div>
         <Box sx={{
                 visibility: programIsOn ? "visible" : "hidden", 
                 marginLeft: "140px", 
                 width: "100vw", 
-                minWidth: window.innerWidth-140
+                minWidth: window.innerWidth,
+                display: "flex",
+                flexDirection: "column",
+                background: "rgba(56, 60, 84, .4)",
+                alignItems: "center",
+                // paddingLeft: "140px !important"
             }}
         >
             <canvas 

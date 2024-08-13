@@ -118,6 +118,11 @@ a {
   overflow:hidden;
 }
 
+.MuiAvatar-root {
+  height: 36px;
+  width: 36px;
+}
+
 .MuiPaper-root {
   color: rgba(228,225,209,1) !important;
   background: rgba(30,34,26,0.96) !important; 
@@ -159,6 +164,10 @@ a {
 
 .MuiFormControl-root.side-nav {
   justify-content: flex-start;
+}
+
+.MuiSelect-icon  {
+  color: #f2f2f2;
 }
 
 .fx-popup-left-row {
@@ -290,13 +299,15 @@ body{
 }
 
 #keyboard {
-  overflow-x: scroll;
+  /* overflow-x: scroll; */
   position: relative;
   max-height: 12.5rem;
   display: inline-block;
   margin-top: 0rem;
   /* padding-left: 32px; */
-  padding-left: 12px;
+  left: -6px;
+  width: calc(100% + 80px);
+  overflow-x: hidden;
 }
 
 #microTonesParentSpan::after {
@@ -481,14 +492,15 @@ canvas {
   height: 12.5rem;
   width: 3.5rem;
   z-index: 1;
-  border-left: 1px solid hsl(0, 0%, 73%);
+  border-left: 1px solid hsl(0, 0%, 7%);
   border-bottom: 1px solid hsl(0, 0%, 73%);
   border-radius: 0 0 5px 5px;
-  box-shadow: -1px 0 0 #f5f5f5 inset, 0 0 5px hsl(0, 0%, 80%) inset,
+  box-shadow: -1px 0 0 rgba(255,255,255,0.078) inset, 0 0 5px rgba(0,0,0,0.1) inset,
     0 0 3px var(--black-20);
+  
   /* background: linear-gradient(to bottom, grey 0%, black 100%); */
-  background: linear-gradient(to bottom, rgba(0,0,0,.7), black 100%);
-  color: #f5f5f5 !important;
+  background: linear-gradient(to bottom, #f5f5f5, 0%, hsl(0, 0%, 90%));
+  color: #000000 !important;
   margin-left: -1rem;
   font-family: monospace;
 }
@@ -543,7 +555,8 @@ canvas {
   /* box-shadow: -1px -1px 2px var(--white-20) inset,
     0 -5px 2px 3px var(--black-60) inset, 0 2px 4px var(--black-50);
   background: linear-gradient(45deg, hsl(0, 0%, 13%) 0%, hsl(0, 0%, 33%) 100%); */
-  background: linear-gradient(45deg, rgba(20,80,160,1) 0%, hsl(0, 0%, 23%) 2%);
+  background: linear-gradient(90deg, rgba(40,10,0,1) 1%, hsl(0, 0%, 2%) 51%);
+  
   color: #f5f5f5;
   font-family: monospace;
 }
@@ -645,7 +658,7 @@ ul {
 }
 
 /* .MuiBox-root {
-  z-index: 20;
+  background-color: transparent;
 } */
 /* 
 #introClickBox {
@@ -730,10 +743,10 @@ ul {
   padding: 0.1rem;
   width: 12rem;
 } */
-
+/* 
 .inputSampleInfo {
   /* max-height: 2rem; */
-}
+/* } */ */
 
 .introListLetter {
   padding: 0; 
@@ -770,13 +783,42 @@ ul {
 }
 
 .countWrapper {
-  left: 325px;
+  left: 140px;
+  width: 100%;
 }
+
+.MuiSlider-markLabel {
+  color: rgb(27, 191, 202);
+  margin-top: -4pxpx;
+  background: transparent !important;
+  z-index: 1000;
+}
+
+.MuiSlider-valueLabelOpen {
+  transform: translateY(0%) !important;
+}
+
+.MuiSlider-mark {
+  color: gray;
+  height: 50%;
+}
+
+.MuiSlider-valueLabelLabel {
+  color: rgb(175, 240, 91);
+  top: 50%;
+  background: transparent !important;
+}
+
+.MuiSlider-thumb {
+  color: rgb(110, 64, 170);
+}
+
 
 @media screen and (max-width: 900px) {
   .countWrapper {
     position: inherit;
-    left: 120px;
+    left: 0px;
+    width: 100%;
   }
 }
 
@@ -786,3 +828,8 @@ ul {
   }
 }
 
+@media screen and (min-width: 1400px) {
+  canvas {
+      margin-left: 0px;
+  }
+}

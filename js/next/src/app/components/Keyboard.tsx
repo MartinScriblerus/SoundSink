@@ -15,6 +15,7 @@ interface Props {
     keyWid: string;
     notesAddedDetails: any;
     keysFullscreen: boolean;
+    isInPatternEditMode: boolean;
 };
 
 const Keyboard = ({
@@ -27,7 +28,8 @@ const Keyboard = ({
     compare, 
     keyWid, 
     notesAddedDetails,
-    keysFullscreen
+    keysFullscreen,
+    isInPatternEditMode
 }:Props) => {
 
     const [keysToDisplay, setKeysToDisplay] = useState<any>([]);
@@ -172,8 +174,8 @@ const Keyboard = ({
             id="keyboardWrapper" 
             key="keyboardWrapper" 
             style={{
-                overflowX: "scroll",
-                borderTop: "1px solid #eee",
+                overflowX: "hidden",
+                // borderTop: "1px solid #eee",
                 borderBottom: "1px solid #eee"
             }}>
             {

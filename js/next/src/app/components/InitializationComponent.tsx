@@ -224,6 +224,9 @@ export default function InitializationComponent() {
     const [arpeggiatorOn, setArpeggiatorOn] = useState<number>(0);
     const [stkArpeggiatorOn, setStkArpeggiatorOn] = useState<number>(0);
 
+    const [cellSubdivisions, setCellSubdivisions] = useState<number>(1);
+
+    const [hideCircularArpBtnsHook, setHideCircularArpBtnsHook] = useState<boolean>(false);
 
     const doReturnToSynth = useRef<boolean>(false);
     const virtualKeyMapDown = useRef<string>("");
@@ -254,15 +257,16 @@ export default function InitializationComponent() {
     const [currentPatternCount, setCurrentPatternCount] = useState<number>(0);
     const [keysFullscreen, setKeysFullscreen] = useState<boolean>(false);
     const patternsHash = useRef<any>({
-        sample_1: {},
-        sample_2: {},
-        sample_3: {},
-        sample_4: {},
-        osc1_5: {},
-        osc2_6: {},
+        1: {},
+        2: {},
+        3: {},
+        4: {},
+        5: {},
+        6: {},
     });
     const [patternsHashHook, setPatternsHashHook] =  useState<any>(patternsHash.current);
     const [patternsHashUpdated, setPatternsHashUpdated] = useState<boolean>(false);
+    const [isInPatternEditMode, setIsInPatternEditMode] = useState<boolean>(false);
 
     const [centroid, setCentroid] = useState<any>([
         {source: "", value: ""}
@@ -287,6 +291,12 @@ export default function InitializationComponent() {
     const [toggleSTKvsFX, setToggleSTKvsFX] = useState<any>(true);
     const [checkedEffectToShow, setCheckedEffectToShow] = useState<any>(true);
     const [microtonalScale, setMicrotonalScale] = useState<string>('05-19');
+    const [graphNeedsUpdate, setGraphNeedsUpdate] = useState<boolean>(false);
+
+    const notesToAssign = useRef<any>({
+        midiHz: 0.0,
+        midiNum: 0,
+    });
 
     useEffect(() => {
         console.log("YO ", currentNumerCountColToDisplay);
@@ -297,17 +307,16 @@ export default function InitializationComponent() {
 
 
     const fillHashSlot = (x:number,y:number,z:number,inst:string) => {
-        if (!patternsHash.current[`${inst}_${z}`]) {  
-            patternsHash.current[`${inst}_${z}`] = {};
+        console.log("Boom")
+        if (!patternsHash.current[`${z}`]) {  
+            patternsHash.current[`${z}`] = {};
         }
-        if (!patternsHash.current[`${inst}_${z}`][`${x}_${y}`]) {
-        // patternsHash.current[`${inst}_${z}`] = {...patternsHash.current[`${inst}_${z}`], ...[`${x}_${y}`]};  
-        
+  
         let col;
         if (z === 6) {
             col = "orange"
         } else if (z === 5) {
-col = "pink"
+            col = "pink"
         } else if (z === 4) {
             col = "brown" 
         } else if (z === 3) {
@@ -317,21 +326,28 @@ col = "pink"
         } else if (z === 1) {
             col = "maroon"
         }
+        // alert(`hit this ${z} _ ${col}`);
 
+        console.log("NOTES TO ASSIGN!!! ", notesToAssign.current);
+        console.log("stupid error? ", patternsHash.current);
+       
+        patternsHash.current[`${z}`][`${x}`] = {};
+        patternsHash.current[`${z}`][`${x}`] = {
+            on: true,
+            note: [notesToAssign.current.midiNum],
+            noteHz: [notesToAssign.current.midiHz], 
+            velocity: 0.9,
+            color: col,
+            // subdivisions: patternsHash.current[`${inst}_${z}`][`${x}`].subdivisions || 1
+            subdivisions: cellSubdivisions
+        }
 
-        
-        patternsHash.current[`${inst}_${z}`][`${x}_${y}`] = {
-                on: true,
-                note: [0, x],
-                velocity: 0.9,
-                color: col,
-                subdivisions: 0
-            }
-        };         
+        console.log("CHECK IT!!! ", patternsHash.current[`${z}`][`${x}`]);
+        // };         
     }
 
     useEffect(() => {
-        for (let x = 1; x < (2 * numeratorSignature) + 1; x++) {
+        for (let x = 1; x < (numeratorSignature) + 1; x++) {
             for (let y = 1; y < denominatorSignature + 1; y++) {
                 for (let z = 1; z < 7; z++) {
                     if (z >= 5) {
@@ -494,6 +510,10 @@ col = "pink"
             linesIn: [4]
         }
     )
+
+    const inPatternEditMode = (state:boolean) => {
+        setIsInPatternEditMode(true);
+    } 
 
     const handleOscRateUpdate = (val: any) => {
         console.log("VALLLLLL ", val.target.value);
@@ -988,7 +1008,9 @@ col = "pink"
             console.log("FILE NAME: ", formattedName, fileData);
             if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1) {                
                 filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false })
+
             }
+            setGraphNeedsUpdate(true);
             if (chuckHook) {
                 setChuckUpdateNeeded(true);
             }
@@ -1071,7 +1093,7 @@ col = "pink"
 
 
     const noteOnPlay = (theMidiNum: number, theMidiHz: any, mysteryArg=100) => {
-        alert(theMidiNum)
+        // alert(theMidiNum)
         // if (currNotes.current.indexOf(theMidiNum) === -1) {
             currNotesHash.current[theMidiNum] = theMidiNum;
             currNotes.current.push(theMidiNum);
@@ -5019,7 +5041,13 @@ col = "pink"
         // console.log('NOTE TARGET: ', note.target);
         // console.log('ID STRING: ', idString);
         console.log('midiHz: ', midiHz);
-        console.log('midiNote*** ', midiNote);  
+        console.log('midiNote*** ', midiNote);
+        if (isInPatternEditMode) {
+            notesToAssign.current = {
+                'midiHz': midiHz, 
+                'midiNote': midiNote
+            }
+        }
    
         const noteReady = note.target.attributes[0].value;
         const theNoteLetter = idString.replace('-','');
@@ -5449,9 +5477,14 @@ col = "pink"
         updateFXInputRadio((event.target as HTMLInputElement).value);
     };
 
+    const resetCellSubdivisionsCounter = (x: number, y: number) => {
+        const subdivs: any = patternsHash.current[`${y}`][`${x}`].subdivisions;
+        setCellSubdivisions(subdivs || 1);
 
+    }
 
     const editPattern = (x: any, y: any, group: any) => {
+
         // this is called by triggerEditPattern in renderer
         // alert(`Hello!_${x}_${y}_${group}`);
         // X & Y VALS ARE 1-INDEXED!
@@ -5463,29 +5496,13 @@ col = "pink"
         // 5. CHANGE BLOCK TO A REST
         // 6. DO NOTHING (DO NOT EDIT & LEAVE BLOCK AS IS...)
 
+        const existingSubdivisions = patternsHash.current[`${y}`][`${parseInt(x) + 1}`];
 
+ x
+ 
 
-        if (x === "undefined") {
-          x = 8;
-        }
-        if (!patternsHash.current[`sample_${y}`][`${x}_${y}`]) {
-            patternsHash.current[`sample_${y}`][`${x}_${y}`] = {
-                on: false,
-                note: ["R"],
-                velocity: 1.0,
-                color: "green",
-                subdivisions: 0
-            }
-        } else {
-            patternsHash.current[`sample_${y}`][`${x}_${y}`] = {
-                on: !patternsHash.current[`sample_${y}`][`${x}_${y}`].on,
-                note: currNotes.current[currNotes.current.length - 1],
-                velocity: patternsHash.current[`sample_${y}`][`${x}_${y}`].velocity,
-                color: patternsHash.current[`sample_${y}`][`${x}_${y}`].on ? "pink" : "red",
-                subdivisions: 0
-            }
-        }
         console.log("PATTERNS HASH GENERAL", patternsHash.current);
+        // setCellSubdivisions(1);
         setPatternsHashHook(patternsHash.current);
         setPatternsHashUpdated(true);
       }
@@ -5494,9 +5511,27 @@ col = "pink"
         setPatternsHashUpdated(false);
       }, [patternsHashUpdated])
 
+      const capturePatternEdit = (data: any) => {
+        console.log("DATA IN CAPTURE PATTERN EDIT: ", data);
+      }
+
+      const handleChangeCellSubdivisions = (num: number, x: number, y: number) => { 
+        console.log("num!!!!!!!!! in handleChangeCellSubdivisions ", num, x, y);
+        patternsHash.current[`${y}`][`${Number(x)}`].subdivisions = Number(num);
+        setCellSubdivisions(num);
+        setPatternsHashUpdated(true);
+      }
+
+      const  hideCircularArpBtns = (boolVal: boolean) => {
+        setHideCircularArpBtnsHook(boolVal);
+      }
 
     return (
-        <Box sx={{height: '100vh', width: 'auto', boxSizing: 'border-box'}}>
+        <Box sx={{
+            height: '100vh', 
+            width: 'auto', 
+            boxSizing: 'border-box'
+        }}>
             {/* RESPONSIVE APP BAR */}
             <Box sx={{position: "absolute", width: "100vw" }} >
 
@@ -5570,55 +5605,6 @@ col = "pink"
                     runChuck={runChuck}
                     stopChuckInstance={stopChuckInstance}  
                 />
-                {/* COUNT WRAPPER
-                <Box sx={{
-                    display: "flex", 
-                    left: '140px', 
-                    top: '0px',
-                    position: 'relative', 
-                    flexDirection: "column"
-                }}>
-                    {programIsOn && (
-                        <Box sx={{
-                            position: "absolute", 
-                            display: "flex", 
-                            flexDirection: "column", 
-                            textAlign: "center",
-                            pointerEvents: "none",
-                            top: '0px'
-                        }}>
-                            <Box 
-                                className="countWrapper"
-                                sx={{
-                                    backgroundColor: '0,0,0,0.4 !important',
-                                    background: '0,0,0,0.4 !important',
-                                    position: "relative", 
-                                    pointerEvents: "none",
-                                    display: "flex", 
-                                    flexDirection: "row", 
-                                    textAlign: "center", 
-                                    justifyContent: "center",
-                                    // background: "transparent",
-                                    width: "200px",
-                                    // left: "325px",
-                                    top: "8px",
-                                }}>
-                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                    {currentBeatCountToDisplay} 
-                                </Typography>
-                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                    {currentNumerCountColToDisplay} 
-                                </Typography>
-                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                    {currentDenomCount}
-                                </Typography>
-                                <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
-                                    {currentPatternCount}
-                                </Typography>
-                            </Box>
-                        </Box>
-                    )}
-                </Box> */}
             </Box>
 
             <Box 
@@ -5636,36 +5622,61 @@ col = "pink"
                 className="popupAnalysisBox"
             >
 
-                {isAnalysisPopupOpen &&
-                    <LineChartWrapper
-                        analysisObject={analysisObject}
-                        timeNow={timeNow}
-                        closeAnalysisPopup={closeAnalysisPopup}
-                        handleChangeAnalysisSource={handleChangeAnalysisSource}
-                        analysisSourceRadioValue={analysisSourceRadioValue.toLowerCase()}
-                    />}
+            {isAnalysisPopupOpen &&
+                <LineChartWrapper
+                    analysisObject={analysisObject}
+                    timeNow={timeNow}
+                    closeAnalysisPopup={closeAnalysisPopup}
+                    handleChangeAnalysisSource={handleChangeAnalysisSource}
+                    analysisSourceRadioValue={analysisSourceRadioValue.toLowerCase()}
+                    secLenBeat={60.0/bpm}
+                    beatCount={currentBeatCountToDisplay}
+                    numerCount={currentNumerCountColToDisplay}
+                    denomCount={currentDenomCount}
+                    patternCount={currentPatternCount}
+                    filesToProcess={filesToProcess.current}
+                    bufferStepLength={((60.0/bpm) * 2000)/currentNoteVals.master[0]}
+                    graphNeedsUpdate={graphNeedsUpdate}
+                    setGraphNeedsUpdate={setGraphNeedsUpdate}
+                />}
             </Box>
 
             {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
-            <Box sx={{width: "100%", height: "100vh", textAlign: "center"}}>
+                <Box sx={{width: "100%", height: "100vh", textAlign: "center"}}>
+
                 {!chuckHook && (
                     <Box
                         className={styles.card}
-                        sx={{top: '48px', height: "100%"}}
+                        sx={{
+                            top: '48px', 
+                           
+                            height: "100%",
+                            textAlign: "center",
+                        }}
                     >
+                        <Box sx={{
+                            paddingTop: '20%',
+                            fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif',
+                            fontSize: '2em !important',
+                            
+                        }}>
+                            <h1 style={{
+                                fontSize: '2em !important', 
+                                fontWeight: 100}}>Sound Sink</h1>
+                        </Box>
                         <Button                                    
-                            style={{ 
-                                background: 'rbga(0,0,0,.91)', 
-                                position: "relative",
-                                color: 'rgba(0,0,0,1)', 
-                                zIndex: '9999',
-                            }} 
+                            // style={{ 
+                            //     background: 'rbga(0,0,0,.91)', 
+                            //     position: "relative",
+                            //     color: 'rgba(0,0,0,1)', 
+                            //     zIndex: '9999',
+                            // }} 
                             sx={{ 
-                                minWidth: '200px',
-                                minHeight: '120px', 
-                                top: "40%",
+                                minWidth: '160px',
+                                minHeight: '90px', 
+                                // top: "40%",
                                 width: programIsOn ? "104px" : "25vw",
-                                height: programIsOn ? "48px" : "8vw",
+                                height: programIsOn ? "90px" : "90px",
                                 paddingLeft: '24px',
                                 // maxHeight: '40px',
                                 fontSize: programIsOn ? "16px" : "32px",
@@ -5732,10 +5743,11 @@ col = "pink"
                     {programIsOn && (
                     <Box sx={{
                             position: "absolute", 
-                            borderRight: "1px solid #e2e2e2",
+                            // borderRight: "1px solid rgba(255, 255, 255, 0.4)",
+                            boxShadow: "0.5px 0px 0px grey",
                             height: "100%",
+                            background: 'rgba(56, 60, 84, .4)',
                             top: "50px",
-
                         }}
                     >
                         {/* BPM */}
@@ -5796,6 +5808,11 @@ col = "pink"
                                         patternsHashUpdated={patternsHashUpdated}
                                         adjustToFullScreenKey={adjustToFullScreenKey}
                                         keysFullscreen={keysFullscreen}
+                                        inPatternEditMode={inPatternEditMode}
+                                        handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                                        cellSubdivisions={cellSubdivisions}
+                                        resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
+                                        hideCircularArpBtns={hideCircularArpBtns}
                                     />
                                 </Box>
                             </Box>
@@ -5812,15 +5829,10 @@ col = "pink"
                                 }}
                             >
                                 {chuckHook && (<Button 
-                                    style={{ 
-                                        minWidth: '140px',
-                                        color: 'rgba(0,0,0,0.8)', 
-                                        background: 'rbga(0,0,0,.7)' 
-                                    }} 
                                     sx={{ 
-                                        minWidth: '76px', 
+                                        minWidth: '140px', 
                                         paddingLeft: '24px', 
-                                        maxHeight: '40px', 
+                                        color: 'rgba(0,0,0,0.8)', 
                                         marginLeft: '0px',
                                         border: '0.5px solid #b2b2b2',
                                         backgroundColor: 'rgba(147, 206, 214, 0.8)', 
@@ -5828,7 +5840,6 @@ col = "pink"
                                         '&:hover': {
                                             color: '#f5f5f5 !important',
                                             background: 'rgba(0,0,0,.98)',
-                                            // border: '1px solid #1976d2',
                                         } 
                                     }} 
                                     variant="contained" 
@@ -5853,17 +5864,12 @@ col = "pink"
                                     backgroundColor: 'rgba(158, 210, 162, 0.8)', 
                                     background: 'rbga(0,0,0,.7)', 
                                     position: 'relative', 
-                                    // border: '0.5px solid #b2b2b2',
                                     marginLeft: '0px', 
                                     minWidth: '140px', 
-                                    // marginLeft: '12px', 
-                                    // top: '276px', 
-                                    maxHeight: '40px',
                                     display: programIsOn ? "flex" : "none",
                                     '&:hover': {
                                         color: '#f5f5f5',
                                         background: 'rgba(0,0,0,.98)',
-                                        // border: '1px solid #1976d2',
                                     } 
                                 }} 
                                 // variant="outlined" 
@@ -5946,22 +5952,15 @@ col = "pink"
                             <Box sx={{display: "flex", flexDirection: "row"}}>
                                 {chuckHook && (
                                     <Button 
-                                        // style={{ 
-                                        //     color: 'rgba(0,0,0,1)', 
-                                        //     background: 'rbga(0,0,0,.91)' 
-                                        // }} 
                                         sx={{ 
                                             backgroundColor: 'rgba(232, 82, 82, 0.8)', 
                                             background: 'rgba(232, 82,82, 0.8)', 
                                             minWidth: '140px', 
                                             marginLeft: '0px', 
-                                            maxHeight: '40px',
                                             color: 'rgba(0,0,0,1)', 
-                                            // border: '0.5px solid #b2b2b2',
                                             '&:hover': {
                                                 color: '#f5f5f5 !important',
                                                 background: 'rgba(0,0,0,.98)',
-                                                // border: '1px solid #1976d2',
                                             }
                                         }} 
                                         variant="contained" 
@@ -6002,8 +6001,8 @@ col = "pink"
                     {/* ARPS */}
                     <Box 
                         sx={{
-                            display: 'flex', 
-                            flexDirection: 'row', 
+                            display: hideCircularArpBtnsHook ? 'none' : 'flex', 
+                            flexDirection: 'column', 
                             bottom: hasHexKeys 
                             ? 
                                 '12px' 
@@ -6011,7 +6010,7 @@ col = "pink"
                                 '204px', 
                             right: '0px', 
                             left: '152px',
-                            position: 'absolute'
+                            position:  'absolute'
                         }}>
                             
                         <Button 
@@ -6057,6 +6056,9 @@ col = "pink"
                                     minHeight: '60px',
                                     display: programIsOn ? "flex" : "none",
                                     border: '0.5px solid #b2b2b2',
+                                    zIndex: isAnalysisPopupOpen ? '0' : '99',
+                                    pointerEvents: "all",
+                                    cursor: "pointer",
                                     '&:hover': {
                                         color: '#f5f5f5 !important',
                                         background: 'rgba(0,0,0,.98)',
@@ -6085,6 +6087,9 @@ col = "pink"
                                     minHeight: '60px',
                                     border: '0.5px solid #b2b2b2',
                                     display: programIsOn ? "flex" : "none",
+                                    zIndex: isAnalysisPopupOpen ? '0' : '99',
+                                    pointerEvents: "all",
+                                    cursor: "pointer",
                                     '&:hover': {
                                         color: '#f5f5f5 !important',
                                         background: 'rgba(0,0,0,.98)',
@@ -6112,6 +6117,7 @@ col = "pink"
                                         stkFX={stkFX.current}
                                         checkedFXList={checkedFXList.current}
                                         keysVisible={keysVisible}
+                                        analysisPopupOpen={isAnalysisPopupOpen}
                                     />
                                 </Box>
                             </Box>   
@@ -6140,6 +6146,7 @@ col = "pink"
                     keyWid={`100vw`}
                     notesAddedDetails={notesAddedDetails}
                     keysFullscreen={keysFullscreen}
+                    isInPatternEditMode={isInPatternEditMode}
                 />
             </Box>
             <Box

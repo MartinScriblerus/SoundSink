@@ -56,6 +56,11 @@ interface ControlProps {
     patternsHashUpdated: boolean;
     adjustToFullScreenKey: (val: boolean) => void;
     keysFullscreen: boolean;
+    inPatternEditMode:(state: boolean) => void;
+    handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
+    cellSubdivisions: number;
+    resetCellSubdivisionsCounter: (x: number, y: number) => void;
+    hideCircularArpBtns: (boolVal: boolean) => void;
 }
 
 
@@ -100,6 +105,11 @@ export default function ControlPopup(props: ControlProps) {
     patternsHashUpdated,
     adjustToFullScreenKey,
     keysFullscreen,
+    inPatternEditMode,
+    handleChangeCellSubdivisions,
+    cellSubdivisions,
+    resetCellSubdivisionsCounter,
+    hideCircularArpBtns
   } = props;
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
@@ -137,6 +147,14 @@ export default function ControlPopup(props: ControlProps) {
     handleChangeBeatsNumerator(numeratorSignature)
   }, [numeratorSignature]);
 
+  useEffect(() => {
+    if (open) {
+      hideCircularArpBtns(true);
+    } else {
+      hideCircularArpBtns(false);
+    }
+  }, [open]);
+
   // useEffect(() => {
   //   console.log("READY TO PASS DOWN: ", patternsHash);
   // }, [patternsHashUpdated]);
@@ -145,7 +163,12 @@ export default function ControlPopup(props: ControlProps) {
     setUpdateCellColorBool(msg);
   }
   return (
-    <Box key={numeratorSignature} sx={{height: '100%', width: '100%'}}>
+    <Box 
+      key={numeratorSignature} 
+      sx={{
+        height: '100%', 
+        width: '100%',
+      }}>
       <Button 
         sx={{
           // borderColor: 'rgba(228,225,209,1)', 
@@ -164,7 +187,7 @@ export default function ControlPopup(props: ControlProps) {
         }} 
         aria-describedby={id} 
         className="ui_SynthLayerButton"
-        variant="outlined" 
+        // variant="outlined" 
         onClick={handleClick} 
         endIcon={<CalendarViewMonthIcon />}
       >
@@ -181,22 +204,29 @@ export default function ControlPopup(props: ControlProps) {
           // left: '94px', 
           // right: '94px', 
           top: '50px', 
-          width: '100%',
+          // width: '100%',
+          width: 'calc(100% - 140px)',
           height: '100%',
-          position: 'absolute',
+          position: 'absolute',         
         }} 
         width={window.innerWidth}  
         id={id} 
         open={open} 
         anchor={anchor}>
 
-        <Box sx={{zIndex:40, height: '100%'}}>
+        <Box sx={{
+            zIndex:40, 
+            height: '100%',
+            textAlign: 'center',
+            justifyContent: 'center'
+          }}
+        >
           <span 
             style={{
               position: "absolute",
               top: "12px",
               right: "8px",
-              zIndex: 1000,
+              zIndex: 50,
               cursor: "pointer"
             }}
             onClick={handleClick}> <CloseIcon/> 
@@ -224,97 +254,17 @@ export default function ControlPopup(props: ControlProps) {
             patternsHashUpdated={patternsHashUpdated}
             updateCellColor={updateCellColor}
             updateCellColorBool={updateCellColorBool}
+            inPatternEditMode={inPatternEditMode}
+            selectFileForAssignment={selectFileForAssignment}
+            sortFileItemDown={sortFileItemDown}
+            sortFileItemUp={sortFileItemUp}
+            handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+            cellSubdivisions={cellSubdivisions}
+            resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
           />
           
         </Box>
-        <Box sx={{display: "flex", flexDirection: "column", width: "100%", background: "pink"}}>
-            <>    
-                <Box 
-                  sx={{
-                    backgroundColor: 'rgba(30,34,26,0.96)', 
-                    width:'100%', 
-                    display:'flex', 
-                    flexDirection: 'column',
-                    minHeight:'100%',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}>
-                    <Button sx={{
-                      color: 'rgba(228,225,209,1)', 
-                      borderColor: 'rgba(228,225,209,1)', 
-                      position: 'absolute', 
-                      minWidth: '48px', 
-                      zIndex: 1001,
-                      top: "70px",
-                      right: '12px', 
-                      '&:hover': {
-                        color: '#f5f5f5',
-                        background: 'rgba(0,0,0,.98)',
-                      }
-                    }} 
-                    id="findme"
-                    aria-describedby={id} 
-                    variant="outlined" 
-                    onClick={handleShowBPM} 
-                    // startIcon={<Inventory2Icon />}
-                  >
-                <Inventory2Icon />
-              </Button>
-              <Box 
-                id="lookhere" 
-                key="fileNameWrapper"
-                style={{
-                  position: "absolute",
-                  top: "112px",
-                  right: "12px",
-                  zIndex: 1000,
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}>
-                {
-                  filesToProcess.length > 0 && (
-                    filesToProcess.map((file: any, idx: number) => {
-                      return (
-                        <Box 
-                          key={`selector_wrapper_${file.name}_${idx}`}
-                        >
-                          <Button 
-                          id={`fileChoice_${idx}`} 
-                          key={`selector_${file.name}_${idx}`} 
-                          onClick={((e:any) => selectFileForAssignment(e))}>
-                          <p>{file.name}</p>
-                          {/* <Button onClick={handleClickUploadedFiles} variant="contained" color="primary">
-                            Upload
-                          </Button> */}
-                          </Button>
-                          <Button 
-                            key={`selector_up_${file.name}_${idx}`}
-                            sx={{maxWidth: '12px', pointerEvents: 'all'}}
-                            id={`${idx}_${file.name}_up`} 
-                            onClick={(e: any) => sortFileItemUp(e)}
-                          >
-                            <KeyboardDoubleArrowUpIcon sx={{cursor: "pointer", pointerEvents: "none"}} key={`selector_up_icon_${file.name}_${idx}`} fontSize="small" />
-                          </Button>
-                          <Button 
-                            key={`selector_down_${file.name}_${idx}`}
-                            sx={{maxWidth: '12px', pointerEvents: 'all'}}
-                            id={`${idx}_${file.name}_down`} 
-                            onClick={(e: any) => sortFileItemDown(e)}
-                          >
-                            <KeyboardDoubleArrowDownIcon sx={{cursor: "pointer", pointerEvents: "none"}} key={`selector_down_icon_${file.name}_${idx}`} fontSize="small" />
-                          </Button> 
-                        </Box>
-                      )
-                    })
-                  )
-                }
-              </Box>
-            </Box>
-            </>  
-          </Box>
+
       </BasePopup>
     </Box>
   );

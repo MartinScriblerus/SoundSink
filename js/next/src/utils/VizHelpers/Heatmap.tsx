@@ -17,8 +17,6 @@ type HeatmapProps = {
   handleAudioInRateUpdate: (val: any) => void;
   updateCellColor: (val: any) => void;
   updateCellColorBool: boolean; 
-  // data: { x: string; y: string; value: number }[];
-
   filesToProcess: any[];
   currentNoteVals: any;
   numeratorSignature: number;
@@ -26,6 +24,13 @@ type HeatmapProps = {
   editPattern: any;
   patternsHash: any;
   patternsHashUpdated: boolean;
+  inPatternEditMode:(state: boolean) => void;
+  selectFileForAssignment: (e: Event) => void;
+  sortFileItemUp: (e: Event) => void;
+  sortFileItemDown: (e: Event) => void;
+  handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
+  cellSubdivisions: number;
+  resetCellSubdivisionsCounter: (x: number, y: number) => void;
 };
 
 export type InteractionData = {
@@ -34,6 +39,7 @@ export type InteractionData = {
   xPos: number;
   yPos: number;
   value: number;
+  instrument: string;
 };
 
 export const Heatmap = ({ 
@@ -55,8 +61,15 @@ export const Heatmap = ({
   patternsHash,
   patternsHashUpdated,
   updateCellColor,
-  updateCellColorBool
+  updateCellColorBool,
   // data
+  inPatternEditMode,
+  selectFileForAssignment, 
+  sortFileItemUp, 
+  sortFileItemDown,
+  handleChangeCellSubdivisions,
+  cellSubdivisions,
+  resetCellSubdivisionsCounter
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
 
@@ -69,6 +82,10 @@ export const Heatmap = ({
     patternarr.push(counter);
   });
     
+  useEffect(() => {
+    console.log("phash: ", patternsHash);
+  }, [patternsHash.length])
+
   useEffect(() => {
     if (updateCellColorBool) {
       updateCellColor(false);
@@ -112,6 +129,9 @@ export const Heatmap = ({
       width: '100%',
       height: '100%',
       zIndex: '40',
+      textAlign: 'center',
+      justifyContent: 'center',
+      paddingLeft: '24px'
       // height: `calc(100vh - 272px)`
     }}>
       <ArpSpeedSliders 
@@ -134,11 +154,21 @@ export const Heatmap = ({
         patternsHashUpdated={patternsHashUpdated}
         updateCellColorBool={updateCellColorBool}
         updateCellColor={updateCellColor}
+        inPatternEditMode={inPatternEditMode}
+        filesToProcess = {filesToProcess}
+        selectFileForAssignment = {selectFileForAssignment}
+        sortFileItemUp={sortFileItemUp}
+        sortFileItemDown={sortFileItemDown}
+        handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+        cellSubdivisions={cellSubdivisions}
+        resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
       />
       <Tooltip 
         interactionData={hoveredCell} 
         width={width} 
-        height={height} />
+        height={height}
+        patternsHash={patternsHash}
+      />
     </Box>
   );
 };

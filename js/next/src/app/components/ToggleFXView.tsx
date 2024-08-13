@@ -11,6 +11,7 @@ type Props = {
     stkFX: any;
     checkedFXList: any;
     keysVisible: boolean;
+    analysisPopupOpen: boolean;
 };
 
 const ToggleFXView = ({
@@ -18,6 +19,7 @@ const ToggleFXView = ({
     fxCount, 
     handleReturnToSynth, 
     programIsOn, 
+    analysisPopupOpen,
 }: Props) => {
 
     const stkCountHandler = stkCount ? stkCount : 0;
@@ -43,6 +45,9 @@ const ToggleFXView = ({
                     display: programIsOn ? "flex" : "none",
                     marginLeft: '0px',
                     marginBottom: '4px',
+                    zIndex: analysisPopupOpen ? '0' : '99',
+                    pointerEvents: "all",
+                    cursor: "pointer",
                     '&:hover': {
                         color: '#f5f5f5',
                         background: 'rgba(0,0,0,.98)',

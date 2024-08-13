@@ -141,7 +141,7 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
     
     
     function createHexGrid(microTonalLetters: any, gridSize: any, hexWidthDistance: any, hexHeightDistance: any, rowlengthAddition: any, hexTileImport: any, waterMaterialTop: any, camera: any, scene: any, key: string, chuckHook: Chuck | undefined){
-        console.log("microtonal letters: ",  microTonalLetters);
+        console.log("fmicrotonal: ",  microTonalLetters);
         // microTonalLetters.forEach((i:any) => i.name.includes('hexTile') && i.dispose());
         gridSize = Math.log(microTonalLetters.length);
         let gridStart = new BABYLON.Vector3((hexWidthDistance/2)*(gridSize-1),0,(-hexHeightDistance*0.75)*(gridSize-1));

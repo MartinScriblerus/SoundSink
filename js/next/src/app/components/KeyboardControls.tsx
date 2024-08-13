@@ -55,7 +55,7 @@ const KeyboardControls = (
 
             <Box 
                 sx={{
-                    borderTop: 'solid 1px rgba(255, 255, 255, 0.78)',
+                    // borderTop: 'solid 1px rgba(255, 255, 255, 0.78)',
                     display: chuckHook && window.innerHeight > 520 ? 'flex': 'none',
                 }} 
                 className={'fx-popup-left-row'}
