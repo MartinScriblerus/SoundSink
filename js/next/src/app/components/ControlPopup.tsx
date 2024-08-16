@@ -218,7 +218,7 @@ export default function ControlPopup(props: ControlProps) {
             zIndex:40, 
             height: '100%',
             textAlign: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           <span 

@@ -72,6 +72,7 @@ export const Heatmap = ({
   resetCellSubdivisionsCounter
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
+  const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
 
   const nCol = numeratorSignature;
   const nRow = 4;
@@ -82,6 +83,15 @@ export const Heatmap = ({
     patternarr.push(counter);
   });
     
+useEffect(() => {
+  setDoRebuildHeatmap(true);
+}, [doRebuildHeatmap])
+
+  useEffect(() => {
+    console.log("patterns hash updated: ", patternsHashUpdated);
+  },[patternsHashUpdated])
+
+
   useEffect(() => {
     console.log("phash: ", patternsHash);
   }, [patternsHash.length])
@@ -92,9 +102,6 @@ export const Heatmap = ({
     }
   }, [updateCellColorBool])
 
-  // useEffect(() => {
-  //   alert(`HEY HEY ${numeratorSignature}`);
-  // }, [numeratorSignature])
   
   type HeatmapData = { x: string; y: string; value: number }[];
   
@@ -111,13 +118,9 @@ export const Heatmap = ({
     }
   }
 
-  // const sayHello = (x: any, y: any, group: any) => {
-  //   alert(`Hello!_${x}_${y}_${group}`);
-  //   // X & Y VALS ARE 1-INDEXED!
-  //   if (x === "undefined") {
-  //     x = 8;
-  //   }
-  // }
+  const rebuildHeatmap = () => {
+    setDoRebuildHeatmap(true);
+  }
 
   return (
     <Box sx={{ 
@@ -142,7 +145,9 @@ export const Heatmap = ({
 
         filesToProcess={filesToProcess}
         currentNoteVals={currentNoteVals}
-      />    
+      />   
+{
+// !patternsHashUpdated && (
       <Renderer
         width={width - 60}
         height={height}
@@ -162,7 +167,10 @@ export const Heatmap = ({
         handleChangeCellSubdivisions={handleChangeCellSubdivisions}
         cellSubdivisions={cellSubdivisions}
         resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
+        rebuildHeatmap={rebuildHeatmap}
       />
+  // )
+}
       <Tooltip 
         interactionData={hoveredCell} 
         width={width} 

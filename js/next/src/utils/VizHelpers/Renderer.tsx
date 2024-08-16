@@ -38,6 +38,7 @@ type RendererProps = {
   handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
   cellSubdivisions: number;
   resetCellSubdivisionsCounter: (x: number, y: number) => void;
+  rebuildHeatmap: () => void;
 };
 
 export const Renderer = ({
@@ -57,8 +58,8 @@ export const Renderer = ({
   sortFileItemDown,
   handleChangeCellSubdivisions,
   cellSubdivisions,
-  resetCellSubdivisionsCounter
-
+  resetCellSubdivisionsCounter,
+  rebuildHeatmap
 }: RendererProps) => {
 
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -133,13 +134,15 @@ export const Renderer = ({
       console.log("eeee ", num);
       // const el: any = Object.values(e.target)[1];
       const el: any = Object.values(e.target)[1];
-      console.log("HEYO HEYO EL ", el);
+      
       const isFill = el.id.includes("fill");
+      
       const vals = !isFill ? el.id.split("_") : el.id.replace("fill_", "").split("_");
 
       const xVal = num;
       const yVal = vals[1];
       const zVal = vals[2];
+      console.log("HEYO HEYO EL ", isFill, xVal, yVal);
       resetCellSubdivisionsCounter(xVal, yVal);
       currentXVal.current = xVal;
       currentYVal.current = yVal;
@@ -165,89 +168,101 @@ export const Renderer = ({
       }
     }
 
-    useEffect(() => {
-      console.log("rerender");
-    }, [updateCellColorBool]);
-    console.log("Pattern hash updated? ", patternsHash);
-
 
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
-      <React.Fragment key={`cellRectWrapper_${d.x}_${d.y}_${patternsHashUpdated}`}>
-        {/* {(false == true)
-          ?
-          <rect
-            key={`rectCellWrapper_${d.x}_${d.y}`}
-            r={4}
-            id={`${d.x}_${d.y}`}
-            x={xScale(d.x)}
-            y={yScale(d.y)}
-            width={xScale.bandwidth()}
-            height={yScale.bandwidth()}
-            opacity={1}
-            fill={colorScale(d.value)}
-            // rx={5}
-            stroke={"white"}
-            onClick={(e: any) => triggerEditPattern(e, d.x)}
-            onMouseEnter={(e) => {
-              setHoveredCell({
-                xLabel: "group " + d.x,
-                yLabel: "group " + d.y,
-                instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
-                xPos: x + xScale.bandwidth() + MARGIN.left - 140,
-                yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
-                value: Math.round(d.value * 100) / 100,
-              });
-            }}
-            onMouseLeave={() => setHoveredCell(null)}
-            cursor="pointer"
-            style={{ zIndex: 100, pointerEvents: "all" }}
-          />
-          : */}
-          <React.Fragment 
-            key={`rectFillsWrapper_${d.x}_${d.y}`}>
-              {Array.apply(null, 
-                // (new Array(Object.values(cellData.current)[2]))).map(
-                (new Array(patternsHash[`${d.y}`][`${d.x}`]))).map(
-                  (x, i) => { 
-                    return i; 
-                  }
-                ).map((i, idx) => {
-                  const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[2] || 0;
+      <>
+        {
+          !showPatternEditorPopup && (
+        <React.Fragment key={`cellRectWrapper_${d.x}_${d.y}_${patternsHashUpdated}`}>
+          {/* {(false == true)
+            ?
+            <rect
+              key={`rectCellWrapper_${d.x}_${d.y}`}
+              r={4}
+              id={`${d.x}_${d.y}`}
+              x={xScale(d.x)}
+              y={yScale(d.y)}
+              width={xScale.bandwidth()}
+              height={yScale.bandwidth()}
+              opacity={1}
+              fill={colorScale(d.value)}
+              // rx={5}
+              stroke={"white"}
+              onClick={(e: any) => triggerEditPattern(e, d.x)}
+              onMouseEnter={(e) => {
+                setHoveredCell({
+                  xLabel: "group " + d.x,
+                  yLabel: "group " + d.y,
+                  instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
+                  xPos: x + xScale.bandwidth() + MARGIN.left - 140,
+                  yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
+                  value: Math.round(d.value * 100) / 100,
+                });
+              }}
+              onMouseLeave={() => setHoveredCell(null)}
+              cursor="pointer"
+              style={{ zIndex: 100, pointerEvents: "all" }}
+            />
+            : */}
+            <React.Fragment 
+              key={`rectFillsWrapper_${d.x}_${d.y}`}>
+                {Array.apply(null, 
+                  // (new Array(Object.values(cellData.current)[2]))).map(
+                  new Array(patternsHash[`${d.y}`][`${d.x}`].subdivisions)).map(
+                    (x, i) => {
+                      // console.log("whhhhhhhhhat is i? ", x, i) 
+                      return x; 
+                    }
+                  ).map((i, idx) => {
+                    const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
 
-                  return (
-                    <rect
-                      key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
-                      r={4}
-                      id={`fill_${d.x}_${d.y}`}
-                      x={xScale(d.x)! + ((xScale.bandwidth() / parseFloat(d.x)) * idx)}
-                      y={yScale(d.y)}
-                      width={cellData.current && Object.values(cellData.current)[0].length > 5 ? xScale.bandwidth() / Object.values(cellData.current)[8] : xScale.bandwidth()  }
-                      height={yScale.bandwidth()}
-                      opacity={1}
-                      fill={colorScale(d.value)}
-                      // rx={5}
-                      stroke={"white"}
-                      onClick={(e: any) => triggerEditPattern(e, d.x)}
-                      onMouseEnter={(e) => {
-                        setHoveredCell({
-                          xLabel: d.x,
-                          yLabel: d.y,
-                          xPos: x + xScale.bandwidth() + MARGIN.left,
-                          yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
-                          value: Math.round(d.value * 100) / 100,
-                          instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
-                        });
-                      }}
-                      onMouseLeave={() => setHoveredCell(null)}
-                      cursor="pointer"
-                      style={{ zIndex: 100, pointerEvents: "all" }}
-                    />
-                  )
-          })}</React.Fragment>
-{/* 
-        } */}
-        </React.Fragment>);
+
+
+                    return (
+                      <rect
+                        key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
+                        r={4}
+                        id={`fill_${d.x}_${d.y}`}
+                        x={(xScale(d.x)! + (xScale.bandwidth() * idx) / patternsHash[d.y][d.x].subdivisions)}
+                        y={yScale(d.y)}
+                        width={
+                          cellData.current && 
+                          Object.values(cellData.current)[0].length > 5 
+                          ? 
+                            (xScale.bandwidth() / Object.values(cellData.current)[8]) 
+                          : 
+                            (xScale.bandwidth() / patternsHash[d.y][d.x].subdivisions)
+                        }
+                        height={yScale.bandwidth()}
+                        opacity={1}
+                        fill={colorScale(d.value)}
+                        // rx={5}
+                        stroke={"white"}
+                        onClick={(e: any) => triggerEditPattern(e, d.x)}
+                        onMouseEnter={(e) => {
+                          setHoveredCell({
+                            xLabel: d.x,
+                            yLabel: d.y,
+                            xPos: x + xScale.bandwidth() + MARGIN.left,
+                            yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
+                            value: Math.round(d.value * 100) / 100,
+                            instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
+                          });
+                        }}
+                        onMouseLeave={() => setHoveredCell(null)}
+                        cursor="pointer"
+                        style={{ zIndex: 100, pointerEvents: "all" }}
+                      />
+                    )
+            })}</React.Fragment>
+  {/* 
+          } */}
+        </React.Fragment>
+          )
+        }
+      </>
+      );
   });
 
   const xLabels = allXGroups.map((name, i) => {
@@ -299,12 +314,12 @@ export const Renderer = ({
   };
 
   const handleCloseEditorPopup = () => {
-    alert("good");
     setShowPatternEditorPopup(false);
+    rebuildHeatmap();
   }
 
   const handleFillEdit = (e: any) => {
-    console.log("AYEAYEAYE FILLLLLLL: ", e);
+    console.log("FILL: ", e);
   }
 
   const handlePatternEditMode = () => {
@@ -321,7 +336,7 @@ export const Renderer = ({
         display: "flex",
         flexDirection: "column",
         textAlign: "center",
-        paddingTop: "80px"
+        paddingTop: window.innerHeight < 650 ? "30px" : "92px"
       }}>
       {showPatternEditorPopup && (
         <Box
@@ -333,10 +348,10 @@ export const Renderer = ({
             display: "flex",
             flexDirection: "column",
             textAlign: "center",
-            height: "60%",
+            height: "46%",
             width: "92%",
             left: "4%",
-            top: "0%",
+            top: "16%",
             background: "rgba(0,0,0,0.9)",
             zIndex: "1001",
           }}>
@@ -506,7 +521,7 @@ export const Renderer = ({
                   }}
                 >
   
-                  <Box
+                  {/* <Box
                     sx={{ display: "flex", width: "100vw" }}
                   >
                     <Button
@@ -521,7 +536,7 @@ export const Renderer = ({
                         isInEditMode ? "Edit Mode Off" : "Edit Mode On"
                       }
                     </Button>
-                  </Box>
+                  </Box> */}
 
                   <FileWrapper
                     filesToProcess={filesToProcess}

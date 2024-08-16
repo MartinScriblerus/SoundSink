@@ -298,6 +298,8 @@ export default function InitializationComponent() {
         midiNum: 0,
     });
 
+    const hashesToChuckArrs = useRef<any[][]>([[]]);
+
     useEffect(() => {
         console.log("YO ", currentNumerCountColToDisplay);
         console.log("GABBA: ", currentNumerCount);
@@ -329,7 +331,7 @@ export default function InitializationComponent() {
         // alert(`hit this ${z} _ ${col}`);
 
         console.log("NOTES TO ASSIGN!!! ", notesToAssign.current);
-        console.log("stupid error? ", patternsHash.current);
+
        
         patternsHash.current[`${z}`][`${x}`] = {};
         patternsHash.current[`${z}`][`${x}`] = {
@@ -342,8 +344,7 @@ export default function InitializationComponent() {
             subdivisions: cellSubdivisions
         }
 
-        console.log("CHECK IT!!! ", patternsHash.current[`${z}`][`${x}`]);
-        // };         
+        console.log("CHECK IT!!! ", patternsHash.current[`${z}`][`${x}`])      
     }
 
     useEffect(() => {
@@ -3725,28 +3726,40 @@ export default function InitializationComponent() {
             console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
             console.log("NORMALIZED!! ", normalizedCentroids.current);
             
- 
+            console.log("sanity check: ", Object.values(patternsHash.current));
             const patternsHashToChuckArrays: any = []; 
-            await Object.entries(patternsHashHook).map((i: any, idx: number) => {
-                    if (parseInt(i[0].split('_')[1]) === idx+1) {
+
+            await Object.values(patternsHash.current).map((i: any) => Object.values(i)).map((j: any, idx: number) => {
+                console.log("err etf i??? ", Object.values([j]));
+                patternsHashToChuckArrays.push(Object.values(j));    
+                if (parseInt(j[0][1]) === idx+1) {
                         // console.log('fugggg ', Object.values(i[1]).map((j:any) => `[${Object.values(j)}]`));
-                        patternsHashToChuckArrays.push(Object.values(i[1]).map((j:any) => "[" + Object.values(j).map((i:any) => `"${i}"`) + "]"));
+                        patternsHashToChuckArrays[idx].push(Object.values(j[1]).map((j:any) => Object.values(j).map((i:any) => `${i}`)));
                     }
                 });
-            // console.log("PATTERNS HASH TO CHUCK ARRAYS*: ", `${patternsHashToChuckArrays.map((i: any) => i[1])}`);
+                
+            
 
 
-            await patternsHashHook && patternsHashHook.length > 0 && patternsHashToChuckArrays[0].length > 0;
+
+
+console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
+            const getNotesArray: any = Object.values(patternsHash.current).map((i:any) => Object.values(i[1]).map((j: any) => j[1]));
+            console.log("PATTERNS HASH TO CHUCK ARRAYS*&&: ", Object.values(patternsHash.current));
+            console.log("sanity check on curr notes ", getNotesArray);
+
+            const ary2D = Object.keys(patternsHash.current).map(function (key) {
+                return '[' + Object.values(patternsHash.current[key]).map((j:any) => '[' + Object.values(j)[1] + ']') + ']';
+            });
+            console.log("ARY2D: ", ary2D);
+
+            await patternsHashToChuckArrays && patternsHashToChuckArrays.length > 0 && patternsHashHook && patternsHashHook.length > 0 && patternsHashToChuckArrays[0].length > 0;
             chuckCode = `
             
             [${Object.keys(currNotesHash.current)}] @=> int notes[];
-            [${patternsHashToChuckArrays}] @=> string patternsArrays[][];
-            [${patternsHashToChuckArrays[0]}] @=> string patternsArrays_Sample1[][];
-            [${patternsHashToChuckArrays[1]}] @=> string patternsArrays_Sample2[][];
-            [${patternsHashToChuckArrays[2]}] @=> string patternsArrays_Sample3[][];
-            [${patternsHashToChuckArrays[3]}] @=> string patternsArrays_Sample4[][];
-            [${patternsHashToChuckArrays[4]}] @=> string patternsArrays_Osc1[][];
-            [${patternsHashToChuckArrays[5]}] @=> string patternsArrays_Osc2[][];
+            // [['{1: {1: {}}}']] @=> int patternsArrays[][];
+            ${ary2D} @=> int patternsArrays[][];
+  
         
             // for (string i[] : patternsArrays_Sample1) {
             //     <<< "NUM_COUNT_SAMPLER 1 : ", i >>>;
@@ -4590,10 +4603,10 @@ export default function InitializationComponent() {
                 UniversalAnalyzer uA;
             
             
-                fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration, string patternsArrays[][]) {
+                fun void PlaySynthNotes(Event myEvent, int notesToPlay[], dur duration, int patternsArrays[][]) {
                     // <<< "PLAYSYNTH_ON ", notesToPlay >>>;
 
-                
+                    <<< patternsArrays >>>;
                     myEvent => now;
                 
                     0 => int runningShreds;
@@ -4690,11 +4703,11 @@ export default function InitializationComponent() {
                     int samplesArrayPos[], 
                     int notesToPlay[], 
                     dur duration,
-                    string patternsArrays[][]
+                    int patternsArrays[][]
                 ) {                
                     count % (notesToPlay.size()) => int sampler1Idx;
                     
-                    <<< "SAMPLE_ON" >>>;
+                    <<< "SAMPLE_ON ", patternsArrays >>>;
                     <<< "samples notes/pattern to play ", notesToPlay.cap() >>>; 
                     <<< "samples arr pos", samplesArrayPos.cap() >>>;
                     mySampleEvent => now;
@@ -4810,6 +4823,9 @@ export default function InitializationComponent() {
                 if (${SHD_STK_PLAY === 1 && stkFX.current.length > 0}) {
                     spork ~ PlaySTK(mySTKEvent, [${currNotes.current}], (whole*${denominatorSignature})/${currentNoteVals.oscs[0]}) @=> Shred shredSTK;  
                 }
+
+
+                <<< patternsArrays >>>;
 
                 spork ~ PlaySamplePattern(mySampleEvent, [0], [0,2], whole/${currentNoteVals.samples[0]}, patternsArrays) @=> Shred shredSample;
                 spork ~ PlaySynthNotes(myEvent, notes, (whole*${denominatorSignature})/${currentNoteVals.oscs[0]}, patternsArrays) @=> Shred shredSynth; 
@@ -5479,6 +5495,7 @@ export default function InitializationComponent() {
 
     const resetCellSubdivisionsCounter = (x: number, y: number) => {
         const subdivs: any = patternsHash.current[`${y}`][`${x}`].subdivisions;
+        setPatternsHashUpdated(true)
         setCellSubdivisions(subdivs || 1);
 
     }
@@ -5660,9 +5677,9 @@ export default function InitializationComponent() {
                             fontSize: '2em !important',
                             
                         }}>
-                            <h1 style={{
+                            {/* <h1 style={{
                                 fontSize: '2em !important', 
-                                fontWeight: 100}}>Sound Sink</h1>
+                                fontWeight: 100}}>Sound Sink</h1> */}
                         </Box>
                         <Button                                    
                             // style={{ 
@@ -5674,7 +5691,7 @@ export default function InitializationComponent() {
                             sx={{ 
                                 minWidth: '160px',
                                 minHeight: '90px', 
-                                // top: "40%",
+                                top: "0%",
                                 width: programIsOn ? "104px" : "25vw",
                                 height: programIsOn ? "90px" : "90px",
                                 paddingLeft: '24px',
@@ -5746,7 +5763,7 @@ export default function InitializationComponent() {
                             // borderRight: "1px solid rgba(255, 255, 255, 0.4)",
                             boxShadow: "0.5px 0px 0px grey",
                             height: "100%",
-                            background: 'rgba(56, 60, 84, .4)',
+                            background: 'rgba(30,34,26,0.96)',
                             top: "50px",
                         }}
                     >
@@ -5768,6 +5785,7 @@ export default function InitializationComponent() {
                                     }}
                                 >
                                     <ControlPopup
+                                    
                                         bpm={bpm}
                                         handleChangeBPM={handleChangeBPM}
                                         handleChangeBeatsNumerator={handleChangeBeatsNumerator}

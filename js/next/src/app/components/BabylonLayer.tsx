@@ -143,7 +143,7 @@ function BabylonScene(props: {
 
             game.camera1 = {};
             game.camera1 = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
-            game.camera1.setTarget(new BABYLON.Vector3(-1.8,-0.8,0.0));
+            game.camera1.setTarget(new BABYLON.Vector3(-2.6,-0.8,0.0));
             game.camera1.attachControl(game.scene, false);
             game.camera1.position = new BABYLON.Vector3(0, 0, 12);
             game.camera1.inputs.attached.keyboard.detachControl();
@@ -227,7 +227,7 @@ function BabylonScene(props: {
                         // create a light for each knob
                         game.light[i] = {};
                         game.light[i][j] = new BABYLON.SpotLight("spotLight", new BABYLON.Vector3(0, 30, -10), new BABYLON.Vector3(0, -1, 0), Math.PI / 3, 2, game.scene);
-                        game.light[i][j].intensity = 0.045;
+                        game.light[i][j].intensity = 0.040;
                             
                         // create a stack panel GUI for each knob
                         const paneL = new GUI.StackPanel();
@@ -312,12 +312,12 @@ function BabylonScene(props: {
                                 typeof visibleFXKnobs[effectsIndex][0][1] && 
                                 typeof visibleFXKnobs[effectsIndex][0][1].value === 'number'
                                 ?
-                                    `${visibleFXKnobs[effectsIndex][0][0]}: ${visibleFXKnobs[effectsIndex][0][1].value.toFixed(4)}`    
+                                    `${visibleFXKnobs[effectsIndex][0][0]}: ${visibleFXKnobs[effectsIndex][0][1].value.toFixed(2)}`    
                                 :
-                                    `${visibleFXKnobs[effectsIndex][0]}: ${visibleFXKnobs[effectsIndex][1].value ? visibleFXKnobs[effectsIndex][1].value.toFixed(4) : 0.00}`
+                                    `${visibleFXKnobs[effectsIndex][0]}: ${visibleFXKnobs[effectsIndex][1].value ? visibleFXKnobs[effectsIndex][1].value.toFixed(2) : 0.00}`
 
                             : 
-                                `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(4)}`;
+                                `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(2)}`;
                 
                         // handleResetNeedsUpdate();
                         if (game.scene && game.engine?.scenes[0] && game.engine?.scenes[0].meshes.length < 1) {
@@ -486,9 +486,9 @@ function BabylonScene(props: {
 
     return (
     <ThemeProvider theme={theme}>
-        <div style={{position: 'absolute', right: '0', top: '54px', zIndex: '6', width: '4rem', height: '4rem'}}>
+        {/* <div style={{position: 'absolute', right: '0', top: '54px', zIndex: '6', width: '4rem', height: '4rem'}}>
             <button id="one" onClick={handleDebugLayer}> Babylon DevTools </button>
-        </div>
+        </div> */}
         <Box sx={{
                 visibility: programIsOn ? "visible" : "hidden", 
                 marginLeft: "140px", 
@@ -496,7 +496,7 @@ function BabylonScene(props: {
                 minWidth: window.innerWidth,
                 display: "flex",
                 flexDirection: "column",
-                background: "rgba(56, 60, 84, .4)",
+                background: "rgba(56, 60, 84, .1)",
                 alignItems: "center",
                 // paddingLeft: "140px !important"
             }}

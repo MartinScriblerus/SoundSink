@@ -62,7 +62,7 @@ export default function DiscreteSlider(props: SliderProps) {
         <Box sx={{ 
             maxHeight: '40px', 
             width: '100%', 
-            display: window.innerHeight > 740 ? 'flex' : 'none', 
+            display: window.innerHeight > 800 ? 'flex' : 'none', 
             flexDirection: 'row',
             paddingTop: '12px', 
             marginLeft: '-12px',
