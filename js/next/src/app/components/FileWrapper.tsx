@@ -1,7 +1,8 @@
 import { Box, Button } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import KeyboardDoubleArrowUpIcon from '@mui/icons-material/KeyboardDoubleArrowUp';
 import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
+import WavesurferPlayer, {useWavesurfer} from '@wavesurfer/react'
 
 interface FileWrapperProps {
     filesToProcess: any;
@@ -12,7 +13,52 @@ interface FileWrapperProps {
 
 const FileWrapper = (props: FileWrapperProps) => {
     const {filesToProcess, selectFileForAssignment, sortFileItemUp, sortFileItemDown} = props;
+
+
+    console.log("HEYO SURFER ", filesToProcess);
+  
+
+    // const containerRef = useRef(null)
+    // const { wavesurfer, isReady, isPlaying, currentTime } = useWavesurfer({
+    //     container: containerRef,
+    //     // url: '/my-server/audio.ogg',
+    //     waveColor: 'purple',
+    //     // height: 100,
+    //   })
+    // useEffect(() => {
+    //     console.log("SANE CHECK: ", filesToProcess[0].data);
+    //   if (wavesurfer) {
+    //     const blob: any = new window.Blob(filesToProcess[0].data);
+    //     wavesurfer.loadBlob(blob);
+    //   }
+    // }, [wavesurfer]);
+    // const [wavesurfer, setWavesurfer] = useState<any>(null)
+    // const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  
+    // const onReady = (ws:any) => {
+    //     const blob: any = new window.Blob(filesToProcess[0].data);
+    //     ws.loadBlob(blob);
+    //     setWavesurfer(ws)
+    //     setIsPlaying(false)
+    // }
+  
+
+    //     const onPlayPause = () => {
+    //         if(wavesurfer){
+    //             wavesurfer.playPause()
+    //         }
+    //       }
+
+
+
+  
+    
+ 
+  
+
+    
     return (
+        
         <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
             {/* <>    
                 <Box 
@@ -46,6 +92,7 @@ const FileWrapper = (props: FileWrapperProps) => {
                   >
                 <Inventory2Icon />
               </Button> */}
+              
             <Box
                 id="lookhere"
                 key="fileNameWrapper"
@@ -99,6 +146,7 @@ const FileWrapper = (props: FileWrapperProps) => {
                 }
             </Box>
         </Box>
+
         // </>  
         //   </Box>
     )

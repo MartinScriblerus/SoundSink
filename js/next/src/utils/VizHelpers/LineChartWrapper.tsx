@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { LineChart } from "./LineChart";
 import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import LegendVizx from "@/app/components/VizxHelpers/Legend";
+import BrushChart from "@/app/components/VizxHelpers/BrushChart";
 export interface VizDataProps {
 
   analysisObject: any;
@@ -18,6 +20,10 @@ export interface VizDataProps {
   bufferStepLength: number;
   graphNeedsUpdate: boolean;
   setGraphNeedsUpdate: any;
+  handleLegendClicked: (label:any) => void;
+  inFileAnalysisMode: boolean;
+  handleFileAnalysisMode:() => void;
+  meydaData: any;
 }
 
 export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}) => {
@@ -36,6 +42,10 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     bufferStepLength,
     graphNeedsUpdate,
     setGraphNeedsUpdate,
+    handleLegendClicked,
+    inFileAnalysisMode,
+    handleFileAnalysisMode,
+    meydaData
   } = props;
   
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -95,116 +105,42 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   }, [filesToProcess.length, isInFileMode]);
 
   return (
+    <>
+
+
     <Box
       className="findme"
       sx={{
-        top: "26px",
+        top: "0px",
         pointerEvents: "none",
         borderRadius: "24px",
         width: "100%",
         height: "100%",
+        display: "inline-flex",
+        position: "relative",
       }}
-    >
-      <Button 
-        onClick={bruteHandleIsInFileMode}
-        sx={{
-          border: 'solid 1px #000000',
-          backgroundColor: isInFileMode ? '#000000' : 'orange',
-          color: isInFileMode? '#ffffff' : '#000000',
-          fontSize: "14px",
-          padding: "8px 16px",
-          position: "absolute",
-          zIndex: "99",
-          pointerEvents: "all",
-          cursor: "pointer",
-          marginLeft: "16px",
-          borderRadius: "4px",
-
-        }}
-      >
-        File Mode
-      </Button>
+    >      
       <Box 
         sx={{
           pointerEvents: "none", 
           position: "relative", 
-          // flexDirection: "row-reverse", 
-          // width: "calc(100% - 240px)",
-          width: "calc(100% - 146px)",
-          // left: "240px", 
+          // width: "calc(100% - 146px)",
           display: "flex", 
-          // background: "rgba(0,0,0,0.98)",
           height: "100%",
-          background: "rgba(0,0,0,0.9)"
+          background: "rgba(0,0,0,0.9)",
+          justifyContent: "right",
+          alignItems: "right",
+          borderRadius: "16px",
+          padding: "12px",
+          fontSize: "16px",
+          width: "100%"
         }}
       >
-        
-
-        <Box sx={{ 
+        {/* <Box sx={{ 
           position: "relative",
           display: "flex", 
           flexDirection: "column" }}>
-          {
-          mockData && 
-          (<LineChart
-              key={`${currentVisualization}`}
-              // data={analysisObject.current[analysisSourceRadioValue][`${currentVisualization}`]}
-              // data={mockData.map((i: any) => {return {x: i.x, y: i[`${currentVisualization}`]}})}
-              data={isInFileMode && 
-                filesToProcess.length > 0 && 
-                filesToProcess[filesToProcess.length - 1].data 
-                ? 
-                  filesToProcess[filesToProcess.length - 1].data
-                :
-                // filesToProcess[filesToProcess.length - 1].data.map((i: any, idx: number) => {return {x: idx * ((fileTime.current || 1)/filesToProcess[filesToProcess.length - 1].data.length), y: i[`${currentVisualization}`]}})} : 
-                  mockData.map((i: any) => {return {x: i.x, y: i[`${currentVisualization}`]}})
-                
-
-              }
-              width={width}
-              height={height}
-              cursorPosition={cursorPosition}
-              setCursorPosition={setCursorPosition}
-              color={"rgba(228,225,209,1)"}          
-              // analysisObject={analysisObject}
-              // analysisSourceRadioValue={analysisSourceRadioValue}
-              selectedViz={`${currentVisualization}`}
-              timeNow={timeNow}
-              secLenBeat={secLenBeat}
-              beatCount={beatCount}
-              numerCount={numerCount}
-              denomCount={denomCount}
-              patternCount={patternCount}
-              isInFileMode={isInFileMode} 
-              fileTime={fileTime.current}
-              filesToProcess={filesToProcess}
-              graphNeedsUpdate={graphNeedsUpdate}
-              setGraphNeedsUpdate={setGraphNeedsUpdate}
-          />)}
-
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              // minHeight: '60px',
-              // marginRight: '80px',
-              // backgroundColor: "rgba(0, 0, 0,1)",
-              color: 'rgba(228,225,209,1)',
-              // position: 'absolute',
-              maxWidth: '100%',
-              justifyContent: 'center',
-              alignItems: 'center',
-              // padding: '12px',
-              // marginLeft: '12px',
-              // marginRight: '12px'
-        
-              // left: '208px',
-              // zIndex: 9999,
-              // background: 'transparent',
-
-            }}
-          >
-          {['Osc', 'STK', 'Sampler', 'AudioIn'].map((i) => {
+          {['Master', 'Osc', 'STK', 'Sampler', 'AudioIn'].map((i) => {
             return (
               <Button
                 id={`${i}_analysis_btn_setter`}
@@ -214,7 +150,6 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
                 sx={{
                   width: '60px', 
                   height: '60px', 
-                  // marginRight: '12px', 
                   pointerEvents: 'all',
                   zIndex: '99',
                   cursor: 'pointer',
@@ -230,66 +165,72 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
                     borderColor: '#f6f6f6',
                   }
                 }}
-              >{i === "Osc" ? "osc": i === "STK" ? "stk": i === "Sampler" ? "sam" : "in"}</Button>)
+              >{i === "Master" ? "master" : "Osc" ? "osc": i === "STK" ? "stk": i === "Sampler" ? "sam" : "in"}</Button>)
             })
           }
-        </Box>
+        </Box> */}
 
-        <Box sx={{display: 'flex', width: '100%', flexDirection: 'row'}}>
-          {['Centroid', 'Flux', 'RMS', 'Rolloff 50', 'Rolloff 85', 'XCrossings', 'Freq', 'Gain', 'Kurtosis', 'SFM', 'MFCC'].map((j: any, idx: number) => {
-            return (
-              <Button
-                id={`${j}_analysis_btn_setter_features`}
-                key={`${j}_analysis_btn_setter_features`}
-                onClick={(e) => handleChange(e)}
-                value={j}
-                sx={{
-                  width: '60px', 
-                  height: '60px',
-                  pointerEvents: 'all',
-                  display: 'flex',
-                  flexDirection: 'row',
-                  zIndex: 9999,
-                  cursor: 'pointer',
-                  // marginRight: '12px', 
-                  border: "solid 1px transparent",
-                  borderRadius: "50% !important", 
-                  background: currentVisualization === j ? 'rgba(236, 128, 139, 1)' : 'rgba(158, 210, 162, 0.8)',
-                  fontSize: '14px',
-                  color: "black",
-                  transform: 'scale(0.75)',
-                  '&:hover': {
-                    color: "#f6f6f6",
-                    background: 'rgba(0,0,0,0.7)',
-                    borderColor: '#f6f6f6',
-                  }
-                }}
-              >{j === "Centroid" ? "cen" : 
-                j === "Flux" ? "flx": 
-                j === "RMS" ? "rms" :
-                j === "Rolloff 50" ? "rl5" :
-                j === "Rolloff 85" ? "rl8" : 
-                j === "XCrossings" ? "xcr" : 
-                j === "Freq" ? "frq" :
-                j === "Kurtosis" ? "kur" :
-                j === "SFM" ? "sfm" :
-                // i === "MFCC" ? "mfc" :
-                'mfcc'   
-                }</Button>)
-            })
-          }
-        </Box>
-        </Box>
-        <CloseIcon onClick={closeAnalysisPopup} sx={{ pointerEvents: "all", position: "relative", display: "flex", flexDirection: "column", alignText: "right", zIndex: 120, justifyContent: "right" }} />
-        
+<Box sx={{
+  width: "100%", 
+  position: "relative", 
+  boxSizing: "border-box", 
+  justifyContent: "center",
+  alignItems: "center", 
+  borderRadius: "8px", 
+  padding: "12px", 
+  fontSize: "16px",
+  paddingTop: "72px",
+  // background: "rgba(33,33,33,.33)",
+  display: "flex"
+  }}>
+        {
+          mockData && 
+          <>
+          <LegendVizx 
+            handleLegendClicked={handleLegendClicked}  
+            inFileAnalysisMode={inFileAnalysisMode}
+            handleFileAnalysisMode={handleFileAnalysisMode}
+          />
+          <BrushChart height={324} width={524} meydaData={meydaData}></BrushChart>
+          </>
+        }
+</Box>
+            <Box sx={{
+        // background: 'trans', 
+        display: 'flex', 
+        flexDirection: 'column',
+        position: 'absolute',
+        top: '112px',
+        left: '52px',
+        width: '524px',
+    }}>
+    {/* <Button sx={{
+            zIndex: 9999,
+            alignItems: "left",
+            justifyContent: "left",
+            background: "blue",
+            pointerEvents: "all",
+            cursor: "pointer",
+        }} onClick={handleFileAnalysisMode}>Files</Button> */}
+        {/* <BrushChart height={324} width={524} meydaData={meydaData}></BrushChart> */}
+</Box>
+        <CloseIcon 
+          onClick={closeAnalysisPopup} 
+          sx={{ 
+            pointerEvents: "all", 
+            position: "relative", 
+            display: "flex", 
+            flexDirection: "column", 
+            alignText: "right", 
+            zIndex: 120, 
+            justifyContent: "right" 
+          }} />
       </Box>
-
       <Box>
         <Box>
-        
         </Box>
-
       </Box>
     </Box>
+    </>
   );
 };

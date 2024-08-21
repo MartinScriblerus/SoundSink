@@ -169,7 +169,8 @@ export default function ControlPopup(props: ControlProps) {
         height: '100%', 
         width: '100%',
       }}>
-      <Button 
+      <Button
+        id={"patternOpenBtn"}
         sx={{
           // borderColor: 'rgba(228,225,209,1)', 
           position: 'relative', 

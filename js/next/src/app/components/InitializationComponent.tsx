@@ -54,6 +54,7 @@ import MicrotonalSearch from './MicrotonalSearch';
 import {notefreqchart} from '../../utils//notefreqchart';
 import SelectInputSourceRadioButtons from './SelectInputSourceRadioButtons';
 import KeyboardControls from './KeyboardControls';
+import Meyda from 'meyda';
 
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
@@ -267,6 +268,11 @@ export default function InitializationComponent() {
     const [patternsHashHook, setPatternsHashHook] =  useState<any>(patternsHash.current);
     const [patternsHashUpdated, setPatternsHashUpdated] = useState<boolean>(false);
     const [isInPatternEditMode, setIsInPatternEditMode] = useState<boolean>(false);
+
+    const [inFileAnalysisMode, setInFileAnalysisMode] = useState<boolean>(false);
+
+    const [featuresLegendParam, setFeaturesLegendParam] = useState<string>('rms');
+    const [featuresLegendData, setFeaturesLegendData] = useState<any>([]);
 
     const [centroid, setCentroid] = useState<any>([
         {source: "", value: ""}
@@ -992,6 +998,84 @@ export default function InitializationComponent() {
       };
 
 
+    const lastFileUploadMeydaData = useRef<any>([])
+
+    const indexedFileFeatureArray = useRef<Array<any>>([]);
+
+      useEffect(() => {
+        console.log("sanity! ", featuresLegendParam)
+        const meydaFileArray = lastFileUploadMeydaData.current.map((i:any) => i[featuresLegendParam]);
+            
+        for (var i in  meydaFileArray) {
+            indexedFileFeatureArray.current.push([meydaFileArray[i], i]);
+        }
+        console.log("BADABOOM2! ", indexedFileFeatureArray.current);
+        setFeaturesLegendData(indexedFileFeatureArray.current);
+      }, [featuresLegendParam])
+
+    const getMeydaData = (fileData: ArrayBuffer) => {
+        Promise.resolve(fileData).then((arrayBuffer) => {
+            // It's of course also possible to re-use an existing
+            // AudioContext to decode the mp3 instead of creating
+            // a new one here.
+            const offlineAudioContext = new OfflineAudioContext({
+                length: 1,
+                sampleRate: 44100
+            });
+    
+            return offlineAudioContext.decodeAudioData(arrayBuffer);
+        })
+        .then((audioBuffer) => {
+            const signal = new Float32Array(512);
+
+            for (let i = 0; i < audioBuffer.sampleRate * 5; i += 512) {
+                audioBuffer.copyFromChannel(signal, 0, i);
+    
+                 
+                lastFileUploadMeydaData.current.push(
+                    Meyda.extract(
+                        [                
+                            "rms", 
+                            "mfcc", 
+                            "chroma",
+                            "zcr",
+                            "energy",
+                            "amplitudeSpectrum",
+                            "powerSpectrum",
+                            "spectralCentroid",
+                            "spectralFlatness",
+                            "spectralRolloff",
+                            // "spectralFlux",
+                            "spectralSlope",
+                            "spectralFlatness",
+                            "spectralSpread",
+                            "spectralSkewness",
+                            "spectralKurtosis",
+                            "spectralCrest",
+                            "loudness",
+                            "perceptualSpread",
+                            "perceptualSharpness",
+                            "complexSpectrum",
+                            "buffer"]
+                    , signal));
+            }
+            console.log("HEYA HOLY MOLY IT WORKED ", lastFileUploadMeydaData.current);
+            
+            const meydaFileArray = lastFileUploadMeydaData.current.map((i:any) => i[featuresLegendParam.toLowerCase()]);
+            
+            for (var i in  meydaFileArray) {
+                indexedFileFeatureArray.current.push([meydaFileArray[i], i]);
+            }
+            console.log("BADABOOM! ", indexedFileFeatureArray.current);
+        });
+    }
+
+    useEffect(() => { 
+        if (inFileAnalysisMode) {
+            console.log("babooooooom: ", lastFileUploadMeydaData.current);
+        }
+    }, [inFileAnalysisMode])
+
     const onSubmit = async (files: any) => {
         if (files.length === 0) return;
         const file = files.file[0];
@@ -1000,6 +1084,7 @@ export default function InitializationComponent() {
         const fileData: any = new Uint8Array(fileDataBuffer);
         const blob = new Blob([fileDataBuffer], { type: "audio/wav" });
         testArrBuffFile.current = fileData;
+        
         const fileBlob = new File([blob], `${file.name.replace(' ', '_')}`, { type: "audio/wav" });
         let arrayBuffer;
         const fileReader = new FileReader();
@@ -1012,11 +1097,16 @@ export default function InitializationComponent() {
 
             }
             setGraphNeedsUpdate(true);
+            // document.getElementById("patternOpenBtn")?.click();
             if (chuckHook) {
                 setChuckUpdateNeeded(true);
             }
+            getMeydaData(arrayBuffer);
         }
         fileReader.readAsArrayBuffer(fileBlob);
+
+
+        
     }
 
     const submitMingus = async () => {
@@ -2863,6 +2953,46 @@ export default function InitializationComponent() {
             const theChuckContext: any = theChuck.context;
             theChuckContext.resume();
         }
+        console.log("HEYO AUDIO CTX!!! ", theChuck.context);
+        if (typeof Meyda === "undefined") {
+            console.log("Meyda could not be found! Have you included it?");
+          } else {
+            const analyzer = Meyda.createMeydaAnalyzer({
+              audioContext: theChuck.context,
+              source: theChuck,
+              bufferSize: 512,
+              featureExtractors: [
+                "rms", 
+                "mfcc", 
+                "chroma",
+                "zcr",
+                "energy",
+                "amplitudeSpectrum",
+                "powerSpectrum",
+                "spectralCentroid",
+                "spectralFlatness",
+                "spectralRolloff",
+                // "spectralFlux",
+                "spectralSlope",
+                "spectralFlatness",
+                "spectralSpread",
+                "spectralSkewness",
+                "spectralKurtosis",
+                "spectralCrest",
+                "loudness",
+                "perceptualSpread",
+                "perceptualSharpness",
+                "complexSpectrum",
+                "buffer"
+              ],
+              callback: (features: any) => {
+                {isAnalysisPopupOpen &&
+                console.log("THESE ARE FEATURES: ", features);
+                }
+              },
+            });
+            analyzer.start();
+          }
         setChuckHook(theChuck);
         setUpdateUIAfterInit(true);
         beginProgram(true);
@@ -3862,7 +3992,8 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
             
                     // set FFT size (do we need 4410 for file?)
                     // 4096 => fft.size;
-                    4410 => fft.size;
+                    // 4410 => fft.size;
+                    44100 => fft.size;
                     // set window type and size
                     Windowing.hann(fft.size()) => fft.window;
                     // our hop size (how often to perform analysis)
@@ -5543,6 +5674,28 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
         setHideCircularArpBtnsHook(boolVal);
       }
 
+      const handleLegendClicked = (label: any) => {
+        alert(`clicked in initcomp: ${JSON.stringify(label)}`);
+        const labelToLower = label.datum.toLowerCase();
+        console.log("What is label to lower? ", labelToLower);
+        let labelNoSpaces; 
+        if (labelToLower.indexOf(' ') !== -1) {
+            const labelNoSpacesArr = labelToLower.split(' ');
+            console.log('???', labelNoSpacesArr);
+            labelNoSpaces = labelNoSpacesArr[0].concat(labelNoSpacesArr[1].charAt(0).toUpperCase().concat(labelNoSpacesArr[1].slice(1)));
+        } else {
+            labelNoSpaces = labelToLower;
+        }
+
+        setFeaturesLegendParam(labelNoSpaces);
+
+      };
+
+      const handleFileAnalysisMode = () => {
+        console.log("here here");
+        setInFileAnalysisMode(!inFileAnalysisMode);
+      };
+
     return (
         <Box sx={{
             height: '100vh', 
@@ -5638,7 +5791,14 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                 }}
                 className="popupAnalysisBox"
             >
-
+          {/* <Button sx={{
+            zIndex: 9999,
+            alignItems: "left",
+            justifyContent: "left",
+            background: "blue",
+            pointerEvents: "all",
+            cursor: "pointer",
+        }} onClick={handleFileAnalysisMode}>Files</Button> */}
             {isAnalysisPopupOpen &&
                 <LineChartWrapper
                     analysisObject={analysisObject}
@@ -5655,6 +5815,10 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                     bufferStepLength={((60.0/bpm) * 2000)/currentNoteVals.master[0]}
                     graphNeedsUpdate={graphNeedsUpdate}
                     setGraphNeedsUpdate={setGraphNeedsUpdate}
+                    handleLegendClicked={handleLegendClicked}
+                    inFileAnalysisMode={inFileAnalysisMode}
+                    handleFileAnalysisMode={handleFileAnalysisMode}
+                    meydaData={lastFileUploadMeydaData.current}
                 />}
             </Box>
 

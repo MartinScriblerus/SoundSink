@@ -6,6 +6,10 @@ import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
 import FileWrapper from "@/app/components/FileWrapper";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
+import WaveSurfer from 'wavesurfer.js'
+import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
+import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
+
 
 const MARGIN = { top: 10, right: 50, bottom: 30, left: 50 };
 
@@ -64,8 +68,15 @@ export const Renderer = ({
 
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [showPatternEditorPopup, setShowPatternEditorPopup] = useState<boolean>(false);
+  const [wavesurfer, setWavesurfer] = useState<any>(null)
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
+  const containerRef = useRef<any>();
+
   const currentXVal = useRef<number>(0);
   const currentYVal = useRef<number>(0);
+
+  const surferBlob = useRef<any>();
 
   const cellData = useRef<CellData>({
     note: [""],
@@ -330,6 +341,108 @@ export const Renderer = ({
     console.log("WHAT IS E TARGET FOR NOTE TO REMOVE? ", e.target.id.split('_'));
   }
 
+    // const onReady = (ws:any) => {
+    useEffect(() => {
+      console.log("HERE! ");
+
+
+      // Initialize the Regions plugin
+      const regions = RegionsPlugin.create()
+      if(containerRef.current && filesToProcess && filesToProcess.length > 0) {
+        const wavesurfer = WaveSurfer.create({
+          container: containerRef.current,
+          waveColor: '#4F4A85',
+          progressColor: '#383351',
+          // url: '/audio.mp3',
+          plugins: [regions],
+        })
+      
+        surferBlob.current = new window.Blob([new Uint8Array(filesToProcess[0].data)]);
+        wavesurfer && surferBlob.current && filesToProcess.length > 0 && wavesurfer.loadBlob(surferBlob.current).then((data: any) => console.log("yeehaw ", data))
+
+
+// Play on click
+wavesurfer.on('interaction', () => {
+  wavesurfer.play()
+})
+
+// Rewind to the beginning on finished playing
+wavesurfer.on('finish', () => {
+  wavesurfer.setTime(0)
+})
+
+
+regions.enableDragSelection({
+  color: 'rgb(27, 191, 202, 0.2)',
+})
+
+regions.on('region-updated', (region) => {
+  console.log('Updated region', region)
+})
+
+// Loop a region on click
+let loop = true
+// Toggle looping with a checkbox
+// document.querySelector('input[type="checkbox"]')!.addEventListener("click", (e: any) => {
+//   loop = e.target.checked
+// })
+loop = true;
+
+{
+  let activeRegion: any = null
+  regions.on('region-in', (region) => {
+    console.log('region-in', region)
+    activeRegion = region
+  })
+  regions.on('region-out', (region) => {
+    console.log('region-out', region)
+    if (activeRegion === region) {
+      if (loop) {
+        region.play()
+      } else {
+        activeRegion = null
+      }
+    }
+  })
+  regions.on('region-clicked', (region, e) => {
+    e.stopPropagation() // prevent triggering a click on the waveform
+    activeRegion = region
+    region.play()
+    region.setOptions({
+      color: '#aaf',
+      start: 0
+    })
+  })
+  // Reset the active region when the user clicks anywhere in the waveform
+  wavesurfer.on('interaction', () => {
+    activeRegion = null
+  })
+}
+
+// Update the zoom level on slider change
+  wavesurfer.once('decode', () => {
+    document.querySelector('input[type="range"]')?.addEventListener('input', (e: any) => {
+      const minPxPerSec = Number(e.target.value)
+      wavesurfer.zoom(minPxPerSec)
+    })
+  });
+
+   
+        setWavesurfer(wavesurfer)
+        setIsPlaying(false)
+    }
+
+    },[containerRef.current])
+      // loadBlobToWaveSurfer.then((data: any) => console.log("YEEHAW DATA: ", data));
+      
+
+
+  const onPlayPause = () => {
+      if(wavesurfer){
+          wavesurfer.playPause()
+      }
+  }
+
   return (
     <Box
       style={{
@@ -493,6 +606,18 @@ export const Renderer = ({
             </Box>
           </Box>
 
+          <div style={{width: "100%"}} ref={containerRef} id={"wavesurfer-wrapper"}>
+
+            {/* <WavesurferPlayer
+              height={100}
+              waveColor="violet"
+              // url="http://localhost:3000/knob.wav"
+              // url={URL.createObjectURL(surferBlob.current)}
+              onReady={onReady}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            /> */}
+          </div>
           <Box
             sx={{
               display: "flex",
@@ -501,8 +626,8 @@ export const Renderer = ({
               fontWeight: '100',
               marginLeft: '10px',
               textAlign: 'left',
-              width: '100%',
-              background: "rgba(255,255,255,0.78)"
+              width: '100vw',
+              // background: "rgba(255,255,255,0.78)"
             }}
           >
             {
@@ -552,12 +677,12 @@ export const Renderer = ({
 
 
 
-          <Button
+          {/* <Button
             key={"patternEnterEditMode"}
             onClick={handlePatternEditMode}
           >
 
-          </Button>
+          </Button> */}
         </Box>)}
       <svg
         key={"heatmapSVG"}
