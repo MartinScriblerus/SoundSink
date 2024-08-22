@@ -88,7 +88,8 @@ export interface Filename {
   export async function loadWasm(): Promise<ArrayBuffer> {
     return await new Promise((resolve, reject) => {
       asyncLoadFile(
-        "https://chuck.stanford.edu/webchuck/src/webchuck.wasm",
+        // "https://chuck.stanford.edu/webchuck/src/webchuck.wasm",
+        `../../src/webchuck.wasm`,
         resolve,
         reject
       );

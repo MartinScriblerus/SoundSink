@@ -14,6 +14,8 @@ import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import CustomAriaLive from './MicrotonesSearch';
 import KeyboardControls from './KeyboardControls';
+import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
+import StopCircleIcon from '@mui/icons-material/StopCircle';
 import { SelectChangeEvent, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import PianoIcon from '@mui/icons-material/Piano';
 import HexagonIcon from '@mui/icons-material/Hexagon';
@@ -40,26 +42,13 @@ export interface KeysAppBarProps {
   handleFormat: any;
   formats: string[];
   chuckHook: Chuck | undefined;
+  runChuck: () => void;
+  stopChuckInstance: () => void;
 }
 
 function ResponsiveAppBar(props: KeysAppBarProps) {
-  const {
-    selectRef, 
-    tune, 
-    currentMicroTonalScale,
-    submitMingus,
-    audioKey,
-    octave,
-    audioScale,
-    audioChord,
-    handleChangeScale,
-    handleChangeChord,
-    programIsOn,
-    updateHasHexKeys,
-    handleFormat,
-    formats,
-    chuckHook
-  } = props;
+
+  const {chuckHook, stopChuckInstance, runChuck} = props;
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
   // const [formats, setFormats] = React.useState(() => ['tradKey']);
@@ -81,10 +70,10 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
   };
 
   return (
-    <AppBar position="static">
+    <AppBar style={{zIndex: '10000'}} position="static">
       <Container sx={{height: "48px"}} maxWidth="xl">
-        <Toolbar disableGutters>
-          <Box sx={{ marginTop: '-12px', flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+        <Toolbar disableGutters sx={{height: '48px !important', minHeight: '48px !important'}}>
+          <Box sx={{  flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size="medium"
               aria-label="account of current user"
@@ -96,24 +85,6 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               <MenuIcon />
             </IconButton>
             
-
-{chuckHook !== undefined && (
-            <ToggleButtonGroup
-              value={formats}
-              onChange={handleFormat}                                                                     
-              aria-label="text formatting"
-              sx={{color: "#f5f5f5"}} 
-            >
-              <ToggleButton sx={{color: "#f5f5f5"}} value="hexKey" aria-label="hexKey">
-                <PianoIcon sx={{color: "#f5f5f5"}} /> 
-                <>
-                  Keys
-                </>
-              </ToggleButton>
-            </ToggleButtonGroup>
-)}
-
-
             <Menu
               id="menu-appbar"
               anchorEl={anchorElNav}
@@ -138,14 +109,10 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 </MenuItem>
               ))}
             </Menu>
-            
-    
           </Box>
 
-
-
           
-          <Box sx={{ marginTop: '-12px', flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+          <Box sx={{ marginTop: '0px', flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page) => (
               <Button
                 key={page}
@@ -155,59 +122,94 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 {page}
               </Button>
             ))}
-
-          {chuckHook !== undefined && (
-
-            <ToggleButtonGroup
-              value={formats}
-              onChange={handleFormat}                                                                     
-              aria-label="text formatting"
-            >
-              <ToggleButton sx={{color: "#f5f5f5"}} value="hexKey" aria-label="hexKey">
-                <PianoIcon sx={{color: "#f5f5f5"}}  /> 
-                <>
-                  Keys
-                </>
-              </ToggleButton>
-            </ToggleButtonGroup>
-          )}
-
           </Box>
 
-
-{chuckHook !== undefined && (
-<>
-          {formats && formats.length > 0 && formats.indexOf('hexKey') !== -1 && formats[0] === 'hexKey' ? (
+          <Box sx={{
+              display: "flex", 
+              flexDirection: "row",
+              marginRight: "20px"
+            }}
+          >
+            {/* PLAY CHUCK */}
             <Box sx={{
-                zIndex: 9999, 
-                width: '140px', 
+                display: "flex", 
+                flexDirection: "column",
+                borderRadius: "50%"
+                }}
+            >
+              <Box sx={{display: "flex", flexDirection: "row"}}>
+                  {chuckHook && (
+                      <Button 
+                          sx={{ 
+                              minWidth: '140px', 
+                              opacity: '0.8',
+                              paddingLeft: '24px', 
+                              border: '0.5px solid #b2b2b2',
+                              pointerEvents: 'all',
+                              backgroundColor: '0,0,0,0.4 !important',
+                              background: '0,0,0,0.4 !important',
+                              cursor: 'pointer',
+                              zIndex: '9999',
+                              '&:hover': {
+                                  color: '#f5f5f5 !important',
+                                  background: 'rgba(0,0,0,.98)',
+                                  // border: 'solid 1px #1976d2',
+                                  }
+                          }} 
+                          variant="contained" 
+                          id="runChuckButton" 
+                          onClick={runChuck} 
+                          endIcon={
+                              <PlayCircleFilledIcon />
+                          }>
+                              Play
+                      </Button>
+                  )}
+              </Box>
+                
+            </Box>
+
+            {/* STOP CHUCK */}
+            <Box sx={{
+                display: "flex", 
+                flexDirection: "column",
+                borderRadius: "50%"
               }}>
-              <CustomAriaLive selectRef={selectRef} tune={tune} currentMicroTonalScale={currentMicroTonalScale} />
+                <Box sx={{display: "flex", flexDirection: "row"}}>
+                    {chuckHook && (
+                        <Button 
+                            sx={{ 
+                                minWidth: '140px', 
+                                paddingLeft: '24px',
+                                opacity: '0.8', 
+                                maxHeight: '40px', 
+                                marginLeft: '8px', 
+                                background: '0,0,0,0.4',
+                                pointerEvents: 'all',
+                                cursor: 'pointer',
+                                zIndex: '9999',
+                                border: '0.5px solid #b2b2b2',
+                                '&:hover': {
+                                    color: '#f5f5f5 !important',
+                                    background: 'rgba(0,0,0,.98)',
+                                    border: '1px solid #1976d2',
+                                }
+                            }} 
+                            variant="contained" 
+                            id="stopChuckButton" 
+                            onClick={stopChuckInstance} 
+                            endIcon={<StopCircleIcon />}>
+                            Stop
+                        </Button>
+                    )}
+                </Box>
+            </Box>
+          </Box>
 
-            </Box>)
-          // )}
-
-          // {formats && formats.length > 0 && formats.indexOf('tradKey') !== -1 && (
-          :
-              <KeyboardControls 
-                submitMingus={submitMingus}
-                audioKey={audioKey}
-                octave={octave}
-                audioScale={audioScale}
-                audioChord={audioChord}
-                handleChangeChord={handleChangeChord}
-                handleChangeScale={handleChangeScale}
-                programIsOn={programIsOn}
-              />
-        
-          }
-</>)}
-
-
-          <Box sx={{ flexGrow: 0, paddingTop: '4px' }}>
+          <Box sx={{ flexGrow: 0, zIndex: 100, wwwdwdfefffffwfpaddingTop: '4px' }}>
             <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, marginTop: "-18px" }}>
-                <Avatar alt="Remy Sharp" src={"/static/reilly_portfolio_small.jpg"} />
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, marginTop: "0px" }}>
+                <Avatar alt="Remy Sharp" src={"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAARVBMVEXw8PBpfN3y8vBfdNz29vFmet2GlODY2+yMmeHT1uvW2ezc3u1bcdx/jt+EkuBjd9zr7O9Ta9v8+/KbpuN1ht5vgd6/xehcBCHdAAACJUlEQVR4nO3cSW4bURBEQao5ikNT1uD7H9Xy0t50fqCaKELxDvCRQRFaEbXZSJIkSZL0U5uinvipt/Mx6JI81vOp6fxru9z1tnvWpzbTcfuy3P6QzGr5VNNZhIT9ZxES9p9FSNh/FiFh/1mEhP1nERL2n0VI2H8WIWH/WYSE/WcREvafRUjYf1at8Lpf7n543y13yWZFT0Wr5kh4uR2CPk9Bh30gfPlKnpqTVfNHItxMwSe6ez/dg880An7/FYOux2RWBMzancL1VW1fs18DERISEhISEhISEhISEhISEhISEhISEhISEhISEhL+U3Kd4fHC84OvRlyyHyHcg0MI2+yl3w++GpHOOr8udpzLPqzKqxFZ0Ver8Atf+ZuorOjfA+FAhITjERKORkg4HiHhaISE4xESjkZIOB4h4WiEhOMREo5GSDgeIeFohIT/vVZ1JqDweEGp8Cs5LXGbk4MQn9FTCbH2tknduY7KIyKut/SdRUjYfxYhYf9ZhIT9ZxES9p9FSNh/FiFh/1mEhP1nERL2n0VI2H8WIWH/WYSE/Wd1FUbnGaJDCF2Fb8s3I/6ejQh+dNNUGF1JyQ6SdBXWRUi41lt1ERKu9VZdhIRrvVUXIeFab9VFSLjWW3UREq71Vl2EhGu9VRch4Vpv1UVIuNZbdRESrvVWXYSEa71VV60wOhMwP1pYt2q63IIjDvPHg4WVq6bghsN3a5ueYpUkSZIkSW36A9+/m8h7H2QPAAAAAElFTkSuQmCC"} />
               </IconButton>
             </Tooltip>
             <Menu

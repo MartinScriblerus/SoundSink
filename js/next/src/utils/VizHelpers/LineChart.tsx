@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import { useSpring, animated } from "react-spring";
 import {VizDataProps} from "./LineChartWrapper";
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
+import {select, line} from 'd3';
 
 type DataPoint = { 
   x: number; 
@@ -22,6 +23,16 @@ type LineChartProps = {
   cursorPosition: number | null;
   setCursorPosition: (position: number | null) => void;
   timeNow: number;
+  secLenBeat: number;
+  beatCount: number;
+  numerCount: number; 
+  denomCount: number;
+  patternCount: number;
+  isInFileMode: boolean;
+  fileTime: number | undefined | false;
+  filesToProcess: any;
+  graphNeedsUpdate: boolean;
+  setGraphNeedsUpdate: any;
 };
 
 export const LineChart = ({
@@ -33,7 +44,19 @@ export const LineChart = ({
   setCursorPosition,
   color,
   timeNow,
+  secLenBeat,
+  beatCount,
+  numerCount,
+  denomCount,
+  patternCount,
+  isInFileMode,
+  fileTime,
+  filesToProcess,
+  graphNeedsUpdate,
+  setGraphNeedsUpdate,
 }: LineChartProps) => {
+
+
 
   // if (!data || data.length === 0) return;
 
@@ -44,8 +67,35 @@ export const LineChart = ({
 
   const normalizeMax = data.length > 70 ? data.length - 70 : data ? (data.length * 3)/4 : 1;
 
+  const pathRef = useRef(null);
+
+  const staticLineGenerator = line(data)
+    .x((d: any, idx: number) => xScale(idx))
+    .y((d:any, idx: number) => yScale(d))
+
+
+  useEffect(()=> {
+    const thePath = select(pathRef.current);
+    
+    console.log("HEY HEY HEY HEY HEY THE PATH! ", thePath);
+    console.log("DATA!@ ", data);
+    if (data.length > 0 && thePath && filesToProcess.length > 0 && filesToProcess[0].data.length > 0) {
+      console.log("mapped test: ", filesToProcess[0].data);
+      thePath.selectAll('path')
+      .data(data.map((i:any) => parseFloat(i)))
+      .attr('d', staticLineGenerator(data))
+      // thePath.data(mappedData(filesToProcess[0].data))
+      console.log("WHAT IS DATA IN LINECHART? ", thePath);
+      // setGraphNeedsUpdate(false);
+    
+    }
+    
+  }, [filesToProcess.length, graphNeedsUpdate])
+
+
+
   // Y axis
-  const [min, max]: any = d3.extent(data.slice(normalizeMax, data.length), (d: any) => d.y);
+  const [min, max]: any = data && data.length > 0 && d3.extent(data.slice(normalizeMax, data.length), (d: any) => d.y);
   const handleMinVariation: any = min && min >= 0 ? 0 : min ? min - min/4 : 0;
   const handleMaxVariation: any = max && max + (max/4) || 0;
 
@@ -54,23 +104,48 @@ export const LineChart = ({
       .scaleLinear()
       .domain([handleMinVariation, handleMaxVariation])
       .range([boundsHeight, 0]);
-  }, [data, height, timeNow]);
-
-
+  }, [data, height, beatCount]);
 
   // X axis
   const [xMin, xMax]: any = d3.extent(data, (d: any) => d.x);
 
-  // const getDomain: any = [xMax ? xMax - 10 : xMin, xMax || 0];
-  const getDomain: any = [Math.floor(timeNow-10), Math.floor(timeNow)];
+  const currTime = useRef<number>(0);
+
+  // // const getDomain: any = [xMax ? xMax - 10 : xMin, xMax || 0];
+  // const getDomain: any = [Math.floor(timeNow-10), Math.floor(timeNow)];
+
+  useEffect(() => {
+    currTime.current += secLenBeat;
+  }, [beatCount]);
+
+  useEffect(() => {
+    console.log("CHECK FILE TIME!!! ", fileTime);
+    console.log("FILES TO PROCESS: ", filesToProcess);
+    console.log("WTF IS DAT IN LINE CHART>?? ", data);
+    
+  }, [filesToProcess.length, isInFileMode]);
+
+  // const getDomain: any = [0, Math.ceil(currTime.current)];
+
+  const getDomain: any = Math.ceil(currTime.current) > 10.0 ? [Math.ceil(currTime.current - 10.0), Math.ceil(currTime.current)]: [0, Math.ceil(currTime.current)];
+  const getStaticDomain: any = [0,Math.ceil(fileTime || 1)];
+
   // console.log("check get domain: ", getDomain);
   const xScale = useMemo(() => {
+    if (isInFileMode ) {
     return d3
-      .scaleLinear()
+      .scaleTime()
       // .domain([0, xMax || 0])
       .domain(getDomain)
       .range([0, boundsWidth]);
-  }, [data, width, timeNow]);
+    } else {
+      return d3
+      .scaleTime()
+      // .domain([0, xMax || 0])
+      .domain(getStaticDomain)
+      .range([0, boundsWidth]);
+    }
+  }, [data, width, beatCount, fileTime]);
 
   // Render the X and Y axis using d3.js, not react
   useEffect(() => {
@@ -81,7 +156,8 @@ export const LineChart = ({
       .append("g")
       .attr("transform", "translate(0," + boundsHeight + ")")
       .call(xAxisGenerator);
-    svgElement.append("clipPath")  
+    svgElement
+    .append("clipPath")  
     .attr("id", "clip")
     .append("rect")
     .attr("width", width-20)
@@ -100,16 +176,16 @@ export const LineChart = ({
     .x((d: any) => xScale(d.x))
     .y((d: any) => yScale(d.y));
   
-
   
-  const linePath = lineBuilder(data);
-
+  
+  const linePath = lineBuilder(isInFileMode && filesToProcess && filesToProcess.length > 0 ? filesToProcess[0].data.map((i:any) => Number(parseFloat(i))) : data);
+  console.log("WTF LINEPATH: ", linePath);
   if (!linePath) {
     return null;
   }
 
   const getClosestPoint = (cursorPixelPosition: number) => {
-    const x = xScale.invert(cursorPixelPosition);
+    const x: any = xScale.invert(cursorPixelPosition);
 
     let minDistance = Infinity;
     let closest: DataPoint | null = null;
@@ -139,53 +215,31 @@ export const LineChart = ({
 
   return (
     <div style={{width: "100%", backgroundColor: "transparent",}}>
-      <svg width={width} height={height} style={{background: "rgba(0,0,0,.91)", minHeight: "100%", flexDirection: "row-reverse", overflowX: "scroll"}}>
+      <svg 
+        width={"100%"} 
+        height={height} 
+        style={{
+          background: "rgba(0,0,0,.91)", 
+          minHeight: "100%",  
+          flexDirection: "row-reverse", 
+          overflowX: "scroll"}}>
         <g
           width={boundsWidth}
           height={boundsHeight}
+          ref={pathRef}
           transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
         >
           <path
+            id="pathEl"
             d={linePath}
             opacity={1}
             stroke={color}
-            fill="none"
+            fill="purple"
             strokeWidth={2}
             clipPath={"url(#clip)"}
             width={boundsWidth}
           />
-          {/* <path
-            d={fluxLinePath}
-            opacity={1}
-            stroke={"orange"}
-            fill="none"
-            strokeWidth={2}
-          />
-          <path
-            d={rmsLinePath}
-            opacity={1}
-            stroke={"red"}
-            fill="none"
-            strokeWidth={2}
-          />
-          <path
-            d={rollOff50LinePath}
-            opacity={1}
-            stroke={"green"}
-            fill="none"
-          />
-          <path
-            d={rollOff85LinePath}
-            opacity={1}
-            stroke={"blue"}
-            fill="none"
-          />
-          <path
-            d={xCrossLinePath}
-            opacity={1}
-            stroke={"purple"}
-            fill="none"
-          /> */}
+
 
           {cursorPosition && (
             <Cursor
@@ -195,7 +249,7 @@ export const LineChart = ({
               color={color}
             />
           )}
-          <rect
+          {/* <rect
             x={0}
             y={0}
             width={boundsWidth}
@@ -204,7 +258,7 @@ export const LineChart = ({
             onMouseLeave={() => setCursorPosition(null)}
             visibility={"hidden"}
             pointerEvents={"all"}
-          />
+          /> */}
         </g>
         <g
           width={boundsWidth}

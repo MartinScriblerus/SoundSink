@@ -2,16 +2,19 @@ import * as GUI from 'babylonjs-gui';
 import { useRef } from 'react';
 import { Chuck } from 'webchuck';
 
-const snippets: any = [];
+let snippets: any = [];
 
-export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTonalLetters: any[], hasHexKeys: boolean, key = "C") => {
+export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTonalLetters: any[], key = "C") => {
     
     (async() => {
-        console.log("ARE WE GETTING MICRO LETTS IN HEXKEY? ", microTonalLetters)
+        console.log("$$$ ARE WE GETTING MICRO LETTS IN HEXKEY? ", microTonalLetters)
         let octaveLen: number | undefined = undefined;
         
         for (let x = 0; x < microTonalLetters.length; x++) {
-            if (microTonalLetters[x].noteName.charAt(microTonalLetters[x].noteName.length - 1) > 0) {
+            if (microTonalLetters && 
+                microTonalLetters.length > 0 && 
+                microTonalLetters[x].noteName && 
+                microTonalLetters[x].noteName.charAt(microTonalLetters[x].noteName.length - 1) > 0) {
                 octaveLen = x;
                 break;
             }
@@ -23,7 +26,7 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
         //load an asset container for the hex tile
         const hexTileImport = await BABYLON.SceneLoader.LoadAssetContainerAsync("https://assets.babylonjs.com/meshes/", "hexTile.glb", game.scene);
         //The math and properties for creating the hex grid.
-        let gridSize = 6;
+        let gridSize = 5;
         let hexLength = 1;
         let hexWidthDistance = Math.sqrt(3) * hexLength;
         let hexHeightDistance = (2 * hexLength);
@@ -34,7 +37,8 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
         let waterMaterialBottom: any;
         
 // BABYLON.NodeMaterial.ParseFromSnippetAsync
-    // 57 - 
+    // 57 - 69
+        snippets = [];
         for (let i = 57; i < 69; i++) {
             let temp = BABYLON.NodeMaterial.ParseFromSnippetAsync(`TD23TV#${i}`);
             snippets.push(temp);
@@ -54,9 +58,9 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
             BABYLON.NodeMaterial.ParseFromSnippetAsync("BS6C1U#1", game.scene).then(nodeMaterial => {
                 waterMaterialBottom = nodeMaterial;
                 waterMaterialBottom.name = "waterMaterialBottom";
-                
+                // alert("NEW")
                 // chuckHook && createHexGrid(gridSize, hexWidthDistance, hexHeightDistance, rowlengthAddition, hexTileImport, waterMaterialTop, game.scene.activeCameras[1], game.scene, key, chuckHook);
-                chuckHook && createHexGrid(gridSize, hexWidthDistance, hexHeightDistance, rowlengthAddition, hexTileImport, snippets, game.scene.activeCamera, game.scene, key, chuckHook);
+                chuckHook && createHexGrid(microTonalLetters, gridSize, hexWidthDistance, hexHeightDistance, rowlengthAddition, hexTileImport, snippets, game.scene.activeCamera, game.scene, key, chuckHook);
             });
         });
     
@@ -72,15 +76,15 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
         for(let i = 0; i<flatArray.length; i++){
             flatArray[i] = 0;
         }
-
+        // alert("hiya")
         // console.log("WHAT IS FLAT ARRAY? ", flatArray);
         let flatNoiseTexture: any = BABYLON.RawTexture.CreateRGBTexture(flatArray, factor*2, factor*2, game.scene, false, false, BABYLON.Texture.NEAREST_SAMPLINGMODE);
         flatNoiseTexture.name = "flatNoiseTexture";
-    
+        game.scene.activeCamera = game.scene.cameras[1]
         //handling of hex tile picking
         game.scene.onPointerDown = function (evt: any, pickResult: any) {
             if(pickResult.pickedMesh){
-                console.log("PICK RESULT: ", pickResult.pickedMesh.name, pickResult.pickedMesh.parent.parent.name.replace("hexTile", ""));
+                console.log("PICK RESULT: ", pickResult.pickedMesh, "parent: ", pickResult.pickedMesh.parent.parent);
                 let animGroups = game.scene.animationGroups;
                 for(let i=0; i<animGroups.length; i++){
                     if(animGroups[i].targetedAnimations[0].target === pickResult.pickedMesh.parent){
@@ -136,35 +140,42 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
 
     
     
-    function createHexGrid(gridSize: any, hexWidthDistance: any, hexHeightDistance: any, rowlengthAddition: any, hexTileImport: any, waterMaterialTop: any, camera: any, scene: any, key: string, chuckHook: Chuck | undefined){
+    function createHexGrid(microTonalLetters: any, gridSize: any, hexWidthDistance: any, hexHeightDistance: any, rowlengthAddition: any, hexTileImport: any, waterMaterialTop: any, camera: any, scene: any, key: string, chuckHook: Chuck | undefined){
+        console.log("fmicrotonal: ",  microTonalLetters);
+        // microTonalLetters.forEach((i:any) => i.name.includes('hexTile') && i.dispose());
+        gridSize = Math.log(microTonalLetters.length);
         let gridStart = new BABYLON.Vector3((hexWidthDistance/2)*(gridSize-1),0,(-hexHeightDistance*0.75)*(gridSize-1));
         for(let i = 0; i < (gridSize*2)-1; i++){
             for(let y = 0; y < gridSize + rowlengthAddition; y++){
                 
-                console.log("hex num check: ", i + y, "microTonalLeters: ", microTonalLetters);
+                console.log("hexTile"+`_${i}`+`_${y}`, "microTonalLetters: ", microTonalLetters);
                  
-                const existingMesh = scene.getMeshByName("hexTile"+i+y);
+                // const existingMesh = scene.getMeshById("hexTile_"+i+"_"+y);
 
-                if(existingMesh){
-                    // existingMesh.remove();
-                    console.log("EXISTING MESH: ", existingMesh);
-                    existingMesh.dispose();
-                    // activeCameras
-                    // scene.activeCameras = scene.activeCameras[0];
-                } else {                
+                // console.log("existingMesh: ", existingMesh);
+                // // if(scene.meshes.length){
+                // //     // existingMesh.remove();
+                // if (existingMesh) {
+                //     existingMesh.dispose();
+                // }
+                //     console.log("EXISTING MESH: ", existingMesh);
+                //     scene.meshes.forEach((i:any) => i.dispose());
+                //     // activeCameras
+                //     // scene.activeCameras = scene.activeCameras[0];
+                // } else {                
                     const arrNum = i + y;
                     console.log("arrnum: ", arrNum);
                     console.log("IF WE HAVE MICROFREQS HERE WE ARE GOOD: ", microTonalLetters.length > 0 && microTonalLetters[arrNum]);
                     let hexTile = hexTileImport.instantiateModelsToScene();
                     let hexTileRoot = hexTile.rootNodes[0];
                     // hexTileRoot.name = "hexTile"+i+y;
-                    hexTileRoot.id = "hexTile"+i+y;
+                    hexTileRoot.id = "hexTile_"+i+"_"+y;
                     hexTileRoot.name = "hexTile";
-
+                    hexTileRoot.data = microTonalLetters[(i) + (y*microTonalLetters.length)]
                     hexTileRoot.position.copyFrom(gridStart);
                     hexTileRoot.position.x -= hexWidthDistance * y;
         
-
+                    console.log("hex tile root: ", hexTileRoot);
 
 
 
@@ -203,7 +214,7 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
 
 
                     });
-                    }
+                    // }
         
                     let hexTileAnimGroup = hexTile.animationGroups[0];
                     hexTileAnimGroup.name = "AnimGroup"+hexTileRoot.name;

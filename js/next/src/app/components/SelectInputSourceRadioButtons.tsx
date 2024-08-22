@@ -34,23 +34,36 @@ const SelectInputSourceRadioButtons = (props: Props) => {
         <Box 
             className="side-nav"
             sx={{
-                display:'flex', 
+                display: window.innerHeight > 480 ? 'flex' : 'none', 
                 flexDirection: 'column', 
                 // color: 'rgba(228,225,209,1)', 
                 justifyContent: 'top !important',
                 alignItems: 'top',
-                padding: '24px',
+                // padding: '24px',
                 // color: 'rgba(147, 206, 214, 1)',
                 color: 'white',
                 height: '100%',
+                maxWidth: '122px',
+                borderRight: 'rgba(0,0,0,0.7) 1px solid',
+                backgroundColor: 'transparent !important',
+                background: "transparent !important",
+                left: "0PX",
+                position: "relative",
+                border: "0px",
+                width: "100%",
+                zIndex: "99",
+                paddingLeft: "4px",
             }}>
                 <FormLabel 
                     sx={{
-                        fontSize:'28px',
+                        fontSize:'20px',
                         fontWeight:'300',
                         width: '100%',
                         textAlign: 'center',
                         color: 'rgba(147, 206, 214, 1) !important',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        
                     }} 
                     id="demo-controlled-radio-buttons-group"
                 >
@@ -58,7 +71,10 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                 </FormLabel>
 
             {/* /////// FX to INPUT */}
-            <Box sx={{borderTop: 'solid 1px rgba(147, 206, 214, 1)'}} className={'fx-popup-left-row'}>           
+            <Box sx={{
+                    borderTop: 'solid 1px rgba(147, 206, 214, 1)'
+                }} 
+                className={'fx-popup-left-row'}>           
                 <RadioGroup
                     aria-labelledby="demo-controlled-radio-buttons-group"
                     name="controlled-radio-buttons-group"

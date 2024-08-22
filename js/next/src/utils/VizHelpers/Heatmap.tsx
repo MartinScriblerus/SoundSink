@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Renderer } from "./Renderer";
 import { Tooltip } from "./Tooltip";
 import { Box } from "@mui/material";
@@ -15,7 +15,22 @@ type HeatmapProps = {
   handleStkRateUpdate: (val: any) => void;
   handleSamplerRateUpdate: (val: any) => void;
   handleAudioInRateUpdate: (val: any) => void;
-  // data: { x: string; y: string; value: number }[];
+  updateCellColor: (val: any) => void;
+  updateCellColorBool: boolean; 
+  filesToProcess: any[];
+  currentNoteVals: any;
+  numeratorSignature: number;
+  denominatorSignature: number;
+  editPattern: any;
+  patternsHash: any;
+  patternsHashUpdated: boolean;
+  inPatternEditMode:(state: boolean) => void;
+  selectFileForAssignment: (e: Event) => void;
+  sortFileItemUp: (e: Event) => void;
+  sortFileItemDown: (e: Event) => void;
+  handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
+  cellSubdivisions: number;
+  resetCellSubdivisionsCounter: (x: number, y: number) => void;
 };
 
 export type InteractionData = {
@@ -24,6 +39,7 @@ export type InteractionData = {
   xPos: number;
   yPos: number;
   value: number;
+  instrument: string;
 };
 
 export const Heatmap = ({ 
@@ -33,25 +49,59 @@ export const Heatmap = ({
   currentBeatSynthCount,
   currentNumerCount,
   currentDenomCount,
+  currentNoteVals,
+  filesToProcess,
   handleOscRateUpdate,
   handleStkRateUpdate,
   handleSamplerRateUpdate,
   handleAudioInRateUpdate,
+  numeratorSignature,
+  denominatorSignature,
+  editPattern,
+  patternsHash,
+  patternsHashUpdated,
+  updateCellColor,
+  updateCellColorBool,
   // data
+  inPatternEditMode,
+  selectFileForAssignment, 
+  sortFileItemUp, 
+  sortFileItemDown,
+  handleChangeCellSubdivisions,
+  cellSubdivisions,
+  resetCellSubdivisionsCounter
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
+  const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
 
-
-
-  const nCol = 8;
+  const nCol = numeratorSignature;
   const nRow = 4;
   const patternarr: Array<any> = [];
   let counter = 0;
-  Array.from(Array(7)).forEach(()=>{
+  Array.from(Array(numeratorSignature * 2 - 1)).forEach(()=>{
     counter += 1;
     patternarr.push(counter);
   });
-  
+    
+useEffect(() => {
+  setDoRebuildHeatmap(true);
+}, [doRebuildHeatmap])
+
+  useEffect(() => {
+    console.log("patterns hash updated: ", patternsHashUpdated);
+  },[patternsHashUpdated])
+
+
+  useEffect(() => {
+    console.log("phash: ", patternsHash);
+  }, [patternsHash.length])
+
+  useEffect(() => {
+    if (updateCellColorBool) {
+      updateCellColor(false);
+    }
+  }, [updateCellColorBool])
+
   
   type HeatmapData = { x: string; y: string; value: number }[];
   
@@ -62,10 +112,14 @@ export const Heatmap = ({
       heatmapData.push({
         x: patternarr[x],
         y: patternarr[y],
-        value: y !== 0 && x === (currentBeatCount % 8) ? 9 : (y === 0 && x === (currentBeatSynthCount % 2)) ? 18 : x,
+        value: y !== 0 && x === (currentNumerCount % numeratorSignature) ? 9 : (y === 0 && x === (currentBeatSynthCount)) ? 18 : x,
   
       });
     }
+  }
+
+  const rebuildHeatmap = () => {
+    setDoRebuildHeatmap(true);
   }
 
   return (
@@ -76,26 +130,53 @@ export const Heatmap = ({
       // paddingTop: "8vh",
       left: '0px',
       width: '100%',
+      height: '100%',
       zIndex: '40',
-      height: `calc(100vh - 272px)`
+      textAlign: 'center',
+      justifyContent: 'center',
+      paddingLeft: '24px'
+      // height: `calc(100vh - 272px)`
     }}>
       <ArpSpeedSliders 
         handleOscRateUpdate={handleOscRateUpdate} 
         handleStkRateUpdate={handleStkRateUpdate} 
         handleSamplerRateUpdate={handleSamplerRateUpdate} 
         handleAudioInRateUpdate={handleAudioInRateUpdate}
-      />    
+
+        filesToProcess={filesToProcess}
+        currentNoteVals={currentNoteVals}
+      />   
+{
+// !patternsHashUpdated && (
       <Renderer
         width={width - 60}
         height={height}
         // data={data}
         data={heatmapData}
         setHoveredCell={setHoveredCell}
+        editPattern={editPattern}
+        patternsHash={patternsHash}
+        patternsHashUpdated={patternsHashUpdated}
+        updateCellColorBool={updateCellColorBool}
+        updateCellColor={updateCellColor}
+        inPatternEditMode={inPatternEditMode}
+        filesToProcess = {filesToProcess}
+        selectFileForAssignment = {selectFileForAssignment}
+        sortFileItemUp={sortFileItemUp}
+        sortFileItemDown={sortFileItemDown}
+        handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+        cellSubdivisions={cellSubdivisions}
+        resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
+        rebuildHeatmap={rebuildHeatmap}
       />
+  // )
+}
       <Tooltip 
         interactionData={hoveredCell} 
         width={width} 
-        height={height} />
+        height={height}
+        patternsHash={patternsHash}
+      />
     </Box>
   );
 };

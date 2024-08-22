@@ -127,9 +127,9 @@ export default function FXRouting(props: Props) {
     AudioIn: []
   });
 
-  const handleFXRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    updateFXInputRadio((event.target as HTMLInputElement).value);
-  };
+  // const handleFXRadioChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   updateFXInputRadio((event.target as HTMLInputElement).value);
+  // };
 
   useEffect(() => {
     console.log("what is fxData in FXRouting??: ", fxData);
@@ -180,6 +180,7 @@ export default function FXRouting(props: Props) {
     <>
           {
         showFX &&
+        <>
         <FXCheckboxLabels 
             fxValsRef={fxFX} 
             handleFXGroupChange={handleFXGroupChange}
@@ -187,25 +188,37 @@ export default function FXRouting(props: Props) {
             fxGroupsArrayList={fxGroupsArrayList} 
             checkedFXList={checkedFXList}
         />
+
+        {/* <SelectInputSourceRadioButtons 
+          handleChange={handleFXRadioChange} 
+          value={fxRadioValue}
+          updateStkKnobs={updateStkKnobs}
+          setStkValues={setStkValues}
+          stkValues={stkValues}
+          updateCurrentFXScreen={updateCurrentFXScreen}
+          currentScreen={currentScreen}
+          playUploadedFile={playUploadedFile}
+          lastFileUpload={lastFileUpload}
+          // updateFileUploads={updateFileUploads}
+        /> */}
+      </>
       }
       <Box sx={{
-      // background: "green", 
-      display: "flex",
-      flexDirection: "row",
-      position: "relative", 
-      height: "100%",
-      top: '0px',
-      width: "10%",
+        // background: "green", 
+        display: "flex",
+        flexDirection: "row",
+        position: "relative", 
+        height: "100%",
+        top: '0px',
+        width: "10%",
       // zIndex: showFX ? 9999 : -1
     }}>
-
-
         <ShowFXView 
           programIsOn={programIsOn}
           handleShowFX={handleShowFX}
         />
   
-      {showFX && 
+      {/* {showFX &&  */}
       <Box
         key={`arcDiagramOuterWrapper_${Object.values(linksRef.current).map((l:any) => l.source + "_")}`}
         sx={{
@@ -232,7 +245,7 @@ export default function FXRouting(props: Props) {
           height: '100%',
           color: 'rgba(147, 206, 214, 1)'
         }}>
-          <SelectInputSourceRadioButtons 
+          {/* <SelectInputSourceRadioButtons 
             handleChange={handleFXRadioChange} 
             value={fxRadioValue}
             updateStkKnobs={updateStkKnobs}
@@ -243,7 +256,7 @@ export default function FXRouting(props: Props) {
             playUploadedFile={playUploadedFile}
             lastFileUpload={lastFileUpload}
             // updateFileUploads={updateFileUploads}
-          />
+          /> */}
           {/* <Box 
             // key={`${fxRadioValue}_arcDiagramInnerWrapper`} 
             sx={{
@@ -284,7 +297,8 @@ export default function FXRouting(props: Props) {
               checkedFXList={checkedFXList}
           />
       } */}
-      </Box>}
+      </Box>
+      {/* // } */}
       </Box>
     </>
   );

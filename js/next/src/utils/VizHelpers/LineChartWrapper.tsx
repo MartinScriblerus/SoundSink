@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LineChart } from "./LineChart";
-import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
+import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import LegendVizx from "@/app/components/VizxHelpers/Legend";
+import BrushChart from "@/app/components/VizxHelpers/BrushChart";
 export interface VizDataProps {
 
   analysisObject: any;
@@ -9,6 +11,19 @@ export interface VizDataProps {
   closeAnalysisPopup: () => void;
   handleChangeAnalysisSource: (e: any) => void;
   analysisSourceRadioValue: string;
+  secLenBeat:number;
+  beatCount: number;
+  numerCount: number;
+  denomCount: number;
+  patternCount: number;
+  filesToProcess: any[];
+  bufferStepLength: number;
+  graphNeedsUpdate: boolean;
+  setGraphNeedsUpdate: any;
+  handleLegendClicked: (label:any) => void;
+  inFileAnalysisMode: boolean;
+  handleFileAnalysisMode:() => void;
+  meydaData: any;
 }
 
 export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}) => {
@@ -17,14 +32,28 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     timeNow, 
     closeAnalysisPopup, 
     handleChangeAnalysisSource,
-    analysisSourceRadioValue
+    analysisSourceRadioValue,
+    secLenBeat,
+    beatCount,
+    numerCount,
+    denomCount,
+    patternCount,
+    filesToProcess,
+    bufferStepLength,
+    graphNeedsUpdate,
+    setGraphNeedsUpdate,
+    handleLegendClicked,
+    inFileAnalysisMode,
+    handleFileAnalysisMode,
+    meydaData
   } = props;
   
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   const [mockData, setMockData] = useState<Array<any>>([]);
   const [currentVisualization, setCurrentVisualization] = useState<string>('centroid');
+  const [isInFileMode, setIsInFileMode] = useState<boolean>(true);
+  const fileTime = useRef<number | undefined | false>();
   
-
   const value = ""
 
   useMemo(() => {
@@ -53,216 +82,155 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     setCurrentVisualization(selectedViz.target.value);
 
   };
+  console.log("curr viz! ", currentVisualization);
+
+  const bruteHandleIsInFileMode = () => {
+    setIsInFileMode(!isInFileMode);
+  }
+
+  const getAudioDuration = (arrayBuffer:any, numChannels: number, sampleRate: number, isFloatingPoint: boolean) => {
+    // PCM 16 or Float32
+    const bytesPerSample = (isFloatingPoint ? Float32Array : Uint16Array).BYTES_PER_ELEMENT
+    // total samples/frames
+    const totalSamples = arrayBuffer.byteLength / bytesPerSample / numChannels 
+    // total seconds
+    return totalSamples / sampleRate
+  }
+
+  useEffect(() => {
+    fileTime.current = filesToProcess && filesToProcess.length > 0 && getAudioDuration(filesToProcess[filesToProcess.length -1].data, 2, 44100, true);
+    console.log("CHECK FILE TIME!!! ", fileTime);
+    console.log("FILES TO PROCESS: ", filesToProcess);
+    console.log("Files Data! ",  filesToProcess[filesToProcess.length - 1] &&  filesToProcess[filesToProcess.length - 1].length && filesToProcess[filesToProcess.length - 1].data.map((i: any, idx: number) => {return {x: idx, y: i}}))
+  }, [filesToProcess.length, isInFileMode]);
 
   return (
+    <>
+
+
     <Box
       className="findme"
       sx={{
-        top: "26px",
+        top: "0px",
         pointerEvents: "none",
         borderRadius: "24px",
-        width: "100%"
+        width: "100%",
+        height: "100%",
+        display: "inline-flex",
+        position: "relative",
       }}
-    >
+    >      
+      <Box 
+        sx={{
+          pointerEvents: "none", 
+          position: "relative", 
+          // width: "calc(100% - 146px)",
+          display: "flex", 
+          height: "100%",
+          background: "rgba(0,0,0,0.9)",
+          justifyContent: "right",
+          alignItems: "right",
+          borderRadius: "16px",
+          padding: "12px",
+          fontSize: "16px",
+          width: "100%"
+        }}
+      >
+        {/* <Box sx={{ 
+          position: "relative",
+          display: "flex", 
+          flexDirection: "column" }}>
+          {['Master', 'Osc', 'STK', 'Sampler', 'AudioIn'].map((i) => {
+            return (
+              <Button
+                id={`${i}_analysis_btn_setter`}
+                key={`${i}_analysis_btn_setter`}
+                onClick={(e) => handleChangeAnalysisSource(e)}
+                value={i}
+                sx={{
+                  width: '60px', 
+                  height: '60px', 
+                  pointerEvents: 'all',
+                  zIndex: '99',
+                  cursor: 'pointer',
+                  border: "solid 1px transparent",
+                  borderRadius: "50% !important", 
+                  background: analysisSourceRadioValue === i.toLowerCase() ? 'rgba(219, 230, 161, 0.97)' : 'rgba(147, 206, 214, 0.8)',
+                  fontSize: '14px',
+                  color: "black",
+                  transform: 'scale(0.75)',
+                  '&:hover': {
+                    color: "#f6f6f6",
+                    background: 'rgba(0,0,0,0.7)',
+                    borderColor: '#f6f6f6',
+                  }
+                }}
+              >{i === "Master" ? "master" : "Osc" ? "osc": i === "STK" ? "stk": i === "Sampler" ? "sam" : "in"}</Button>)
+            })
+          }
+        </Box> */}
 
-      <Box sx={{
-        pointerEvents: "none", 
-        position: "relative", 
-        flexDirection: "row-reverse", 
-        width: "calc(100% - 240px)",
-        left: "240px", 
-        display: "inline-flex", 
-        background: "rgba(0,0,0,0.98)"}}>
-        
-        <CloseIcon onClick={closeAnalysisPopup} sx={{ pointerEvents: "all", position: "relative", display: "flex", flexDirection: "column", alignText: "right", zIndex: 120, justifyContent: "right" }} />
-        
-        <Box sx={{ position: "relative", display: "flex", flexDirection: "row" }}>
-          {
+<Box sx={{
+  width: "100%", 
+  position: "relative", 
+  boxSizing: "border-box", 
+  justifyContent: "center",
+  alignItems: "center", 
+  borderRadius: "8px", 
+  padding: "12px", 
+  fontSize: "16px",
+  paddingTop: "72px",
+  // background: "rgba(33,33,33,.33)",
+  display: "flex"
+  }}>
+        {
           mockData && 
-          (<LineChart
-              key={`${currentVisualization}`}
-              // data={analysisObject.current[analysisSourceRadioValue][`${currentVisualization}`]}
-              data={mockData.map((i: any) => {return {x: i.x, y: i[`${currentVisualization}`]}})}
-              width={width}
-              height={height}
-              cursorPosition={cursorPosition}
-              setCursorPosition={setCursorPosition}
-              color={"rgba(228,225,209,1)"}          
-              // analysisObject={analysisObject}
-              // analysisSourceRadioValue={analysisSourceRadioValue}
-              selectedViz={`${currentVisualization}`}
-              timeNow={timeNow}
-          />)}
-
-<Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row-reverse',
-            // minHeight: '60px',
-            // marginRight: '80px',
-            // backgroundColor: "rgba(0, 0, 0,1)",
-            color: 'rgba(228,225,209,1)',
-            position: 'absolute',
-            maxWidth: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '12px',
-            left: '208px',
+          <>
+          <LegendVizx 
+            handleLegendClicked={handleLegendClicked}  
+            inFileAnalysisMode={inFileAnalysisMode}
+            handleFileAnalysisMode={handleFileAnalysisMode}
+          />
+          <BrushChart height={324} width={524} meydaData={meydaData}></BrushChart>
+          </>
+        }
+</Box>
+            <Box sx={{
+        // background: 'trans', 
+        display: 'flex', 
+        flexDirection: 'column',
+        position: 'absolute',
+        top: '112px',
+        left: '52px',
+        width: '524px',
+    }}>
+    {/* <Button sx={{
             zIndex: 9999,
-            background: 'transparent',
-            backgroundColor: 'transparent'
-          }}
-        >
-          
-          <RadioGroup
-            aria-labelledby="demo2-controlled-radio-buttons-group"
-            name="controlled-radio-buttons-group2"
-            value={analysisSourceRadioValue}
-            sx={{
-              // color: "rgba(147, 206, 214, 1)", 
-   
-              color: 'rgba(228,225,209,1)',
-              pointerEvents: "all", 
-              display: "flex", 
-              flexDirection: "row", 
-              backgroundColor: "transparent",
-              background: "transparent",
-              minHeight: "60px",
-            }}
-            onChange={handleChangeAnalysisSource}
-          >
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="Osc" 
-                control={<Radio />} 
-                label="Osc" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="STK" 
-                control={<Radio />} 
-                label="STK" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="Sampler" 
-                control={<Radio />} 
-                label="Sampler" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)',
-                    background: 'transparent',
-                    backgroundColor: "transparent",
-                }} 
-                value="AudioIn" 
-                control={<Radio />} 
-                label="Audio In" />
-            </RadioGroup>
-        </Box>
-
-          <RadioGroup
-            aria-labelledby="demo-controlled-radio-buttons-group-feature-viz"
-            name="controlled-radio-buttons-group-feature-viz"
-            value={currentVisualization}
-            sx={{color: "rgba(147, 206, 214, 1)", width: "100%", pointerEvents: "all"}}
-            onChange={(e: any) => handleChange(e)}
-          >
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="centroid" 
-                control={<Radio />} 
-                label="Centroid" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="flux" 
-                control={<Radio />} 
-                label="Flux" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="rms" 
-                control={<Radio />} 
-                label="RMS" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="rollOff50" 
-                control={<Radio />} 
-                label="Rolloff 50" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="rollOff85" 
-                control={<Radio />} 
-                label="Rolloff 85" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="xCross" 
-                control={<Radio />} 
-                label="X-Crossings" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="freq" 
-                control={<Radio />} 
-                label="Freq" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="gain" 
-                control={<Radio />} 
-                label="Gain" 
-            />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="kurtosis" 
-                control={<Radio />} 
-                label="Kurtosis" />
-            <FormControlLabel 
-                sx={{
-                    color: 'rgba(228,225,209,1)'
-                }} 
-                value="sfm" 
-                control={<Radio />} 
-                label="SFM" />
-          </RadioGroup>
-        </Box>
-
+            alignItems: "left",
+            justifyContent: "left",
+            background: "blue",
+            pointerEvents: "all",
+            cursor: "pointer",
+        }} onClick={handleFileAnalysisMode}>Files</Button> */}
+        {/* <BrushChart height={324} width={524} meydaData={meydaData}></BrushChart> */}
+</Box>
+        <CloseIcon 
+          onClick={closeAnalysisPopup} 
+          sx={{ 
+            pointerEvents: "all", 
+            position: "relative", 
+            display: "flex", 
+            flexDirection: "column", 
+            alignText: "right", 
+            zIndex: 120, 
+            justifyContent: "right" 
+          }} />
       </Box>
-
       <Box>
         <Box>
-        
         </Box>
-
       </Box>
     </Box>
+    </>
   );
 };

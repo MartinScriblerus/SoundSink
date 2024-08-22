@@ -16,7 +16,7 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
         <Stack direction="row" spacing={2}>
             <Button 
                 sx={{
-                    minWidth: window.innerWidth < 900 ? '140px' : '208px', 
+                    minWidth: '140px', 
                     color: 'rgba(0,0,0,.98)',
                     backgroundColor: 'rgba(158, 210, 162, 0.8)', 
                     background: 'rbga(0,0,0,.7)', 
@@ -26,12 +26,10 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
                     '&:hover': {
                         color: '#f5f5f5',
                         background: 'rgba(0,0,0,.98)',
-                        border: '1px solid #1976d2',
                     }
                 }} 
                 className={"ui_SynthLayerButton"}
                 onClick={handleShowFX} 
-                variant="outlined" 
                 endIcon={<InputIcon />}>
                 {/* Show FX */} Effects
             </Button>
