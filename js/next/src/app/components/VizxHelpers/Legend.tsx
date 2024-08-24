@@ -122,7 +122,8 @@ const legendGlyphSize = 15;
 // };
 
 export default function LegendVizx({ 
-    events = true, handleLegendClicked, 
+    events = true, 
+    handleLegendClicked, 
     inFileAnalysisMode, 
     handleFileAnalysisMode
  } : { 
@@ -135,10 +136,11 @@ export default function LegendVizx({
     <div className="legends" style={{
         position: "absolute", 
         padding: "0px",
+        right: "160px",
         textAlign: "center",
         // left: '25%',
-        marginLeft: '28px',
-        marginTop: '-36px',
+        // marginLeft: '28px',
+        // marginTop: '-36px',
     
         justifyContent: 'center',
         alignItems: 'center',

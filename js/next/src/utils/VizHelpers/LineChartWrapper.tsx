@@ -24,6 +24,7 @@ export interface VizDataProps {
   inFileAnalysisMode: boolean;
   handleFileAnalysisMode:() => void;
   meydaData: any;
+  meydaFeatures: any;
 }
 
 export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}) => {
@@ -45,7 +46,8 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     handleLegendClicked,
     inFileAnalysisMode,
     handleFileAnalysisMode,
-    meydaData
+    meydaData,
+    meydaFeatures
   } = props;
   
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -106,131 +108,97 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
 
   return (
     <>
-
-
-    <Box
-      className="findme"
-      sx={{
-        top: "0px",
-        pointerEvents: "none",
-        borderRadius: "24px",
-        width: "100%",
-        height: "100%",
-        display: "inline-flex",
-        position: "relative",
-      }}
-    >      
-      <Box 
+      <Box
+        className="findme"
         sx={{
-          pointerEvents: "none", 
-          position: "relative", 
-          // width: "calc(100% - 146px)",
-          display: "flex", 
+          top: "0px",
+          pointerEvents: "none",
+          borderRadius: "24px",
+          width: "100%",
           height: "100%",
-          background: "rgba(0,0,0,0.9)",
-          justifyContent: "right",
-          alignItems: "right",
-          borderRadius: "16px",
-          padding: "12px",
-          fontSize: "16px",
-          width: "100%"
-        }}
-      >
-        {/* <Box sx={{ 
+          display: "inline-flex",
           position: "relative",
-          display: "flex", 
-          flexDirection: "column" }}>
-          {['Master', 'Osc', 'STK', 'Sampler', 'AudioIn'].map((i) => {
-            return (
-              <Button
-                id={`${i}_analysis_btn_setter`}
-                key={`${i}_analysis_btn_setter`}
-                onClick={(e) => handleChangeAnalysisSource(e)}
-                value={i}
-                sx={{
-                  width: '60px', 
-                  height: '60px', 
-                  pointerEvents: 'all',
-                  zIndex: '99',
-                  cursor: 'pointer',
-                  border: "solid 1px transparent",
-                  borderRadius: "50% !important", 
-                  background: analysisSourceRadioValue === i.toLowerCase() ? 'rgba(219, 230, 161, 0.97)' : 'rgba(147, 206, 214, 0.8)',
-                  fontSize: '14px',
-                  color: "black",
-                  transform: 'scale(0.75)',
-                  '&:hover': {
-                    color: "#f6f6f6",
-                    background: 'rgba(0,0,0,0.7)',
-                    borderColor: '#f6f6f6',
-                  }
-                }}
-              >{i === "Master" ? "master" : "Osc" ? "osc": i === "STK" ? "stk": i === "Sampler" ? "sam" : "in"}</Button>)
-            })
-          }
-        </Box> */}
-
-<Box sx={{
-  width: "100%", 
-  position: "relative", 
-  boxSizing: "border-box", 
-  justifyContent: "center",
-  alignItems: "center", 
-  borderRadius: "8px", 
-  padding: "12px", 
-  fontSize: "16px",
-  paddingTop: "72px",
-  // background: "rgba(33,33,33,.33)",
-  display: "flex"
-  }}>
-        {
-          mockData && 
-          <>
-          <LegendVizx 
-            handleLegendClicked={handleLegendClicked}  
-            inFileAnalysisMode={inFileAnalysisMode}
-            handleFileAnalysisMode={handleFileAnalysisMode}
-          />
-          <BrushChart height={324} width={524} meydaData={meydaData}></BrushChart>
-          </>
-        }
-</Box>
-            <Box sx={{
-        // background: 'trans', 
-        display: 'flex', 
-        flexDirection: 'column',
-        position: 'absolute',
-        top: '112px',
-        left: '52px',
-        width: '524px',
-    }}>
-    {/* <Button sx={{
-            zIndex: 9999,
-            alignItems: "left",
-            justifyContent: "left",
-            background: "blue",
-            pointerEvents: "all",
-            cursor: "pointer",
-        }} onClick={handleFileAnalysisMode}>Files</Button> */}
-        {/* <BrushChart height={324} width={524} meydaData={meydaData}></BrushChart> */}
-</Box>
-        <CloseIcon 
-          onClick={closeAnalysisPopup} 
-          sx={{ 
-            pointerEvents: "all", 
+        }}
+      >      
+        <Box 
+          sx={{
+            pointerEvents: "none", 
             position: "relative", 
             display: "flex", 
-            flexDirection: "column", 
-            alignText: "right", 
-            zIndex: 120, 
-            justifyContent: "right" 
-          }} />
-      </Box>
-      <Box>
+            height: "100%",
+            background: "rgba(0,0,0,0.9)",
+            justifyContent: "right",
+            alignItems: "right",
+            borderRadius: "16px",
+            padding: "12px",
+            fontSize: "16px",
+            width: "100%"
+          }}
+        >
+
+
+          <Box sx={{
+            width: "100%", 
+            position: "relative", 
+            boxSizing: "border-box", 
+            justifyContent: "center",
+            alignItems: "center", 
+            borderRadius: "8px", 
+            padding: "12px", 
+            fontSize: "16px",
+            // paddingTop: "72px",
+            left: "0px",
+            // background: "rgba(33,33,33,.33)",
+            // display: "flex"
+            }}>
+              {
+                meydaData && 
+                <div style={{display: "flex", width: "100%" }}>
+                
+                <LegendVizx 
+                  handleLegendClicked={handleLegendClicked}  
+                  inFileAnalysisMode={inFileAnalysisMode}
+                  handleFileAnalysisMode={handleFileAnalysisMode}
+                />
+                <span style={{
+                  // position: "relative",
+                  // top: '142px',
+                  width: "100%",
+                  height: "auto",
+                  left: "152px",
+                }}>
+                  <BrushChart height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></BrushChart>
+                </span>
+                </div>
+              }
+          </Box>
+          <Box sx={{
+            display: 'flex', 
+            flexDirection: 'column',
+            position: 'absolute',
+            top: '112px',
+            left: '52px',
+            width: '524px',
+          }}>
+
+          </Box>
+          <CloseIcon 
+            onClick={closeAnalysisPopup} 
+            sx={{ 
+              pointerEvents: "all", 
+              position: "relative", 
+              display: "flex", 
+              flexDirection: "column", 
+              alignText: "right", 
+              zIndex: 120, 
+              justifyContent: "right" 
+            }} />
+        </Box>
         <Box>
+          <Box>
+          </Box>
         </Box>
       </Box>
-    </Box>
     </>
   );
 };
