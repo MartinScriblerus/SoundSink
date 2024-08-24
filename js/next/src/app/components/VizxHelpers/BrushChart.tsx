@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import React, { useRef, useState, useMemo } from 'react';
-import { scaleTime, scaleLinear } from '@visx/scale';
+import { scaleUtc, scaleTime, scaleLinear, scaleLog, scaleBand, ScaleInput, coerceNumber } from '@visx/scale';
+import { Axis, Orientation, SharedAxisProps, AxisScale } from '@visx/axis';
+import { GridRows, GridColumns } from '@visx/grid';
+import { AnimatedAxis, AnimatedGridRows, AnimatedGridColumns } from '@visx/react-spring';
+
 import appleStock, { AppleStock } from '@visx/mock-data/lib/mocks/appleStock';
 import { Brush } from '@visx/brush';
 import { Bounds } from '@visx/brush/lib/types';
@@ -8,13 +12,14 @@ import BaseBrush, { BaseBrushState, UpdateBrush } from '@visx/brush/lib/BaseBrus
 import { PatternLines } from '@visx/pattern';
 import { Group } from '@visx/group';
 import { LinearGradient } from '@visx/gradient';
-import { max, extent } from '@visx/vendor/d3-array';
+import { max, extent, range } from '@visx/vendor/d3-array';
 import { BrushHandleRenderProps } from '@visx/brush/lib/BrushHandle';
 import AreaChart from './AreaChart';
 
 // Initialize some variables
-const stock = appleStock.slice(1000);
-console.log("APPLE STOCK: ", stock )
+let stock = appleStock.slice(1000);
+// console.log("STOCK: ", stock);
+
 const brushMargin = { top: 10, bottom: 15, left: 50, right: 20 };
 const chartSeparation = 30;
 const PATTERN_ID = 'brush_pattern';
@@ -28,7 +33,7 @@ const selectedBrushStyle = {
 };
 
 // accessors
-const getDate = (d: AppleStock) => new Date(d.date);
+const getDate = (d: AppleStock) => parseFloat(d.date);
 const getStockValue = (d: AppleStock) => d.close;
 
 export type BrushProps = {
@@ -51,15 +56,20 @@ function BrushChart({
   },
   meydaData
 }: BrushProps) {
+  console.log("APPLE STOCK: ", meydaData);
   const brushRef = useRef<BaseBrush | null>(null);
-  const [filteredStock, setFilteredStock] = useState(stock);
+  const [filteredStock, setFilteredStock] = useState<unknown | any>(meydaData);
 
   const onBrushChange = (domain: Bounds | null) => {
+
     if (!domain) return;
     const { x0, x1, y0, y1 } = domain;
-    const stockCopy = stock.filter((s) => {
-      const x = getDate(s).getTime();
+   
+    
+    const stockCopy = meydaData.filter((s: AppleStock) => {
+      const x = getDate(s);
       const y = getStockValue(s);
+
       return x > x0 && x < x1 && y > y0 && y < y1;
     });
     setFilteredStock(stockCopy);
@@ -75,13 +85,17 @@ function BrushChart({
   const yMax = Math.max(topChartHeight, 0);
   const xBrushMax = Math.max(width - brushMargin.left - brushMargin.right, 0);
   const yBrushMax = Math.max(bottomChartHeight - brushMargin.top - brushMargin.bottom, 0);
-
+  // const getMinMax = (vals: (number | { valueOf(): number })[]) => {
+  //   const numericVals = vals.map(coerceNumber);
+  //   return [Math.min(...numericVals), Math.max(...numericVals)];
+  // };
   // scales
   const dateScale = useMemo(
     () =>
-      scaleTime<number>({
+      scaleLinear<number>({
         range: [0, xMax],
-        domain: extent(filteredStock, getDate) as [Date, Date],
+        // domain: [0, filteredStock.length] as [number, number],
+        domain: extent(filteredStock, getDate) as [number, number],
       }),
     [xMax, filteredStock],
   );
@@ -89,16 +103,18 @@ function BrushChart({
     () =>
       scaleLinear<number>({
         range: [yMax, 0],
-        domain: [0, max(filteredStock, getStockValue) || 0],
+        // domain: [0, max(meydaData, getStockValue) || 0],
+        domain: [0, max(meydaData, getStockValue) || 0],
         nice: true,
       }),
     [yMax, filteredStock],
   );
   const brushDateScale = useMemo(
     () =>
-      scaleTime<number>({
+      scaleLinear<number>({
         range: [0, xBrushMax],
-        domain: extent(stock, getDate) as [Date, Date],
+        domain: extent(meydaData, getDate) as [number, number],
+        // domain: [0, (meydaData).length] as [number, number],
       }),
     [xBrushMax],
   );
@@ -106,16 +122,21 @@ function BrushChart({
     () =>
       scaleLinear({
         range: [yBrushMax, 0],
-        domain: [0, max(stock, getStockValue) || 0],
+        domain: [0,max(meydaData, getStockValue) || 0] as [number, number],
+        // domain: extent(meydaData, getDate) as [number, number],
         nice: true,
       }),
     [yBrushMax],
   );
 
+
+
   const initialBrushPosition = useMemo(
     () => ({
-      start: { x: brushDateScale(getDate(stock[50])) },
-      end: { x: brushDateScale(getDate(stock[100])) },
+      // start: { x: brushDateScale(meydaData[50]) },
+      // end: { x: brushDateScale(meydaData[100]) },
+      start: {x: brushDateScale(getDate(meydaData[0]))},
+      end: {x: brushDateScale(getDate(meydaData[50]))}
     }),
     [brushDateScale],
   );
@@ -123,12 +144,13 @@ function BrushChart({
   // event handlers
   const handleClearClick = () => {
     if (brushRef?.current) {
-      setFilteredStock(stock);
+      setFilteredStock(meydaData);
       brushRef.current.reset();
     }
   };
 
   const handleResetClick = () => {
+    console.log("clicliclicliclick ", brushRef?.current);
     if (brushRef?.current) {
       const updater: UpdateBrush = (prevBrush) => {
         const newExtent = brushRef.current!.getExtent(
@@ -148,15 +170,17 @@ function BrushChart({
       brushRef.current.updateBrush(updater);
     }
   };
-console.log("HEYA GRADIENT: ", GRADIENT_ID);
+console.log("HEYA FILT STOCK: ", filteredStock);
   return (
-    <div style={{marginLeft: "-100px"}}>
+    <div style={{marginLeft: "-0px", paddingTop: "60px"}}>
+  {filteredStock && (
+    <>
       <svg width={width} height={height}>
         <LinearGradient id={GRADIENT_ID} from={background} to={background2} rotate={45} />
         <rect x={0} y={0} width={width} height={height} fill={`url(#${GRADIENT_ID})`} rx={14} />
         <AreaChart
           hideBottomAxis={compact}
-          data={filteredStock}
+          data={filteredStock || []}
           width={width}
           margin={{ ...margin, bottom: topChartBottomMargin }}
           yMax={yMax}
@@ -167,7 +191,7 @@ console.log("HEYA GRADIENT: ", GRADIENT_ID);
         <AreaChart
           hideBottomAxis
           hideLeftAxis
-          data={stock}
+          data={meydaData}
           width={width}
           yMax={yBrushMax}
           xScale={brushDateScale}
@@ -196,15 +220,18 @@ console.log("HEYA GRADIENT: ", GRADIENT_ID);
             brushDirection="horizontal"
             initialBrushPosition={initialBrushPosition}
             onChange={onBrushChange}
-            onClick={() => setFilteredStock(stock)}
+            onClick={() => setFilteredStock(meydaData)}
             selectedBoxStyle={selectedBrushStyle}
             useWindowMoveEvents
             renderBrushHandle={(props) => <BrushHandle {...props} />}
           />
         </AreaChart>
       </svg>
-      <button onClick={handleClearClick}>Clear</button>&nbsp;
-      <button onClick={handleResetClick}>Reset</button>
+      <button style={{pointerEvents: "auto", cursor: "pointer"}} onClick={handleClearClick}>Clear</button>&nbsp;
+      <button style={{pointerEvents: "auto", cursor: "pointer"}} onClick={handleResetClick}>Reset</button>
+    </>
+  )
+}
     </div>
   );
 }
@@ -222,7 +249,7 @@ function BrushHandle({ x, height, isBrushActive }: BrushHandleRenderProps) {
         d="M -4.5 0.5 L 3.5 0.5 L 3.5 15.5 L -4.5 15.5 L -4.5 0.5 M -1.5 4 L -1.5 12 M 0.5 4 L 0.5 12"
         stroke="#999999"
         strokeWidth="1"
-        style={{ cursor: 'ew-resize' }}
+        style={{ pointerEvents: "auto", cursor: 'ew-resize' }}
       />
     </Group>
   );

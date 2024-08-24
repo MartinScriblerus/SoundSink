@@ -1007,7 +1007,7 @@ export default function InitializationComponent() {
         const meydaFileArray = lastFileUploadMeydaData.current.map((i:any) => i[featuresLegendParam]);
             
         for (var i in  meydaFileArray) {
-            indexedFileFeatureArray.current.push([meydaFileArray[i], i]);
+            indexedFileFeatureArray.current.push([meydaFileArray[i], i ]);
         }
         console.log("BADABOOM2! ", indexedFileFeatureArray.current);
         setFeaturesLegendData(indexedFileFeatureArray.current);
@@ -1064,7 +1064,7 @@ export default function InitializationComponent() {
             const meydaFileArray = lastFileUploadMeydaData.current.map((i:any) => i[featuresLegendParam.toLowerCase()]);
             
             for (var i in  meydaFileArray) {
-                indexedFileFeatureArray.current.push([meydaFileArray[i], i]);
+                indexedFileFeatureArray.current.push({'date':((parseFloat(i))), 'close': parseFloat(meydaFileArray[i])});
             }
             console.log("BADABOOM! ", indexedFileFeatureArray.current);
         });
@@ -5819,6 +5819,7 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                     inFileAnalysisMode={inFileAnalysisMode}
                     handleFileAnalysisMode={handleFileAnalysisMode}
                     meydaData={lastFileUploadMeydaData.current}
+                    meydaFeatures={featuresLegendData}
                 />}
             </Box>
 
