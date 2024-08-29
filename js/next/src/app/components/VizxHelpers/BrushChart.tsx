@@ -58,7 +58,7 @@ function BrushChart({
 }: BrushProps) {
   console.log("APPLE STOCK: ", meydaData);
   const brushRef = useRef<BaseBrush | null>(null);
-  const [filteredStock, setFilteredStock] = useState<unknown | any>(meydaData);
+  const [filteredStock, setFilteredStock] = useState<unknown | any>(meydaData.map((i:any) => i));
 
   const onBrushChange = (domain: Bounds | null) => {
 
@@ -66,7 +66,7 @@ function BrushChart({
     const { x0, x1, y0, y1 } = domain;
    
     
-    const stockCopy = meydaData.filter((s: AppleStock) => {
+    const stockCopy = meydaData.map((i:any) => i).filter((s: AppleStock) => {
       const x = getDate(s);
       const y = getStockValue(s);
 
@@ -113,7 +113,7 @@ function BrushChart({
     () =>
       scaleLinear<number>({
         range: [0, xBrushMax],
-        domain: extent(meydaData, getDate) as [number, number],
+        domain: extent(meydaData.map((i:any) => i), getDate) as [number, number],
         // domain: [0, (meydaData).length] as [number, number],
       }),
     [xBrushMax],
@@ -135,8 +135,8 @@ function BrushChart({
     () => ({
       // start: { x: brushDateScale(meydaData[50]) },
       // end: { x: brushDateScale(meydaData[100]) },
-      start: {x: brushDateScale(getDate(meydaData[0]))},
-      end: {x: brushDateScale(getDate(meydaData[50]))}
+      start: {x: brushDateScale(getDate(meydaData.map((i:any) => i[0])))},
+      end: {x: brushDateScale(getDate(meydaData.map((i:any) => i[50])))}
     }),
     [brushDateScale],
   );
@@ -144,7 +144,7 @@ function BrushChart({
   // event handlers
   const handleClearClick = () => {
     if (brushRef?.current) {
-      setFilteredStock(meydaData);
+      setFilteredStock(meydaData.map((i:any) => i));
       brushRef.current.reset();
     }
   };
@@ -220,7 +220,7 @@ console.log("HEYA FILT STOCK: ", filteredStock);
             brushDirection="horizontal"
             initialBrushPosition={initialBrushPosition}
             onChange={onBrushChange}
-            onClick={() => setFilteredStock(meydaData)}
+            onClick={() => setFilteredStock(meydaData.map((i:any) => i))}
             selectedBoxStyle={selectedBrushStyle}
             useWindowMoveEvents
             renderBrushHandle={(props) => <BrushHandle {...props} />}

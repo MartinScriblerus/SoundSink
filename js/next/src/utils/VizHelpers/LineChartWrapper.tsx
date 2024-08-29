@@ -4,6 +4,7 @@ import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGrou
 import CloseIcon from '@mui/icons-material/Close';
 import LegendVizx from "@/app/components/VizxHelpers/Legend";
 import BrushChart from "@/app/components/VizxHelpers/BrushChart";
+import Steamgraph from "@/app/components/VizxHelpers/Steamgraph";
 export interface VizDataProps {
 
   analysisObject: any;
@@ -25,6 +26,8 @@ export interface VizDataProps {
   handleFileAnalysisMode:() => void;
   meydaData: any;
   meydaFeatures: any;
+  meydaParam: string;
+  meydaNeedsUpdate: boolean;
 }
 
 export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}) => {
@@ -47,7 +50,9 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     inFileAnalysisMode,
     handleFileAnalysisMode,
     meydaData,
-    meydaFeatures
+    meydaFeatures,
+    meydaParam,
+    meydaNeedsUpdate
   } = props;
   
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -105,6 +110,13 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     console.log("FILES TO PROCESS: ", filesToProcess);
     console.log("Files Data! ",  filesToProcess[filesToProcess.length - 1] &&  filesToProcess[filesToProcess.length - 1].length && filesToProcess[filesToProcess.length - 1].data.map((i: any, idx: number) => {return {x: idx, y: i}}))
   }, [filesToProcess.length, isInFileMode]);
+
+  useEffect(() => {
+    if (meydaFeatures) {
+      console.log("WHAT ARE MEYDA FEATURES? ", meydaFeatures);
+    }
+  }, [filesToProcess.length, meydaNeedsUpdate]);
+  
 
   return (
     <>
@@ -167,7 +179,12 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
                   height: "auto",
                   left: "152px",
                 }}>
+                  {
+                    !meydaParam.includes("chroma") ?
                   <BrushChart height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></BrushChart>
+                  : 
+                  <Steamgraph height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></Steamgraph>
+                  }
                 </span>
                 </div>
               }

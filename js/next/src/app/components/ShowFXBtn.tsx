@@ -13,16 +13,27 @@ type Props = {
 
 const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
     return (
-        <Stack direction="row" spacing={2}>
+        <Stack 
+            sx={{
+                display: programIsOn ? "flex" : "none",
+                flexDirection: "row",
+                width: "100% !important",
+            }} 
+            direction="row" spacing={2}>
             <Button 
                 sx={{
                     minWidth: '140px', 
-                    color: 'rgba(0,0,0,.98)',
-                    backgroundColor: 'rgba(158, 210, 162, 0.8)', 
+                    display: programIsOn ? "flex" : "none",
+                    flexDirection: "row",
+                    width: "100%",
+                    // color: 'rgba(0,0,0,.98)',
+                    // backgroundColor: 'rgba(158, 210, 162, 0.8)', 
+                    backgroundColor: 'rgba(30,34,26,0.96)',
+                    color: 'rgba(255,255,255,.95)',
                     background: 'rbga(0,0,0,.7)', 
                     marginLeft: '0px',
                     border: '0.5px solid #b2b2b2',
-                    display: programIsOn ? "flex" : "none",
+              
                     '&:hover': {
                         color: '#f5f5f5',
                         background: 'rgba(0,0,0,.98)',
