@@ -29,7 +29,14 @@ const BPMModuleFun = (props: BPMModule) => {
     const theme = useTheme();
 
     return (
-        <Box sx={{display: "flex", flexDirection: "row"}}>
+        <Box sx={{
+            display: "flex", 
+            flexDirection: "row",
+            border: "0.5px solid #b2b2b2", 
+            paddingBottom: "12px",
+
+            width: "100%"
+        }}>
             {/* <Box sx={{
                 fontFamily: notoSans,
                 fontSize: '24px',
@@ -46,13 +53,23 @@ const BPMModuleFun = (props: BPMModule) => {
             }}> */}
                 <FormControl
                     sx={{
-                        margin: '8px', 
-                        padding: '0', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'center',
+                        width: '50%',
+                        // backgroundColor: 'pink',
+                        alignItems: 'center',
+                        // margin: '18px', 
+                        // padding: '8px', 
                         // maxWidth: '100px', 
                         color:'rgba(228,225,209,1)',
-                        maxWidth: '76px',
-                        width: '50%',
-                        paddingTop: '24px'
+                        maxWidth: '86px',
+                        // width: '100%',
+                        paddingTop: '18px',
+                        top: "20px",
+                        left: "16px",
+                        // background: "pink"
+                        // justifyContent: 'space-evenly !important'
                     }}
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -104,14 +121,21 @@ const BPMModuleFun = (props: BPMModule) => {
                         }
                     />
                 </FormControl>
-                <Box sx={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                <Box sx={{
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'center',
+                    width: '50%',
+                    // backgroundColor: 'pink',
+                    alignItems: 'center',
+                }}>
                     <FormControl
                         hiddenLabel
                         sx={{
                             margin: '4px', 
                             padding: '0', 
                             maxWidth: '40px',
-                        
+                            marginTop: '8px !important'
                         }}
                         onSubmit={(e) => {
                             e.preventDefault();

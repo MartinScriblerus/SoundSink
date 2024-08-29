@@ -210,7 +210,7 @@ export default function FXRouting(props: Props) {
         position: "relative", 
         height: "100%",
         top: '0px',
-        width: "10%",
+        width: "100%",
       // zIndex: showFX ? 9999 : -1
     }}>
         <ShowFXView 

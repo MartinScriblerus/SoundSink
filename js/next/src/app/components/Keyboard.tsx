@@ -193,7 +193,7 @@ const Keyboard = ({
                         bottom: '-2px',
                         // width: 'calc(100% - 200px)', 
                         right: '0px',
-                        marginLeft: keysFullscreen ? '0px' : '148px', 
+                        marginLeft: keysFullscreen ? '0px' : '189px', 
                         zIndex: '100'}}
                     >
                         <ul id="keyboard" key={"keyboard"} >

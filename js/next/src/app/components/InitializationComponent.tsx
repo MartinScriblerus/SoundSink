@@ -243,6 +243,7 @@ export default function InitializationComponent() {
     const [osc1Code, setOsc1Code] = useState<string>('');
 
     const [osc1CodeToChuck, setOsc1CodeToChuck] = useState<string>('');
+    const [meydaNeedsUpdate, setMeydaNeedsUpdate] = useState<boolean>(false);
 
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
     const [numeratorSignature, setNumeratorSignature] = useState(4);
@@ -1000,18 +1001,55 @@ export default function InitializationComponent() {
 
     const lastFileUploadMeydaData = useRef<any>([])
 
-    const indexedFileFeatureArray = useRef<Array<any>>([]);
+    const indexedFileFeatureArray = useRef<any>({});
+    
+    useEffect(() => {
+        setMeydaNeedsUpdate(false);
+    }, [meydaNeedsUpdate])
 
-      useEffect(() => {
+    useEffect(() => {
         console.log("sanity! ", featuresLegendParam)
+        
+        console.log("INDEXDE FEAT ARR ", indexedFileFeatureArray.current);
+        indexedFileFeatureArray.current = {};
+        // indexedFileFeatureArray.current = {};
+        // alert(`test param: ${featuresLegendParam}`)
         const meydaFileArray = lastFileUploadMeydaData.current.map((i:any) => i[featuresLegendParam]);
             
-        for (var i in  meydaFileArray) {
-            indexedFileFeatureArray.current.push([meydaFileArray[i], i ]);
+        if (featuresLegendParam.toLowerCase() === "chroma") {
+            meydaFileArray.map((i: any, idx: number) => {
+                indexedFileFeatureArray.current[`${idx}`] = i;
+            }) 
+        } else {
+            console.log("Moo this is meyda file array ", meydaFileArray)
+            for (var i in meydaFileArray) {
+                indexedFileFeatureArray.current[`${i}`] = meydaFileArray[i];
+            }
         }
         console.log("BADABOOM2! ", indexedFileFeatureArray.current);
-        setFeaturesLegendData(indexedFileFeatureArray.current);
+        console.log("CHECK HERE / ONMEOW ", indexedFileFeatureArray.current);
+        setFeaturesLegendData([]);
+        // indexedFileFeatureArray.current && 
+        // Object.values(indexedFileFeatureArray.current) &&
+        // Object.values(indexedFileFeatureArray.current).length > 0 &&
+        Object.values(indexedFileFeatureArray.current).map((i: any, idx: number) => {
+        // setFeaturesLegendData(indexedFileFeatureArray.current);
+            console.log("WTF>>> ", {"date": idx, "close": i})
+            setFeaturesLegendData((d: any) => [...d, {"date": idx, "close": i}]);
+        })
+      }, [meydaNeedsUpdate]);
+
+
+
+      useEffect(() => {
+        setMeydaNeedsUpdate(true);
+        setFeaturesLegendData([]);
+        indexedFileFeatureArray.current = {};
       }, [featuresLegendParam])
+
+    useEffect(() => {
+        console.log("FEATURES LEGEND DATA IS NOW... ", featuresLegendData);
+    }, [featuresLegendData])
 
     const getMeydaData = (fileData: ArrayBuffer) => {
         Promise.resolve(fileData).then((arrayBuffer) => {
@@ -1064,9 +1102,11 @@ export default function InitializationComponent() {
             const meydaFileArray = lastFileUploadMeydaData.current.map((i:any) => i[featuresLegendParam.toLowerCase()]);
             
             for (var i in  meydaFileArray) {
-                indexedFileFeatureArray.current.push({'date':((parseFloat(i))), 'close': parseFloat(meydaFileArray[i])});
+                indexedFileFeatureArray.current[i] = {'date':((parseFloat(i))), 'close': parseFloat(meydaFileArray[i])};
             }
             console.log("BADABOOM! ", indexedFileFeatureArray.current);
+            setMeydaNeedsUpdate(true)
+            setFeaturesLegendData([]);
         });
     }
 
@@ -5820,6 +5860,8 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                     handleFileAnalysisMode={handleFileAnalysisMode}
                     meydaData={lastFileUploadMeydaData.current}
                     meydaFeatures={featuresLegendData}
+                    meydaParam={featuresLegendParam}
+                    meydaNeedsUpdate={meydaNeedsUpdate}
                 />}
             </Box>
 
@@ -6015,14 +6057,19 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                                     sx={{ 
                                         minWidth: '140px', 
                                         paddingLeft: '24px', 
-                                        color: 'rgba(0,0,0,0.8)', 
+                                        display: programIsOn ? "flex" : "none",
+                                        flexDirection: "row",
+                                        width: "100%",
+                                        // color: 'rgba(0,0,0,0.8)', 
                                         marginLeft: '0px',
                                         border: '0.5px solid #b2b2b2',
-                                        backgroundColor: 'rgba(147, 206, 214, 0.8)', 
-                                        background: 'rbga(0,0,0,.7)', 
+                                        // backgroundColor: 'rgba(147, 206, 214, 0.8)', 
+                                        // background: 'rbga(0,0,0,.7)', 
+                                        backgroundColor: 'rgba(30,34,26,0.96)',
+                                        color: 'rgba(255,255,255,.95)',
                                         '&:hover': {
                                             color: '#f5f5f5 !important',
-                                            background: 'rgba(0,0,0,.98)',
+                                            background: 'rgba(0,0,0,0.98)',
                                         } 
                                     }} 
                                     variant="contained" 
@@ -6043,17 +6090,22 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                         >
                             <Button 
                                 sx={{                     
-                                    color: 'rgba(0,0,0,.98)',
-                                    backgroundColor: 'rgba(158, 210, 162, 0.8)', 
+                                    // color: 'rgba(0,0,0,.98)',
+                                    // backgroundColor: 'rgba(158, 210, 162, 0.8)', 
+                                    backgroundColor: 'rgba(30,34,26,0.96)',
+                                    display: programIsOn ? "flex" : "none",
+                                    flexDirection: "row",
+                                    width: "100%",
+                                    color: 'rgba(255,255,255,.95)',
                                     background: 'rbga(0,0,0,.7)', 
                                     position: 'relative', 
                                     marginLeft: '0px', 
                                     minWidth: '140px', 
-                                    display: programIsOn ? "flex" : "none",
+                                    border: '0.5px solid #b2b2b2',
                                     '&:hover': {
                                         color: '#f5f5f5',
                                         background: 'rgba(0,0,0,.98)',
-                                    } 
+                                    },
                                 }} 
                                 // variant="outlined" 
                                 onClick={handleShowSTK} 
@@ -6114,8 +6166,11 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                             }}
                         >
                             <Box sx={{
-                                    display: "flex", 
-                                    flexDirection: "row"
+                                    // display: "flex", 
+                                    // flexDirection: "row",
+                                    display: programIsOn ? "flex" : "none",
+                                    flexDirection: "row",
+                                    width: "100%",
                                 }}
                             >
             
@@ -6136,14 +6191,26 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                                 {chuckHook && (
                                     <Button 
                                         sx={{ 
-                                            backgroundColor: 'rgba(232, 82, 82, 0.8)', 
-                                            background: 'rgba(232, 82,82, 0.8)', 
+                                            display: programIsOn ? "flex" : "none",
+                                            flexDirection: "row",
+                                            width: "100%",
+                                            // backgroundColor: 'rgba(232, 82, 82, 0.8)', 
+                                            // background: 'rgba(232, 82,82, 0.8)', 
+                                            backgroundColor: 'rgba(0,0,0,.98)',
+                                            color: 'rgba(255,255,255,.95)',
                                             minWidth: '140px', 
                                             marginLeft: '0px', 
-                                            color: 'rgba(0,0,0,1)', 
+                                            border: '0.5px solid #b2b2b2', 
+                                            // background: 'rgba(0,0,0,.7)', 
+                                            background: 'rgba(232, 82, 82, 0.8)',
+                                            // color: 'rgba(255,255,255,.95)', 
+                                           
+                                            // color: 'rgba(0,0,0,1)', 
                                             '&:hover': {
-                                                color: '#f5f5f5 !important',
-                                                background: 'rgba(0,0,0,.98)',
+                                                // color: '#f5f5f5 !important',
+                                                color: 'rgba(0,0,0,1) !important',
+                                                // background: 'rgba(0,0,0,.98)',
+                                                backgroundColor: 'rgba(232, 82, 82, 0.8)',
                                             }
                                         }} 
                                         variant="contained" 
@@ -6157,44 +6224,21 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                             </Box>
                         </Box>
 
-
-                        {
-                            showBPM && (
-                            <Box sx={{position: "relative", display: "flex", flexDirection: window.innerWidth < 900 ? "column" : "row"}}>
-                                <BPMModule 
-                                    bpm={bpm} 
-                                    handleChangeBPM={handleChangeBPM}
-                                    beatsNumerator={beatsNumerator}
-                                    beatsDenominator={beatsDenominator}
-                                    handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                                    handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                                    programIsOn={programIsOn}
-                                    handleToggleArpeggiator={handleToggleArpeggiator}
-                                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
-                                    handleReturnToSynth={handleReturnToSynth}
-                                    checkedFXList={checkedFXList.current}
-                                    stkFX={stkFX}
-                                    keysVisible={keysVisible}
-                                />
-                            </Box>)
-                        }
-
-                    </Box> )}
-
                     {/* ARPS */}
                     <Box 
                         sx={{
                             display: hideCircularArpBtnsHook ? 'none' : 'flex', 
-                            flexDirection: 'column', 
-                            bottom: hasHexKeys 
-                            ? 
-                                '12px' 
-                            : 
-                                '204px', 
+                            flexDirection: 'row', 
+                            // bottom: hasHexKeys 
+                            // ? 
+                            //     '12px' 
+                            // : 
+                            //     '204px', 
                             right: '0px', 
-                            left: '152px',
-                            position:  'absolute'
-                        }}>
+                            left: '4px',
+                            position:  'relative'
+                        }}
+                    >
                             
                         <Button 
                                 sx={{ 
@@ -6223,88 +6267,111 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                                 // endIcon={<AnimationIcon />}
                                 >
                                     <PianoIcon style={{pointerEvents: 'none'}}/>
-                            </Button>
-                            <Button 
-                                sx={{ 
-                                    color: 'rgba(0,0,0,.98) !important',
-                                    backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                                    marginLeft: '0px', 
-                                    // maxWidth: '28px',
-                                    minWidth: '60px',
-                                    maxWidth: '60px',
-                                    maxHeight: '40px',
-                                    borderRadius: '50% !important',
-                                    transform: 'scale(0.7)',
-                                    marginBottom: '4px',
-                                    minHeight: '60px',
-                                    display: programIsOn ? "flex" : "none",
-                                    border: '0.5px solid #b2b2b2',
-                                    zIndex: isAnalysisPopupOpen ? '0' : '99',
-                                    pointerEvents: "all",
-                                    cursor: "pointer",
-                                    '&:hover': {
-                                        color: '#f5f5f5 !important',
-                                        background: 'rgba(0,0,0,.98)',
-                                        border: '1px solid #1976d2',
-                                    }
-                                }} 
-                                variant="outlined" 
-                                className="ui_SynthLayerButton"
-                                onClick={handleToggleArpeggiator} 
-                                // endIcon={<AnimationIcon />}
-                                >
-                                    Arp1
-                            </Button>
+                        </Button>
+                        <Button 
+                            sx={{ 
+                                color: 'rgba(0,0,0,.98) !important',
+                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                                marginLeft: '0px', 
+                                // maxWidth: '28px',
+                                minWidth: '60px',
+                                maxWidth: '60px',
+                                maxHeight: '40px',
+                                borderRadius: '50% !important',
+                                transform: 'scale(0.7)',
+                                marginBottom: '4px',
+                                minHeight: '60px',
+                                display: programIsOn ? "flex" : "none",
+                                border: '0.5px solid #b2b2b2',
+                                zIndex: isAnalysisPopupOpen ? '0' : '99',
+                                pointerEvents: "all",
+                                cursor: "pointer",
+                                '&:hover': {
+                                    color: '#f5f5f5 !important',
+                                    background: 'rgba(0,0,0,.98)',
+                                    border: '1px solid #1976d2',
+                                }
+                            }} 
+                            variant="outlined" 
+                            className="ui_SynthLayerButton"
+                            onClick={handleToggleArpeggiator} 
+                            // endIcon={<AnimationIcon />}
+                            >
+                                Arp1
+                        </Button>
+                        <Button 
+                            sx={{ 
+                                color: 'rgba(0,0,0,.98) !important',
+                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
+                                minWidth: '60px',
+                                maxWidth: '60px',
+                                maxHeight: '40px',
+                                marginLeft: '0px', 
+                                borderRadius: '50% !important',
+                                transform: 'scale(0.7)',
+                                marginBottom: '4px',
+                                minHeight: '60px',
+                                border: '0.5px solid #b2b2b2',
+                                display: programIsOn ? "flex" : "none",
+                                zIndex: isAnalysisPopupOpen ? '0' : '99',
+                                pointerEvents: "all",
+                                cursor: "pointer",
+                                '&:hover': {
+                                    color: '#f5f5f5 !important',
+                                    background: 'rgba(0,0,0,.98)',
+                                    border: '1px solid #1976d2',
+                                }
+                            }} 
+                            variant="outlined" 
+                            className="ui_SynthLayerButton"
+                            onClick={handleToggleStkArpeggiator} 
+                            // endIcon={<AnimationIcon />}
+                            >
+                                Arp2
+                        </Button>
+                        <Box sx={{display: "flex", flexDirection: "column"}}>
+                            <Box sx={{
+                                display: "flex", flexDirection: "row"}}>
+                                <ToggleFXView 
+                                    stkCount={stkFX.current.length}
+                                    fxCount={checkedFXList.current.length}
+                                    handleReturnToSynth={handleReturnToSynth} 
+                                    programIsOn={programIsOn}
+                                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                    handleToggleArpeggiator={handleToggleArpeggiator}
+                                    stkFX={stkFX.current}
+                                    checkedFXList={checkedFXList.current}
+                                    keysVisible={keysVisible}
+                                    analysisPopupOpen={isAnalysisPopupOpen}
+                                />
+                            </Box>
+                        </Box>   
+                    </Box>   
 
-                            <Button 
-                                sx={{ 
-                                    color: 'rgba(0,0,0,.98) !important',
-                                    backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                                    minWidth: '60px',
-                                    maxWidth: '60px',
-                                    maxHeight: '40px',
-                                    marginLeft: '0px', 
-                                    borderRadius: '50% !important',
-                                    transform: 'scale(0.7)',
-                                    marginBottom: '4px',
-                                    minHeight: '60px',
-                                    border: '0.5px solid #b2b2b2',
-                                    display: programIsOn ? "flex" : "none",
-                                    zIndex: isAnalysisPopupOpen ? '0' : '99',
-                                    pointerEvents: "all",
-                                    cursor: "pointer",
-                                    '&:hover': {
-                                        color: '#f5f5f5 !important',
-                                        background: 'rgba(0,0,0,.98)',
-                                        border: '1px solid #1976d2',
-                                    }
-                                }} 
-                                variant="outlined" 
-                                className="ui_SynthLayerButton"
-                                onClick={handleToggleStkArpeggiator} 
-                                // endIcon={<AnimationIcon />}
-                                >
-                                    Arp2
-                            </Button>
+                        {
+                            showBPM && (
+                            <Box sx={{position: "relative", display: "flex", flexDirection: window.innerWidth < 900 ? "column" : "row"}}>
+                                <BPMModule 
+                                    bpm={bpm} 
+                                    handleChangeBPM={handleChangeBPM}
+                                    beatsNumerator={beatsNumerator}
+                                    beatsDenominator={beatsDenominator}
+                                    handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                    handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                    programIsOn={programIsOn}
+                                    handleToggleArpeggiator={handleToggleArpeggiator}
+                                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                                    handleReturnToSynth={handleReturnToSynth}
+                                    checkedFXList={checkedFXList.current}
+                                    stkFX={stkFX}
+                                    keysVisible={keysVisible}
+                                />
+                            </Box>)
+                        }
 
-                            <Box sx={{display: "flex", flexDirection: "column"}}>
-                                <Box sx={{
-                                    display: "flex", flexDirection: "row"}}>
-                                    <ToggleFXView 
-                                        stkCount={stkFX.current.length}
-                                        fxCount={checkedFXList.current.length}
-                                        handleReturnToSynth={handleReturnToSynth} 
-                                        programIsOn={programIsOn}
-                                        handleToggleStkArpeggiator={handleToggleStkArpeggiator}
-                                        handleToggleArpeggiator={handleToggleArpeggiator}
-                                        stkFX={stkFX.current}
-                                        checkedFXList={checkedFXList.current}
-                                        keysVisible={keysVisible}
-                                        analysisPopupOpen={isAnalysisPopupOpen}
-                                    />
-                                </Box>
-                            </Box>   
-                    </Box>                    
+                    </Box> )}
+
+                 
                 </Box>
             </Box>
             )}

@@ -68,7 +68,8 @@ const MingusPopup = ({
             <Box 
                 sx={{
                     display: window.innerHeight > 520 ? 'flex' : 'none', 
-                    width: '122px',
+                    // width: '122px',
+                    width: '100%',
                     outline: 'none',
                 }}>    
        
@@ -78,15 +79,21 @@ const MingusPopup = ({
                     
                     flexDirection:'column', 
                     outline: 'none',
+                    width: '100%',
                     left: '-13px',
                 }}>
                     
                     <Box sx={{
                         display: window.innerHeight > 760 ? 'flex' : 'none',  
                         flexDirection:'row', 
+                        width: '100%',
                     }}>
                         <FormControl 
-                            sx={{width: '120px',color:'rgba(228,225,209,1)'}}
+                            sx={{
+                                // width: '120px',
+                                color:'rgba(228,225,209,1)',
+                                width: '100%',
+                            }}
                             // fullWidth
                         >
                             <Select
