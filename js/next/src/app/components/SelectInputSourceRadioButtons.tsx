@@ -25,9 +25,6 @@ const SelectInputSourceRadioButtons = (props: Props) => {
     const {
         value, 
         handleChange,
-        updateStkKnobs,
-        setStkValues,
-        stkValues,
     } = props;
 
     return (
@@ -72,7 +69,9 @@ const SelectInputSourceRadioButtons = (props: Props) => {
 
             {/* /////// FX to INPUT */}
             <Box sx={{
-                    borderTop: 'solid 1px rgba(147, 206, 214, 1)'
+                    borderTop: 'solid 1px rgba(147, 206, 214, 1)',
+                    // marginRight: '100px',
+                    zIndex:'0'
                 }} 
                 className={'fx-popup-left-row'}>           
                 <RadioGroup

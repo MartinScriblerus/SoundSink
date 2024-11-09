@@ -1,7 +1,7 @@
 "use client"
 
 import Image from 'next/image';
-import styles from '../page.module.css';
+// import styles from '../page.module.css';
 import { Box, Button, FormControl, Grid, TextField, Typography } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
@@ -19,20 +19,15 @@ import { ThemeProvider, useTheme } from '@mui/material/styles';
 import PianoIcon from '@mui/icons-material/Piano';
 import axios from 'axios';
 import ControlPopup from './ControlPopup';
-import AnimationIcon from '@mui/icons-material/Animation';
-import FixedOptionsDropdown from './FixedOptionsSelect';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { FXOption, STKOption, fxGroupOptions, fxOptions } from '../../utils/fixedOptionsDropdownData';
 import ToggleFXView from './ToggleFXView';
 import { getSTK1Preset, getFX1Preset } from '@/utils/presetsHelper';
 import FXRouting from './FXRouting';
-import { getBaseUrl } from '@/utils/siteHelpers';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import StopCircleIcon from '@mui/icons-material/StopCircle';
+
 import { useForm } from "react-hook-form";
 import FileManager from './FileManager';
-import Inventory2Icon from '@mui/icons-material/Inventory2';
+
 import { convertEnvSetting } from '@/utils/FXHelpers/winFuncEnvHelper';
 import { LineChartWrapper } from '@/utils/VizHelpers/LineChartWrapper';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
@@ -55,6 +50,10 @@ import {notefreqchart} from '../../utils//notefreqchart';
 import SelectInputSourceRadioButtons from './SelectInputSourceRadioButtons';
 import KeyboardControls from './KeyboardControls';
 import Meyda from 'meyda';
+import { AllFXPersistent, AllSoundSourcesObject, Osc1ToChuck } from '@/utils/interfaces';
+import { analysisObjectDefaults, convertFrequency } from '@/utils/siteHelpers';
+import { defaultNoteVals, delayADefault, delayDefault, ellipticDefault, expDelayDefault, expEnvDefault, korg35Default, modulateDefault, powerADSRDefault, spectacleDefault, winFuncEnvDefault, wpDiodeDefault } from '@/utils/FXHelpers/helperDefaults';
+import BeginScreen from './BeginScreen';
 
 // import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
 // interface InitializationComponentProps {
@@ -91,36 +90,10 @@ function useWindowSize() {
 
         // Remove event listener on cleanup
         return () => window.removeEventListener("resize", handleResize);
-    }, []); // Empty array ensures that effect is only run on mount
-    return windowSize;
-}
+        }, []); // Empty array ensures that effect is only run on mount
+        return windowSize;
+    }
 
-interface Osc1ToChuck {
-    name: string;
-    string: string;
-}
-interface AllFXPersistent {
-    Osc1: Array<any>;
-    Osc2: Array<any>;
-    STK: Array<any>;
-    Sampler: Array<any>;
-    AudioIn: Array<any>;
-}
-
-interface MixingBoard {
-    osc1: {},
-    osc2: {},
-    stk1: {},
-    sampler: {},
-    audioIn: {},
-}
-// interface EnvHelper {
-//     soundSource: string;
-//     effectName: string;
-//     attackRateDenominator: any;
-//     envSetting: any;
-//     releaseRateDenominator: any;
-// }
 
 
 export default function InitializationComponent() {
@@ -128,7 +101,6 @@ export default function InitializationComponent() {
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
     const [lastChuckMessage, setLastChuckMessage] = useState<any>("");
-    const [updateUIAfterInit, setUpdateUIAfterInit] = useState<boolean>(false);
     const [microTonalLetters, setMicroTonalLetters] = useState<any>([]);
     const [formats, setFormats] = React.useState<any>(() => []);
     // const [currNotes, setCurrNotes] = useState<any>([]);
@@ -152,7 +124,6 @@ export default function InitializationComponent() {
     const osc1ExpDelayOn = useRef<any>(false);
     const osc1EllipticOn = useRef<any>(false);
     const osc1SpectacleOn = useRef<any>(false);
-
     const samplerWinEnvOn = useRef<any>(false);
     const samplerPowerADSROn = useRef<any>(false);
     const samplerExpEnvOn = useRef<any>(false);
@@ -178,6 +149,7 @@ export default function InitializationComponent() {
     const stkExpDelayOn = useRef<any>(false);
     const stkEllipticOn = useRef<any>(false);
     const stkSpectacleOn = useRef<any>(false);
+    
     const stkOn = useRef<any>();
 
     const stkPolyKeyOff = useRef<any>(false);
@@ -295,10 +267,98 @@ export default function InitializationComponent() {
     const [amplitude, setAmplitude] = useState<any>({source: "", value: ""});
     const [timeNow, setTimeNow] = useState<any>(0);
     const [hold, setHold] = useState<any>(0);
+
+    const midiNotesOn: any = useRef([]);
+    const midiNotesOff: any = useRef([]);
+
     const [toggleSTKvsFX, setToggleSTKvsFX] = useState<any>(true);
     const [checkedEffectToShow, setCheckedEffectToShow] = useState<any>(true);
     const [microtonalScale, setMicrotonalScale] = useState<string>('05-19');
     const [graphNeedsUpdate, setGraphNeedsUpdate] = useState<boolean>(false);
+
+    const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
+    const filesChuckToDac = useRef<string>('');
+    const filesGenericCodeString = useRef<any>('');
+    const analysisObject = useRef<any>(analysisObjectDefaults);
+
+    const selectedEffect = useRef<string>('')
+    const currentScreen = useRef<string>('synth');
+    const [checkedFXUpdating, setCheckedFXUpdating] = useState<boolean>(true);
+    const [showFX, setShowFX] = useState<boolean>(false);
+    const stkValsRef = useRef<STKOption[]>([]);
+    const stkFX = useRef<any>([]);
+
+    const stk1Type = useRef<string | undefined>('');
+    const stk1Var = useRef<string | undefined>('');
+
+    const filesToProcess = useRef<Array<any>>([]);
+
+    const fxValsRef = useRef<FXOption[]>([]);
+    const fxFX = useRef<any>([]);
+    const fx1Type = useRef<string | undefined>('');
+    const fx1Var = useRef<string | undefined>('');
+    const fx1Group = useRef<string | undefined>('');
+    const checkedFXList = useRef<FXOption[]>([]);
+
+    const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
+
+    const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    const finalStkFxStringToChuck = useRef<any>([]);
+
+    const osc1FxStringNeedsBlackhole = useRef<string>('');
+    const samplerFxStringNeedsBlackhole = useRef<string>('');
+    const stkFxStringNeedsBlackhole = useRef<string>('');
+    const shredCount = useRef<number>(0);
+    
+    const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    const stkFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    const winFuncEnvFinalHelper = useRef<any>(winFuncEnvDefault);
+    const powerADSRFinalHelper = useRef<any>(powerADSRDefault);
+    const expEnvFinalHelper = useRef<any>(expEnvDefault);
+    const wpDiodeLadderFinalHelper = useRef<any>(wpDiodeDefault);
+    const wpKorg35FinalHelper = useRef<any>(korg35Default);
+    const modulateFinalHelper = useRef<any>(modulateDefault);
+    const delayFinalHelper = useRef<any>(delayDefault);
+    const delayAFinalHelper = useRef<any>(delayADefault);
+    const delayLFinalHelper = useRef<any>(delayDefault);
+    const expDelayFinalHelper = useRef<any>(expDelayDefault);
+    const ellipticFinalHelper = useRef<any>(ellipticDefault);
+    const spectacleFinalHelper = useRef<any>(spectacleDefault);
+
+    const stkFXString = useRef<any>('');
+    const osc1FXString = useRef<any>('');
+    const osc2FXString = useRef<any>('');
+    const audioInFXString = useRef<any>('');
+    const samplerFXString = useRef<any>('');
+ 
+
+    const osc1FXStringToChuck = useRef<any>('');
+    const osc2FXStringToChuck = useRef<any>('');
+    const audioInFXStringToChuck = useRef<any>('');
+    const samplerFXStringToChuck = useRef<any>('');
+    const stkFXStringToChuck = useRef<any>('');
+
+
+    
+
+    // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
+    const visibleFXKnobs = useRef<Array<any>>();
+
+    const testArrBuffFile = useRef<any>();
+
+
+    // const [windowWidth, setWindowWidth] = useState<any>(0);
+    // const [windowHeight, setWindowHeight] = useState<any>(0);
+    const [metronomeOn, setMetronomeOn] = useState<any>(1);
+
+    // currentFX are the ones we are actively editing
+    const currentFX = useRef<any>();
+
+    // const uploadedFilesToChuckString = useRef<any>('');
+    // const uploadedFilesCodeString = useRef<string>('');
+    // const analysisBlocksDeclarations = useRef<string>('');
 
     const notesToAssign = useRef<any>({
         midiHz: 0.0,
@@ -307,6 +367,13 @@ export default function InitializationComponent() {
 
     const hashesToChuckArrs = useRef<any[][]>([[]]);
 
+    const nav: any = navigator;
+    const midi = useRef<any>();
+
+    useEffect (() => {
+        midi.current = nav.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+    }, [])
+ 
     useEffect(() => {
         console.log("YO ", currentNumerCountColToDisplay);
         console.log("GABBA: ", currentNumerCount);
@@ -335,11 +402,6 @@ export default function InitializationComponent() {
         } else if (z === 1) {
             col = "maroon"
         }
-        // alert(`hit this ${z} _ ${col}`);
-
-        console.log("NOTES TO ASSIGN!!! ", notesToAssign.current);
-
-       
         patternsHash.current[`${z}`][`${x}`] = {};
         patternsHash.current[`${z}`][`${x}`] = {
             on: true,
@@ -350,7 +412,6 @@ export default function InitializationComponent() {
             // subdivisions: patternsHash.current[`${inst}_${z}`][`${x}`].subdivisions || 1
             subdivisions: cellSubdivisions
         }
-
         console.log("CHECK IT!!! ", patternsHash.current[`${z}`][`${x}`])      
     }
 
@@ -386,39 +447,6 @@ export default function InitializationComponent() {
         }
     }, []);
 
-    async function convertFrequency(freq: number, microFreq: any, microMidiNum: any) { 
-        console.log("WHAT ARE THESE??? ", freq, microFreq, microMidiNum);
-        const freqLets: string[] = [];
-        Object.values(notefreqchart).forEach((val: any, idx: number) => {
-            if (microFreq === Object.values(notefreqchart)[idx]) {
-                // console.log("WHAT IS VAL? ", val, Object.keys(notefreqchart)[idx - 1])
-                freqLets.push(Object.keys(notefreqchart)[idx - 1])
-                newMicroTonalArr.push({
-                    freq: microFreq,
-                    midiNum: microMidiNum,
-                    noteName: Object.keys(notefreqchart)[idx-1],
-                })
-            } else if (
-                // microFreq < val && 
-                microFreq > Object.values(notefreqchart)[idx - 1] &&
-                // newMicroTonalArr.map((i:any) => i.freq).indexOf(microFreq) === -1 && 
-                microFreq < Object.values(notefreqchart)[idx + 1]
-            ) {
-                // console.log("WHAT IS VAL? ", val, Object.keys(notefreqchart)[idx - 1])
-                freqLets.push(Object.keys(notefreqchart)[idx - 1])
-                newMicroTonalArr.push({
-                    freq: microFreq,
-                    midiNum: microMidiNum,
-                    noteName: Object.keys(notefreqchart)[idx-1],
-                })
-                // setMicroTonalLetters([...microTonalLetters, microNoteLetter]);
-            } 
-        });
-        console.log("FREQLETS: ", freqLets);
-        console.log("NEW MICRO ARR: ", newMicroTonalArr);
-        return freqLets;
-    }
-
     const newMicroTonalArr: any = []
 
     const currentMicroTonalScale = (scale: any) => {
@@ -452,30 +480,26 @@ export default function InitializationComponent() {
         console.log("WOOHA: ", microtonalFreqs);
         console.log("WOOHA2: ", microtonalMidiNums);
         
-            setMicroTonalLetters([]);
-            for (const i in microtonalFreqs) {
-                (async() => {
-                    const getMTA = await convertFrequency(parseFloat(i), microtonalFreqs[i], microtonalMidiNums[i]);
-                    console.log("GET MTA !!! ", getMTA)
-                    newMicroTonalArr.push({
-                        freq: microtonalFreqs[i],
-                        midiNum: microtonalMidiNums[i],
-                        noteName: getMTA,
-                    })
-                    setMicroTonalLetters([...microTonalLetters, ...getMTA]);
-                })();
-                
-            }
-            // setHasHexKeys(true);
-            console.log("CHECK FIRST ARE WE GETTING MICROTONAL ARR??? ", newMicroTonalArr);
-            setMicroTonalLetters(newMicroTonalArr);
-
-
-
+        setMicroTonalLetters([]);
+        for (const i in microtonalFreqs) {
+            (async() => {
+                const getMTA = await convertFrequency(notefreqchart, parseFloat(i), microtonalFreqs[i], microtonalMidiNums[i]);
+                console.log("GET MTA !!! ", getMTA)
+                newMicroTonalArr.push({
+                    freq: microtonalFreqs[i],
+                    midiNum: microtonalMidiNums[i],
+                    noteName: getMTA,
+                })
+                setMicroTonalLetters([...microTonalLetters, ...getMTA]);
+            })();
+        }
+        // setHasHexKeys(true);
+        console.log("CHECK FIRST ARE WE GETTING MICROTONAL ARR??? ", newMicroTonalArr);
+        setMicroTonalLetters(newMicroTonalArr);
 
 // *******
 
-            theScale = scale && scale.length > 0 && scale.value && scale.value;
+        theScale = scale && scale.length > 0 && scale.value && scale.value;
         // }
         console.log("have we got the scale? ", scale);
         if (theScale) {
@@ -486,38 +510,15 @@ export default function InitializationComponent() {
     };
 
 
-    interface AllSoundSourcesObject {
-        master: Array<any>;
-        oscs: Array<any>;
-        stks: Array<any>;
-        samples: Array<any>;
-        linesIn: Array<any>;
-    }
-
-    // let midi = null; // global MIDIAccess object
-    const midi = useRef<any>(); // global MIDIAccess object
-    midi.current = null;
-    const nav: any = navigator;
+    // midi.current = null;
+    // midi.current = nav.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure)
 
     useEffect(() => {
         midi.current = nav.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
         console.log("M CURR: ", midi.current);
-    }, [nav]);
+    }, [nav, midi]);
 
-    const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(
-        {
-            // master: ["whole/4"],
-            // oscs: ["whole/4"],
-            // stks: ["whole/4"],
-            // samples: ["whole/4"],
-            // linesIn: ["whole/4"]
-            master: [4],
-            oscs: [4],
-            stks: [4],
-            samples: [8],
-            linesIn: [4]
-        }
-    )
+    const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(defaultNoteVals)
 
     const inPatternEditMode = (state:boolean) => {
         setIsInPatternEditMode(true);
@@ -538,429 +539,73 @@ export default function InitializationComponent() {
     }
     const handleAudioInRateUpdate = (val: any) => {
         setCurrentNoteVals({...currentNoteVals, linesIn: [val.target.value]});
-        
     }
 
 
-    const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
+    // const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
+    // const filesChuckToDac = useRef<string>('');
+    // const filesGenericCodeString = useRef<any>('');
+    // const analysisObject = useRef<any>(analysisObjectDefaults);
+
+    // const selectedEffect = useRef<string>('')
+    // const currentScreen = useRef<string>('synth');
+    // const [checkedFXUpdating, setCheckedFXUpdating] = useState<boolean>(true);
+    // const [showFX, setShowFX] = useState<boolean>(false);
+    // const stkValsRef = useRef<STKOption[]>([]);
+    // const stkFX = useRef<any>([]);
+
+    // const stk1Type = useRef<string | undefined>('');
+    // const stk1Var = useRef<string | undefined>('');
+
+    // const filesToProcess = useRef<Array<any>>([]);
+
+    // const fxValsRef = useRef<FXOption[]>([]);
+    // const fxFX = useRef<any>([]);
+    // const fx1Type = useRef<string | undefined>('');
+    // const fx1Var = useRef<string | undefined>('');
+    // const fx1Group = useRef<string | undefined>('');
+    // const checkedFXList = useRef<FXOption[]>([]);
 
 
-    const filesChuckToDac = useRef<string>('');
-    const filesGenericCodeString = useRef<any>('');
-    const analysisObject = useRef<any>({
-        osc: {
-            centroid: [],
-            flux: [],
-            rms: [],
-            mfccEnergy: [],
-            mfccVals: [],
-            rolloff: [],
-            dct: [],
-            gain: [],
-            freq: [],
-            kurtosis: [],
-        },
-        stk: {
-            centroid: [],
-            flux: [],
-            rms: [],
-            mfccEnergy: [],
-            mfccVals: [],
-            rolloff: [],
-            dct: [],
-            gain: [],
-            freq: [],
-            kurtosis: [],
-        },
-        sampler: {
-            centroid: [],
-            flux: [],
-            rms: [],
-            mfccEnergy: [],
-            mfccVals: [],
-            rolloff: [],
-            dct: [],
-            gain: [],
-            freq: [],
-            kurtosis: [],
-        },
-        audioIn: {
-            centroid: [],
-            flux: [],
-            rms: [],
-            mfccEnergy: [],
-            mfccVals: [],
-            rolloff: [],
-            dct: [],
-            gain: [],
-            freq: [],
-            kurtosis: [],
-        },
-    });
+    // const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
 
-    const selectedEffect = useRef<string>('')
-    const currentScreen = useRef<string>('synth');
-    const [checkedFXUpdating, setCheckedFXUpdating] = useState<boolean>(true);
-    const [showFX, setShowFX] = useState<boolean>(false);
-    const stkValsRef = useRef<STKOption[]>([]);
-    const stkFX = useRef<any>([]);
+    // const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    // const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
+    // const finalStkFxStringToChuck = useRef<any>([]);
 
-    const stk1Type = useRef<string | undefined>('');
-    const stk1Var = useRef<string | undefined>('');
-    const [useStkDirect, setUseDtkDirect] = useState<boolean>(true);
-
-    const filesToProcess = useRef<Array<any>>([]);
-
-    const fxValsRef = useRef<FXOption[]>([]);
-    const fxFX = useRef<any>([]);
-    const fx1Type = useRef<string | undefined>('');
-    const fx1Var = useRef<string | undefined>('');
-    const fx1Group = useRef<string | undefined>('');
-    const checkedFXList = useRef<FXOption[]>([]);
-
-
-    const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
-
-    const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
-    const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
-    const finalStkFxStringToChuck = useRef<any>([]);
-
-    const osc1FxStringNeedsBlackhole = useRef<string>('');
-    const samplerFxStringNeedsBlackhole = useRef<string>('');
-    const stkFxStringNeedsBlackhole = useRef<string>('');
-    const shredCount = useRef<number>(0);
+    // const osc1FxStringNeedsBlackhole = useRef<string>('');
+    // const samplerFxStringNeedsBlackhole = useRef<string>('');
+    // const stkFxStringNeedsBlackhole = useRef<string>('');
+    // const shredCount = useRef<number>(0);
     
-    const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
-    const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
-    const stkFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
-    const winFuncEnvFinalHelper = useRef<any>({
-        osc1: {
-            attackTime: 16,
-            releaseTime: 16,
-            envSetting: 0,
-        },
-        osc2: '',
-        stk: {
-            attackTime: 16,
-            releaseTime: 16,
-            envSetting: 0,
-        },
-        sampler: {
-            attackTime: 16,
-            releaseTime: 16,
-            envSetting: 0,
-        },
-        audioIn: '',
-    });
-    const powerADSRFinalHelper = useRef<any>({
-        osc1: {
-            attackTime: 1000,
-            attackCurve: 0.5,
-            decayTime: 1000,
-            decayCurve: 1.25,
-            sustainLevel: 0.5,
-            releaseTime: 1000,
-            releaseCurve: 1.5,
-        },
-        osc2: {},
-        stk: {
-            attackTime: 1000,
-            attackCurve: 0.5,
-            decayTime: 1000,
-            decayCurve: 1.25,
-            sustainLevel: 0.5,
-            releaseTime: 1000,
-            releaseCurve: 1.5,
-        },
-        sampler: {
-            attackTime: 1000,
-            attackCurve: 0.5,
-            decayTime: 1000,
-            decayCurve: 1.25,
-            sustainLevel: 0.5,
-            releaseTime: 1000,
-            releaseCurve: 1.5,
-        },
-        audioIn: {},
-    });
-    const expEnvFinalHelper = useRef<any>({
-        osc1: {
-            T60: 3,
-            radius: 0.995,
-            value: 0,
-        },
-        osc2: {},
-        stk: {
-            T60: 3,
-            radius: 0.995,
-            value: 0,
-        },
-        sampler: {
-            T60: 3,
-            radius: 0.995,
-            value: 0,
-        },
-        audioIn: {},
-    });
-    const wpDiodeLadderFinalHelper = useRef<any>({
-        osc1: {
-            cutoff: 1,
-            resonance: 17,
-            nlp_type: 1,
-            nonlinear: 0,
-            saturation: 0.1
-        },
-        osc2: {},
-        stk: {
-            cutoff: 1,
-            resonance: 17,
-            nlp_type: 1,
-            nonlinear: 0,
-            saturation: 0.1
-        },
-        sampler: {
-            cutoff: 1,
-            resonance: 17,
-            nlp_type: 1,
-            nonlinear: 0,
-            saturation: 0.1
-        },
-        audioIn: {},
-    });
-    const wpKorg35FinalHelper = useRef<any>({
-        osc1: {
-            cutoff: 1,
-            resonance: 2,
-            nonlinear: 0,
-            saturation: 0.1
-        },
-        osc2: {},
-        stk: {
-            cutoff: 1,
-            resonance: 2,
-            nonlinear: 0,
-            saturation: 0.1
-        },
-        sampler: {
-            cutoff: 1,
-            resonance: 2,
-            nonlinear: 0,
-            saturation: 0.1
-        },
-        audioIn: {},
-    });
-    const modulateFinalHelper = useRef<any>({
-        osc1: {
-            vibratoRate: 6.0,
-            vibratoGain: 0.2,
-            randomGain: 0.2,
-        },
-        osc2: {},
-        stk: {
-            vibratoRate: 6.0,
-            vibratoGain: 0.2,
-            randomGain: 0.2,
-        },
-        sampler: {
-            vibratoRate: 6.0,
-            vibratoGain: 0.2,
-            randomGain: 0.2,
-        },
-        audioIn: {},
-    });
-    const delayFinalHelper = useRef<any>({
-        osc1: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        osc2: {},
-        stk: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        sampler: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        audioIn: {},
-    });
-    const delayAFinalHelper = useRef<any>({
-        osc1: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        osc2: {},
-        stk: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        sampler: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        audioIn: {},
-    });
-    const delayLFinalHelper = useRef<any>({
-        osc1: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        osc2: {},
-        stk: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        sampler: {
-            delay: 500,
-            syncDelay: 1,
-            lines: 3,
-            zero: 0.5,
-            b0: 0.5,
-            b1: 0.2,
-        },
-        audioIn: {},
-    });
-    const expDelayFinalHelper = useRef<any>({
-        osc1: {
-            ampcurve: 2.0,
-            durcurve: 2.0,
-            delay: 0,
-            mix: 0.5,
-            reps: 4,
-            gain: 1.0,
-        },
-        osc2: {},
-        stk: {
-            ampcurve: 2.0,
-            durcurve: 2.0,
-            delay: 0,
-            mix: 0.5,
-            reps: 4,
-            gain: 1.0,
-        },
-        sampler: {
-            ampcurve: 2.0,
-            durcurve: 2.0,
-            delay: 0,
-            mix: 0.5,
-            reps: 4,
-            gain: 1.0,
-        },
-        audioIn: {},
-    });
-    const ellipticFinalHelper = useRef<any>({
-        osc1: {
-            filterLow: 500,
-            filterMid: 600,
-            filterHigh: 650,
-            atten: 80.0,
-            ripple: 10.0,
-            filterMode: 0
-        },
-        osc2: {},
-        stk: {
-            filterLow: 500,
-            filterMid: 600,
-            filterHigh: 650,
-            atten: 80.0,
-            ripple: 10.0,
-            filterMode: 0
-        },
-        sampler: {
-            filterLow: 500,
-            filterMid: 600,
-            filterHigh: 650,
-            atten: 80.0,
-            ripple: 10.0,
-            filterMode: 0
-        },
-        audioIn: {},
-    });
-    const spectacleFinalHelper = useRef<any>({
-        osc1: {
-            bands: 5,
-            delay: 3,
-            eq: 0,
-            feedback: 0,
-            fftlen: 3,
-            freqMax: 4100,
-            freqMin: 100,
-            mix: 0.8,
-            overlap: 3,
-            table: 2,
-        },
-        osc2: {},
-        stk: {
-            bands: 5,
-            delay: 3,
-            eq: 0,
-            feedback: 0,
-            fftlen: 3,
-            freqMax: 4100,
-            freqMin: 100,
-            mix: 0.8,
-            overlap: 3,
-            table: 2,
-        },
-        sampler: {
-            bands: 5,
-            delay: 3,
-            eq: 0,
-            feedback: 0,
-            fftlen: 3,
-            freqMax: 4100,
-            freqMin: 100,
-            mix: 0.8,
-            overlap: 3,
-            table: 2,
-        },
-        audioIn: {},
-    });
+    // const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    // const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    // const stkFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
+    // const winFuncEnvFinalHelper = useRef<any>(winFuncEnvDefault);
+    // const powerADSRFinalHelper = useRef<any>(powerADSRDefault);
+    // const expEnvFinalHelper = useRef<any>(expEnvDefault);
+    // const wpDiodeLadderFinalHelper = useRef<any>(wpDiodeDefault);
+    // const wpKorg35FinalHelper = useRef<any>(korg35Default);
+    // const modulateFinalHelper = useRef<any>(modulateDefault);
+    // const delayFinalHelper = useRef<any>(delayDefault);
+    // const delayAFinalHelper = useRef<any>(delayADefault);
+    // const delayLFinalHelper = useRef<any>(delayDefault);
+    // const expDelayFinalHelper = useRef<any>(expDelayDefault);
+    // const ellipticFinalHelper = useRef<any>(ellipticDefault);
+    // const spectacleFinalHelper = useRef<any>(spectacleDefault);
 
 
 
-    const [windowWidth, setWindowWidth] = useState<any>(0);
-    const [windowHeight, setWindowHeight] = useState<any>(0);
-    const [metronomeOn, setMetronomeOn] = useState<any>(1);
+    // const [windowWidth, setWindowWidth] = useState<any>(0);
+    // const [windowHeight, setWindowHeight] = useState<any>(0);
+    // const [metronomeOn, setMetronomeOn] = useState<any>(1);
 
-    // currentFX are the ones we are actively editing
-    const currentFX = useRef<any>();
+    // // currentFX are the ones we are actively editing
+    // const currentFX = useRef<any>();
 
-    const uploadedFilesToChuckString = useRef<any>('');
-    const uploadedFilesCodeString = useRef<string>('');
-    const analysisBlocksDeclarations = useRef<string>('');
+    // const uploadedFilesToChuckString = useRef<any>('');
+    // const uploadedFilesCodeString = useRef<string>('');
+    // const analysisBlocksDeclarations = useRef<string>('');
 
     // default to the oscillator FX (default oscillator screen happens above)
     if (!currentFX.current) {
@@ -969,26 +614,26 @@ export default function InitializationComponent() {
 
     // currentFX.current = {...currentFX.current, ...fxFX.current.filter((fx: any) => fx.visible === true && fx)}
 
-    const stkFXString = useRef<any>('');
-    const osc1FXString = useRef<any>('');
-    const osc2FXString = useRef<any>('');
-    const audioInFXString = useRef<any>('');
-    const samplerFXString = useRef<any>('');
+    // const stkFXString = useRef<any>('');
+    // const osc1FXString = useRef<any>('');
+    // const osc2FXString = useRef<any>('');
+    // const audioInFXString = useRef<any>('');
+    // const samplerFXString = useRef<any>('');
  
 
-    const osc1FXStringToChuck = useRef<any>('');
-    const osc2FXStringToChuck = useRef<any>('');
-    const audioInFXStringToChuck = useRef<any>('');
-    const samplerFXStringToChuck = useRef<any>('');
-    const stkFXStringToChuck = useRef<any>('');
+    // const osc1FXStringToChuck = useRef<any>('');
+    // const osc2FXStringToChuck = useRef<any>('');
+    // const audioInFXStringToChuck = useRef<any>('');
+    // const samplerFXStringToChuck = useRef<any>('');
+    // const stkFXStringToChuck = useRef<any>('');
 
 
     
 
-    // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
-    const visibleFXKnobs = useRef<Array<any>>();
+    // // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
+    // const visibleFXKnobs = useRef<Array<any>>();
 
-    const testArrBuffFile = useRef<any>();
+    // const testArrBuffFile = useRef<any>();
 
     const beginProgram = (val: boolean) => {
         if (val === true) {
@@ -1240,7 +885,7 @@ export default function InitializationComponent() {
         //     const temp = currNotes.current.filter((i:any) => i !== theMidiNum && i);
         //     currNotes.current = temp;
             console.log('IS THIS RIGHT??? ', currNotes.current);
-            console.log('IS THIS RIGHT HASH??? ', currNotes.current[theMidiNum]);
+            console.log('IS THIS RIGHT HASH??? ', currNotes.current.find((i:any)=>{return i.theMidiNum === theMidiNum}));
             setNotesNeedUpdate(true);
             // return;
         // }   
@@ -1269,9 +914,10 @@ export default function InitializationComponent() {
         if (!inputs && !outputs || outputs.length === 0 && inputs.length === 0) {
             return;
         }
-        console.log("HOW MANY MIDI ACCESS INPUTS? ", inputs.length, "<<<--", inputs, outputs);
+
         for (const input of midiAccess.inputs.values()) {
             input.onmidimessage = getMIDIMessage;
+            //console.log("HOW MANY MIDI ACCESS INPUTS? ", inputs.length, "<<<--", inputs, outputs);
         }
         return midi;
     };
@@ -1281,6 +927,7 @@ export default function InitializationComponent() {
         return undefined;
     };
       
+    // TODO: MOVE INTO A SEPARATE FILE
     function getMIDIMessage(message: any) {
         const command = message.data[0];
         const note = message.data[1];
@@ -1464,7 +1111,7 @@ export default function InitializationComponent() {
     },[analysisSourceRadioValue]);
 
     const fxChainNeedsUpdate = (msg: any) => {
-        console.log("MSG MSG MSG ", msg[0].source);
+        console.log("MSG MSG MSG - selected effect: ", msg[0].source);
         selectedEffect.current = msg[0].source;
        
         const effectToSwitchDisplay = allFxPersistent.current[`${fxRadioValue}`].filter((fx: any) => fx.var === msg[0].source && fx);
@@ -3033,8 +2680,9 @@ export default function InitializationComponent() {
             });
             analyzer.start();
           }
+
+          
         setChuckHook(theChuck);
-        setUpdateUIAfterInit(true);
         beginProgram(true);
     };
 
@@ -5869,60 +5517,59 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                 <Box sx={{width: "100%", height: "100vh", textAlign: "center"}}>
 
                 {!chuckHook && (
-                    <Box
-                        className={styles.card}
-                        sx={{
-                            top: '48px', 
+                    // <Box
+                    //     className={styles.card}
+                    //     sx={{
+                    //         top: '48px', 
                            
-                            height: "100%",
-                            textAlign: "center",
-                        }}
-                    >
-                        <Box sx={{
-                            paddingTop: '20%',
-                            fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif',
-                            fontSize: '2em !important',
+                    //         height: "100%",
+                    //         textAlign: "center",
+                    //     }}
+                    // >
+                    //     <Box sx={{
+                    //         paddingTop: '20%',
+                    //         fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif',
+                    //         fontSize: '2em !important',
                             
-                        }}>
-                            {/* <h1 style={{
-                                fontSize: '2em !important', 
-                                fontWeight: 100}}>Sound Sink</h1> */}
-                        </Box>
-                        <Button                                    
-                            // style={{ 
-                            //     background: 'rbga(0,0,0,.91)', 
-                            //     position: "relative",
-                            //     color: 'rgba(0,0,0,1)', 
-                            //     zIndex: '9999',
-                            // }} 
-                            sx={{ 
-                                minWidth: '160px',
-                                minHeight: '90px', 
-                                top: "0%",
-                                width: programIsOn ? "104px" : "25vw",
-                                height: programIsOn ? "90px" : "90px",
-                                paddingLeft: '24px',
-                                // maxHeight: '40px',
-                                fontSize: programIsOn ? "16px" : "32px",
-                                color: 'rgba(0,0,0,.98)',
-                                backgroundColor: 'rgba(158, 210, 162, 1)', 
-                                border: '0.5px solid #b2b2b2',
-                                '&:hover': {
-                                    color: '#f5f5f5 !important',
-                                    border: '1px solid #1976d2',
-                                    background: 'rgba(0,0,0,.98)',
-                                }
-                            }} 
-                            variant="contained" 
-                            id="initChuckButton" 
-                            onClick={initChuck} 
-                            endIcon={<PlayArrowIcon
-                            style={{height: '100%', pointerEvents: "none"}} />}
-                            >
-                                Begin
-                        </Button>
-                    </Box>
-                )}    
+                    //     }}>
+                    //         {/* <h1 style={{
+                    //             fontSize: '2em !important', 
+                    //             fontWeight: 100}}>Sound Sink</h1> */}
+                    //     </Box>
+       
+                    //     <Button                                    
+                    //         sx={{ 
+                    //             minWidth: '160px',
+                    //             minHeight: '90px', 
+                    //             top: "0%",
+                    //             width: programIsOn ? "104px" : "25vw",
+                    //             height: programIsOn ? "90px" : "90px",
+                    //             paddingLeft: '24px',
+                    //             // maxHeight: '40px',
+                    //             fontSize: programIsOn ? "16px" : "32px",
+                    //             color: 'rgba(0,0,0,.98)',
+                    //             backgroundColor: 'rgba(158, 210, 162, 1)', 
+                    //             border: '0.5px solid #b2b2b2',
+                    //             '&:hover': {
+                    //                 color: '#f5f5f5 !important',
+                    //                 border: '1px solid #1976d2',
+                    //                 background: 'rgba(0,0,0,.98)',
+                    //             }
+                    //         }} 
+                    //         variant="contained" 
+                    //         id="initChuckButton" 
+                    //         onClick={initChuck} 
+                    //         endIcon={<PlayArrowIcon
+                    //         style={{height: '100%', pointerEvents: "none"}} />}
+                    //         >
+                    //             Begin
+                    //     </Button>
+                    // </Box>
+                    <BeginScreen 
+                        programIsOn={programIsOn} 
+                        initChuck={initChuck}
+                    />
+                    )}    
 
                 <Box 
                     key={babylonKey} 
@@ -6408,35 +6055,21 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                     left: '0px', 
                     width: '212px'}}
             >
-                {showFX ? 
-                    (<SelectInputSourceRadioButtons 
-                        handleChange={handleFXRadioChange} 
-                        value={fxRadioValue}
-                        updateStkKnobs={updateStkKnobs}
-                        setStkValues={setStkValues}
-                        stkValues={stkValues}
-                        updateCurrentFXScreen={updateCurrentFXScreen}
-                        currentScreen={currentScreen.current}
-                        playUploadedFile={playUploadedFile}
-                        lastFileUpload={lastFileUpload}
-                        // updateFileUploads={updateFileUploads}
-                    />)
-                :   
+{/*   
                     // hasHexKeys.current 
                     // formats && formats.length > 0 && formats.indexOf('hexKey') !== -1 && formats[0] === 'hexKey'
                     // ?
                     // // {formats && formats.length > 0 && formats.indexOf('hexKey') !== -1 && formats[0] === 'hexKey' ? (
-                    //     // <Box sx={{
-                    //     //     zIndex: 9999, 
+                     */}
+                    {/* //     // <Box sx={{ */}
+                    {/* //     //     zIndex: 9999, 
                     //     //     width: '140px', 
                     //     //   }}>
                     //     //   <CustomAriaLive selectRef={selectRef} tune={tune} currentMicroTonalScale={currentMicroTonalScale} />
             
-                    //     // </Box>
-                    //     <></>
-                    // :
-
-                    // } 
+                    //     // </Box> */}
+                    <></>
+       
                         <KeyboardControls 
                             submitMingus={submitMingus}
                             audioKey={audioKey}
@@ -6451,14 +6084,14 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                             currentMicroTonalScale={currentMicroTonalScale}
                             chuckHook={chuckHook}
                         /> 
-                }
+                {/* // } */}
                 
                 <CheckedFXRadioBtns 
                     handleCheckedFXToShow={handleCheckedFXToShow} 
                     checkedEffectsListHook={checkedEffectsListHook}>
                 </CheckedFXRadioBtns>
             </Box>  
-            <Box sx={{ position: "absolute", background: "rgba(0,0,0,0.78)", color: "white", top: "60px", right: "12px"}}>
+            <Box sx={{ position: "absolute", background: "rgba(0,0,0,0.78)", color: "white", top: "60px", right: "212px"}}>
 
                 {
                     showSTKManager && (
@@ -6468,6 +6101,20 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                         setStkValues={setStkValues}
                         ></STKManagerDropdown>
                     )
+                }
+                {
+                    showFX && (<SelectInputSourceRadioButtons 
+                        handleChange={handleFXRadioChange} 
+                        value={fxRadioValue}
+                        updateStkKnobs={updateStkKnobs}
+                        setStkValues={setStkValues}
+                        stkValues={stkValues}
+                        updateCurrentFXScreen={updateCurrentFXScreen}
+                        currentScreen={currentScreen.current}
+                        playUploadedFile={playUploadedFile}
+                        lastFileUpload={lastFileUpload}
+                        // updateFileUploads={updateFileUploads}
+                    />)
                 }
                 <Box sx={{
                     backgroundColor: 'rgba(30,34,26,0.96)', 

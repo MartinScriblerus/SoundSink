@@ -1,22 +1,7 @@
 import { Box, FormLabel, SelectChangeEvent } from '@mui/material';
 import React from 'react';
 import MingusPopup from './MingusPopup'
-import { Chuck } from 'webchuck';
-
-interface KeyboardProps {
-    submitMingus: () => void;
-    audioKey: string;
-    octave: string;
-    audioScale: string;
-    audioChord: string;
-    handleChangeScale: (event: SelectChangeEvent) => void;
-    handleChangeChord: (event: SelectChangeEvent) => void;
-    programIsOn: boolean;
-    selectRef: any;
-    tune: any;
-    currentMicroTonalScale: any;
-    chuckHook: Chuck | undefined;
-}
+import { KeyboardProps } from '@/types/audioTypes';
 
 const KeyboardControls = (
    {        

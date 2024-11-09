@@ -161,6 +161,10 @@ a {
 
 .MuiFormControl-root {
   justify-content: center;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
 }
 
 .MuiFormControl-root.side-nav {
@@ -175,7 +179,7 @@ a {
   min-height: 16vh;
   padding-top: 2vh;
   padding-bottom: 1vh;
-  width: 140px;
+  width: 189px;
   display: flex;
   flex-direction: column;
 }
@@ -307,7 +311,7 @@ body{
   margin-top: 0rem;
   /* padding-left: 32px; */
   left: -6px;
-  width: calc(100% + 80px);
+  width: calc(100% + 36px);
   overflow-x: hidden;
 }
 

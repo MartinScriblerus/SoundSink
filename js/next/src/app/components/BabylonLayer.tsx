@@ -93,7 +93,7 @@ function BabylonScene(props: {
         // console.log("check sane: ", game.scene && game.scene.meshes && game.scene.meshes.filter((m: any) => m.name === "hexTile"))
         console.log("MICRO ARR??? ", microTonalArr);
         if (chuckHook && 
-            game.scene.meshes && 
+            game.scene && game.scene.meshes && 
             // game.scene.meshes.filter((m: any) => m.name === "hexTile").length < 1 &&
             microTonalArr && microTonalArr.length > 0 && 
             hexTiles.length === 0) {
