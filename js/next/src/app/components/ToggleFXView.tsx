@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
+import { useTheme } from '@mui/material';
 
 type Props = {
     stkCount: number;
@@ -25,11 +26,10 @@ const ToggleFXView = ({
     const stkCountHandler = stkCount ? stkCount : 0;
     const fxCountHandler = fxCount? fxCount : 0;
 
+    const theme = useTheme();
+
     return (
-        // <Stack direction="row" spacing={2} style={{
-        //     position:"relative", 
-        //     left: "12px", 
-        //     top: "0px"}}>
+
             <Button 
                 sx={{
                     // minWidth: '208px', 
@@ -39,9 +39,9 @@ const ToggleFXView = ({
                     borderRadius: '50% !important',
                     transform: 'scale(0.7)',
                     minHeight: '60px',
-                    color: 'rgba(0,0,0,.98)',
-                    backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                    border: '0.5px solid #b2b2b2',
+                    border: theme.palette.primaryB,
+                    background: theme.palette.black,
+                    color: `${theme.palette.white} important!`,
                     display: programIsOn ? "flex" : "none",
                     marginLeft: '0px',
                     marginBottom: '4px',
@@ -49,9 +49,9 @@ const ToggleFXView = ({
                     pointerEvents: "all",
                     cursor: "pointer",
                     '&:hover': {
-                        color: '#f5f5f5',
-                        background: 'rgba(0,0,0,.98)',
-                        border: '1px solid #1976d2',
+                        color: theme.palette.white,
+                        background: theme.palette.black,
+                        border: `1px solid ${theme.palette.primaryB}`,
                     },
                     // pointerEvents: fxCountHandler+stkCountHandler === 0 ? 'none': 'auto'
                 }} 

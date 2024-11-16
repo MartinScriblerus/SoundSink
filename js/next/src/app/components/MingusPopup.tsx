@@ -1,7 +1,7 @@
 import { MIDDLE_FONT_SIZE } from '@/utils/constants';
 import { Autocomplete, Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
 import React from 'react';
-import '../page.module.css';
+// import '../page.module.css';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import microtoneDescsData from '../microtone_descriptions.json'; 
 
@@ -75,8 +75,6 @@ const MingusPopup = ({
        
 
                 <Box sx={{
-                    // display: 'flex', 
-                    
                     flexDirection:'column', 
                     outline: 'none',
                     width: '100%',
@@ -90,19 +88,17 @@ const MingusPopup = ({
                     }}>
                         <FormControl 
                             sx={{
-                                // width: '120px',
-                                color:'rgba(228,225,209,1)',
+                                color: theme.palette.white,
                                 width: '100%',
                             }}
                             // fullWidth
                         >
                             <Select
-                                sx={{
-                                    color: 'white', 
-                                    // minWidth: '80px', 
+                                sx={{                             
                                     fontWeight: 'bold', 
                                     fontSize: MIDDLE_FONT_SIZE, 
                                     fontFamily: 'typography.fontFamily',
+                                    color: theme.palette.white,
                                 }}
                                 labelId="audioKey-simple-select-label"
                                 id="audioKey-simple-select"
@@ -126,73 +122,22 @@ const MingusPopup = ({
                         </FormControl>
 
                     </Box>
-                    <Box sx={{
-                        display: window.innerHeight > 670 ? 'flex' : 'none', 
-                        flexDirection:'row', 
-                        // width: '160px', 
-                        // paddingRight: '6px',
-                        // paddingLeft: '6px'
-                    }}>
-                        <FormControl 
-                            sx={{width: '120px',color:'rgba(228,225,209,1)'}}
-                            // fullWidth
-                        >
-                            {/* <InputLabel
-                                id={"octave-simple-select-label"} 
-                                sx={{ 
-                                    minWidth: '80px', 
-                                    color: 'white !important',
-                                    fontFamily: 'text.primary'}}>
-                                        Octave
-                            </InputLabel> */}
-                            <Select
-                                sx={{
-                                    color: 'white', 
-                                    fontWeight: 'bold', 
-                                    fontSize: '14px'
-                                }}
-                                labelId="octave-simple-select-label"
-                                id="octave-simple-select"
-                                value={octave}
-                                label="Octave"
-                                // onChange={handleChangeOctave}
-                            >
-                                <MenuItem value={'0'}>0</MenuItem>
-                                <MenuItem value={'1'}>1</MenuItem>
-                                <MenuItem value={'2'}>2</MenuItem>
-                                <MenuItem value={'3'}>3</MenuItem>
-                                <MenuItem value={'4'}>4</MenuItem>
-                                <MenuItem value={'5'}>5</MenuItem>
-                                <MenuItem value={'6'}>6</MenuItem>
-                                <MenuItem value={'7'}>7</MenuItem>
-                                <MenuItem value={'8'}>8</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Box>
+       
                     <Box sx={{
                         display: window.innerHeight > 620 ? 'flex' : 'none', 
                         flexDirection:'row', 
-                        // width: '160px', 
-                        // paddingRight: '6px',
-                        // paddingLeft: '6px',
+                        color: theme.palette.white,
                         outline: 'none',
                     }}>
                         <FormControl 
-                            sx={{width: '120px', outline: 'none', color:'rgba(228,225,209,1)'}}
-                            // fullWidth
-                            
+                            sx={{
+                                width: '120px', 
+                                outline: 'none', 
+                                color: theme.palette.white,
+                            }}
                         >
-                            {/* <InputLabel
-                                id={"scale-simple-select-label"} 
-                                sx={{ 
-                                    minWidth: '60px', 
-                                    color: 'white !important', 
-                                    fontFamily: 'text.primary'
-                                }}>
-                                    Scale
-                            </InputLabel> */}
                             <Select
-                                sx={{color: 'white', fontWeight: 'bold', fontSize: MIDDLE_FONT_SIZE}}
+                                sx={{fontWeight: 'bold', fontSize: MIDDLE_FONT_SIZE}}
                                 labelId="scale-simple-select-label"
                                 id="scale-simple-select"
                                 value={audioScale}
@@ -224,18 +169,14 @@ const MingusPopup = ({
                     <Box sx={{
                         display: window.innerHeight > 580 ? 'flex' : 'none', 
                         flexDirection:'row', 
-                        // width: '160px', 
-                        // paddingRight: '6px',
-                        // paddingLeft: '6px'
                     }}>
                         <FormControl 
                             // fullWidth
                             sx={{
-                                color:'rgba(228,225,209,1)',
+                                color: theme.palette.white,
                                 width: '120px'
                             }}
                         >
-      
                             <Select
                                 labelId="chord-simple-select-label"
                                 id="chord-simple-select"
@@ -243,14 +184,14 @@ const MingusPopup = ({
                                 label="Chord"
                                 onChange={handleChangeChord}
                                 sx={{
-                                    color: 'white', 
+                        
                                     fontWeight: 'bold', 
                                     fontSize: MIDDLE_FONT_SIZE,
                                     '& .MuiList-root': {
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        background: 'rgba(30,34,26,0.96)',
-                                        color: '#f5f5f5',
+                                        background: theme.palette.primaryB,
+                                        color: theme.palette.white,
                                     }
                                 }}
                             >
@@ -309,32 +250,7 @@ const MingusPopup = ({
                         flexDirection:'row', 
                         outline: 'none',
                     }}>
-                    <Autocomplete
-                        {...defaultProps}
-                        id="auto-complete"
-                        autoComplete
-                        includeInputInList
-                        onChange={handleUpdateMicrotones}
-                        sx={{
-                            color: "white !important", 
-                            width: "120px !important", 
-                            // maxWidth: "120px !important", 
-                            overflow: "visible", 
-                            // background: "pink",
-                            outline: 'none',
-                            // maxWidth: '80px'
-                        }}
-                        isOptionEqualToValue={(option, value) => option.id === value.id}
-                        renderInput={(params) => (
-                        <TextField {...params} sx={{
-                                color: "white", 
-                                width: "300px", 
-                                fontSize: "12px"
-                            }} 
-                            key={params.id}
-                            label="Microtones" />
-                        )}
-                    />
+       
                     </Box>
                 </Box>
 

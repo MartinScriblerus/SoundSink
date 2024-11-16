@@ -13,8 +13,10 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
         for (let x = 0; x < microTonalLetters.length; x++) {
             if (microTonalLetters && 
                 microTonalLetters.length > 0 && 
-                microTonalLetters[x].noteName && 
-                microTonalLetters[x].noteName.charAt(microTonalLetters[x].noteName.length - 1) > 0) {
+                microTonalLetters[x].noteName 
+                && 
+                microTonalLetters[x].noteName.length > 0) 
+                {
                 octaveLen = x;
                 break;
             }
@@ -150,22 +152,22 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
                 
                 console.log("hexTile"+`_${i}`+`_${y}`, "microTonalLetters: ", microTonalLetters);
                  
-                // const existingMesh = scene.getMeshById("hexTile_"+i+"_"+y);
+                const existingMesh = scene.getMeshById("hexTile_"+i+"_"+y);
 
                 // console.log("existingMesh: ", existingMesh);
                 // // if(scene.meshes.length){
                 // //     // existingMesh.remove();
-                // if (existingMesh) {
-                //     existingMesh.dispose();
-                // }
+                if (existingMesh) {
+                    existingMesh.dispose();
+                }
                 //     console.log("EXISTING MESH: ", existingMesh);
-                //     scene.meshes.forEach((i:any) => i.dispose());
+                   // scene.meshes.forEach((i:any) => i.dispose());
                 //     // activeCameras
                 //     // scene.activeCameras = scene.activeCameras[0];
                 // } else {                
                     const arrNum = i + y;
-                    console.log("arrnum: ", arrNum);
-                    console.log("IF WE HAVE MICROFREQS HERE WE ARE GOOD: ", microTonalLetters.length > 0 && microTonalLetters[arrNum]);
+                    // console.log("arrnum: ", arrNum);
+                    // console.log("IF WE HAVE MICROFREQS HERE WE ARE GOOD: ", microTonalLetters.length > 0 && microTonalLetters[arrNum]);
                     let hexTile = hexTileImport.instantiateModelsToScene();
                     let hexTileRoot = hexTile.rootNodes[0];
                     // hexTileRoot.name = "hexTile"+i+y;
@@ -175,7 +177,7 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
                     hexTileRoot.position.copyFrom(gridStart);
                     hexTileRoot.position.x -= hexWidthDistance * y;
         
-                    console.log("hex tile root: ", hexTileRoot);
+                    // console.log("hex tile root: ", hexTileRoot);
 
 
 
@@ -196,8 +198,8 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
                     
                         const theNoteNum: any = i * j * (y+1);
                         const theFreq: number = 440 * Math.pow(2, ((theNoteNum - 69)/ 12))
-                        console.log("THE FREQ: ", theFreq);
-                        console.log("THE CULPRIT? ", waterMaterialTop[0])
+                        // console.log("THE FREQ: ", theFreq);
+                        // console.log("THE CULPRIT? ", waterMaterialTop[0])
 
                         const topMaterial: any = Promise.resolve(waterMaterialTop[arrNum]).then((result: any) => {
 
@@ -241,153 +243,6 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
         }
     }
     
-    //This is the main method that builds a randomly influenced noise data array by running the "diamond-square algorithm." https://en.wikipedia.org/wiki/Diamond-square_algorithm
-    // function diamondSquare(resolution: any, multiplier: any){
-    //     let gridSize = resolution-1;
-    //     let rows = [];
-    //     let columns = [];
-    //     let subdivisions = 1;
-    
-    //     //initialize the grid
-    //     for(let y=0; y<resolution; y++){
-    //         for(let x=0; x<resolution; x++){
-    //             columns[x] = 0;
-    //         }
-    //         rows[y] = columns;
-    //         columns = [];
-    //     }
-    
-    //     //set corner values
-    //     rows[0][0] = Math.random()/multiplier;
-    //     rows[0][gridSize] = Math.random()/multiplier;
-    //     rows[gridSize][0] = Math.random()/multiplier;
-    //     rows[gridSize][gridSize] = Math.random()/multiplier;
-    
-    //     let loopBreak = 0;
-    //     while(loopBreak != 1){
-    //         subdivisions = subdivisions*2;
-    //         let distance = gridSize/subdivisions;
-    
-    //         //diamond step
-    //         for(let rowNumber=distance; rowNumber<resolution; rowNumber+=(distance*2)){
-    //             for(let columnNumber=distance; columnNumber<resolution; columnNumber+=(distance*2)){
-    //                 rows[rowNumber][columnNumber] = diamond(rows, distance, rowNumber, columnNumber, subdivisions, multiplier);
-    //             }
-    //         }
-    
-    //         //square step
-    //         for(let rowNumber=0; rowNumber<resolution; rowNumber += distance){
-    //             for(let columnNumber=0; columnNumber<resolution; columnNumber += distance){
-    //                 if(rows[rowNumber][columnNumber] == 0){
-    //                     rows[rowNumber][columnNumber] = square(rows, distance, rowNumber, columnNumber, subdivisions, multiplier);
-    //                 }
-    //             }
-    //         }
-    
-    //         loopBreak = 1;
-    //         for(let y=0; y<resolution; y++){
-    //             for(let x=0; x<resolution; x++){
-    //                 if(rows[y][x] == 0){
-    //                     loopBreak = 0;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     //Create a Uint8Array, convert nested row/column array to Uint8Array, multiply by 255 for color.
-    //     let dataArray = new Uint8Array((resolution-1)*(resolution-1)*3);
-    //     let rowCounter = 0;
-    //     let columnCounter = 0;
-    //     let adjustedNoiseValue = 0;
-    //     for (let i=0; i<dataArray.length; i+=3){
-    //         adjustedNoiseValue = rows[rowCounter][columnCounter]*255;
-    //         adjustedNoiseValue = Math.min(255, Math.max(0, adjustedNoiseValue));
-    //         dataArray[i] = adjustedNoiseValue;
-    //         dataArray[i+1] = adjustedNoiseValue;
-    //         dataArray[i+2] = adjustedNoiseValue;
-    //         columnCounter ++;
-    //         if(columnCounter == resolution-1){
-    //             columnCounter = 0;
-    //             rowCounter ++;
-    //         }
-    //     };
-    
-    //     return dataArray;
-    // }
-    
-    // function diamond(rows: any, distance: any, rowNumber: any, columnNumber: any, subdivisions: any, multiplier: any){
-    
-    //     let diamondAverageArray = [];
-    //     if(rows[rowNumber-distance][columnNumber-distance] != null){
-    //         diamondAverageArray.push(rows[rowNumber-distance][columnNumber-distance]);
-    //     }
-    //     if(rows[rowNumber-distance][columnNumber+distance] != null){
-    //         diamondAverageArray.push(rows[rowNumber-distance][columnNumber+distance]);
-    //     }
-    //     if(rows[rowNumber+distance][columnNumber-distance] != null){
-    //         diamondAverageArray.push(rows[rowNumber+distance][columnNumber-distance]);
-    //     }
-    //     if(rows[rowNumber+distance][columnNumber+distance] != null){
-    //         diamondAverageArray.push(rows[rowNumber+distance][columnNumber+distance]);
-    //     }
-    //     let diamondValue = 0;
-    //     for(let i = 0; i<diamondAverageArray.length; i++){
-    //         diamondValue += diamondAverageArray[i];
-    //     }
-    
-    //     diamondValue = (diamondValue/diamondAverageArray.length) + ((Math.random()-0.5)/multiplier)/subdivisions;
-        
-    //     return diamondValue;
-    // }
-    
-    // function square(rows: any, distance: any, rowNumber: any, columnNumber: any, subdivisions: any, multiplier: any){
-    
-    //     let squareAverageArray = [];
-    //     if(rows[rowNumber-distance] != null && rows[rowNumber-distance][columnNumber] != null){
-    //         squareAverageArray.push(rows[rowNumber-distance][columnNumber]);
-    //     }
-    //     if(rows[rowNumber][columnNumber+distance] != null){
-    //         squareAverageArray.push(rows[rowNumber][columnNumber+distance]);
-    //     }
-    //     if(rows[rowNumber+distance] != null && rows[rowNumber+distance][columnNumber] != null){
-    //         squareAverageArray.push(rows[rowNumber+distance][columnNumber]);
-    //     }
-    //     if(rows[rowNumber][columnNumber-distance] != null){
-    //         squareAverageArray.push(rows[rowNumber][columnNumber-distance]);
-    //     }
-    //     let squareValue = 0;
-    //     for(let i = 0; i<squareAverageArray.length; i++){
-    //         squareValue += squareAverageArray[i];
-    //     }
-    
-    //     squareValue = (squareValue/squareAverageArray.length) + ((Math.random()-0.5)/multiplier)/subdivisions;
-        
-    //     return squareValue;
-    // }
-    
-    // function scaleNoise(noiseArray: any){
-    //     //Scale the noise to always produce an island
-    //     let max = 0;
-    //     let min = 255;
-    //     let desiredMin = 80;
-    //     let desiredMax = 110;
-    //     let scaledNoiseArray = new Uint8Array(noiseArray.length);
-    
-    //     for(let i=0; i<noiseArray.length; i++){
-    //         if(noiseArray[i]>max){
-    //             max = noiseArray[i];
-    //         }
-    //         if(noiseArray[i]<min){
-    //             min = noiseArray[i];
-    //         }
-    //     }
-    
-    //     for(let i=0; i<noiseArray.length; i++){
-    //         let adjustedValue = desiredMax * (noiseArray[i]-min) / (max - min) + desiredMin;
-    //         scaledNoiseArray[i] = adjustedValue;
-    //     }
-    
-    //     return scaledNoiseArray;
-    // }
 
     
 

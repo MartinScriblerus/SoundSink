@@ -1,5 +1,5 @@
 import { Box, Button } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 type BeginScreenProps = {
     programIsOn: boolean;
@@ -10,15 +10,16 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 const BeginScreen = (props: BeginScreenProps) => {
     const {programIsOn, initChuck} = props;
     const theme = useTheme();
+
     return (
         <>
             <Box
                 // className={styles.card}
                 sx={{
                     top: '48px', 
-                    height: "100%",
+                    height: "100vh",
                     textAlign: "center",
-                    background: theme.palette.primary,
+                    background: theme.palette.black,
                 }}
             >
             <Box sx={{
@@ -42,13 +43,14 @@ const BeginScreen = (props: BeginScreenProps) => {
                     paddingLeft: '24px',
                     // maxHeight: '40px',
                     fontSize: programIsOn ? "16px" : "32px",
-                    color: 'rgba(0,0,0,.98)',
-                    backgroundColor: 'rgba(158, 210, 162, 1)', 
-                    border: '0.5px solid #b2b2b2',
+                    color: theme.palette.white,
+                    background: theme.palette.black, 
+                    backgroundColor: theme.palette.black,
+                    border: theme.palette.white,
                     '&:hover': {
                         color: '#f5f5f5 !important',
                         border: '1px solid #1976d2',
-                        background: 'rgba(0,0,0,.98)',
+                        background: theme.palette.secondaryA,
                     }
                 }} 
                 variant="contained" 

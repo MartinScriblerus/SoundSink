@@ -1,50 +1,27 @@
 import React, {useEffect, useState} from 'react';
 import { Unstable_Popup as BasePopup } from '@mui/base/Unstable_Popup';
-// import BPMModule from './BPMModule';
 import Button from '@mui/material/Button';
 import CalendarViewMonthIcon from '@mui/icons-material/CalendarViewMonth';
 import { Heatmap } from '@/utils/VizHelpers/Heatmap';
-import { heatmapData } from './../../utils/VizHelpers/heatmapData';
-// utils/VizHelpers/';
-import MingusPopup from './MingusPopup'
-import { Box, SelectChangeEvent } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { Inter } from 'next/font/google'
 import CloseIcon from '@mui/icons-material/Close';
-import Inventory2Icon from '@mui/icons-material/Inventory2';
-import KeyboardDoubleArrowUpIcon from '@mui/icons-material/KeyboardDoubleArrowUp';
-import KeyboardDoubleArrowDownIcon from '@mui/icons-material/KeyboardDoubleArrowDown';
- 
+
 // If loading a variable font, you don't need to specify the font weight
 const inter = Inter({ subsets: ['latin'] })
  
 interface ControlProps {
-    bpm: number;
-    handleChangeBPM: (newBpm: number) => void;
-    beatsNumerator: number;
-    beatsDenominator: number;
+
     handleChangeBeatsNumerator: (npmBpm: number) => void; 
-    handleChangeBeatsDenominator: (npmBpm: number) => void;
-    submitMingus: () => void;
-    audioKey: string;
-    octave: string;
-    audioScale: string;
-    audioChord: string;
-    handleChangeScale: (event: SelectChangeEvent) => void;
-    handleChangeChord: (event: SelectChangeEvent) => void;
-    handleShowFX: (msg?: any) => void;
     showFX: boolean;
-    showBPM: boolean;
-    handleShowBPM: (e: any) => void;
     filesToProcess: string[];
     programIsOn: boolean;
     handleOscRateUpdate: (val: any) => void;
     handleStkRateUpdate: (val: any) => void;
     handleSamplerRateUpdate: (val: any) => void;
     handleAudioInRateUpdate: (val: any) => void;
-    currentBeatCount: number;
     currentBeatSynthCount: number;
     currentNumerCount: number;
-    currentDenomCount: number;
     currentNoteVals: any;
     sortFileItemUp: (e: Event) => void;
     sortFileItemDown: (e: Event) => void;
@@ -67,33 +44,18 @@ interface ControlProps {
 
 export default function ControlPopup(props: ControlProps) {
   const {
-    bpm, 
-    handleChangeBPM, 
-    beatsNumerator, 
-    beatsDenominator, 
+
+
     handleChangeBeatsNumerator,
-    handleChangeBeatsDenominator,
-    submitMingus,
-    audioKey,
-    octave,
-    audioScale,
-    audioChord,
-    handleChangeScale,
-    handleChangeChord,
-    handleShowFX,
     showFX,
-    showBPM,
-    handleShowBPM,
     filesToProcess,
     programIsOn,
     handleOscRateUpdate,
     handleStkRateUpdate,
     handleSamplerRateUpdate,
     handleAudioInRateUpdate,
-    currentBeatCount,
     currentBeatSynthCount,
     currentNumerCount,
-    currentDenomCount,
     currentNoteVals,
     sortFileItemDown,
     sortFileItemUp,
@@ -113,6 +75,8 @@ export default function ControlPopup(props: ControlProps) {
   } = props;
   const [anchor, setAnchor] = useState<null | HTMLElement>(null);
   const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
+
+  const theme = useTheme();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     if (keysFullscreen) {
@@ -135,10 +99,6 @@ export default function ControlPopup(props: ControlProps) {
     }
   }, [showFX]);
 
-  useEffect(() => {
-    console.log('showBPM is ', showBPM);
-  }, [showBPM])
-
   const open = Boolean(anchor);
   const id = open ? 'simple-popup' : undefined;
 
@@ -154,10 +114,6 @@ export default function ControlPopup(props: ControlProps) {
       hideCircularArpBtns(false);
     }
   }, [open]);
-
-  // useEffect(() => {
-  //   console.log("READY TO PASS DOWN: ", patternsHash);
-  // }, [patternsHashUpdated]);
   
   const updateCellColor = (msg: any) => {
     setUpdateCellColorBool(msg);
@@ -172,30 +128,22 @@ export default function ControlPopup(props: ControlProps) {
       <Button
         id={"patternOpenBtn"}
         sx={{
-          // borderColor: 'rgba(228,225,209,1)', 
           position: 'relative', 
           minWidth: '140px',
-          border: '0.5px solid #b2b2b2',
-          // display: "flex",
           display: programIsOn ? "flex" : "none",
           flexDirection: "row",
           width: "100%",
-          // color: 'rgba(0,0,0,.98)',
-          // backgroundColor: 'rgba(147, 206, 214, 0.8)', 
-          // background: 'rbga(0,0,0,.0.8)', 
-          backgroundColor: 'rgba(30,34,26,0.96)',
-          color: 'rgba(255,255,255,.95)',
+          border: theme.palette.primaryB,
+          background: theme.palette.black,
+          color: `${theme.palette.white}`,
           marginLeft: '0px', 
-          // top: '100px',
-          // display: programIsOn ? "flex" : "none",
           '&:hover': {
-            color: '#f5f5f5',
-            background: 'rgba(0,0,0,.98)',
-          }
+            color: theme.palette.primaryA,
+            background: theme.palette.secondaryA,
+        }
         }} 
         aria-describedby={id} 
         className="ui_SynthLayerButton"
-        // variant="outlined" 
         onClick={handleClick} 
         endIcon={<CalendarViewMonthIcon />}
       >
@@ -207,14 +155,13 @@ export default function ControlPopup(props: ControlProps) {
           zIndex: 40, 
           display: "flex", 
           transform: 'translate(0px,0px)', 
-          flexDirection: "column",
           left: '142px',
           // left: '94px', 
           // right: '94px', 
+          // bottom: '13rem',
           top: '50px', 
-          // width: '100%',
-          width: 'calc(100% - 140px)',
-          height: '100%',
+          // width: 'calc(100% - 140px)',
+          // height: '100%',
           position: 'absolute',         
         }} 
         width={window.innerWidth}  
@@ -224,8 +171,9 @@ export default function ControlPopup(props: ControlProps) {
 
         <Box sx={{
             zIndex:40, 
-            height: '100%',
+            // height: '100%',
             textAlign: 'center',
+            width: '100%',
             justifyContent: 'center',
           }}
         >
@@ -234,20 +182,19 @@ export default function ControlPopup(props: ControlProps) {
               position: "absolute",
               top: "12px",
               right: "8px",
+              // width: "100%",
+              flex: "flex-end",
               zIndex: 50,
               cursor: "pointer"
             }}
-            onClick={handleClick}> <CloseIcon/> 
+            onClick={handleClick}> HI!<CloseIcon/> 
           </span>
 
 
           <Heatmap 
             width={window.innerWidth - 128} 
             height={window.innerHeight / 2} 
-            // data={heatmapData}
-            currentBeatCount={currentBeatCount}
             currentNumerCount={currentNumerCount}
-            currentDenomCount={currentDenomCount}
             currentBeatSynthCount={currentBeatSynthCount}
             handleOscRateUpdate={handleOscRateUpdate} 
             handleStkRateUpdate={handleStkRateUpdate} 

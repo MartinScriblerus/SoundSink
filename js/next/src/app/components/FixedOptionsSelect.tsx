@@ -3,6 +3,8 @@ import React, { SetStateAction, useState } from 'react';
 import Select, { ActionMeta, OnChangeValue, StylesConfig } from 'react-select';
 
 import { STKOption, stkOptions } from '../../utils/fixedOptionsDropdownData';
+import { useTheme } from '@mui/material';
+
 
 type Props = {
     stkValues: STKOption[] | undefined;
@@ -10,48 +12,50 @@ type Props = {
     updateStkKnobs: (e: STKOption[]) => void;
 };
 
-const styles: StylesConfig<any, true> = {
-    container: (provided: any) => ({
-        ...provided,
-        flexGrow: 1,
-    }),
-    control: (provided: any) => ({
-        ...provided,
-        background: '#000010',
-        borderColor: '#9e9e9e',
-        minHeight: '24px',
-    }),
-    option: (styles, {isFocused, isSelected}) => ({
-        ...styles,
-        background: isFocused
-            ? 'hsla(291, 64%, 42%, 0.5)'
-            : isSelected
-                ? 'hsla(291, 64%, 42%, 1)'
-                : undefined,
-        zIndex: 1
-    }),
-    menu: base => ({
-        ...base,
-        borderRadius: 0,
-        background: 'black',
-        marginTop: 0
-    }),
-    menuList: base => ({
-        ...base,
-        padding: 0
-    })
-}
-
-const orderOptions = (values: readonly STKOption[]) => {
-    return values
-        .filter((v) => v.isFixed)
-        .concat(values.filter((v) => !v.isFixed));
-};
 
 const FixedOptionsDropdown = ({stkValues, setStkValues, updateStkKnobs}: Props) => {
     
     // const [value, setValue] = useState<readonly STKOption[] | Array<any>>([]);
+    const theme = useTheme();
 
+    const styles: StylesConfig<any, true> = {
+        container: (provided: any) => ({
+            ...provided,
+            flexGrow: 1,
+        }),
+        control: (provided: any) => ({
+            ...provided,
+            background: theme.palette.black,
+            // borderColor: theme.palette.black,
+            minHeight: '24px',
+        }),
+        option: (styles, {isFocused, isSelected}) => ({
+            ...styles,
+            background: isFocused
+                ? theme.palette.black
+                : isSelected
+                    ? theme.palette.primaryB
+                    : undefined,
+            zIndex: 1
+        }),
+        menu: base => ({
+            ...base,
+            borderRadius: 0,
+            background: theme.palette.black,
+            marginTop: 0
+        }),
+        menuList: base => ({
+            ...base,
+            padding: 0
+        })
+    }
+    
+    const orderOptions = (values: readonly STKOption[]) => {
+        return values
+            .filter((v) => v.isFixed)
+            .concat(values.filter((v) => !v.isFixed));
+    };
+    
     const onChange = (
     newValue: OnChangeValue<STKOption, true>,
     actionMeta: ActionMeta<STKOption>

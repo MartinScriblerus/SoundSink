@@ -1,10 +1,8 @@
 import React, { CSSProperties, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import Select, { AriaOnFocus } from 'react-select';
 import microtoneDescsData from '../microtone_descriptions.json'; 
-// import { FLASK_API_URL, MIDDLE_FONT_SIZE } from '../helpers/constants';
-// import {Tune} from '../microtones/tune/tune';
-// import axios from 'axios';'
-
+import { useTheme } from '@mui/material/styles';
+import { Box, FormControl } from '@mui/material';
 
 export interface MicrotoneOption {
   readonly value: string;
@@ -15,8 +13,9 @@ export interface MicrotoneOption {
   readonly description?: string;
 }
 
-// const tune = new Tune();
 
+
+// const tune = new Tune();
 interface Props {
   selectRef: any;
   tune: any;
@@ -37,6 +36,8 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
   const chosenNameRef = useRef<any>('');
   const chosenDescRef = useRef<any>('');
 
+  const theme = useTheme();
+
   const style: { [key: string]: CSSProperties } = {
     blockquote: {
       // fontStyle: 'italic',
@@ -44,11 +45,10 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
       // margin: '1rem 0',
       color:'#f6f6f6',
       minHeight: "2rem",
-      // position: 'fixed',
       left: '3vh',
       minWidth: "100%",
       display: isMenuOpen ? 'block' : 'none',
-      background: 'rgba(0,0,0,0.875)'
+      background: theme.palette.black
     },
     label: {
       fontSize: '.75rem',
@@ -60,7 +60,6 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
       menu: {
     // override border radius to match the box
     borderRadius: 0,
-    // kill the gap
     marginTop: 0,
     background: 'rgba(0,0,0,1'
   },
@@ -80,40 +79,32 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
       borderRadius: 10,
       content: '" "',
       display: 'block',
-      // marginRight: "80px",
       bottom: "8px"
-      // height: 10,
-      // width: 10,
     },
   });
 
   const colorStyles = {
-    control: (styles: any) => ({ ...styles, color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", width: "200px", bottom: "5px", right: "80px" }),
-    input: (styles: any) => ({ ...styles, color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", marginRight: "24px",                                                                                                                                                                                                                                                                                                                                                                                                                                    minWidth: "1040px" }),
+    control: (styles: any) => ({ ...styles, width: "140px", maxWidth: "140px", color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", bottom: "5px"}),
+    input: (styles: any) => ({ ...styles, width: "140px", maxWidth: "140px", color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", marginRight: "24px",                                                                                                                                                                                                                                                                                                                                                                                                                                    minWidth: "1040px" }),
     
     option: (styles: any, { data, isDisabled, isFocused, isSelected }: any) => {
-      // const color = chroma(data.color);
       return {
         ...styles,
         backgroundColor: "rgba(30,34,26,0.96)",
         background: "rgba(30,34,26,0.96)",
         color: "rgba(255,255,255,0.7)",
         height: "100%",
-        width: '100px',
+        width: '140px',
         cursor: isDisabled ? 'not-allowed' : 'default',
       };
     },
-    menuList: (styles: any) => ({ ...styles, paddingTop: 0, paddingBottom: 0, color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", width: '200px', right: "80px" }),
+    menuList: (styles: any) => ({ ...styles, paddingTop: 0, paddingBottom: 0, color: "rgba(255,255,255,0.7)", background:  "rgba(30,34,26,0.96)", width: '140px', }),
 
     placeholder: (styles:any) => ({ ...styles, color: 'rgba(255,255,255,0.78)' }),
     singleValue: (styles:any, { data }:any) => ({ ...styles, ...dot(data.color) }),
   };
 
   const focusIndexRef = useRef<any>(-1);
-
-  // const updateMsg = (msg: any) => {
-  //   setAriaFocusMessage(msg);
-  // }
 
   useEffect(() => {
     setAriaFocusMessage(chosenNameRef.current);
@@ -130,88 +121,51 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
   }, []); 
 
   const onFocus: AriaOnFocus<MicrotoneOption> = ({ focused, isDisabled, }) => {
-
     focusIndexRef.current = focused && focused;
-
     const msg = `${focused.label}: ${focused.description} - ${
       isDisabled ? ', disabled' : ''
     }`;
-    // updateMsg(msg);
-    // const msg = `${focused.label}: ${focused.description}`;
     chosenNameRef.current = focused.label;
     chosenDescRef.current = focused.description;
-   
-    // setAriaFocusMessage(msg);
-    // tune.loadScale(focused.label);
-    // console.log('%cTUNE!!! ', 'color:green;', tune);
-    // console.log('%cMSG** ', 'color:aqua;', focused.value, focused.description);
+    tune.loadScale(focused.label);
+    console.log('%cTUNE!!! ', 'color:green;', tune);
+    console.log('%cMSG** ', 'color:aqua;', focused.value, focused.description);
     return msg;
   };
-
-
-
   const onMenuOpen = () => setIsMenuOpen(true);
   const onMenuClose = () => setIsMenuOpen(false);
 
-
-  // useEffect(() => {
-  //   console.log('%cAriaFocusMessage: ', 'color: red;', ariaFocusMessage);
-  // },[ariaFocusMessage])
-
-
-
-  // handle input change event
   const handleInputChange = (value: any) => {
+    console.log("YO TEST HERE! ", value)
     setValue(value);
   };
 
-  // handle selection
-//   const handleChange = async (event: any) => {
-//     // console.log("????? event.target.value: ", event);
-//     const val = event;
-//       // [...]
-
-//     if (val && ariaFocusMessage && val.length > 0 && val.value && val.value.length > 0) {
-//       console.log('hey val value ', val.value);
-//       currentMicroTonalScale(val.value)
-
-//     setSelectedValue(val.value);
-//   }
-// }
-
   return (
     <>
-      {!!ariaFocusMessage && !!isMenuOpen && (
-        <blockquote style={{width: '100%', background: "rgba(30,34,26,0.96)"}}>"{ariaFocusMessage}"</blockquote>
-      )}
-      Microtones Search
-      <div       
-        id= 'aria-live-region' 
-        style={{
-          flexDirection: 'row',
-          minHeight: '2rem',
-          // right: '300px',
-          background: "rgba(30,34,26,0.96)",
-          marginBottom: "180px",
-          marginLeft: '80px',
-          width:'80px'
-          // marginRight: "80px",
-          // backgroundColor: "rgba(255,255,255,.96"
-        }}
-      >
-
-      <form style={{background: "rgba(30,34,26,0.96)"}}>
-        {/* <label style={style.label} id="aria-label" htmlFor="aria-example-input">
+      <div style={{maxWidth: "140px", width: "140px"}}>
+        <span id='aria-live-region' style={{maxWidth: '140px'}}></span>
+      {/* <form style={{background: "rgba(30,34,26,0.96)"}}>
+        <label style={style.label} id="aria-label" htmlFor="aria-example-input">
           Select a microtone
         </label> */}
-        
+                    <Box sx={{
+                      display: window.innerHeight > 620 ? 'flex' : 'none', 
+                      flexDirection:'row', 
+                      outline: 'none',
+                    }}>
+                        <FormControl 
+                            sx={{
+                                width: '120px', 
+                                outline: 'none', 
+                                color:'rgba(228,225,209,1)'
+                            }}
+                        >
         <Select
           aria-labelledby="aria-label"
           ariaLiveMessages={{
             onFocus,
           }}
           styles={colorStyles}
-          // ref={innerRef}
           inputId="aria-example-input"
           name="aria-live-color"
           onMenuOpen={onMenuOpen}
@@ -225,10 +179,21 @@ export default function CustomAriaLive({selectRef, tune, currentMicroTonalScale}
           isSearchable={isSearchable}
           onInputChange={handleInputChange}
           onChange={currentMicroTonalScale}
-          value={selectedValue && typeof(selectedValue) === "string" && selectedValue.length > 0 ? selectedValue as any: ''}
+          value={
+            selectedValue && 
+            typeof(selectedValue) === "string" && 
+            selectedValue.length > 0 
+              ? 
+                selectedValue as any
+              : 
+                ''
+          }
         />
-      </form>
-    </div>
+
+</FormControl></Box>
+
+      {/* </form> */}
+      </div>
     </>
   );
 }

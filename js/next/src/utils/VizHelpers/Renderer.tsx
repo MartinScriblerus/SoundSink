@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { InteractionData } from "./Heatmap";
-import { Box, Button } from "@mui/material";
+import { Box, Button, CardHeader, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
 import FileWrapper from "@/app/components/FileWrapper";
@@ -70,6 +70,8 @@ export const Renderer = ({
   const [showPatternEditorPopup, setShowPatternEditorPopup] = useState<boolean>(false);
   const [wavesurfer, setWavesurfer] = useState<any>(null)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
+  const theme = useTheme();
 
   const containerRef = useRef<any>();
 
@@ -447,27 +449,36 @@ loop = true;
     <Box
       style={{
         display: "flex",
+        width: 'calc(100% - 200px)',
         flexDirection: "column",
         textAlign: "center",
-        paddingTop: window.innerHeight < 650 ? "30px" : "92px"
+        // paddingTop: window.innerHeight < 650 ? "30px" : "92px"
       }}>
       {showPatternEditorPopup && (
         <Box
           key={"patternEditorPopupCloseButtonWrapper"}
           sx={{
-            paddingTop: '24px',
+            // padding: '24px',
             paddingBottom: '8px',
-            position: "absolute",
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             textAlign: "center",
             height: "46%",
-            width: "92%",
-            left: "4%",
+            width: "100%%",
+            // left: "4%",
             top: "16%",
-            background: "rgba(0,0,0,0.9)",
+            background: theme.palette.black,
             zIndex: "1001",
           }}>
+          {/* <CardHeader style={{
+            textAlign: 'left',
+            fontSize: '16px',
+            width: '100%',
+            height: '24px',
+            background: theme.palette.primaryB,
+            color: theme.palette.white
+          }}>Pattern Editor */}
           <Box sx={{
             textAlign: 'right',
             width: "100vw"
@@ -482,6 +493,7 @@ loop = true;
               onClick={handleCloseEditorPopup}
             />
           </Box>
+          {/* </CardHeader>   */}
           <Box sx={{ width: "100%", display: 'flex', flexDirection: "row" }}>
             <Box
               sx={{
@@ -501,7 +513,7 @@ loop = true;
               }}
             >
               <span><b>Original Values</b></span>
-              <Box sx={{padding: '4px', background: 'rgb(110, 64, 170)'}}>{instrument}</Box><Box sx={{padding: '4px', background: 'rgb(93, 89, 204)'}}> Cell {parseInt(Object.values(cellData.current)[0])}</Box>
+              <Box sx={{padding: '4px', background: theme.palette.white}}>{instrument}</Box><Box sx={{padding: '4px', background: theme.palette.primaryA}}> Cell {parseInt(Object.values(cellData.current)[0])}</Box>
               <span>Velocity:{cellData.current.velocity}</span>
               <span>Notes: {cellData.current.note}</span>
               <span>Subdivisions: {cellData.current.subdivisions}</span>
@@ -523,7 +535,16 @@ loop = true;
               }}
             >
               <span><b>New Values</b></span>
-              <Box sx={{padding: '4px', background: 'rgb(110, 64, 170)'}}>{instrument}</Box> <Box sx={{padding: '4px', background: 'rgb(93, 89, 204)'}}> Cell {parseInt(Object.values(cellData.current)[0])}</Box>
+              <Box sx={{
+                  padding: '4px', 
+                  background: theme.palette.primaryA
+                }}>{instrument}
+              </Box> 
+              <Box sx={{
+                padding: '4px', 
+                background: theme.palette.primaryB
+              }}> Cell {parseInt(Object.values(cellData.current)[0])}
+              </Box>
               <span>Velocity: {cellData.current.velocity}</span>
               <span>Notes: {cellData.current.note}</span>
 
@@ -567,7 +588,7 @@ loop = true;
                   sx={{
                     fontSize: '20px',
                     border: 'solid 1px black',
-                    background: 'rgb(27, 191, 202)',
+                    background: theme.palette.primaryB,
                     color: '#ffffff',
                     borderRadius: '40%',
                     pointerEvents: 'all',
@@ -586,13 +607,10 @@ loop = true;
                   color: 'white',
                   right: '2px',
                   top: '2px',
-                  // top: '-8px', 
                   pointerEvents: 'all',
                   cursor: 'pointer',
                   zIndex: '9999',
                   position: 'absolute',
-                  // height: '24px',
-                  // width: '24px',
                 }}
                 key={`noteEditDisplayCloseIcon_${Object.values(cellData.current)[1]}`}
                 id={`${Object.values(cellData.current)[1]}_noteToRemove`}
@@ -608,15 +626,6 @@ loop = true;
 
           <div style={{width: "100%"}} ref={containerRef} id={"wavesurfer-wrapper"}>
 
-            {/* <WavesurferPlayer
-              height={100}
-              waveColor="violet"
-              // url="http://localhost:3000/knob.wav"
-              // url={URL.createObjectURL(surferBlob.current)}
-              onReady={onReady}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-            /> */}
           </div>
           <Box
             sx={{
@@ -627,7 +636,6 @@ loop = true;
               marginLeft: '10px',
               textAlign: 'left',
               width: '100vw',
-              // background: "rgba(255,255,255,0.78)"
             }}
           >
             {
@@ -645,23 +653,6 @@ loop = true;
                     fontWeight: '300' 
                   }}
                 >
-  
-                  {/* <Box
-                    sx={{ display: "flex", width: "100vw" }}
-                  >
-                    <Button
-                      style={{
-                        background: "rgba(255,255,255,0.078)",
-                        minWidth: "80px",
-                        maxWidth: "30%",
-                        justifyContent: "center",
-                        width: "100%",
-                      }}
-                      onClick={handleEditMode}>{
-                        isInEditMode ? "Edit Mode Off" : "Edit Mode On"
-                      }
-                    </Button>
-                  </Box> */}
 
                   <FileWrapper
                     filesToProcess={filesToProcess}
@@ -674,15 +665,6 @@ loop = true;
             }
           </Box>
 
-
-
-
-          {/* <Button
-            key={"patternEnterEditMode"}
-            onClick={handlePatternEditMode}
-          >
-
-          </Button> */}
         </Box>)}
       <svg
         key={"heatmapSVG"}

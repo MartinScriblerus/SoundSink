@@ -82,10 +82,6 @@ const HexBin = (props: Props) => {
     return (
         <Box sx={{
             position: 'absolute',
-            // display: 'flex',
-            // flexDirection: 'column',
-            // background: 'beige',
-            // zIndex: 1000,
             alignItems: 'center',
             justifyContent: 'center',
             width: '100vw',

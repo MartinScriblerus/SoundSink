@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 // import styles from '../page.module.css';
-import { Box, Button, FormControl, Grid, TextField, Typography } from '@mui/material';
+import { Autocomplete, Box, Button, FormControl, Grid, TextField, Typography } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import React, { useState, useEffect, useDeferredValue, useRef, useMemo } from 'react'
@@ -31,21 +31,17 @@ import FileManager from './FileManager';
 import { convertEnvSetting } from '@/utils/FXHelpers/winFuncEnvHelper';
 import { LineChartWrapper } from '@/utils/VizHelpers/LineChartWrapper';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
-import { init } from 'node_modules/next/dist/compiled/@vercel/og/satori';
 import { virtualKeyMapping } from '@/utils/KeyHelpers/virtualKeyMapping';
 import BPMModule from './BPMModule';
 import STKManagerDropdown from './STKManagerDropdown';
-import DeblurIcon from '@mui/icons-material/Deblur';
-import CheckedFXRadioBtns from './CheckedFXRadioBtns';
-import build from 'next/dist/build';
-import { phonemes } from '@/utils/STKPresets/voicFormPresets';
+
 import ResponsiveAppBar from './ResponsiveAppBar';
 import CustomAriaLive from './MicrotonesSearch';
-import microtoneDescsData from '../microtone_descriptions.json'; 
+
 import {Tune} from '../../tune';
 import Keyboard from './Keyboard'
 import { useMingusData } from '@/hooks/useMingusData';
-import MicrotonalSearch from './MicrotonalSearch';
+
 import {notefreqchart} from '../../utils//notefreqchart';
 import SelectInputSourceRadioButtons from './SelectInputSourceRadioButtons';
 import KeyboardControls from './KeyboardControls';
@@ -54,16 +50,11 @@ import { AllFXPersistent, AllSoundSourcesObject, Osc1ToChuck } from '@/utils/int
 import { analysisObjectDefaults, convertFrequency } from '@/utils/siteHelpers';
 import { defaultNoteVals, delayADefault, delayDefault, ellipticDefault, expDelayDefault, expEnvDefault, korg35Default, modulateDefault, powerADSRDefault, spectacleDefault, winFuncEnvDefault, wpDiodeDefault } from '@/utils/FXHelpers/helperDefaults';
 import BeginScreen from './BeginScreen';
+import { defaultSources } from '@/utils/MIDIHelpers/sourceHelpers';
 
-// import winFuncEnvPresets from '@/utils/FXPresets/winFuncEnv';
-// interface InitializationComponentProps {
-//     res:Response,
-// }
 
-// Hook
 function useWindowSize() {
     // Initialize state with undefined width/height so server and client renders match
-    // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
     const [windowSize, setWindowSize] = useState<any>({
         width: undefined,
         height: undefined,
@@ -78,7 +69,6 @@ function useWindowSize() {
             setWindowSize({
                 width: window.innerWidth,
                 height: window.innerHeight,
-                // height: '100vh'
             });
         }
 
@@ -90,10 +80,9 @@ function useWindowSize() {
 
         // Remove event listener on cleanup
         return () => window.removeEventListener("resize", handleResize);
-        }, []); // Empty array ensures that effect is only run on mount
-        return windowSize;
-    }
-
+    }, []);
+    return windowSize;
+}
 
 
 export default function InitializationComponent() {
@@ -102,28 +91,21 @@ export default function InitializationComponent() {
     const aChuck: Chuck | undefined = useDeferredValue(chuckHook);
     const [lastChuckMessage, setLastChuckMessage] = useState<any>("");
     const [microTonalLetters, setMicroTonalLetters] = useState<any>([]);
-    const [formats, setFormats] = React.useState<any>(() => []);
+    const [formats, setFormats] = React.useState<any>(() => []); // ** UNCLEAR VARNAME => WHAT ARE FORMATS?
     // const [currNotes, setCurrNotes] = useState<any>([]);
-    const currNotes = useRef<any>([40]);
-    const currNotesHash = useRef<any>({});
+    const currNotes = useRef<any>([0]);
+    const currNotesHash = useRef<any>({}); // ** MISSING TYPE (THIS ONE WOULD BE USEFUL)
     const [notesNeedUpdate, setNotesNeedUpdate] = useState<boolean>(false);
-    const [midiAccessHook, setMidiAccessHook] = useState<any>({});
+    const [midiAccessHook, setMidiAccessHook] = useState<any>({}); // do we do anything with this value?
     const lastMidiNote: any = useRef('');
     lastMidiNote.current = '';
     const lastMidiCommand: any = useRef('');
 
-    const osc1WinEnvOn = useRef<any>(false);
-    const osc1PowerADSROn = useRef<any>(false);
-    const osc1ExpEnvOn = useRef<any>(false);
-    const osc1WPDiodeLadderOn = useRef<any>(false);
-    const osc1WPKorg35On = useRef<any>(false);
-    const osc1ModulateOn = useRef<any>(false);
+
     const osc1DelayOn = useRef<any>(false);
     const osc1DelayAOn = useRef<any>(false);
     const osc1DelayLOn = useRef<any>(false);
-    const osc1ExpDelayOn = useRef<any>(false);
-    const osc1EllipticOn = useRef<any>(false);
-    const osc1SpectacleOn = useRef<any>(false);
+ 
     const samplerWinEnvOn = useRef<any>(false);
     const samplerPowerADSROn = useRef<any>(false);
     const samplerExpEnvOn = useRef<any>(false);
@@ -175,16 +157,11 @@ export default function InitializationComponent() {
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
     const { register, handleSubmit, watch } = useForm();
-    const [datas, setDatas] = useState<any>([]);
-    // const [numNotesDown, setNumNotesDown] = useState<number>(0);
-    // const [theNotesDown, setTheNotesDown] = useState<Array<any>>([]);
 
     const [stkValues, setStkValues] = useState<STKOption[]>([]);
-    const [octave, setOctave] = useState('4');
-    const [audioKey, setAudioKey] = useState('C');
-    const [audioScale, setAudioScale] = useState('Major');
-    const [audioChord, setAudioChord] = useState('M');
-    const [fxRadioValue, setFxRadioValue] = React.useState('Osc1');
+
+    
+    const [fxRadioValue, setFxRadioValue] = React.useState('Osc1'); // ** NEEDS UI RETHINKING
     const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState('Osc');
     const [showBPM, setShowBPM] = useState<boolean>(true);
     const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
@@ -452,13 +429,7 @@ export default function InitializationComponent() {
     const currentMicroTonalScale = (scale: any) => {
         let theScale;
         console.log("MICROTONAL SCALE: ", scale);
-        // if (typeof scale !== 'string') {
-        
-        //     theScale = '12-19';
-        // } else {
-            // console.log('and what is scale??? ', tune.loadScale(scale.value));
-            // tune.loadScale(scale.value)
-        tune.loadScale(scale)
+        tune.loadScale(scale.name)
         tune.tonicize(220);
         console.log("CHECK TUNE: ", tune);
         console.log("HEYA ", tune.scale);
@@ -467,37 +438,33 @@ export default function InitializationComponent() {
         const microtonalMidiNums: any[] = [];
 
         for(let i = -3; i < 6; i++) {
-            // tune.scale.forEach((i: any, idx: number) => {
             for (let j = 0; j < tune.scale.length; j++) {
-                // console.log("OOOF ", tune.note(tune.scale[j], i));
                 tune.mode.output = "frequency";
                 microtonalFreqs.push(tune.note(j, i).toFixed(2));
                 tune.mode.output = "MIDI";
                 microtonalMidiNums.push(tune.note(j, i).toFixed(4));
             }
-            // });
         }
-        console.log("WOOHA: ", microtonalFreqs);
-        console.log("WOOHA2: ", microtonalMidiNums);
         
         setMicroTonalLetters([]);
+    
         for (const i in microtonalFreqs) {
             (async() => {
                 const getMTA = await convertFrequency(notefreqchart, parseFloat(i), microtonalFreqs[i], microtonalMidiNums[i]);
-                console.log("GET MTA !!! ", getMTA)
-                newMicroTonalArr.push({
+                await newMicroTonalArr.push({
                     freq: microtonalFreqs[i],
                     midiNum: microtonalMidiNums[i],
-                    noteName: getMTA,
+                    noteName: getMTA.map(i=>i),
                 })
-                setMicroTonalLetters([...microTonalLetters, ...getMTA]);
+                setMicroTonalLetters((x:any)=>[...x, {
+                    freq: microtonalFreqs[i],
+                    midiNum: microtonalMidiNums[i],
+                    noteName: getMTA.map(i=>i),
+                }]);
             })();
         }
-        // setHasHexKeys(true);
-        console.log("CHECK FIRST ARE WE GETTING MICROTONAL ARR??? ", newMicroTonalArr);
-        setMicroTonalLetters(newMicroTonalArr);
-
-// *******
+        setHasHexKeys(true);
+  
 
         theScale = scale && scale.length > 0 && scale.value && scale.value;
         // }
@@ -506,12 +473,9 @@ export default function InitializationComponent() {
             setMicrotonalScale(theScale);
             setHasHexKeys(true);
             setKeysVisible(false);
+            
         }
     };
-
-
-    // midi.current = null;
-    // midi.current = nav.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure)
 
     useEffect(() => {
         midi.current = nav.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
@@ -542,93 +506,13 @@ export default function InitializationComponent() {
     }
 
 
-    // const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(false);
-    // const filesChuckToDac = useRef<string>('');
-    // const filesGenericCodeString = useRef<any>('');
-    // const analysisObject = useRef<any>(analysisObjectDefaults);
 
-    // const selectedEffect = useRef<string>('')
-    // const currentScreen = useRef<string>('synth');
-    // const [checkedFXUpdating, setCheckedFXUpdating] = useState<boolean>(true);
-    // const [showFX, setShowFX] = useState<boolean>(false);
-    // const stkValsRef = useRef<STKOption[]>([]);
-    // const stkFX = useRef<any>([]);
-
-    // const stk1Type = useRef<string | undefined>('');
-    // const stk1Var = useRef<string | undefined>('');
-
-    // const filesToProcess = useRef<Array<any>>([]);
-
-    // const fxValsRef = useRef<FXOption[]>([]);
-    // const fxFX = useRef<any>([]);
-    // const fx1Type = useRef<string | undefined>('');
-    // const fx1Var = useRef<string | undefined>('');
-    // const fx1Group = useRef<string | undefined>('');
-    // const checkedFXList = useRef<FXOption[]>([]);
-
-
-    // const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
-
-    // const finalOsc1FxStringToChuck = useRef<Osc1ToChuck[]>([]);
-    // const finalSamplerFxStringToChuck = useRef<Osc1ToChuck[]>([]);
-    // const finalStkFxStringToChuck = useRef<any>([]);
-
-    // const osc1FxStringNeedsBlackhole = useRef<string>('');
-    // const samplerFxStringNeedsBlackhole = useRef<string>('');
-    // const stkFxStringNeedsBlackhole = useRef<string>('');
-    // const shredCount = useRef<number>(0);
-    
-    // const osc1FxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
-    // const samplerFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
-    // const stkFxStringToChuckNeedsBlackhole = useRef<Osc1ToChuck[]>([]);
-    // const winFuncEnvFinalHelper = useRef<any>(winFuncEnvDefault);
-    // const powerADSRFinalHelper = useRef<any>(powerADSRDefault);
-    // const expEnvFinalHelper = useRef<any>(expEnvDefault);
-    // const wpDiodeLadderFinalHelper = useRef<any>(wpDiodeDefault);
-    // const wpKorg35FinalHelper = useRef<any>(korg35Default);
-    // const modulateFinalHelper = useRef<any>(modulateDefault);
-    // const delayFinalHelper = useRef<any>(delayDefault);
-    // const delayAFinalHelper = useRef<any>(delayADefault);
-    // const delayLFinalHelper = useRef<any>(delayDefault);
-    // const expDelayFinalHelper = useRef<any>(expDelayDefault);
-    // const ellipticFinalHelper = useRef<any>(ellipticDefault);
-    // const spectacleFinalHelper = useRef<any>(spectacleDefault);
-
-
-
-    // const [windowWidth, setWindowWidth] = useState<any>(0);
-    // const [windowHeight, setWindowHeight] = useState<any>(0);
-    // const [metronomeOn, setMetronomeOn] = useState<any>(1);
-
-    // // currentFX are the ones we are actively editing
-    // const currentFX = useRef<any>();
-
-    // const uploadedFilesToChuckString = useRef<any>('');
-    // const uploadedFilesCodeString = useRef<string>('');
-    // const analysisBlocksDeclarations = useRef<string>('');
 
     // default to the oscillator FX (default oscillator screen happens above)
     if (!currentFX.current) {
         currentFX.current = moogGrandmotherEffects.current
     }
 
-    // currentFX.current = {...currentFX.current, ...fxFX.current.filter((fx: any) => fx.visible === true && fx)}
-
-    // const stkFXString = useRef<any>('');
-    // const osc1FXString = useRef<any>('');
-    // const osc2FXString = useRef<any>('');
-    // const audioInFXString = useRef<any>('');
-    // const samplerFXString = useRef<any>('');
- 
-
-    // const osc1FXStringToChuck = useRef<any>('');
-    // const osc2FXStringToChuck = useRef<any>('');
-    // const audioInFXStringToChuck = useRef<any>('');
-    // const samplerFXStringToChuck = useRef<any>('');
-    // const stkFXStringToChuck = useRef<any>('');
-
-
-    
 
     // // CURRENT EFFECTS LIST SHOULD PERTAIN TO SCREENS / KNOBS!!!! TODO: CLARIFY NAMING HERE!!!!
     // const visibleFXKnobs = useRef<Array<any>>();
@@ -794,27 +678,7 @@ export default function InitializationComponent() {
         
     }
 
-    const submitMingus = async () => {
-        console.log("DO WE HAVE AUDIOKEY??? ", audioKey);
-        console.log("TEST HERE 1$");
-        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, { audioKey, audioScale, octave }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(({ data }) => {
-            console.log("TEST SCALES HERE 1# ", data);
-            //return setMingusKeyboardData(data);
-        });
-        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, { audioChord, audioKey }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(({ data }) => {
-            console.log("TEST CHORDS 1# ", data);
-            // return mingusChordsData.current = data;
-            return data;
-        });
-    }
+
 
     const handleClickName = (e: any, op: string) => {
         console.log('TEST CLICK ', e, op);
@@ -852,18 +716,8 @@ export default function InitializationComponent() {
         })();
     }, [microtonalScale]);
 
-    const headerDict = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Access-Control-Allow-Headers': 'Content-Type',
-    }
 
-    const requestOptions = {                                                                                                                                                                                 
-        headers: headerDict,
-        params: {
-            key: audioKey || 'A',
-        }
-    };
+
 
     const {getMingusData} = useMingusData();
 
@@ -983,19 +837,19 @@ export default function InitializationComponent() {
     }
     
 
-    const handleUpdateFXView = (e: any) => {
-        console.log("e target: ", e.target.innerText);
-        // SAVED STATE HERE ???
-        //currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
-        // const getIndex = allFxPersistent.current[fxRadioValue].map((i: any) => i.var).indexOf(e.target.innerText.toLowerCase());
-        selectedEffect.current = e.target.innerText.toLowerCase();
-        const theEffect = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
-        console.log("OOOF MONDAY: ", allFxPersistent.current[fxRadioValue]);
-        const knobsCountTemp = currentFX.current = theEffect;
+    // const handleUpdateFXView = (e: any) => {
+    //     console.log("e target: ", e.target.innerText);
+    //     // SAVED STATE HERE ???
+    //     //currentFX.current = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
+    //     // const getIndex = allFxPersistent.current[fxRadioValue].map((i: any) => i.var).indexOf(e.target.innerText.toLowerCase());
+    //     selectedEffect.current = e.target.innerText.toLowerCase();
+    //     const theEffect = allFxPersistent.current[fxRadioValue].find((i: any) => e.target.innerText.toLowerCase() === i.var);
+    //     console.log("OOOF MONDAY: ", allFxPersistent.current[fxRadioValue]);
+    //     const knobsCountTemp = currentFX.current = theEffect;
         
-        setFxKnobsCount(knobsCountTemp);
-        updateCurrentFXScreen();
-    };
+    //     setFxKnobsCount(knobsCountTemp);
+    //     updateCurrentFXScreen();
+    // };
 
     useEffect(() => {
         console.log('what is going on w fxFX & currentFX? ', fxFX.current, currentFX.current);
@@ -1010,6 +864,16 @@ export default function InitializationComponent() {
         if (stksAndFX.length > 0 && currentScreen.current !== "fx_" || selectedEffect.current.length > 0 ) {
         // **** THIS IS WHERE THE ISSUE MAY BE HAPPENING => WHATEVER GETS PASSED INTO VISIBLESTKSANDFX ALWAYS WINS 
             visibleStkAndFX = Array.from(stksAndFX).filter((i: any) => i.visible);
+            const ds: any = defaultSources;
+            const defaultFXandSTKPresets: any = [];
+            ds && ds.length > 0 && ds.map(((source: any) => {
+                const on = source.effects.map(((fx: any) => fx.On));
+                defaultFXandSTKPresets.push(on);
+            }));
+            console.log("THESE ARE VISIBLE STK AND FX: ", visibleStkAndFX);
+            console.log("TEST IS THIS SAME??? ", [...defaultFXandSTKPresets, defaultSources.stk1.instruments]);
+            console.log("TUST2 ", defaultSources.stk1.instruments)
+
             visibleStkAndFX.map((i: any) => {
                 console.log('ARG I! ', i)
                 Object.values(i.presets).map((j: any) => {
@@ -1041,23 +905,17 @@ export default function InitializationComponent() {
 
             if (currentScreen.current !== "stk" && availableFX[availableFX.length - 1] && availableFX[availableFX.length - 1].fxType !== 'stk') {     
                 if (availableFX.length > 0 && availableFX[0].var) {
-    
                     visibleFXKnobs.current = visibleStkAndFX.map((fxFX: any) => currentFX.current.push(Object.values(fxFX).map((i: any) => [i.label, i])));
-                    // selectedEffect.current = currentFX.current[currentFX.current.length - 1].var;
-                    
-                    // this is where we decide which fx get pushed down into the fxChain
-                    // console.log("make curr effect visible: ", selectedEffect.current); 
-    
-                        availableFX.map((fx: any) => {
-                            const filteredFX: any = allFxPersistent.current[`${fxRadioValue}`].filter((i: any) => i && i)
-                            if (fx.var && filteredFX.map((f: any) => f.var).indexOf(fx.var) === -1) {
-                                console.log("need to sanity check fx... ", fx);
-                                fxFX.current.push(fx);
-                                allFxPersistent.current[`${fxRadioValue}`].push(fx);
-                                allFxPersistent.current[`${fxRadioValue}`].filter((v: any) => v.var && v);
-                            }
-                        })
-                        currentScreen.current = '';
+                    availableFX.map((fx: any) => {
+                        const filteredFX: any = allFxPersistent.current[`${fxRadioValue}`].filter((i: any) => i && i)
+                        if (fx.var && filteredFX.map((f: any) => f.var).indexOf(fx.var) === -1) {
+                            console.log("need to sanity check fx... ", fx);
+                            fxFX.current.push(fx);
+                            allFxPersistent.current[`${fxRadioValue}`].push(fx);
+                            allFxPersistent.current[`${fxRadioValue}`].filter((v: any) => v.var && v);
+                        }
+                    })
+                    currentScreen.current = '';
             
                     updateCurrentFXScreen();
                 }
@@ -1087,6 +945,7 @@ export default function InitializationComponent() {
             visibleFXKnobs.current && 
             gotFX && 
             theFXIdx && 
+            gotFX[theFXIdx] &&
             gotFX[theFXIdx].length > 0 && 
             !doReturnToSynth.current
                 ?
@@ -1156,7 +1015,13 @@ export default function InitializationComponent() {
         stkValsRef.current = [];
         stkValsRef.current.push(...knobVals);
 
-        console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', stkValsRef.current);
+
+        console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', getSTK1Preset(stkValsRef.current[stkValsRef.current.length - 1].value));
+        const stk: any = defaultSources.stk1
+        console.log("LALALA ", stk.instruments[`${getSTK1Preset(stkValsRef.current[stkValsRef.current.length - 1].value).type}`].stkFXPresets);
+        stk.instruments[`${getSTK1Preset(stkValsRef.current[stkValsRef.current.length - 1].value).type}`].stkFXPresets.push(getSTK1Preset(stkValsRef.current[stkValsRef.current.length - 1].value).presets);
+        console.log('SO MUCH MORE SANE: ',  stk.instruments)
+
         if (stkValsRef.current && stkValsRef.current.length > 0) {
             stkFX.current = fxFX.current = getSTK1Preset(stkValsRef.current[stkValsRef.current.length - 1].value);
             currentScreen.current = "stk";
@@ -1360,27 +1225,27 @@ export default function InitializationComponent() {
         setFxRoutingNeedsUpdate(fxRoutingNeedsUpdate + 1);
     }
 
-    const handleChangeAudioKey = (key: string) => {
-        console.log('ALL GOOD ON KEY ', key);
-        setAudioKey(key as string);
-    };
+    // const handleChangeAudioKey = (key: string) => {
+    //     console.log('ALL GOOD ON KEY ', key);
+    //     setAudioKey(key as string);
+    // };
 
-    const handleChangeOctave = (octave: string) => {
-        console.log('ALL GOOD ON OCTAVE ', octave);
-        setOctave(octave);
-    };
+    // const handleChangeOctave = (octave: string) => {
+    //     console.log('ALL GOOD ON OCTAVE ', octave);
+    //     setOctave(octave);
+    // };
 
-    const handleChangeScale = (event: SelectChangeEvent) => {
-        console.log('WHAT IS EVENT IN HANDLECHANNGESCALE? ', event);
-        setAudioScale(event.target.value as string);
-        submitMingus();
-    };
+    // const handleChangeScale = (event: SelectChangeEvent) => {
+    //     console.log('WHAT IS EVENT IN HANDLECHANNGESCALE? ', event);
+    //     setAudioScale(event.target.value as string);
+    //     submitMingus();
+    // };
 
-    const handleChangeChord = (event: SelectChangeEvent) => {
-        console.log('WHAT IS EVENT IN HANDLECHANNGECHORD? ', event);
-        setAudioChord(event.target.value as string);
-        submitMingus();
-    };
+    // const handleChangeChord = (event: SelectChangeEvent) => {
+    //     console.log('WHAT IS EVENT IN HANDLECHANNGECHORD? ', event);
+    //     setAudioChord(event.target.value as string);
+    //     submitMingus();
+    // };
 
 
     useEffect(() => {
@@ -1392,398 +1257,91 @@ export default function InitializationComponent() {
         setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
     }, [moogGrandmotherEffects])
 
-    const stxFXGetVals = () => {
-        if (!stkFX.current || stkFX.current.length < 1) return '';
-        stk1Type.current = stkFX.current.type;
-        stk1Var.current = stkFX.current.var;
+    // const stxFXGetVals = () => {
+    //     if (!stkFX.current || stkFX.current.length < 1) return '';
+    //     stk1Type.current = stkFX.current.type;
+    //     stk1Var.current = stkFX.current.var;
 
-        stkFX.current && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
-            console.log('STK PRESET: ', preset); // preset.name
-            const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
-            // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
-            for (let j = 1; j < currentNotesDownDisplay.current.length; j++) {
-                stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
-            }
-            // console.log("WHAT IS STKFX CURRENT >?>?>?>? ", stkFXString.current);
-            return stkFXString.current;
-        });
-    }
+    //     stkFX.current && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
+    //         console.log('STK PRESET: ', preset); // preset.name
+    //         const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
+    //         // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
+    //         for (let j = 1; j < currentNotesDownDisplay.current.length; j++) {
+    //             stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
+    //         }
+    //         // console.log("WHAT IS STKFX CURRENT >?>?>?>? ", stkFXString.current);
+    //         return stkFXString.current;
+    //     });
+    // }
 
     // // THIS METHOD TURNS A PRESET INTO CHUCK CODE (only set up for stk1)
-    const stkFXToStringPrepare = () => {
-        console.log('stkFXTo *** STRING ***: ', stkFX.current);
-        if (!stkFX.current || stkFX.current.length < 1) return '';
+    // const stkFXToStringPrepare = () => {
+    //     console.log('stkFXTo *** STRING ***: ', stkFX.current);
+    //     if (!stkFX.current || stkFX.current.length < 1) return '';
 
-        stk1Type.current = stkFX.current.type;
-        stk1Var.current = stkFX.current.var;
+    //     stk1Type.current = stkFX.current.type;
+    //     stk1Var.current = stkFX.current.var;
 
-        const isFX = Object.values(stkFX.current).filter((i: any) => i.fxType === "fx");
+    //     const isFX = Object.values(stkFX.current).filter((i: any) => i.fxType === "fx");
 
-       isFX && stkFX.current.length > 0 && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
-            console.log('STK PRESET: ', preset); // preset.name
-            const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
-            // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
-            console.log("WHAT ARE CURRENT NOTES DOWN>??? ", currentNotesDownDisplay.current);
+    //    isFX && stkFX.current.length > 0 && stkFX.current.presets && Object.values(stkFX.current.presets) && Object.values(stkFX.current.presets).length > 0 && Object.values(stkFX.current.presets).map((preset: any) => {
+    //         console.log('STK PRESET: ', preset); // preset.name
+    //         const alreadyInChuckDynamicScript: boolean = (stkFXString.current && stkFXString.current.indexOf(`${stkFX.current.var}.${preset.name};`) !== -1);
+    //         // stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX.current.var}.${preset.name}; `;
+    //         console.log("WHAT ARE CURRENT NOTES DOWN>??? ", currentNotesDownDisplay.current);
 
-            for (let j = 1; j < 12; j++) {
-                stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
-            }
-            console.log("WHAT IS STKFX CURRENT >?>?>?>? ", stkFXString.current);
-        });
+    //         for (let j = 1; j < 12; j++) {
+    //             stkFXString.current = stkFXString.current && !alreadyInChuckDynamicScript ? `${stkFXString.current} ${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; ` : `${preset.value} => ${stkFX.current.var}[${j-1}].${preset.name}; `;
+    //         }
+    //         console.log("WHAT IS STKFX CURRENT >?>?>?>? ", stkFXString.current);
+    //     });
 
-        // stkFX2.current && stkFX2.current.presets && Object.values(stkFX2.current.presets).map((preset: any) => {
-        //     const alreadyInChuckDynamicScript: boolean = (stkFX2String.current && stkFX2String.current.indexOf(`${stkFX2.current.var}.${preset.name};`) !== -1);
-        //     stkFX2String.current = stkFX2String.current && !alreadyInChuckDynamicScript ? `${stkFX2String.current} ${preset.value} => ${stkFX2.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX2.current.var}.${preset.name}; `;
-        //     return stkFX2String.current;
-        // });
-        // console.log('are we appending to stkFXString? ', stkFXString.current);
-        return [stkFXString.current, stkFX.current.type, stkFX.current.var];
-    }
+    //     // stkFX2.current && stkFX2.current.presets && Object.values(stkFX2.current.presets).map((preset: any) => {
+    //     //     const alreadyInChuckDynamicScript: boolean = (stkFX2String.current && stkFX2String.current.indexOf(`${stkFX2.current.var}.${preset.name};`) !== -1);
+    //     //     stkFX2String.current = stkFX2String.current && !alreadyInChuckDynamicScript ? `${stkFX2String.current} ${preset.value} => ${stkFX2.current.var}.${preset.name}; ` : `${preset.value} => ${stkFX2.current.var}.${preset.name}; `;
+    //     //     return stkFX2String.current;
+    //     // });
+    //     // console.log('are we appending to stkFXString? ', stkFXString.current);
+    //     return [stkFXString.current, stkFX.current.type, stkFX.current.var];
+    // }
 
-    const formerValSub = useRef<string>('');
-
-
-
-    const winFuncString = (source: string, attackDenom: number, releaseDenom: number, envSetting: string) => `winfuncenv_${source}.set${envSetting}(); for (int i; i < 250; i++) { spork ~ playWindow(winfuncenv_${source}, whole/${attackDenom}, whole/${releaseDenom}); }`;
-
-    const powerADSRString = (source: string, attackTime: number, attackCurve: number, decayTime: number, decayCurve: number, sustainLevel: number, releaseTime: number, releaseCurve: number) => `
-
-        fun void playPowerADSRWindow(PowerADSR @ win, dur attackTime, float attackCurve, dur decayTime, float decayCurve, float sustainLevel, dur releaseTime, float releaseCurve) {
-            win.set(attackTime, decayTime, sustainLevel, releaseTime);
-            win.setCurves(attackCurve, decayCurve, releaseCurve);
-          
-            while (true) {
-                win.keyOn();
-                attackTime => now;
-                win.keyOff();
-                releaseTime => now;
-            }
-        }
-        spork ~ playPowerADSRWindow(poweradsr_${source}, ${attackTime}::ms, ${attackCurve}, ${decayTime}::ms, ${decayCurve}, ${sustainLevel}, ${releaseTime}::ms, ${releaseCurve});
-
-    `;
-
-    const expEnvString = (source: string, T60: number, radius: number, value: number) => `
-
-        fun void playExpEnvWindow(ExpEnv @ win, dur T60, float radius, dur value) {
-            radius => win.radius;    
-            T60 => win.T60; 
-            1 => win.keyOn; 
-            
-            value => now;
-            while (true)  {
-                1.0 => win.gain;
-                1 => win.keyOn;
-                value => now;
-                0 => win.keyOn;
-            }
-        }
-        spork ~ playExpEnvWindow(expenv_${source}, whole/${Math.pow(2, T60)}, ${radius}, whole/${Math.pow(2, value)});
-    `;
-
-    const wpDiodeLadderString = (source: string, cutoff: number, resonance: number, nlp_type: number, nonlinear: number, saturation: number) => {
-        const nlp_str = nlp_type === 1 ? 'true' : 'false';
-        const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
-        return `
-        fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int resonance,  nlp_type, int nonlinear, float saturation) {
-            saw2 => blackhole;
-            SinOsc sinb => blackhole;
-      
-            0.04 => saw2.gain;
-            40 => saw2.freq;
-            cutoff => sinb.freq;
-            // 0.0125 => sinb.freq;
-            resonance => win.resonance;
-            nonlinear => win.nonlinear;
-            nlp_type => win.nlp_type;
-            saturation => win.saturation;
-            
-            0.15 => win.gain;
-
-            while(true){
-               
-                4 * sinb.last() => saw2.freq;
-                40 + (Math.pow((sinb.last())/2.0,2) * (resonance * 1000)) => win.cutoff;
-                1::samp => now;
-            }
-        }
-   
-        spork ~ playWpDiodeLadderWindow(wpdiodeladder_${source}, ${cutoff}, ${resonance}, ${nlp_str}, ${nonlinear_str}, ${saturation});
-    `};
-
-    const wpKorg35String = (source: string, cutoff: number, resonance: number, nonlinear: number, saturation: number) => {
-        const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
-
-        return `
-        fun void playWpKorg35Window(WPKorg35 @ win, float cutoff, int resonance, int nonlinear, float saturation) {
-            saw2 => blackhole;
-            SinOsc sinb => blackhole;
-      
-            0.004 => saw2.gain;
-            40 => saw2.freq;
-            cutoff => sinb.freq;
-            // 0.0125 => sinb.freq;
-            resonance => win.resonance;
-            nonlinear => win.nonlinear;
-            saturation => win.saturation;
-            
-            0.2 => win.gain;
-
-            while(true){
-                4 * sinb.last() => saw2.freq;
-                40 + (Math.pow((sinb.last())/2.0,2) * (resonance * 1000)) => win.cutoff;
-                1::samp => now;
-            }
-        }
-   
-        spork ~ playWpKorg35Window(wpkorg35_${source}, ${cutoff}, ${resonance}, ${nonlinear_str}, ${saturation});
-        `
-    };
-
-    const modulateString = (source: string, vibratoRate: number, vibratoGain: number, randomGain: number) => {
-
-        return `
-
-        fun void playModWindow(Modulate @ win, float vibratoRate, float vibratoGain, float randomGain) {
-            // multiply
-            // 3 => hpf.op;
-            if ("${source}" == "o1") {
-                3 => hpf.op;
-            } else if ("${source }" == "s1") {
-                3 => limiter_Sampler.op;
-            } else if ("${source}" == "stk1") {
-                3 => limiter_STK.op;
-            } 
-    
-            // set freq
-            // 220 => testSin.freq;
-    
-            // set rate in hz
-            vibratoRate => win.vibratoRate;
-            // set gain
-            vibratoGain => win.vibratoGain;
-            // set random gain
-            randomGain => win.randomGain;
-    
-            whole/${currentNoteVals.master[0]} - (now % whole/${currentNoteVals.master[0]}) => now;
-      
-        }
-        spork ~ playModWindow(mod_${source}, ${vibratoRate}, ${vibratoGain}, ${randomGain});
-        `;
-    };
-
-    const ellipticString = (source: string, filterLow: number, filterMid: number, filterHigh: number, atten: number, ripple: number, filterMode: number) => {
-        console.log('get elliptic vals: ', source, filterLow, filterMid, filterHigh, ripple, atten, filterMode);
-        return `
-        fun void playEllipticWindow(Elliptic @ win, dur beat, float lower, float middle, float upper, float atten, float ripple, int filterMode) {
-            
-            atten => win.atten;
-            ripple => win.ripple;
-
-            if (filterMode == 0) {
-                win.bpf(upper,middle,lower);
-            } else if (filterMode == 1) {
-                win.lpf(lower, upper);
-            } else if (filterMode == 2) {
-                win.hpf(upper, lower);
-            }
-            whole/${currentNoteVals.master[0]} - (now % whole/${currentNoteVals.master[0]}) => now;
-        }
-        spork ~ playEllipticWindow(elliptic_${source}, beat, ${filterLow}, ${filterMid}, ${filterHigh}, ${atten}, ${ripple}, ${filterMode});
-        `;
-    }
-
-    const delayString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
-        const convertedSyncDelay = Math.pow(2, syncDelay);
-        return `
-        fun void playDelayWindow(Delay @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
-            for (0 => int i; i < ${lines}; i++) 
-            { 
-                if ("${source}" == "o1") {
-                    hpf => win[i] => dac;
-                } else if ("${source}" == "s1") {
-                    limiter_Sampler => win[i] => dac;
-                } else if ("${source}" == "stk1") {
-                    limiter_STK => win[i] => dac;
-                }
-                win[i] => OneZero filter_delay_${source} => win[i]; 
-                zero => filter_delay_${source}.zero;
-                b0 => filter_delay_${source}.b0;
-                b1 => filter_delay_${source}.b1;
-                0.2 => win[i].gain; 
-                // (((1 + i*0.3) * 1000)) :: ms => win[i].max => win[i].delay;
-                ((whole)/((syncDelay/${currentNoteVals.master[0]}) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
-                me.yield();
-            }
-            me.exit();
-        }
-        spork ~ playDelayWindow(delay_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
-        `;
-    };
-
-    const delayAString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
-        const convertedSyncDelay = Math.pow(2, syncDelay);
-        return `
-        fun void playDelayAWindow(DelayA @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
-            for (0 => int i; i < ${lines}; i++) 
-            { 
-                if ("${source}" == "o1") {
-                    hpf => win[i] => dac;  
-                } else if ("${source }" == "s1") {
-                    limiter_Sampler => win[i] => dac;
-                } else if ("${source}" == "stk1") {
-                    limiter_STK => win[i] => dac;
-                }
-                win[i] => OneZero filter_delayA_${source} => win[i]; 
-                zero => filter_delayA_${source}.zero;
-                b0 => filter_delayA_${source}.b0;
-                b1 => filter_delayA_${source}.b1;
-                0.6 => win[i].gain; 
-                (whole/${currentNoteVals.master[0]})/((syncDelay) * (1 + i*0.3)) => win[i].max => win[i].delay;
-                me.yield();
-            }
-            me.exit();
-        }
-        spork ~ playDelayAWindow(delayA_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
-        `;
-    };
-
-    const delayLString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number) => {
-        const convertedSyncDelay = Math.pow(2, syncDelay);
-        console.log("sanity check delayL source: ", source);
-        return `
-        fun void playDelayLWindow(DelayL @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
-            // while (true) {
-                    for (0 => int i; i < ${lines}; i++) 
-                    { 
-                        if ("${source}" == "o1") {
-                            hpf => win[i] => dac;  
-                        } else if ("${source}" == "s1") {
-                            limiter_Sampler => win[i] => dac;
-                        } else if ("${source}" == "stk1") {
-                            limiter_STK => win[i] => dac;
-                        }
-                        win[i] => OneZero filter_delayL_${source} => win[i];
-                        zero => filter_delayL_${source}.zero;
-                        b0 => filter_delayL_${source}.b0;
-                        b1 => filter_delayL_${source}.b1;
-                        0.6 => win[i].gain; 
-                        // ((whole * ${numeratorSignature})/((syncDelay) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
-                        (whole * ${numeratorSignature})/((syncDelay) * (1/(1 + i*0.7))) => win[i].max => win[i].delay;
-   
-                        // me.yield();
-                    }
-    
-                me.exit();
-        }
-        spork ~ playDelayLWindow(delayL_${source}, ${delay}, ${lines}, ${convertedSyncDelay}, ${zero}, ${b0}, ${b1});
-        `;
-    };
-
-    const expDelayString = (source: string, ampcurve: number, durcurve: number, delay: number, mix: number, reps: number, gain: number) => {
-        const convertedSyncDelay = Math.pow(2, delay);
-        console.log("WHAT IS CONVERTED SYNC DELAY? ", convertedSyncDelay);
-        console.log("all good???? ", currentNoteVals.master[0]);
-        return `
-        fun void playExpDelayWindow(ExpDelay @ win, float ampcurve, float durcurve, float delay, float mix, int reps, float gain) {
-
-            while (true)
-            {
-               (whole/(${currentNoteVals.master[0]}))/delay => win.max => win.delay;
-
-                reps * 0.7 => win.gain;
-                durcurve => win.durcurve;
-                ampcurve => win.ampcurve;
-                reps => win.reps;
-                
-                (whole/(${currentNoteVals.master[0]}))/delay => now;
-                // me.yield();
-            }
-            me.exit();
-        }
-        spork ~ playExpDelayWindow(expDelay_${source}, ${ampcurve}, ${durcurve}, ${convertedSyncDelay}, ${mix}, ${reps}, ${gain});
-        `;
-    };
-
-    const spectacleString = (source: string, bands: number, delay: number, eq: number, feedback: number, fftlen: number, freqMax: number, freqMin: number, mix: number, overlap: number, table: number) => {
-        const convertedFFT = Math.pow(2, fftlen);
-        const convertedBands = Math.pow(2, bands);
-        const convertedDelay = Math.pow(2, bands);
-        return `
-        fun void playSpectacleWindow(Spectacle @ win, int bands, float delay, float eq, float feedback, int fft, float freqMax, float freqMin, float mix, int overlap, int table) {
-            
-            0.8 => win.mix;
-            win.range(freqMin,freqMax);
-            bands => win.bands; 
-
-            1.3 => win.gain;
-
-            if (table == 0) {
-                win.table("delay", "descending");
-            } else if (table == 1) {
-                win.table("eq", "descending");
-            } else if (table == 2) {
-                win.table("feedback", "descending");
-            } else if (table == 3) {
-                win.table("delay", "random");
-            } else if (table == 4) {
-                win.table("eq", "random");
-            } else if (table == 5) {
-                win.table("feedback", "random");
-            } else if (table == 6) {
-                win.table("delay", "ascending");
-            } else if (table == 7) {
-                win.table("eq", "ascending");
-            } else if (table == 8) {
-                win.table("feedback", "ascending");
-            }
-
-            whole * delay => now;
-            eq => win.eq;
-            feedback => win.feedback;
-        }
-        spork ~ playSpectacleWindow(spectacle_${source}, ${convertedBands}, ${convertedDelay}, ${eq}, ${feedback}, ${convertedFFT}, ${freqMax}, ${freqMin}, ${mix}, ${overlap}, ${table});
-        `;
-
-    };
-
- 
+    // const formerValSub = useRef<string>('');
 
 
     const samplerFXToString = () => {
   
         // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
         // =================================================================
-        Object.values(allFxPersistent.current.Sampler).map((s1: any) => {
-            if (samplerFXStringToChuck.current.indexOf(`${s1.var}_s1`) === -1) {
-                if (s1.type === "PitchTrack") {
-                    if (samplerFxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${s1.var}`) === -1) {
-                        samplerFxStringToChuckNeedsBlackhole.current.push({ name: `${s1.var}`, string: `=> ${s1.type} ${s1.var}_s1 => blackhole;` });
+        Object.values(allFxPersistent.current.Sampler).map((sampler1: any) => {
+            if (samplerFXStringToChuck.current.indexOf(`${sampler1.var}_sampler1`) === -1) {
+                if (sampler1.type === "PitchTrack") {
+                    if (samplerFxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${sampler1.var}`) === -1) {
+                        samplerFxStringToChuckNeedsBlackhole.current.push({ name: `${sampler1.var}`, string: `=> ${sampler1.type} ${sampler1.var}_sampler1 => blackhole;` });
                     }
                     return;
-                } else if (s1.type === "WinFuncEnv") {
+                } else if (sampler1.type === "WinFuncEnv") {
                     samplerWinEnvOn.current = true;
-                } else if (s1.type === "PowerADSR") {
+                } else if (sampler1.type === "PowerADSR") {
                     samplerPowerADSROn.current = true;
-                } else if (s1.type === "ExpEnv") {
+                } else if (sampler1.type === "ExpEnv") {
                     samplerExpEnvOn.current = true;
-                } else if (s1.type === "WPDiodeLadder") {
+                } else if (sampler1.type === "WPDiodeLadder") {
                     samplerWPDiodeLadderOn.current = true;
-                } else if (s1.type === "WPKorg35") {
+                } else if (sampler1.type === "WPKorg35") {
                     samplerWPKorg35On.current = true;
-                } else if (s1.type === "Modulate") {
+                } else if (sampler1.type === "Modulate") {
                     samplerModulateOn.current = true;
-                } else if (s1.type === "Delay") {
+                } else if (sampler1.type === "Delay") {
                     samplerDelayOn.current = true;
-                } else if (s1.type === "DelayA") {
+                } else if (sampler1.type === "DelayA") {
                     samplerDelayAOn.current = true;
-                } else if (s1.type === "DelayL") {
+                } else if (sampler1.type === "DelayL") {
                     samplerDelayLOn.current = true;
-                } else if (s1.type === "ExpDelay") {
+                } else if (sampler1.type === "ExpDelay") {
                     samplerExpDelayOn.current = true;
-                } else if (s1.type === "Elliptic") {
+                } else if (sampler1.type === "Elliptic") {
                     samplerEllipticOn.current = true;
-                } else if (s1.type === "Spectacle") {
+                } else if (sampler1.type === "Spectacle") {
                     samplerSpectacleOn.current = true;
                 }
 
@@ -1800,16 +1358,17 @@ export default function InitializationComponent() {
                 // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
 
                 else {
-                    console.log("we should and do hit this for nrev test ", s1, samplerFXStringToChuck.current);
-                    samplerFXStringToChuck.current = samplerFXStringToChuck.current.concat(`=> ${s1.type} ${s1.var}_s1 `);
+                    console.log("we should and do hit this for nrev test ", sampler1, samplerFXStringToChuck.current);
+                    samplerFXStringToChuck.current = samplerFXStringToChuck.current.concat(`=> ${sampler1.type} ${sampler1.var}_sampler1 `);
                 }
             }
-            console.log("Make sure we get into part 2: ", Object.values(s1.presets))
+            console.log("Make sure we get into part 2: ", Object.values(sampler1.presets))
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
-            Object.values(s1.presets).length > 0 && Object.values(s1.presets).map(async (preset: any, idx: number) => {
 
-                // ******** TODO change to read type directly from o1.type
+            Object.values(sampler1.presets).length > 0 && Object.values(sampler1.presets).map(async (preset: any, idx: number) => {
+
+                // ******** TODO change to read type directly from osc1.type
                 if (preset.type.includes("_needsFun")) {
                     if (preset.type.includes("_winFuncEnv")) {
                         if (preset.name === "attackTime") {
@@ -1886,7 +1445,7 @@ export default function InitializationComponent() {
                             modulateFinalHelper.current.sampler.randomGain = preset.value;
                         }
                     }
-                    if (s1.type === "Delay") {
+                    if (sampler1.type === "Delay") {
                         if (preset.name === "delay") {
                             delayFinalHelper.current.sampler.delay = preset.value;
                         } else if (preset.name === "lines") {
@@ -1895,7 +1454,7 @@ export default function InitializationComponent() {
                             delayFinalHelper.current.sampler.syncDelay = preset.value;
                         }
                     }
-                    if ((s1.type === "DelayA")) {
+                    if ((sampler1.type === "DelayA")) {
                         if (preset.name === "delay") {
                             delayAFinalHelper.current.sampler.delay = preset.value;
                         } else if (preset.name === "lines") {
@@ -1904,7 +1463,7 @@ export default function InitializationComponent() {
                             delayAFinalHelper.current.sampler.syncDelay = preset.value;
                         }
                     }
-                    if ((s1.type === "DelayL")) {
+                    if ((sampler1.type === "DelayL")) {
                         if (preset.name === "delay") {
                             delayLFinalHelper.current.sampler.delay = preset.value;
                         } else if (preset.name === "lines") {
@@ -1913,7 +1472,7 @@ export default function InitializationComponent() {
                             delayLFinalHelper.current.sampler.syncDelay = preset.value;
                         }
                     }
-                    if (s1.type === "ExpDelay") {
+                    if (sampler1.type === "ExpDelay") {
                         if (preset.name === "ampcurve") {
                             expDelayFinalHelper.current.sampler.ampcurve = preset.value;
                         } else if (preset.name === "durcurve") {
@@ -1926,7 +1485,7 @@ export default function InitializationComponent() {
                             expDelayFinalHelper.current.sampler.reps = preset.value;
                         }
                     }
-                    if (s1.type === "Elliptic") {
+                    if (sampler1.type === "Elliptic") {
                         if (preset.name === "lowFilter") {
                             ellipticFinalHelper.current.sampler.lowFilter = preset.value;
                         } else if (preset.name === "midFilter") {
@@ -1941,7 +1500,7 @@ export default function InitializationComponent() {
                             ellipticFinalHelper.current.sampler.filterMode = preset.value;
                         }
                     }
-                    if (s1.type === "Spectacle") {
+                    if (sampler1.type === "Spectacle") {
                         console.log(`YA WE HIT THIS: `, spectacleFinalHelper.current.sampler);
                         if (preset.name === "bands") {
                             spectacleFinalHelper.current.sampler.bands;
@@ -1977,16 +1536,16 @@ export default function InitializationComponent() {
                         if (finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name) !== -1) {
                             const theIndex = finalSamplerFxStringToChuck.current.map((samp: any) => samp.name).indexOf(preset.name);
                             console.log("hey the samp index: ", theIndex);
-                            finalSamplerFxStringToChuck.current[theIndex].string = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
+                            finalSamplerFxStringToChuck.current[theIndex].string = `${formattedValue} => ${sampler1.var}_sampler1.${preset.name};`;
                             console.log("hey final sampler is here: ", finalSamplerFxStringToChuck.current[theIndex]);
                         }
                         else {
                             // if (preset.visible === true) {
-                            finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${s1.var}_s1.${preset.name};` });
+                            finalSamplerFxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${sampler1.var}_sampler1.${preset.name};` });
                             // }
                         }
                     } else {
-                        samplerFXString.current = `${formattedValue} => ${s1.var}_s1.${preset.name};`;
+                        samplerFXString.current = `${formattedValue} => ${sampler1.var}_sampler1.${preset.name};`;
                     }
                 }
             });
@@ -1995,40 +1554,40 @@ export default function InitializationComponent() {
 
     const osc1FXToString = () => {  
    
-
+        console.log("DEFAULT OBJ HERE ", defaultSources.osc1.effects, "///// --> ", allFxPersistent.current.Osc1);
         // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
         // =================================================================
-        Object.values(allFxPersistent.current.Osc1).map((o1: any) => {
-            if (osc1FXStringToChuck.current.indexOf(`${o1.var}_o1`) === -1) {
-                if (o1.type === "PitchTrack") {
-                    if (osc1FxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${o1.var}`) === -1) {
-                        osc1FxStringToChuckNeedsBlackhole.current.push({ name: `${o1.var}`, string: `=> ${o1.type} ${o1.var}_o1 => blackhole;` });
+        Object.values(allFxPersistent.current.Osc1).map((osc1: any) => {
+            if (osc1FXStringToChuck.current.indexOf(`${osc1.var}_osc1`) === -1) {
+                if (osc1.type === "PitchTrack") {
+                    if (osc1FxStringToChuckNeedsBlackhole.current.map((i: any) => i.name).indexOf(`${osc1.var}`) === -1) {
+                        osc1FxStringToChuckNeedsBlackhole.current.push({ name: `${osc1.var}`, string: `=> ${osc1.type} ${osc1.var}_osc1 => blackhole;` });
                     }
                     return;
-                } else if (o1.type === "WinFuncEnv") {
-                    osc1WinEnvOn.current = true;
-                } else if (o1.type === "PowerADSR") {
-                    osc1PowerADSROn.current = true;
-                } else if (o1.type === "ExpEnv") {
-                    osc1ExpEnvOn.current = true;
-                } else if (o1.type === "WPDiodeLadder") {
-                    osc1WPDiodeLadderOn.current = true;
-                } else if (o1.type === "WPKorg35") {
-                    osc1WPKorg35On.current = true;
-                } else if (o1.type === "Modulate") {
-                    osc1ModulateOn.current = true;
-                } else if (o1.type === "Delay") {
-                    osc1DelayOn.current = true;
-                } else if (o1.type === "DelayA") {
-                    osc1DelayAOn.current = true;
-                } else if (o1.type === "DelayL") {
-                    osc1DelayLOn.current = true;
-                } else if (o1.type === "ExpDelay") {
-                    osc1ExpDelayOn.current = true;
-                } else if (o1.type === "Elliptic") {
-                    osc1EllipticOn.current = true;
-                } else if (o1.type === "Spectacle") {
-                    osc1SpectacleOn.current = true;
+                } else if (osc1.type === "WinFuncEnv") {
+                    defaultSources.osc1.effects.WinEnv.On = true;
+                } else if (osc1.type === "PowerADSR") {
+                    defaultSources.osc1.effects.PowerADSR.On = true;
+                } else if (osc1.type === "ExpEnv") {
+                    defaultSources.osc1.effects.ExpEnv.On = true;
+                } else if (osc1.type === "WPDiodeLadder") {
+                    defaultSources.osc1.effects.WPDiodeLadder.On = true;
+                } else if (osc1.type === "WPKorg35") {
+                    defaultSources.osc1.effects.WPKorg35.On = true;
+                } else if (osc1.type === "Modulate") {
+                    defaultSources.osc1.effects.Modulate.On = true;
+                } else if (osc1.type === "Delay") {
+                    defaultSources.osc1.effects.Delay.On = true;
+                } else if (osc1.type === "DelayA") {
+                    defaultSources.osc1.effects.DelayA.On = true;
+                } else if (osc1.type === "DelayL") {
+                    defaultSources.osc1.effects.DelayL.On = true;
+                } else if (osc1.type === "ExpDelay") {
+                    defaultSources.osc1.effects.ExpDelay.On = true;
+                } else if (osc1.type === "Elliptic") {
+                    defaultSources.osc1.effects.Elliptic.On = true;
+                } else if (osc1.type === "Spectacle") {
+                    defaultSources.osc1.effects.Spectacle.On = true;
                 }
 
                 // TODO => Basic Implementation of Sampler Interface / Play Logic
@@ -2044,14 +1603,14 @@ export default function InitializationComponent() {
                 // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
 
                 else {
-                    osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${o1.type} ${o1.var}_o1 `)
+                    osc1FXStringToChuck.current = osc1FXStringToChuck.current.concat(`=> ${osc1.type} ${osc1.var}_osc1 `)
                 }
             }
 
             // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
             // =================================================================
-            Object.values(o1.presets).length > 0 && Object.values(o1.presets).map(async (preset: any, idx: number) => {
-                // ******** TODO change to read type directly from o1.type
+            Object.values(osc1.presets).length > 0 && Object.values(osc1.presets).map(async (preset: any, idx: number) => {
+                // ******** TODO change to read type directly from osc1.type
                 if (preset.type.includes("_needsFun")) {
                     if (preset.type.includes("_winFuncEnv")) {
                         if (preset.name === "attackTime") {
@@ -2136,7 +1695,7 @@ export default function InitializationComponent() {
                             modulateFinalHelper.current.osc1.randomGain = preset.value;
                         }
                     }
-                    if (o1.type === "Delay") {
+                    if (osc1.type === "Delay") {
                         if (preset.name === "delay") {
                             delayFinalHelper.current.osc1.delay = preset.value;
                         } else if (preset.name === "lines") {
@@ -2145,7 +1704,7 @@ export default function InitializationComponent() {
                             delayFinalHelper.current.osc1.syncDelay = preset.value;
                         }
                     }
-                    if ((o1.type === "DelayA")) {
+                    if ((osc1.type === "DelayA")) {
                         if (preset.name === "delay") {
                             delayAFinalHelper.current.osc1.delay = preset.value;
                         } else if (preset.name === "lines") {
@@ -2154,7 +1713,7 @@ export default function InitializationComponent() {
                             delayAFinalHelper.current.osc1.syncDelay = preset.value;
                         }
                     }
-                    if ((o1.type === "DelayL")) {
+                    if ((osc1.type === "DelayL")) {
                         if (preset.name === "delay") {
                             delayLFinalHelper.current.osc1.delay = preset.value;
                         } else if (preset.name === "lines") {
@@ -2163,7 +1722,7 @@ export default function InitializationComponent() {
                             delayLFinalHelper.current.osc1.syncDelay = preset.value;
                         }
                     }
-                    if (o1.type === "ExpDelay") {
+                    if (osc1.type === "ExpDelay") {
                         if (preset.name === "ampcurve") {
                             expDelayFinalHelper.current.osc1.ampcurve = preset.value;
                         } else if (preset.name === "durcurve") {
@@ -2176,7 +1735,7 @@ export default function InitializationComponent() {
                             expDelayFinalHelper.current.osc1.reps = preset.value;
                         }
                     }
-                    if (o1.type === "Elliptic") {
+                    if (osc1.type === "Elliptic") {
                         if (preset.name === "lowFilter") {
                             ellipticFinalHelper.current.osc1.lowFilter = preset.value;
                         } else if (preset.name === "midFilter") {
@@ -2191,7 +1750,7 @@ export default function InitializationComponent() {
                             ellipticFinalHelper.current.osc1.filterMode = preset.value;
                         }
                     }
-                    if (o1.type === "Spectacle") {
+                    if (osc1.type === "Spectacle") {
                         console.log('OY PREET ', preset)
                         if (preset.name === "bands") {
                             spectacleFinalHelper.current.osc1.bands;
@@ -2227,14 +1786,14 @@ export default function InitializationComponent() {
                         if (finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name) !== -1) {
                             const theIndex = finalOsc1FxStringToChuck.current.map((osc: any) => osc.name).indexOf(preset.name);
                             console.log("hey the index: ", theIndex);
-                            finalOsc1FxStringToChuck.current[theIndex].string = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
+                            finalOsc1FxStringToChuck.current[theIndex].string = `${formattedValue} => ${osc1.var}_osc1.${preset.name};`;
                             console.log("hey final osc1 is here: ", finalOsc1FxStringToChuck.current[theIndex]);
                         }
                         else {
-                            finalOsc1FxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${o1.var}_o1.${preset.name};` });
+                            finalOsc1FxStringToChuck.current.push({ name: preset.name, string: `${formattedValue} => ${osc1.var}_osc1.${preset.name};` });
                         }
                     } else {
-                        osc1FXString.current = `${formattedValue} => ${o1.var}_o1.${preset.name};`;
+                        osc1FXString.current = `${formattedValue} => ${osc1.var}_osc1.${preset.name};`;
                     }
                     console.log('%cCHECK OSC1 STRING CURRENT: ', 'color: aqua;', osc1FXString.current);
                 }
@@ -2323,11 +1882,10 @@ export default function InitializationComponent() {
                 // THEN WE DO A FINAL TEST AND MOVE ON TO PATTERNS / NOTES
 
                 else {
-                    // console.log("ARE WE SUPPOSED TO GET NON-COMPLEX EFFECTS HERE? ", stk1);
-                    // console.log("we should and do hit this for nrev test ", stk1, stkFXStringToChuck.current);
+                    // we should get the non-complex effects here...
                     console.log(`YO! ${stk1.var} //// ${samplerFXStringToChuck.current}`)
 
-                            const preventdupes = stkFXStringToChuck.current.includes(stk1.var); 
+                    const preventdupes = stkFXStringToChuck.current.includes(stk1.var); 
 
                     if ( !stkFXStringToChuck.current || stkFXStringToChuck.current.length < 1 && stk1.fxType === "stk") {
                         
@@ -2336,16 +1894,14 @@ export default function InitializationComponent() {
                         
                         stkFXStringToChuck.current = !preventdupes ? stkFXStringToChuck.current.concat(`=> ${stk1.type} ${stk1.var}_stk1 `) : stkFXStringToChuck.current;
                     }
-                    // stkFXStringToChuck.current = stkFXStringToChuck.current.concat(`=> ${stk1.type} ${stk1.var}_stk1 `)
-                   
                 }
             }
             console.log("Make sure we get into part 2: ", Object.values(stk1.presets))
-            // THIS FIRST OBJECT MAPPING HANDLES OSC1 EFFECTS CODE
+            // THIS FIRST OBJECT MAPPING HANDLES STK PRESET EFFECTS CODE
+            // WHY NOT REPLACE STK1 WITH THE SINGLE GLOBAL DEFAULTS OBJECT?
             // =================================================================
             Object.values(stk1.presets).length > 0 && Object.values(stk1.presets).map(async (effect: any, idx: number) => {
-        
-                // ******** TODO change to read type directly from o1.type
+                // ******** TODO change to read type directly from osc1.type
                 if (effect && effect.length > 0 && effect.type && effect.type.includes("_needsFun") && effect.fxType !== "stk") {
                     if (effect.type.includes("_winFuncEnv")) {
                         if (effect.name === "attackTime") {
@@ -2681,10 +2237,27 @@ export default function InitializationComponent() {
             analyzer.start();
           }
 
-          
+        const backgroundGradEl = document.getElementsByClassName("center");
+        const backgroundGrad:any = backgroundGradEl[0];
+        if(backgroundGrad) {
+            backgroundGrad.style.opacity = '50%';
+        }
         setChuckHook(theChuck);
         beginProgram(true);
     };
+
+    useEffect(() => {
+        (async() => {
+            const centerRootDiv = await document.getElementById('centerRoot');
+            if (centerRootDiv) {
+                centerRootDiv.style.background = 'black';
+            } else {
+                console.log("no background div to change: ");
+            }
+        })()
+    }, [chuckHook])
+
+      
 
     useEffect(()=>{
 
@@ -2784,104 +2357,151 @@ export default function InitializationComponent() {
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             // HANDLING CHUGINS & COMPLEX TIME-BASED EFFECTS
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            const winFuncDeclarationOsc1 = osc1WinEnvOn.current ? ' WinFuncEnv winfuncenv_o1 =>' : '';
+            const winFuncDeclarationOsc1 = defaultSources.osc1.effects.WinEnv.On ? defaultSources.osc1.effects.WinEnv.Declaration : ''; // TODO --> *** WinFunc and WinEnv the same???
 
-            const powerADSRDeclarationOsc1 = osc1PowerADSROn.current ? ' PowerADSR poweradsr_o1 =>' : '';
-            const expEnvDeclarationOsc1 = osc1ExpEnvOn.current ? ' ExpEnv expenv_o1 =>' : '';
-            const wpDiodeLadderDeclarationOsc1 = osc1WPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_o1 =>' : '';
-            const WPKorg35DeclarationOsc1 = osc1WPKorg35On.current ? 'saw2 => WPKorg35 wpkorg35_o1 => dac;' : '';
-            const modulateDeclarationOsc1 = osc1ModulateOn.current ? 'hpf => Modulate mod_o1 => dac;' : '';
-            const ellipticDeclarationOsc1 = osc1EllipticOn.current ? ' Elliptic elliptic_o1 =>' : '';
-            const delayDeclarationOsc1 = osc1DelayOn.current ? `Delay delay_o1[${delayFinalHelper.current.osc1.lines}];` : '';
-            const delayADeclarationOsc1 = osc1DelayAOn.current ? `DelayA delayA_o1[${delayAFinalHelper.current.osc1.lines}];` : '';
-            const delayLDeclarationOsc1 = osc1DelayLOn.current ? `DelayL delayL_o1[${delayLFinalHelper.current.osc1.lines}];` : '';
-            const expDelayDeclarationOsc1 = osc1ExpDelayOn.current ? ' ExpDelay expDelay_o1 =>' : '';
-            const spectacleDeclarationOsc1 = osc1SpectacleOn.current ? ' => Spectacle spectacle_o1 ' : '';
+            const powerADSRDeclarationOsc1 = defaultSources.osc1.effects.PowerADSR.On ? defaultSources.osc1.effects.PowerADSR.Declaration : '';
+            const expEnvDeclarationOsc1 = defaultSources.osc1.effects.ExpEnv.On ? defaultSources.osc1.effects.ExpEnv.Declaration : '';
+            const wpDiodeLadderDeclarationOsc1 = defaultSources.osc1.effects.WPDiodeLadder.On ? defaultSources.osc1.effects.WPDiodeLadder.Declaration : '';
+            const WPKorg35DeclarationOsc1 = defaultSources.osc1.effects.WPKorg35 ? defaultSources.osc1.effects.WPKorg35.Declaration : '';
+            const modulateDeclarationOsc1 = defaultSources.osc1.effects.Modulate.On ? defaultSources.osc1.effects.Modulate.Declaration : '';
+            const ellipticDeclarationOsc1 = defaultSources.osc1.effects.Elliptic.On ? defaultSources.osc1.effects.Elliptic.Declaration : '';
+            const delayDeclarationOsc1 = defaultSources.osc1.effects.Delay.On ? defaultSources.osc1.effects.Delay.Declaration(delayFinalHelper.current.osc1.lines) : '';
+            const delayADeclarationOsc1 = defaultSources.osc1.effects.DelayA.On ? defaultSources.osc1.effects.DelayA.Declaration(delayAFinalHelper.current.osc1.lines) : '';
+            const delayLDeclarationOsc1 = defaultSources.osc1.effects.DelayL.On ? defaultSources.osc1.effects.DelayL.Declaration(delayLFinalHelper.current.osc1.lines) : '';
+            const expDelayDeclarationOsc1 = defaultSources.osc1.effects.ExpDelay.On ? defaultSources.osc1.effects.ExpDelay.Declaration : '';
+            const spectacleDeclarationOsc1 = defaultSources.osc1.effects.Spectacle.On ? defaultSources.osc1.effects.Spectacle.Declaration : '';
 
-            const winFuncCodeStringOsc1 = osc1WinEnvOn.current ? winFuncString('o1', winFuncEnvFinalHelper.current.osc1.attackTime, winFuncEnvFinalHelper.current.osc1.releaseTime, winFuncEnvFinalHelper.current.osc1.envSetting) : '';
-            const powerADSRCodeStringOsc1 = osc1PowerADSROn.current ? powerADSRString('o1', powerADSRFinalHelper.current.osc1.attackTime, powerADSRFinalHelper.current.osc1.attackCurve, powerADSRFinalHelper.current.osc1.decayTime, powerADSRFinalHelper.current.osc1.decayCurve, powerADSRFinalHelper.current.osc1.sustainLevel, powerADSRFinalHelper.current.osc1.releaseTime, powerADSRFinalHelper.current.osc1.releaseCurve) : '';
-            const expEnvCodeStringOsc1 = osc1ExpEnvOn.current ? expEnvString('o1', expEnvFinalHelper.current.osc1.T60, expEnvFinalHelper.current.osc1.radius, expEnvFinalHelper.current.osc1.value) : '';
-            const wpDiodeLadderCodeStringOsc1 = osc1WPDiodeLadderOn.current ? wpDiodeLadderString('o1', wpDiodeLadderFinalHelper.current.osc1.cutoff, wpDiodeLadderFinalHelper.current.osc1.resonance, wpDiodeLadderFinalHelper.current.osc1.nlp_type, wpDiodeLadderFinalHelper.current.osc1.nonlinear, wpDiodeLadderFinalHelper.current.osc1.saturation) : '';
-            const wpKorg35CodeStringOsc1 = osc1WPKorg35On.current ? wpKorg35String('o1', wpKorg35FinalHelper.current.osc1.cutoff, wpKorg35FinalHelper.current.osc1.resonance, wpKorg35FinalHelper.current.osc1.nonlinear, wpKorg35FinalHelper.current.osc1.saturation) : '';
-            const modulateCodeStringOsc1 = osc1ModulateOn.current ? modulateString('o1', modulateFinalHelper.current.osc1.vibratoRate, modulateFinalHelper.current.osc1.vibratoGain, modulateFinalHelper.current.osc1.randomGain) : '';
-            const ellipticCodeStringOsc1 = osc1EllipticOn.current ? ellipticString('o1', ellipticFinalHelper.current.osc1.filterLow, ellipticFinalHelper.current.osc1.filterMid, ellipticFinalHelper.current.osc1.filterHigh, ellipticFinalHelper.current.osc1.atten, ellipticFinalHelper.current.osc1.ripple, ellipticFinalHelper.current.osc1.filterMode) : '';
-            const expDelayCodeStringOsc1 = osc1ExpDelayOn.current ? expDelayString('o1', expDelayFinalHelper.current.osc1.ampcurve, expDelayFinalHelper.current.osc1.durcurve, expDelayFinalHelper.current.osc1.delay, expDelayFinalHelper.current.osc1.mix, expDelayFinalHelper.current.osc1.reps, expDelayFinalHelper.current.osc1.gain) : '';
-            const spectacleCodeStringOsc1 = osc1SpectacleOn.current ? spectacleString('o1', spectacleFinalHelper.current.osc1.bands, spectacleFinalHelper.current.osc1.delay, spectacleFinalHelper.current.osc1.eq, spectacleFinalHelper.current.osc1.feedback, spectacleFinalHelper.current.osc1.fftlen, spectacleFinalHelper.current.osc1.freqMax, spectacleFinalHelper.current.osc1.freqMin, spectacleFinalHelper.current.osc1.mix, spectacleFinalHelper.current.osc1.overlap, spectacleFinalHelper.current.osc1.table) : '';
+            const winFuncCodeStringOsc1 = defaultSources.osc1.effects.WinFunc.On ? defaultSources.osc1.effects.WinFunc.Code(winFuncEnvFinalHelper.current) : ''; // TODO --> *** WinFunc and WinEnv the same???
+            const powerADSRCodeStringOsc1 = defaultSources.osc1.effects.PowerADSR.On ? defaultSources.osc1.effects.PowerADSR.Code(powerADSRFinalHelper.current) : '';
+            const expEnvCodeStringOsc1 = defaultSources.osc1.effects.ExpEnv.On ? defaultSources.osc1.effects.ExpEnv.Code(expEnvFinalHelper.current) : '';
+            const wpDiodeLadderCodeStringOsc1 = defaultSources.osc1.effects.WPDiodeLadder.On ? defaultSources.osc1.effects.WPDiodeLadder.Code(wpDiodeLadderFinalHelper.current) : '';
+            const wpKorg35CodeStringOsc1 = defaultSources.osc1.effects.WPKorg35.On ? defaultSources.osc1.effects.WPKorg35.Code(wpKorg35FinalHelper.current) : '';
+            const modulateCodeStringOsc1 = defaultSources.osc1.effects.Modulate.On? defaultSources.osc1.effects.Modulate.Code(modulateFinalHelper.current, currentNoteVals) : '';
+            const ellipticCodeStringOsc1 = defaultSources.osc1.effects.Elliptic.On ? defaultSources.osc1.effects.Elliptic.Code(ellipticFinalHelper.current, currentNoteVals) : '';
+            const expDelayCodeStringOsc1 = defaultSources.osc1.effects.ExpDelay.On ? defaultSources.osc1.effects.ExpDelay.Code(expDelayFinalHelper.current, currentNoteVals) : '';
+            const spectacleCodeStringOsc1 = defaultSources.osc1.effects.Spectacle.On ? defaultSources.osc1.effects.Spectacle.Code(spectacleFinalHelper.current) : '';
 
             // console.log('exp delay: ', expDelayCodeStringOsc1);
             // DELAY LINES
-            const delayCodeStringOsc1 = osc1DelayOn.current ? delayString('o1', delayFinalHelper.current.osc1.delay, delayFinalHelper.current.osc1.lines, delayFinalHelper.current.osc1.syncDelay, delayFinalHelper.current.osc1.zero, delayFinalHelper.current.osc1.b0, delayFinalHelper.current.osc1.b1) : '';
-            const delayACodeStringOsc1 = osc1DelayAOn.current ? delayAString('o1', delayAFinalHelper.current.osc1.delay, delayAFinalHelper.current.osc1.lines, delayAFinalHelper.current.osc1.syncDelay, delayAFinalHelper.current.osc1.zero, delayAFinalHelper.current.osc1.b0, delayAFinalHelper.current.osc1.b1) : '';
-            const delayLCodeStringOsc1 = osc1DelayLOn.current ? delayLString('o1', delayLFinalHelper.current.osc1.delay, delayLFinalHelper.current.osc1.lines, delayLFinalHelper.current.osc1.syncDelay, delayLFinalHelper.current.osc1.zero, delayLFinalHelper.current.osc1.b0, delayLFinalHelper.current.osc1.b1) : '';
+            const delayCodeStringOsc1 = defaultSources.osc1.effects.Delay.On ? defaultSources.osc1.effects.Delay.Code(delayFinalHelper.current, currentNoteVals) : '';
+            const delayACodeStringOsc1 = defaultSources.osc1.effects.DelayA.On ? defaultSources.osc1.effects.DelayA.Code(delayAFinalHelper.current, currentNoteVals) : '';
+            const delayLCodeStringOsc1 = defaultSources.osc1.effects.DelayL.On ? defaultSources.osc1.effects.DelayL.Code(delayLFinalHelper.current, currentNoteVals, numeratorSignature) : '';
             
+            // PICK UP HERE!!!
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            const winFuncDeclarationSampler = samplerWinEnvOn.current ? ' WinFuncEnv winfuncenv_s1 =>' : '';
-            const powerADSRDeclarationSampler = samplerPowerADSROn.current ? ' PowerADSR poweradsr_s1 =>' : '';
-            const expEnvDeclarationSampler = samplerExpEnvOn.current ? ' ExpEnv expenv_s1 =>' : '';
-            const wpDiodeLadderDeclarationSampler = samplerWPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_s1 =>' : '';
-            const WPKorg35DeclarationSampler = samplerWPKorg35On.current ? 'limiter_Sampler => WPKorg35 wpkorg35_s1 => dac;' : '';
-            const modulateDeclarationSampler = samplerModulateOn.current ? ' Modulate mod_s1 =>' : '';
-            const ellipticDeclarationSampler = samplerEllipticOn.current ? ' Elliptic elliptic_s1 =>' : '';
-            const delayDeclarationSampler = samplerDelayOn.current ? `Delay delay_s1[${delayFinalHelper.current.sampler.lines}];` : '';
-            const delayADeclarationSampler = samplerDelayAOn.current ? `DelayA delayA_s1[${delayAFinalHelper.current.sampler.lines}];` : '';
-            const delayLDeclarationSampler = samplerDelayLOn.current ? `DelayL delayL_s1[${delayLFinalHelper.current.sampler.lines}];` : '';
-            const expDelayDeclarationSampler = samplerExpDelayOn.current ? ' ExpDelay expDelay_s1 =>' : '';
-            const spectacleDeclarationSampler = samplerSpectacleOn.current ? 'Spectacle spectacle_s1 =>' : '';
+            const winFuncDeclarationSampler = defaultSources.sampler.effects.WinFunc.On ?  defaultSources.sampler.effects.WinEnv.Declaration : '';
+            const powerADSRDeclarationSampler = defaultSources.sampler.effects.PowerADSR.On ? defaultSources.sampler.effects.PowerADSR.Declaration : '';
+            const expEnvDeclarationSampler = defaultSources.sampler.effects.ExpEnv.On ? defaultSources.sampler.effects.ExpEnv.Declaration : '';
+            const wpDiodeLadderDeclarationSampler = defaultSources.sampler.effects.WPDiodeLadder.On ? defaultSources.sampler.effects.WPDiodeLadder.Declaration : '';
+            const WPKorg35DeclarationSampler = defaultSources.sampler.effects.WPKorg35.On ? defaultSources.sampler.effects.WPKorg35.Declaration : '';
+            const modulateDeclarationSampler = defaultSources.sampler.effects.Modulate.On ? defaultSources.sampler.effects.Modulate.Declaration : '';
+            const ellipticDeclarationSampler = defaultSources.sampler.effects.Elliptic.On ? defaultSources.sampler.effects.Elliptic.Declaration : '';
+            const delayDeclarationSampler = defaultSources.sampler.effects.Delay.On ? defaultSources.sampler.effects.Delay.Declaration(delayFinalHelper.current) : '';
+            const delayADeclarationSampler = defaultSources.sampler.effects.DelayA.On? defaultSources.sampler.effects.DelayA.Declaration(delayAFinalHelper.current) : '';
+            const delayLDeclarationSampler = defaultSources.sampler.effects.DelayL.On ? defaultSources.sampler.effects.DelayL.Declaration(delayLFinalHelper.current) : '';
+            const expDelayDeclarationSampler = defaultSources.sampler.effects.ExpDelay.On ? defaultSources.sampler.effects.ExpDelay.Declaration : '';
+            const spectacleDeclarationSampler = defaultSources.sampler.effects.Spectacle.On ? defaultSources.sampler.effects.Spectacle.Declaration : '';
 
-            const winFuncCodeStringSampler = samplerWinEnvOn.current ? winFuncString('s1', winFuncEnvFinalHelper.current.sampler.attackTime, winFuncEnvFinalHelper.current.sampler.releaseTime, winFuncEnvFinalHelper.current.sampler.envSetting) : '';
-            const powerADSRCodeStringSampler = samplerPowerADSROn.current ? powerADSRString('s1', powerADSRFinalHelper.current.sampler.attackTime, powerADSRFinalHelper.current.sampler.attackCurve, powerADSRFinalHelper.current.sampler.decayTime, powerADSRFinalHelper.current.sampler.decayCurve, powerADSRFinalHelper.current.sampler.sustainLevel, powerADSRFinalHelper.current.sampler.releaseTime, powerADSRFinalHelper.current.sampler.releaseCurve) : '';
-            const expEnvCodeStringSampler = samplerExpEnvOn.current ? expEnvString('s1', expEnvFinalHelper.current.sampler.T60, expEnvFinalHelper.current.sampler.radius, expEnvFinalHelper.current.sampler.value) : '';
-            const wpDiodeLadderCodeStringSampler = samplerWPDiodeLadderOn.current ? wpDiodeLadderString('s1', wpDiodeLadderFinalHelper.current.sampler.cutoff, wpDiodeLadderFinalHelper.current.sampler.resonance, wpDiodeLadderFinalHelper.current.sampler.nlp_type, wpDiodeLadderFinalHelper.current.sampler.nonlinear, wpDiodeLadderFinalHelper.current.sampler.saturation) : '';
-            const wpKorg35CodeStringSampler = samplerWPKorg35On.current ? wpKorg35String('s1', wpKorg35FinalHelper.current.sampler.cutoff, wpKorg35FinalHelper.current.sampler.resonance, wpKorg35FinalHelper.current.sampler.nonlinear, wpKorg35FinalHelper.current.sampler.saturation) : '';
-            const modulateCodeStringSampler = samplerModulateOn.current ? modulateString('s1', modulateFinalHelper.current.sampler.vibratoRate, modulateFinalHelper.current.sampler.vibratoGain, modulateFinalHelper.current.sampler.randomGain) : '';
-            const ellipticCodeStringSampler = samplerEllipticOn.current ? ellipticString('s1', ellipticFinalHelper.current.sampler.filterLow, ellipticFinalHelper.current.sampler.filterMid, ellipticFinalHelper.current.sampler.filterHigh, ellipticFinalHelper.current.sampler.atten, ellipticFinalHelper.current.sampler.ripple, ellipticFinalHelper.current.sampler.filterMode) : '';
-            const expDelayCodeStringSampler = samplerExpDelayOn.current ? expDelayString('s1', expDelayFinalHelper.current.sampler.ampcurve, expDelayFinalHelper.current.sampler.durcurve, expDelayFinalHelper.current.sampler.delay, expDelayFinalHelper.current.sampler.mix, expDelayFinalHelper.current.sampler.reps, expDelayFinalHelper.current.sampler.gain) : '';
-            const spectacleCodeStringSampler = samplerSpectacleOn.current ? spectacleString('s1', spectacleFinalHelper.current.sampler.bands, spectacleFinalHelper.current.sampler.delay, spectacleFinalHelper.current.sampler.eq, spectacleFinalHelper.current.sampler.feedback, spectacleFinalHelper.current.sampler.fftlen, spectacleFinalHelper.current.sampler.freqMax, spectacleFinalHelper.current.sampler.freqMin, spectacleFinalHelper.current.sampler.mix, spectacleFinalHelper.current.sampler.overlap, spectacleFinalHelper.current.sampler.table) : '';
+            const winFuncCodeStringSampler = defaultSources.sampler.effects.WinEnv.On ? defaultSources.sampler.effects.WinEnv.Code(winFuncEnvFinalHelper.current) : '';
+            const powerADSRCodeStringSampler = defaultSources.sampler.effects.PowerADSR.On ? defaultSources.sampler.effects.PowerADSR.Code(powerADSRFinalHelper.current) : '';
+            const expEnvCodeStringSampler = defaultSources.sampler.effects.ExpEnv.On  ? defaultSources.sampler.effects.ExpEnv.Code(expEnvFinalHelper.current) : '';
+            const wpDiodeLadderCodeStringSampler = defaultSources.sampler.effects.WPDiodeLadder.On ? defaultSources.sampler.effects.WPDiodeLadder.Code(wpDiodeLadderFinalHelper.current) : '';
+            const wpKorg35CodeStringSampler = defaultSources.sampler.effects.WPKorg35.On ? defaultSources.sampler.effects.WPKorg35.Code(wpKorg35FinalHelper.current): '';
+            const modulateCodeStringSampler = defaultSources.sampler.effects.Modulate.On ? defaultSources.sampler.effects.Modulate.Code(modulateFinalHelper.current) : '';
+            const ellipticCodeStringSampler = defaultSources.sampler.effects.Elliptic.On ? defaultSources.sampler.effects.Elliptic.Code(ellipticFinalHelper.current) : '';
+            const expDelayCodeStringSampler = defaultSources.sampler.effects.ExpDelay.On ? defaultSources.sampler.effects.ExpDelay.Code(expDelayFinalHelper.current) : '';
+            const spectacleCodeStringSampler = defaultSources.sampler.effects.Spectacle.On ? defaultSources.sampler.effects.Spectacle.Code(spectacleFinalHelper.current) : '';
 
             // DELAY LINES
-            const delayCodeStringSampler = samplerDelayOn.current ? delayString('s1', delayFinalHelper.current.sampler.delay, delayFinalHelper.current.sampler.lines, delayFinalHelper.current.sampler.syncDelay, delayFinalHelper.current.sampler.zero, delayFinalHelper.current.sampler.b0, delayFinalHelper.current.sampler.b1) : '';
-            const delayACodeStringSampler = samplerDelayAOn.current ? delayAString('s1', delayAFinalHelper.current.sampler.delay, delayAFinalHelper.current.sampler.lines, delayAFinalHelper.current.sampler.syncDelay, delayAFinalHelper.current.sampler.zero, delayAFinalHelper.current.sampler.b0, delayAFinalHelper.current.sampler.b1) : '';
-            const delayLCodeStringSampler = samplerDelayLOn.current ? delayLString('s1', delayLFinalHelper.current.sampler.delay, delayLFinalHelper.current.sampler.lines, delayLFinalHelper.current.sampler.syncDelay, delayLFinalHelper.current.sampler.zero, delayLFinalHelper.current.sampler.b0, delayLFinalHelper.current.sampler.b1) : '';
+            const delayCodeStringSampler = defaultSources.sampler.effects.Delay.On ? defaultSources.sampler.effects.Delay.Code(delayFinalHelper.current) : '';
+            const delayACodeStringSampler = defaultSources.sampler.effects.DelayA.On ? defaultSources.sampler.effects.DelayA.Code(delayAFinalHelper.current) : '';
+            const delayLCodeStringSampler = defaultSources.sampler.effects.DelayL.On ? defaultSources.sampler.effects.DelayL.Code(delayLFinalHelper.current) : '';
 
 
             // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            
+            // const newStkFXString = useRef<string>('');
+            let winFuncDeclarationStk: string[] = []; 
+            let powerADSRDeclarationStk: string[] = [];  
+            let expEnvDeclarationStk: string[] = [];  
+            let wpDiodeLadderDeclarationStk: string[] = [];  
+            let WPKorg35DeclarationStk: string[] = [];  
+            let modulateDeclarationStk: string[] = [];  
+            let ellipticDeclarationStk: string[] = []; 
+            let delayDeclarationStk: string[] = [];  
+            let delayADeclarationStk: string[] = []; 
+            let delayLDeclarationStk: string[] = []; 
+            let expDelayDeclarationStk: string[] = []; 
+            let spectacleDeclarationStk: string[] = []; 
+
+        
+            let winFuncCodeStringStk: string[] = []; 
+            let powerADSRCodeStringStk: string[] = []; 
+            let expEnvCodeStringStk: string[] = []; 
+            let wpDiodeLadderCodeStringStk: string[] = []; 
+            let wpKorg35CodeStringStk: string[] = []; 
+            let modulateCodeStringStk: string[] = []; 
+            let ellipticCodeStringStk: string[] = []; 
+            let expDelayCodeStringStk: string[] = []; 
+            let spectacleCodeStringStk: string[] = []; 
+
+            // DELAY LINES
+            let delayCodeStringStk: string[] = []; 
+            let delayACodeStringStk: string[] = []; 
+            let delayLCodeStringStk: string[] = []; 
+
+
+
 
 
             // const newStkFXString = useRef<string>('');
-            const winFuncDeclarationStk = stkWinEnvOn.current ? ' WinFuncEnv winfuncenv_stk1 =>' : '';
-            const powerADSRDeclarationStk = stkPowerADSROn.current ? ' PowerADSR poweradsr_stk1 =>' : '';
-            const expEnvDeclarationStk = stkExpEnvOn.current ? ' ExpEnv expenv_stk1 =>' : '';
-            const wpDiodeLadderDeclarationStk = stkWPDiodeLadderOn.current ? ' WPDiodeLadder wpdiodeladder_stk1 =>' : '';
-            const WPKorg35DeclarationStk = stkWPKorg35On.current ? 'limiter_STK => WPKorg35 wpkorg35_stk1 => dac;' : '';
-            const modulateDeclarationStk = stkModulateOn.current ? ' Modulate mod_stk1 =>' : '';
-            const ellipticDeclarationStk = stkEllipticOn.current ? ' Elliptic elliptic_stk1 =>' : '';
-            const delayDeclarationStk = stkDelayOn.current ? `Delay delay_stk1[${delayFinalHelper.current.stk.lines}];` : '';
-            const delayADeclarationStk = stkDelayAOn.current ? `DelayA delayA_stk1[${delayAFinalHelper.current.stk.lines}];` : '';
-            const delayLDeclarationStk = stkDelayLOn.current ? `DelayL delayL_stk1[${delayLFinalHelper.current.stk.lines}];` : '';
-            const expDelayDeclarationStk = stkExpDelayOn.current ? ' ExpDelay expDelay_stk1 =>' : '';
-            const spectacleDeclarationStk = stkSpectacleOn.current ? 'Spectacle spectacle_stk1 =>' : '';
+
+
+
+            winFuncDeclarationStk.push(defaultSources.stk1.effects.WinFunc.On ? defaultSources.stk1.effects.WinFunc.Declaration : ''); // TODO --> *** WinFunc and WinEnv the same???
+            powerADSRDeclarationStk.push(defaultSources.stk1.effects.PowerADSR.On ? defaultSources.stk1.effects.PowerADSR.Declaration : '');
+            expEnvDeclarationStk.push(defaultSources.stk1.effects.ExpEnv.On ? defaultSources.stk1.effects.ExpEnv.Declaration : '');
+            wpDiodeLadderDeclarationStk.push(defaultSources.stk1.effects.WPDiodeLadder.On ? defaultSources.stk1.effects.WPDiodeLadder.Declaration : '');
+            WPKorg35DeclarationStk.push(defaultSources.stk1.effects.WPKorg35.On ? defaultSources.stk1.effects.WPKorg35.Declaration : '');
+            modulateDeclarationStk.push(defaultSources.stk1.effects.Modulate.On ? defaultSources.stk1.effects.Modulate.Declaration : '');
+            ellipticDeclarationStk.push(defaultSources.stk1.effects.Elliptic.On ? defaultSources.stk1.effects.Elliptic.Declaration : '');
+            delayDeclarationStk.push(defaultSources.stk1.effects.Delay.On ? defaultSources.stk1.effects.Delay.Declaration(delayFinalHelper.current) : '');
+            delayADeclarationStk.push(defaultSources.stk1.effects.DelayA.On ? defaultSources.stk1.effects.DelayA.Declaration(delayAFinalHelper.current): '');
+            delayLDeclarationStk.push(defaultSources.stk1.effects.DelayL.On ? defaultSources.stk1.effects.DelayL.Declaration(delayLFinalHelper.current) : '');
+            expDelayDeclarationStk.push(defaultSources.stk1.effects.ExpDelay.On ? defaultSources.stk1.effects.ExpDelay.Declaration : '');
+            spectacleDeclarationStk.push(defaultSources.stk1.effects.Spectacle.On ? defaultSources.stk1.effects.Spectacle.Declaration : '');
 
         
-            const winFuncCodeStringStk = stkWinEnvOn.current ? winFuncString('stk1', winFuncEnvFinalHelper.current.stk.attackTime, winFuncEnvFinalHelper.current.stk.releaseTime, winFuncEnvFinalHelper.current.stk.envSetting) : '';
-            const powerADSRCodeStringStk = stkPowerADSROn.current ? powerADSRString('stk1', powerADSRFinalHelper.current.stk.attackTime, powerADSRFinalHelper.current.stk.attackCurve, powerADSRFinalHelper.current.stk.decayTime, powerADSRFinalHelper.current.stk.decayCurve, powerADSRFinalHelper.current.stk.sustainLevel, powerADSRFinalHelper.current.stk.releaseTime, powerADSRFinalHelper.current.stk.releaseCurve) : '';
-            const expEnvCodeStringStk = stkExpEnvOn.current ? expEnvString('stk1', expEnvFinalHelper.current.stk.T60, expEnvFinalHelper.current.stk.radius, expEnvFinalHelper.current.stk.value) : '';
-            const wpDiodeLadderCodeStringStk = stkWPDiodeLadderOn.current ? wpDiodeLadderString('stk1', wpDiodeLadderFinalHelper.current.stk.cutoff, wpDiodeLadderFinalHelper.current.stk.resonance, wpDiodeLadderFinalHelper.current.stk.nlp_type, wpDiodeLadderFinalHelper.current.stk.nonlinear, wpDiodeLadderFinalHelper.current.stk.saturation) : '';
-            const wpKorg35CodeStringStk = stkWPKorg35On.current ? wpKorg35String('stk1', wpKorg35FinalHelper.current.stk.cutoff, wpKorg35FinalHelper.current.stk.resonance, wpKorg35FinalHelper.current.stk.nonlinear, wpKorg35FinalHelper.current.stk.saturation) : '';
-            const modulateCodeStringStk = stkModulateOn.current ? modulateString('stk1', modulateFinalHelper.current.stk.vibratoRate, modulateFinalHelper.current.stk.vibratoGain, modulateFinalHelper.current.stk.randomGain) : '';
-            const ellipticCodeStringStk = stkEllipticOn.current ? ellipticString('stk1', ellipticFinalHelper.current.stk.filterLow, ellipticFinalHelper.current.stk.filterMid, ellipticFinalHelper.current.stk.filterHigh, ellipticFinalHelper.current.stk.atten, ellipticFinalHelper.current.stk.ripple, ellipticFinalHelper.current.stk.filterMode) : '';
-            const expDelayCodeStringStk = stkExpDelayOn.current ? expDelayString('stk1', expDelayFinalHelper.current.stk.ampcurve, expDelayFinalHelper.current.stk.durcurve, expDelayFinalHelper.current.stk.delay, expDelayFinalHelper.current.stk.mix, expDelayFinalHelper.current.stk.reps, expDelayFinalHelper.current.stk.gain) : '';
-            const spectacleCodeStringStk = stkSpectacleOn.current ? spectacleString('stk1', spectacleFinalHelper.current.stk.bands, spectacleFinalHelper.current.stk.delay, spectacleFinalHelper.current.stk.eq, spectacleFinalHelper.current.stk.feedback, spectacleFinalHelper.current.stk.fftlen, spectacleFinalHelper.current.stk.freqMax, spectacleFinalHelper.current.stk.freqMin, spectacleFinalHelper.current.stk.mix, spectacleFinalHelper.current.stk.overlap, spectacleFinalHelper.current.stk.table) : '';
+            winFuncCodeStringStk.push(defaultSources.stk1.effects.WinFunc.On ? defaultSources.stk1.effects.WinEnv.Code(winFuncEnvFinalHelper.current) : ''); // TODO --> *** WinFunc and WinEnv the same???
+            powerADSRCodeStringStk.push(defaultSources.stk1.effects.PowerADSR.On ? defaultSources.stk1.effects.PowerADSR.Code(powerADSRFinalHelper.current) : '');
+            expEnvCodeStringStk.push(defaultSources.stk1.effects.ExpEnv.On ? defaultSources.stk1.effects.ExpEnv.Code(expEnvFinalHelper.current) : '');
+            wpDiodeLadderCodeStringStk.push(defaultSources.stk1.effects.WPDiodeLadder.On ? defaultSources.stk1.effects.WPDiodeLadder.Code(wpDiodeLadderFinalHelper.current) : '');
+            wpKorg35CodeStringStk.push(defaultSources.stk1.effects.WPKorg35.On ? defaultSources.stk1.effects.WPKorg35.Code(wpKorg35FinalHelper.current) : '');
+            modulateCodeStringStk.push(defaultSources.stk1.effects.Modulate.On ? defaultSources.stk1.effects.Modulate.Code(modulateFinalHelper.current) : '');
+            ellipticCodeStringStk.push(defaultSources.stk1.effects.Elliptic.On ? defaultSources.stk1.effects.Elliptic.Code(ellipticFinalHelper.current) : '');
+            expDelayCodeStringStk.push(defaultSources.stk1.effects.Delay.On ? defaultSources.stk1.effects.Delay.Code(expDelayFinalHelper.current) : '');
+            spectacleCodeStringStk.push(defaultSources.stk1.effects.Spectacle.On ? defaultSources.stk1.effects.Spectacle.Code(spectacleFinalHelper.current) : '');
 
             // DELAY LINES
-            const delayCodeStringStk = stkDelayOn.current ? delayString('stk1', delayFinalHelper.current.stk.delay, delayFinalHelper.current.stk.lines, delayFinalHelper.current.stk.syncDelay, delayFinalHelper.current.stk.zero, delayFinalHelper.current.stk.b0, delayFinalHelper.current.stk.b1) : '';
-            const delayACodeStringStk = stkDelayAOn.current ? delayAString('stk1', delayAFinalHelper.current.stk.delay, delayAFinalHelper.current.stk.lines, delayAFinalHelper.current.stk.syncDelay, delayAFinalHelper.current.stk.zero, delayAFinalHelper.current.stk.b0, delayAFinalHelper.current.stk.b1) : '';
-            const delayLCodeStringStk = stkDelayLOn.current ? delayLString('stk1', delayLFinalHelper.current.stk.delay, delayLFinalHelper.current.stk.lines, delayLFinalHelper.current.stk.syncDelay, delayLFinalHelper.current.stk.zero, delayLFinalHelper.current.stk.b0, delayLFinalHelper.current.stk.b1) : '';
-                    
+            delayCodeStringStk.push(defaultSources.stk1.effects.Delay.On ? defaultSources.stk1.effects.Delay.Code(delayFinalHelper.current) : '');
+            delayACodeStringStk.push(defaultSources.stk1.effects.DelayA.On ? defaultSources.stk1.effects.DelayA.Code(delayAFinalHelper.current) : '');
+            delayLCodeStringStk.push(defaultSources.stk1.effects.DelayL.On ? defaultSources.stk1.effects.DelayL.Code(delayLFinalHelper.current) : '');
+
+
 
             let chuckCode = "";
 
             ////////////////////////////
             console.log("what are STKS? ", stkFX.current);
+            console.log("TUST ", defaultSources.stk1.instruments)
+            const osc1f = defaultSources.osc1.effects; 
+            const osc2f = defaultSources.osc2.effects;
+            const stkf = defaultSources.stk1.effects;
+            const sampf = defaultSources.sampler.effects;
+            console.log("TEST #1 FULL OBJ FILTER WHAT ARE STK ", [
+                osc1f, osc2f, stkf, sampf
+            ]);
+
             ////////////////////////////
 
 
@@ -4715,6 +4335,7 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
         // ****************************************************************
 
 
+
         aChuck.chuckPrint = (message) => {
             if (message.includes("NUM_COUNT_SAMPLER") || message.includes("NUM_COUNT_SYNTH") && !message.includes("NumShreds")) {
                 console.log('WHAT IS MSG? ', message);
@@ -4747,10 +4368,7 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
             setChuckUpdateNeeded(false);
         }
 
-        const buffersToChuck: any = {};
-
         const uploadedFilesArrsGenericCode: any = {};
-
 
         uploadedFilesArrsGenericCode && Object.keys(uploadedFilesArrsGenericCode).length > 0 && Object.keys(uploadedFilesArrsGenericCode).forEach((buf: any, idx: number) => {
             if (idx !== Object.keys(uploadedFilesArrsGenericCode).length - 1) {
@@ -4771,11 +4389,6 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
 
         if (osc1FXString.current && osc1FXString.current.length < 1) return;
 
-        // const getStk1String: any = stkFX.current && stkFX.current.length > 0 && await stkFXToStringPrepare();
-
-        // const getStk1String: any = await stkFXToStringPrepare();
-
-        // ` : '';
         console.log("GOT HERE!");
 
         setOsc1Code(OSC_1_Code);
@@ -4801,7 +4414,6 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
         } else {
             chuckRunning.current = false;
         }
-    // }, [chuckUpdateNeeded]);
     }, []);
 
 
@@ -4832,6 +4444,7 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
     
 
     // This mic button should be able to save a file and pass it into ChucK as file and/or stream
+    // WE CAN PROBABLY MOVE THIS TO A HELPER FILE, YES?
     const chuckMicButton = function () {
         console.log('ChucK Mic Button Clicked');
         if (typeof window === 'undefined') return;
@@ -4915,6 +4528,9 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
             // console.log('in useeffect getting canvas');
             babylonGame.current.canvas = document.querySelector(`babylonCanvas`);
         }
+        if (babylonGame.current && !babylonGame.current.canvas2) {
+            babylonGame.current.canvas2 = document.querySelector('babylonCanvas2');
+        }
         if (babylonGame.current && !babylonGame.current.engine) {
             babylonGame.current.engine = new BABYLON.Engine(
                 babylonGame.current.canvas,
@@ -4922,12 +4538,21 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                 { preserveDrawingBuffer: true, stencil: true }, //engineOptions
                 false // adaptToDeviceRatio
             );
-
             babylonGame.current.knob = {};
             babylonGame.current.header = {};
         };
+        if (babylonGame.current && !babylonGame.current.engine2) {
+            babylonGame.current.engine2 = new BABYLON.Engine(
+                babylonGame.current.canvas2,
+                true, // antialias
+                { preserveDrawingBuffer: true, stencil: true }, //engineOptions
+                false // adaptToDeviceRatio
+            )
+        }
+
         const resize = () => {
             babylonGame.current?.scene?.getEngine().resize();
+            babylonGame.current?.scene?.getEngine().resize
         };
 
         if (windowListenerRef.current) {
@@ -5053,6 +4678,10 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
     const centroidMax = useRef<number>(0);
     const centroidMin = useRef<number>(0);
 
+
+
+
+    // THIS SHOULD BE IN ITS OWN HELPER FILE
     useEffect(() => {
 
 
@@ -5266,9 +4895,9 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
         setShowBPM(!showBPM);
     };
 
-    const handleShowSTK = (e: any) => {
-        setShowSTKManager(!showSTKManager);
-    }
+    // const handleShowSTK = (e: any) => {
+    //     setShowSTKManager(!showSTKManager);
+    // }
 
     const closeAnalysisPopup = () => {
         setIsAnalysisPopupOpen(!isAnalysisPopupOpen);
@@ -5280,6 +4909,10 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
         setKeysVisible(!msg);
     }
 
+    // const handleUpdateMicrotones = (msg: any) => {
+    //     console.log(msg);
+    // };
+    
     const handleFormat = (
         event: React.MouseEvent<HTMLElement>,
         newFormats: string[],
@@ -5397,7 +5030,7 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
             {/* COUNT WRAPPER */}
                 <Box sx={{
                     display: "flex", 
-                    left: '140px', 
+                    left: '0px', 
                     top: '0px',
                     position: 'relative', 
                     flexDirection: "column"
@@ -5414,17 +5047,15 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                             <Box 
                                 className="countWrapper"
                                 sx={{
-                                    backgroundColor: '0,0,0,0.4 !important',
-                                    background: '0,0,0,0.4 !important',
+                                    backgroundColor: theme.palette.black,
+                                    background: theme.palette.primaryB,
                                     position: "relative", 
                                     pointerEvents: "none",
                                     display: "flex", 
                                     flexDirection: "row", 
                                     textAlign: "center", 
                                     justifyContent: "center",
-                                    // background: "transparent",
                                     width: "200px",
-                                    // left: "325px",
                                     top: "8px",
                                 }}>
                                 <Typography sx={{marginLeft: "12px", marginRight: "12px", fontSize: "24px !important"}}>
@@ -5448,13 +5079,8 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                     selectRef={selectRef} 
                     tune={tune} 
                     currentMicroTonalScale={currentMicroTonalScale}
-                    submitMingus={submitMingus}
-                    audioKey={audioKey}
-                    octave={octave}
-                    audioScale={audioScale}
-                    audioChord={audioChord}
-                    handleChangeChord={handleChangeChord}
-                    handleChangeScale={handleChangeScale}
+                    // handleChangeChord={handleChangeChord}
+                    // handleChangeScale={handleChangeScale}
                     programIsOn={programIsOn}
                     updateHasHexKeys={updateHasHexkeys}
                     handleFormat={handleFormat}
@@ -5462,47 +5088,48 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                     chuckHook={chuckHook}
                     runChuck={runChuck}
                     stopChuckInstance={stopChuckInstance}  
+
+
+                    
+                    stkFX={stkFX.current}
+                    fxCount={checkedFXList.current.length}
+                    handleReturnToSynth={handleReturnToSynth} 
+                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+                    handleToggleArpeggiator={handleToggleArpeggiator}
+                    checkedFXList={checkedFXList.current}
+                    keysVisible={keysVisible}
+                    isAnalysisPopupOpen={isAnalysisPopupOpen}
+                    hideCircularArpBtnsHook={hideCircularArpBtnsHook}
+                    hasHexKeys={hasHexKeys}
                 />
             </Box>
+
+
+
 
             <Box 
                 sx={{ 
                     bottom: '0px',
                     top: '54px',
                     // height: 'calc(100% - 304px)',
-                    left: "146px",
+                    left: "140px",
                     width: "100%",
                     position: 'absolute',
                     pointerEvents: 'none',
                     zIndex: '99',
+                    display: 'none',
                     height: 'calc(100% - 16rem)'
                 }}
                 className="popupAnalysisBox"
             >
-          {/* <Button sx={{
-            zIndex: 9999,
-            alignItems: "left",
-            justifyContent: "left",
-            background: "blue",
-            pointerEvents: "all",
-            cursor: "pointer",
-        }} onClick={handleFileAnalysisMode}>Files</Button> */}
+
             {isAnalysisPopupOpen &&
                 <LineChartWrapper
                     analysisObject={analysisObject}
                     timeNow={timeNow}
                     closeAnalysisPopup={closeAnalysisPopup}
-                    handleChangeAnalysisSource={handleChangeAnalysisSource}
                     analysisSourceRadioValue={analysisSourceRadioValue.toLowerCase()}
-                    secLenBeat={60.0/bpm}
-                    beatCount={currentBeatCountToDisplay}
-                    numerCount={currentNumerCountColToDisplay}
-                    denomCount={currentDenomCount}
-                    patternCount={currentPatternCount}
                     filesToProcess={filesToProcess.current}
-                    bufferStepLength={((60.0/bpm) * 2000)/currentNoteVals.master[0]}
-                    graphNeedsUpdate={graphNeedsUpdate}
-                    setGraphNeedsUpdate={setGraphNeedsUpdate}
                     handleLegendClicked={handleLegendClicked}
                     inFileAnalysisMode={inFileAnalysisMode}
                     handleFileAnalysisMode={handleFileAnalysisMode}
@@ -5514,71 +5141,21 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
             </Box>
 
             {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
-                <Box sx={{width: "100%", height: "100vh", textAlign: "center"}}>
+                <Box sx={{width: "100%", height: "calc(100vh - 14rem)", textAlign: "center"}}>
 
                 {!chuckHook && (
-                    // <Box
-                    //     className={styles.card}
-                    //     sx={{
-                    //         top: '48px', 
-                           
-                    //         height: "100%",
-                    //         textAlign: "center",
-                    //     }}
-                    // >
-                    //     <Box sx={{
-                    //         paddingTop: '20%',
-                    //         fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif',
-                    //         fontSize: '2em !important',
-                            
-                    //     }}>
-                    //         {/* <h1 style={{
-                    //             fontSize: '2em !important', 
-                    //             fontWeight: 100}}>Sound Sink</h1> */}
-                    //     </Box>
-       
-                    //     <Button                                    
-                    //         sx={{ 
-                    //             minWidth: '160px',
-                    //             minHeight: '90px', 
-                    //             top: "0%",
-                    //             width: programIsOn ? "104px" : "25vw",
-                    //             height: programIsOn ? "90px" : "90px",
-                    //             paddingLeft: '24px',
-                    //             // maxHeight: '40px',
-                    //             fontSize: programIsOn ? "16px" : "32px",
-                    //             color: 'rgba(0,0,0,.98)',
-                    //             backgroundColor: 'rgba(158, 210, 162, 1)', 
-                    //             border: '0.5px solid #b2b2b2',
-                    //             '&:hover': {
-                    //                 color: '#f5f5f5 !important',
-                    //                 border: '1px solid #1976d2',
-                    //                 background: 'rgba(0,0,0,.98)',
-                    //             }
-                    //         }} 
-                    //         variant="contained" 
-                    //         id="initChuckButton" 
-                    //         onClick={initChuck} 
-                    //         endIcon={<PlayArrowIcon
-                    //         style={{height: '100%', pointerEvents: "none"}} />}
-                    //         >
-                    //             Begin
-                    //     </Button>
-                    // </Box>
                     <BeginScreen 
                         programIsOn={programIsOn} 
                         initChuck={initChuck}
                     />
-                    )}    
+                )}    
 
                 <Box 
                     key={babylonKey} 
                     sx={{ 
                         left: '0', 
                         display: 'flex', 
-                        flexDirection: 'row',
-                        // maxWidth: window.innerWidth, 
-                        // maxHeight: window.innerHeight,  
+                        flexDirection: 'row', 
                     }}
                 >
         
@@ -5586,7 +5163,7 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                     <Box sx={{
                         boxSizing: 'border-box', 
                         width: window.innerWidth, 
-                        height: '100vh', 
+                        // height: 'calc(100vh - 16rem)', 
                         display: !showFX ? "" : "hidden"}}
                     >
                         <BabylonLayer
@@ -5610,14 +5187,17 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                             updateHasHexKeys={updateHasHexkeys}
                         />
                     </Box>
+
                     {/* LEFT CONTAINER */}
                     {programIsOn && (
+                    <>
                     <Box sx={{
                             position: "absolute", 
                             // borderRight: "1px solid rgba(255, 255, 255, 0.4)",
                             boxShadow: "0.5px 0px 0px grey",
                             height: "100%",
-                            background: 'rgba(30,34,26,0.96)',
+                            background: theme.palette.black,
+                            width: '140px',
                             top: "50px",
                         }}
                     >
@@ -5639,36 +5219,18 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                                     }}
                                 >
                                     <ControlPopup
-                                    
-                                        bpm={bpm}
-                                        handleChangeBPM={handleChangeBPM}
                                         handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                                        beatsNumerator={beatsNumerator}
-                                        beatsDenominator={beatsDenominator}
-                                        handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                                        submitMingus={submitMingus}
-                                        audioKey={audioKey}
-                                        octave={octave}
-                                        audioScale={audioScale}
-                                        audioChord={audioChord}
-                                        handleChangeChord={handleChangeChord}
-                                        handleChangeScale={handleChangeScale}
-                                        handleShowFX={handleShowFX}
                                         showFX={showFX}
-                                        showBPM={showBPM}
-                                        handleShowBPM={handleShowBPM}
-                                        // uploadedFilesCodeString={uploadedFilesCodeString.current} 
-                                        // uploadedFilesToChuckString={uploadedFilesToChuckString.current} 
                                         filesToProcess={filesToProcess.current}
                                         programIsOn={programIsOn}
                                         handleOscRateUpdate={handleOscRateUpdate} 
                                         handleStkRateUpdate={handleStkRateUpdate} 
                                         handleSamplerRateUpdate={handleSamplerRateUpdate} 
                                         handleAudioInRateUpdate={handleAudioInRateUpdate}
-                                        currentBeatCount={currentBeatCount}
+
                                         currentBeatSynthCount={currentBeatSynthCount}
                                         currentNumerCount={currentNumerCount}
-                                        currentDenomCount={currentDenomCount}
+
                                         currentNoteVals={currentNoteVals}
                                         sortFileItemDown={sortFileItemDown}
                                         sortFileItemUp={sortFileItemUp}
@@ -5707,16 +5269,13 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                                         display: programIsOn ? "flex" : "none",
                                         flexDirection: "row",
                                         width: "100%",
-                                        // color: 'rgba(0,0,0,0.8)', 
                                         marginLeft: '0px',
-                                        border: '0.5px solid #b2b2b2',
-                                        // backgroundColor: 'rgba(147, 206, 214, 0.8)', 
-                                        // background: 'rbga(0,0,0,.7)', 
-                                        backgroundColor: 'rgba(30,34,26,0.96)',
-                                        color: 'rgba(255,255,255,.95)',
+                                        border: theme.palette.primaryB,
+                                        background: theme.palette.black,
+                                        // color: `${theme.palette.primaryA} important!`,
                                         '&:hover': {
-                                            color: '#f5f5f5 !important',
-                                            background: 'rgba(0,0,0,0.98)',
+                                            color: theme.palette.primaryA,
+                                            background: theme.palette.secondaryA,
                                         } 
                                     }} 
                                     variant="contained" 
@@ -5729,92 +5288,13 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                         </Box>
 
 
-{/* STK */}
-                        <Box sx={{
-                                display: "flex", 
-                                flexDirection: "row"
-                            }}
-                        >
-                            <Button 
-                                sx={{                     
-                                    // color: 'rgba(0,0,0,.98)',
-                                    // backgroundColor: 'rgba(158, 210, 162, 0.8)', 
-                                    backgroundColor: 'rgba(30,34,26,0.96)',
-                                    display: programIsOn ? "flex" : "none",
-                                    flexDirection: "row",
-                                    width: "100%",
-                                    color: 'rgba(255,255,255,.95)',
-                                    background: 'rbga(0,0,0,.7)', 
-                                    position: 'relative', 
-                                    marginLeft: '0px', 
-                                    minWidth: '140px', 
-                                    border: '0.5px solid #b2b2b2',
-                                    '&:hover': {
-                                        color: '#f5f5f5',
-                                        background: 'rgba(0,0,0,.98)',
-                                    },
-                                }} 
-                                // variant="outlined" 
-                                onClick={handleShowSTK} 
-                                // className="ui_SynthLayerButton"
-                                endIcon={<DeblurIcon />}>
-                                    Instruments
-                            </Button>
-                        </Box>
-
-
-{/* EFFECTS */}
+                        {/* FILES */}
                         <Box sx={{
                                 display: "flex", 
                                 flexDirection: "column"
                             }}
                         >
                             <Box sx={{
-                                    display: "flex", 
-                                    flexDirection: "row"
-                                }}
-                            >
-                                <FXRouting
-                                    key={fXChainKey + fxRadioValue}
-                                    fxChainNeedsUpdate={fxChainNeedsUpdate}
-                                    fxData={allFxPersistent.current}
-                                    width={size.width}
-                                    height={size.height}
-                                    handleShowFX={handleShowFX}
-                                    showFX={showFX}
-                                    fxValsRef={fxFX.current}
-                                    handleFXGroupChange={handleFXGroupChange}
-                                    updateCheckedFXList={updateCheckedFXList}
-                                    fxGroupsArrayList={fxGroupOptions}
-                                    checkedFXList={checkedFXList.current}
-                                    fxFX={fxFX.current}
-                                    handleClickName={handleClickName}
-                                    setClickFXChain={setClickFXChain}
-                                    clickFXChain={clickFXChain}
-                                    updateFXInputRadio={updateFXInputRadio}
-                                    fxRadioValue={fxRadioValue}
-                                    updateStkKnobs={updateStkKnobs}
-                                    setStkValues={setStkValues}
-                                    stkValues={stkValues}
-                                    updateCurrentFXScreen={updateCurrentFXScreen}
-                                    currentScreen={currentScreen.current}
-                                    playUploadedFile={playUploadedFile}
-                                    lastFileUpload={lastFileUpload}
-                                    updateFileUploads={updateFileUploads}
-                                    babylonGame={babylonGame.current}
-                                    programIsOn={programIsOn}
-                                />
-                            </Box>
-                        </Box>
-{/* FILES */}
-                        <Box sx={{
-                                display: "flex", 
-                                flexDirection: "column"
-                            }}
-                        >
-                            <Box sx={{
-                                    // display: "flex", 
-                                    // flexDirection: "row",
                                     display: programIsOn ? "flex" : "none",
                                     flexDirection: "row",
                                     width: "100%",
@@ -5832,7 +5312,7 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                             </Box>
                         </Box> 
 
-{/* RECORD */}
+                        {/* RECORD */}
                         <Box sx={{display: "flex", flexDirection: "column"}}>
                             <Box sx={{display: "flex", flexDirection: "row"}}>
                                 {chuckHook && (
@@ -5841,23 +5321,14 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                                             display: programIsOn ? "flex" : "none",
                                             flexDirection: "row",
                                             width: "100%",
-                                            // backgroundColor: 'rgba(232, 82, 82, 0.8)', 
-                                            // background: 'rgba(232, 82,82, 0.8)', 
-                                            backgroundColor: 'rgba(0,0,0,.98)',
-                                            color: 'rgba(255,255,255,.95)',
                                             minWidth: '140px', 
                                             marginLeft: '0px', 
-                                            border: '0.5px solid #b2b2b2', 
-                                            // background: 'rgba(0,0,0,.7)', 
-                                            background: 'rgba(232, 82, 82, 0.8)',
-                                            // color: 'rgba(255,255,255,.95)', 
-                                           
-                                            // color: 'rgba(0,0,0,1)', 
+                                            border: theme.palette.primaryB,
+                                            background: theme.palette.black,
+                                            color: `${theme.palette.white} important!`,
                                             '&:hover': {
-                                                // color: '#f5f5f5 !important',
-                                                color: 'rgba(0,0,0,1) !important',
-                                                // background: 'rgba(0,0,0,.98)',
-                                                backgroundColor: 'rgba(232, 82, 82, 0.8)',
+                                                color: theme.palette.primaryA,
+                                                backgroundColor: theme.palette.secondaryA,
                                             }
                                         }} 
                                         variant="contained" 
@@ -5871,273 +5342,124 @@ console.log("bug???: ", patternsHashToChuckArrays[0].map((i:any) => i.note))
                             </Box>
                         </Box>
 
-                    {/* ARPS */}
-                    <Box 
-                        sx={{
-                            display: hideCircularArpBtnsHook ? 'none' : 'flex', 
-                            flexDirection: 'row', 
-                            // bottom: hasHexKeys 
-                            // ? 
-                            //     '12px' 
-                            // : 
-                            //     '204px', 
-                            right: '0px', 
-                            left: '4px',
-                            position:  'relative'
-                        }}
-                    >
-                            
-                        <Button 
-                                sx={{ 
-                                    color: 'rgba(0,0,0,.98) !important',
-                                    backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                                    marginLeft: '0px', 
-                                    // maxWidth: '28px',
-                                    minWidth: '60px',
-                                    maxWidth: '60px',
-                                    maxHeight: '40px',
-                                    borderRadius: '50% !important',
-                                    transform: 'scale(0.7)',
-                                    marginBottom: '4px',
-                                    minHeight: '60px',
-                                    display: hasHexKeys ? "flex" : "none",
-                                    border: '0.5px solid #b2b2b2',
-                                    '&:hover': {
-                                        color: '#f5f5f5 !important',
-                                        background: 'rgba(0,0,0,.98)',
-                                        border: '1px solid #1976d2',
-                                    }
-                                }} 
-                                variant="outlined" 
-                                className="ui_SynthLayerButton"
-                                onClick={(e:any) => handleFormat(e, ['key'])} 
-                                // endIcon={<AnimationIcon />}
-                                >
-                                    <PianoIcon style={{pointerEvents: 'none'}}/>
-                        </Button>
-                        <Button 
-                            sx={{ 
-                                color: 'rgba(0,0,0,.98) !important',
-                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                                marginLeft: '0px', 
-                                // maxWidth: '28px',
-                                minWidth: '60px',
-                                maxWidth: '60px',
-                                maxHeight: '40px',
-                                borderRadius: '50% !important',
-                                transform: 'scale(0.7)',
-                                marginBottom: '4px',
-                                minHeight: '60px',
-                                display: programIsOn ? "flex" : "none",
-                                border: '0.5px solid #b2b2b2',
-                                zIndex: isAnalysisPopupOpen ? '0' : '99',
-                                pointerEvents: "all",
-                                cursor: "pointer",
-                                '&:hover': {
-                                    color: '#f5f5f5 !important',
-                                    background: 'rgba(0,0,0,.98)',
-                                    border: '1px solid #1976d2',
-                                }
-                            }} 
-                            variant="outlined" 
-                            className="ui_SynthLayerButton"
-                            onClick={handleToggleArpeggiator} 
-                            // endIcon={<AnimationIcon />}
-                            >
-                                Arp1
-                        </Button>
-                        <Button 
-                            sx={{ 
-                                color: 'rgba(0,0,0,.98) !important',
-                                backgroundColor: 'rgba(219, 230, 161, 0.97)', 
-                                minWidth: '60px',
-                                maxWidth: '60px',
-                                maxHeight: '40px',
-                                marginLeft: '0px', 
-                                borderRadius: '50% !important',
-                                transform: 'scale(0.7)',
-                                marginBottom: '4px',
-                                minHeight: '60px',
-                                border: '0.5px solid #b2b2b2',
-                                display: programIsOn ? "flex" : "none",
-                                zIndex: isAnalysisPopupOpen ? '0' : '99',
-                                pointerEvents: "all",
-                                cursor: "pointer",
-                                '&:hover': {
-                                    color: '#f5f5f5 !important',
-                                    background: 'rgba(0,0,0,.98)',
-                                    border: '1px solid #1976d2',
-                                }
-                            }} 
-                            variant="outlined" 
-                            className="ui_SynthLayerButton"
-                            onClick={handleToggleStkArpeggiator} 
-                            // endIcon={<AnimationIcon />}
-                            >
-                                Arp2
-                        </Button>
-                        <Box sx={{display: "flex", flexDirection: "column"}}>
-                            <Box sx={{
-                                display: "flex", flexDirection: "row"}}>
-                                <ToggleFXView 
-                                    stkCount={stkFX.current.length}
-                                    fxCount={checkedFXList.current.length}
-                                    handleReturnToSynth={handleReturnToSynth} 
-                                    programIsOn={programIsOn}
-                                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
-                                    handleToggleArpeggiator={handleToggleArpeggiator}
-                                    stkFX={stkFX.current}
-                                    checkedFXList={checkedFXList.current}
-                                    keysVisible={keysVisible}
-                                    analysisPopupOpen={isAnalysisPopupOpen}
-                                />
-                            </Box>
-                        </Box>   
-                    </Box>   
-
                         {
-                            showBPM && (
-                            <Box sx={{position: "relative", display: "flex", flexDirection: window.innerWidth < 900 ? "column" : "row"}}>
-                                <BPMModule 
-                                    bpm={bpm} 
-                                    handleChangeBPM={handleChangeBPM}
-                                    beatsNumerator={beatsNumerator}
-                                    beatsDenominator={beatsDenominator}
-                                    handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                                    handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                                    programIsOn={programIsOn}
-                                    handleToggleArpeggiator={handleToggleArpeggiator}
-                                    handleToggleStkArpeggiator={handleToggleStkArpeggiator}
-                                    handleReturnToSynth={handleReturnToSynth}
-                                    checkedFXList={checkedFXList.current}
-                                    stkFX={stkFX}
-                                    keysVisible={keysVisible}
-                                />
-                            </Box>)
+                        showBPM && (
+                        <Box sx={{
+                            position: "relative", 
+                            display: "flex", 
+                            flexDirection: "column"
+                        }}>            
+                            <BPMModule 
+                                bpm={bpm} 
+                                handleChangeBPM={handleChangeBPM}
+                                beatsNumerator={beatsNumerator}
+                                beatsDenominator={beatsDenominator}
+                                handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                            />
+                        </Box>)
                         }
-
-                    </Box> )}
-
-                 
+                        <FXRouting
+                            key={fXChainKey + fxRadioValue}
+                            fxChainNeedsUpdate={fxChainNeedsUpdate}
+                            fxData={allFxPersistent.current}
+                            width={size.width}
+                            height={440}
+                     
+                            fxValsRef={fxFX.current}
+                            handleFXGroupChange={handleFXGroupChange}
+                            updateCheckedFXList={updateCheckedFXList}
+                            fxGroupsArrayList={fxGroupOptions}
+                            checkedFXList={checkedFXList.current}
+                            fxFX={fxFX.current}
+                            handleClickName={handleClickName}
+                            setClickFXChain={setClickFXChain}
+                            clickFXChain={clickFXChain}
+                            updateFXInputRadio={updateFXInputRadio}
+                            fxRadioValue={fxRadioValue}
+                            updateStkKnobs={updateStkKnobs}
+                            setStkValues={setStkValues}
+                            stkValues={stkValues}
+                            updateCurrentFXScreen={updateCurrentFXScreen}
+                            currentScreen={currentScreen.current}
+                            playUploadedFile={playUploadedFile}
+                            lastFileUpload={lastFileUpload}
+                            updateFileUploads={updateFileUploads}
+                            babylonGame={babylonGame.current}
+                            handleCheckedFXToShow={handleCheckedFXToShow}
+                            checkedEffectsListHook={checkedEffectsListHook}
+                        />
+                    </Box> 
+                    </>
+                )}      
                 </Box>
             </Box>
-            )}
-            <Box
-                sx={{
-                    position: "absolute",
-                    bottom: "0px",
-                    right: "0px",
-                    // display: hasHexKeys ? "none" : "",
-                }}
-            // width={window.innerWidth} height={window.innerHeight/4}
-            >
-                <Keyboard 
-                    chuckHook={chuckHook}
-                    keysVisible={keysVisible}
-                    keysReady={keysReady}
-                    organizeRows={organizeRows}
-                    organizeLocalStorageRows={organizeLocalStorageRows}
-                    playChuckNote={playChuckNote}
-                    compare={compare}
-                    // keyWid={vizWid}
-                    keyWid={`100vw`}
-                    notesAddedDetails={notesAddedDetails}
-                    keysFullscreen={keysFullscreen}
-                    isInPatternEditMode={isInPatternEditMode}
-                />
-            </Box>
-            <Box
-                sx={{
-                    position: "absolute", 
-                    display: "flex", 
-                    color:"white", 
-                    bottom: '0px', 
-                    left: '0px', 
-                    width: '212px'}}
-            >
-{/*   
-                    // hasHexKeys.current 
-                    // formats && formats.length > 0 && formats.indexOf('hexKey') !== -1 && formats[0] === 'hexKey'
-                    // ?
-                    // // {formats && formats.length > 0 && formats.indexOf('hexKey') !== -1 && formats[0] === 'hexKey' ? (
-                     */}
-                    {/* //     // <Box sx={{ */}
-                    {/* //     //     zIndex: 9999, 
-                    //     //     width: '140px', 
-                    //     //   }}>
-                    //     //   <CustomAriaLive selectRef={selectRef} tune={tune} currentMicroTonalScale={currentMicroTonalScale} />
+            )}       
+            <KeyboardControls 
+                programIsOn={programIsOn}
+                selectRef={selectRef}
+                tune={tune}
+                currentMicroTonalScale={currentMicroTonalScale}
+                chuckHook={chuckHook}
+                updateStkKnobs={updateStkKnobs}
+                stkValues={stkValues}
+                setStkValues={setStkValues} 
+                handleCheckedFXToShow={handleCheckedFXToShow}
+                checkedEffectsListHook={checkedEffectsListHook}
+
+                handleChange={handleFXRadioChange} 
+                value={fxRadioValue}
+                updateCurrentFXScreen={updateCurrentFXScreen}
+                currentScreen={currentScreen.current}
+                playUploadedFile={playUploadedFile}
+                lastFileUpload={lastFileUpload}
+            /> 
+
+        <Box sx={{ 
+            position: "absolute", 
+            background: theme.palette.black, 
+            color: theme.palette.white 
+            }}>
+            <Box sx={{
+                backgroundColor: theme.palette.black, 
+                width:'100%', 
+                display:'flex', 
+                flexDirection: 'row',
+                minHeight:'100%',
+            }} key={'handleClickUploadedFilesWrapper'}>
             
-                    //     // </Box> */}
-                    <></>
-       
-                        <KeyboardControls 
-                            submitMingus={submitMingus}
-                            audioKey={audioKey}
-                            octave={octave}
-                            audioScale={audioScale}
-                            audioChord={audioChord}
-                            handleChangeChord={handleChangeChord}
-                            handleChangeScale={handleChangeScale}
-                            programIsOn={programIsOn}
-                            selectRef={selectRef}
-                            tune={tune}
-                            currentMicroTonalScale={currentMicroTonalScale}
-                            chuckHook={chuckHook}
-                        /> 
-                {/* // } */}
-                
-                <CheckedFXRadioBtns 
-                    handleCheckedFXToShow={handleCheckedFXToShow} 
-                    checkedEffectsListHook={checkedEffectsListHook}>
-                </CheckedFXRadioBtns>
-            </Box>  
-            <Box sx={{ position: "absolute", background: "rgba(0,0,0,0.78)", color: "white", top: "60px", right: "212px"}}>
-
-                {
-                    showSTKManager && (
-                        <STKManagerDropdown
-                        updateStkKnobs={updateStkKnobs}
-                        stkValues={stkValues}
-                        setStkValues={setStkValues}
-                        ></STKManagerDropdown>
-                    )
-                }
-                {
-                    showFX && (<SelectInputSourceRadioButtons 
-                        handleChange={handleFXRadioChange} 
-                        value={fxRadioValue}
-                        updateStkKnobs={updateStkKnobs}
-                        setStkValues={setStkValues}
-                        stkValues={stkValues}
-                        updateCurrentFXScreen={updateCurrentFXScreen}
-                        currentScreen={currentScreen.current}
-                        playUploadedFile={playUploadedFile}
-                        lastFileUpload={lastFileUpload}
-                        // updateFileUploads={updateFileUploads}
-                    />)
-                }
-                <Box sx={{
-                    backgroundColor: 'rgba(30,34,26,0.96)', 
-                    width:'100%', 
-                    display:'flex', 
-                    flexDirection: 'row',
-                    minHeight:'100%',
-                    // justifyContent: 'center',
-                    // alignItems: 'left'
-                }} key={'handleClickUploadedFilesWrapper'}>
-                
-                {filesToProcess.current.map((file: any) => {
-                    return <Button 
-                        sx={{
-                            left: '24px'
-                        }} 
-                        key={`handleClickUploadedFilesBtn_${file.name}`} 
-                        onClick={handleClickUploadedFiles}>{
-                            file.name
-                        }</Button>
-                })}
-                </Box>
+            {filesToProcess.current.map((file: any) => {
+                return <Button 
+                    sx={{
+                        left: '24px'
+                    }} 
+                    key={`handleClickUploadedFilesBtn_${file.name}`} 
+                    onClick={handleClickUploadedFiles}>{
+                        file.name
+                    }</Button>
+            })}
             </Box>
-        </Box>   
-        )
-    };
+        </Box>
+        <Box
+            sx={{
+                marginLeft: "140px",
+                width: "calc(100vw - 140px)",
+                position: 'absolute',
+                bottom: '0px',
+                zIndex:"9999"
+            }}
+        >
+            <Keyboard 
+                chuckHook={chuckHook}
+                keysVisible={keysVisible}
+                keysReady={keysReady}
+                organizeRows={organizeRows}
+                organizeLocalStorageRows={organizeLocalStorageRows}
+                playChuckNote={playChuckNote}
+                compare={compare}
+                notesAddedDetails={notesAddedDetails}
+            />
+        </Box>
+    </Box>   
+    )
+};

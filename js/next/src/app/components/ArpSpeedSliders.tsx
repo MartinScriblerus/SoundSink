@@ -58,25 +58,29 @@ export default function DiscreteSlider(props: SliderProps) {
 
 
     return (
-    <>
-        <Box sx={{ 
+    <Box style={{
+        display: 'flex',
+        width: '100%'
+    }}>
+        {/* <Box sx={{ 
             maxHeight: '40px', 
             width: '100%', 
-            display: window.innerHeight > 800 ? 'flex' : 'none', 
+            // display: window.innerHeight > 800 ? 'flex' : 'none', 
             flexDirection: 'row',
             paddingTop: '12px', 
             marginLeft: '-12px',
             textAlign: 'center',
             justifyContent: 'center',
-            fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif', fontWeight: '300' 
-        }}>
+            fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif', 
+            fontWeight: '300' 
+        }}> */}
             <Box sx={{ 
                 maxHeight: '40px', 
                 width: '40%', 
-                paddingRight: '5%', 
-                paddingLeft: '5%',
+                paddingRight: '8PX', 
+                paddingLeft: '8PX',
             }}>
-                Osc Rate:
+                Osc:
                 <Slider
                     aria-label="OscRate"
                     defaultValue={currentNoteVals.oscs[0]}
@@ -94,10 +98,10 @@ export default function DiscreteSlider(props: SliderProps) {
             <Box sx={{ 
                 maxHeight: '40px',
                 width: '40%', 
-                paddingRight: '5%', 
-                paddingLeft: '5%' 
+                paddingRight: '8PX', 
+                paddingLeft: '8PX' 
             }}>
-                STK Rate:
+                STK:
                 <Slider
                     aria-label="StkRate"
                     defaultValue={currentNoteVals.stks[0]} //
@@ -111,29 +115,30 @@ export default function DiscreteSlider(props: SliderProps) {
                     max={64}
                 />
             </Box>
-        </Box>
+        {/* </Box>
         <Box sx={{
                 fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif', 
                 fontWeight: '300', 
                 maxHeight: '40px', 
                 width: '100%', 
-                display: window.innerHeight > 680 ? 'flex' : 'none', 
+                // display: window.innerHeight > 680 ? 'flex' : 'none', 
+                display: 'flex',
                 flexDirection: 'row',
                 marginLeft: '-12px', 
                 textAlign: 'center',
                 justifyContent: 'center',
             }}
         >
-            
+             */}
             <Box sx={{ 
-                    paddingTop: '48px', 
+                    // paddingTop: '48px', 
                     maxHeight: '40px', 
                     width: '40%', 
-                    paddingRight: '5%', 
-                    paddingLeft: '5%' 
+                    paddingRight: '8PX', 
+                    paddingLeft: '8PX' 
                 }}
             >
-                Sampler Rate: 
+                Sampler: 
                 <Slider
                     aria-label="SamplerRate"
                     defaultValue={currentNoteVals.samples[0]}
@@ -148,14 +153,14 @@ export default function DiscreteSlider(props: SliderProps) {
                 />
             </Box>
             <Box sx={{ 
-                paddingTop: '48px',
+                // paddingTop: '48px',
                 maxHeight: '40px', 
                 width: '40%', 
-                paddingRight: '5%', 
-                paddingLeft: '5%' 
+                paddingRight: '8PX', 
+                paddingLeft: '8PX' 
                 }}
             >
-                Audio In Rate: 
+                Audio In: 
                 <Slider
                     aria-label="AudioInRate"
                     defaultValue={4}
@@ -169,7 +174,7 @@ export default function DiscreteSlider(props: SliderProps) {
                     max={64}
                 />
             </Box>
-        </Box>
-    </>
+        {/* </Box> */}
+    </Box>
   );
 }

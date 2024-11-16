@@ -60,38 +60,7 @@ const FileWrapper = (props: FileWrapperProps) => {
     return (
         
         <Box sx={{ display: "flex", flexDirection: "column", width: "100%" }}>
-            {/* <>    
-                <Box 
-                  sx={{
-                    backgroundColor: 'rgba(30,34,26,0.96)', 
-                    width:'100%', 
-                    display:'flex', 
-                    flexDirection: 'column',
-                    minHeight:'100%',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}>
-                    <Button sx={{
-                      color: 'rgba(228,225,209,1)', 
-                      borderColor: 'rgba(228,225,209,1)', 
-                      position: 'absolute', 
-                      minWidth: '48px', 
-                      zIndex: 1001,
-                      top: "70px",
-                      right: '12px', 
-                      '&:hover': {
-                        color: '#f5f5f5',
-                        background: 'rgba(0,0,0,.98)',
-                      }
-                    }} 
-                    id="findme"
-                    aria-describedby={id} 
-                    variant="outlined" 
-                    onClick={handleShowBPM} 
-                    // startIcon={<Inventory2Icon />}
-                  >
-                <Inventory2Icon />
-              </Button> */}
+       
               
             <Box
                 id="lookhere"

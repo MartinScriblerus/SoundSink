@@ -1,22 +1,20 @@
 import { useEffect, useState } from "react";
 import { Renderer } from "./Renderer";
 import { Tooltip } from "./Tooltip";
-import { Box } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import ArpSpeedSliders from "@/app/components/ArpSpeedSliders";
 
 type HeatmapProps = {
   width: number;
   height: number;
-  currentBeatCount: number;
-  currentBeatSynthCount: number;
   currentNumerCount: number;
-  currentDenomCount: number;
   handleOscRateUpdate: (val: any) => void;
   handleStkRateUpdate: (val: any) => void;
   handleSamplerRateUpdate: (val: any) => void;
   handleAudioInRateUpdate: (val: any) => void;
   updateCellColor: (val: any) => void;
   updateCellColorBool: boolean; 
+  currentBeatSynthCount: number;
   filesToProcess: any[];
   currentNoteVals: any;
   numeratorSignature: number;
@@ -45,10 +43,8 @@ export type InteractionData = {
 export const Heatmap = ({ 
   width, 
   height, 
-  currentBeatCount,
   currentBeatSynthCount,
   currentNumerCount,
-  currentDenomCount,
   currentNoteVals,
   filesToProcess,
   handleOscRateUpdate,
@@ -73,6 +69,8 @@ export const Heatmap = ({
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
+
+  const theme = useTheme();
 
   const nCol = numeratorSignature;
   const nRow = 4;
@@ -124,7 +122,7 @@ useEffect(() => {
 
   return (
     <Box sx={{ 
-      background: "rgba(30,34,26,0.96)",
+      background: theme.palette.secondaryB,
       position: "relative", 
       // height: "100vh",
       // paddingTop: "8vh",

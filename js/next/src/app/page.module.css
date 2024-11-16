@@ -84,26 +84,113 @@
 
 .center::before {
   background: var(--secondary-glow);
+  /* background-color: var(--animate-glow); */
   border-radius: 50%;
-  width: 480px;
+  width: 880px;
   height: 360px;
-  margin-left: -400px;
+  margin-left: -200px;
+}
+
+.center {
+  -webkit-animation: fadeInFromNone 30s ease-out;
+  -moz-animation: fadeInFromNone 30s ease-out;
+  -o-animation: fadeInFromNone 30s ease-out;
+  animation: fadeInFromNone 30s ease-out;
+
+  display:block;
 }
 
 .center::after {
   background: var(--primary-glow);
-  width: 240px;
-  height: 180px;
+  /* background-color: var(--animate-glow); */
+  width: 840px;
+  height: 440px;
+  /* width: 60%;
+  height: 60%; */
   z-index: -1;
+  background: conic-gradient(from 0deg, #ff7b7b, #ffdb4d, #76ff7a, #4d91ff, #ff7b7b);
+  transition: background 30s ease-out; /* Smooth transition */
+  will-change: background;
 }
 
 .center::before,
 .center::after {
   content: '';
-  left: 50%;
+  left: 54%;
   position: absolute;
-  filter: blur(45px);
-  transform: translateZ(0);
+  filter: blur(85px);
+  transform: translateZ(30);
+  background: conic-gradient(from 0deg, blue, #ffdb4d, #76ff7a, #4d91ff, purple);
+  transition: background 20s ease-out; /* Smooth transition */
+  will-change: background;
+}
+
+@-webkit-keyframes fadeInFromNone {
+  0% {
+      display: none;
+      opacity: 0;
+  }
+
+  50% {
+      display: block;
+      opacity: 0.5;
+  }
+
+  100% {
+      display: block;
+      opacity: 1;
+  }
+}
+
+@-moz-keyframes fadeInFromNone {
+  0% {
+      display: none;
+      opacity: 0;
+  }
+
+  50% {
+    display: block;
+    opacity: 0.5;
+}
+
+  100% {
+      display: block;
+      opacity: 1;
+  }
+}
+
+@-o-keyframes fadeInFromNone {
+  0% {
+      display: none;
+      opacity: 0;
+  }
+
+  50% {
+    display: block;
+    opacity: 0.5;
+}
+
+  100% {
+      display: block;
+      opacity: 1;
+  }
+}
+
+@keyframes fadeInFromNone {
+  0% {
+      display: none;
+      opacity: 0;
+  }
+
+  50% {
+    display: block;
+    opacity: 0.5;
+}
+
+  100% {
+      display: block;
+      opacity: 1;
+  }
 }
 
 .logo {
@@ -113,6 +200,14 @@
 .sequencer-dropdown {
   min-width: 4rem;
 }
+
+.MuiPaper-root-MuiAccordion-root.Mui-expanded {
+  margin: 0px 0px;
+}
+.MuiPaper-root {
+  margin: 0px 0px;
+}
+
 
 /* #babylonCanvas {
   height: 100vh;

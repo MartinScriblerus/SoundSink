@@ -1,20 +1,31 @@
 import { SelectChangeEvent } from "@mui/material";
 import { Chuck } from "webchuck";
 
+
+// INPUTs ***********************************
+// ******************************************
+
 export type KeyboardProps = {
-    submitMingus: () => void;
-    audioKey: string;
-    octave: string;
-    audioScale: string;
-    audioChord: string;
-    handleChangeScale: (event: SelectChangeEvent) => void;
-    handleChangeChord: (event: SelectChangeEvent) => void;
     programIsOn: boolean;
-    selectRef: any;
+    selectRef: any; // what is this???
     tune: any;
     currentMicroTonalScale: any;
     chuckHook: Chuck | undefined;
+    updateStkKnobs: any;
+    stkValues: any;
+    setStkValues: any;
+    handleCheckedFXToShow: (msg: any) => void;
+    checkedEffectsListHook: any[];
+    handleChange: any;
+    value: any;
+    updateCurrentFXScreen: any
+    currentScreen: any
+    playUploadedFile: any;
+    lastFileUpload: any,
 }
+
+// AUTOMATION *******************************
+// ******************************************
 
 export type RampEffects = {
     effectName: string;
@@ -29,6 +40,9 @@ export type AutomationParams = {
     fadeOutType: string[];
     rampEffects: RampEffects[];
 }
+
+// PATTERNS ******************************
+// ***************************************
 
 export type PatternCell = {
     notes: string[] | number[];
@@ -55,7 +69,10 @@ export type Pattern = {
     microtoneArr?: string[]; 
 }
 
-export type PresetNameVal = {
+// INSTRUMENTS ****************************
+// ****************************************
+
+export type InstrumentNameVal = {
     name: string; 
     value: any;
 }
@@ -65,14 +82,14 @@ export type STKSettings = {
     Type: string;
     On: boolean;
     Visible: boolean;
-    stkFXPresets: PresetNameVal[]; 
+    stkFXPresets: InstrumentNameVal[]; 
 }
 
 export type STKInstruments = {
     Clarinet: STKSettings;
     Karplus: STKSettings;
     Sitar: STKSettings;
-    FrenchHorn: STKSettings;
+    FrencHrn: STKSettings;
     Moog: STKSettings;
     Rhodey: STKSettings;
     Saxofony: STKSettings;
@@ -96,19 +113,30 @@ export type STKInstruments = {
     Wurley: STKSettings;
 }
 
-export type Sources = {
-    osc1: {
-        masterVolume: number;
-        detune: number;
-        effects: Effects;
-        pattern: Pattern;
-        arpeggiateOn: boolean;
-    };
-    osc2: string;
-    stk1: string;
-    sampler: string;
-    audioIn: string;
+
+// SOURCES *********************************
+// *****************************************
+
+export type Source = {
+    masterVolume: number;
+    detune: number;
+    effects: Effects;
+    pattern: Pattern[];
+    arpeggiateOn: boolean;
+    instruments?: STKInstruments
 }
+
+export type Sources = {
+    osc1: Source;
+    osc2: Source;
+    stk1: Source;
+    sampler: Source;
+    audioIn: Source;
+
+}
+
+// EFFECTS ***********************************
+// *******************************************
 
 export type SndBufObj = {
     src: string;
@@ -121,18 +149,19 @@ export type LiSaObj = {
 export type EffectsSettings = {
     VarName: string;
     On: boolean;
-    Declaration: string;
-    presets: PresetNameVal[]
+    Declaration: string | any;
+    presets: InstrumentNameVal[]
     Type: string;
     Visible: boolean;
-    Code?: string;
+    Code?: string | any;
     EnvSetting?: number | string;
-    ConnectionIn?: string;
-    ConnectionOut?: string;
+    ConnectionIn?: string[];
+    ConnectionOut?: string[];
 }
 
 export type Effects = {
     WinEnv: EffectsSettings;
+    WinFunc: EffectsSettings;
     PowerADSR: EffectsSettings;
     ExpEnv: EffectsSettings;
     WPDiodeLadder: EffectsSettings;
@@ -162,9 +191,13 @@ export type Effects = {
     Multicomb: EffectsSettings;
     PitchTracker: EffectsSettings;
     Sigmund: EffectsSettings;
-    SndBuf: SndBufObj;
-    LiSa: LiSaObj;
+    SndBuf: SndBufObj[];
+    LiSa: LiSaObj[];
 }
+
+
+// ANALYSIS *********************************
+// ******************************************
 
 export type TimeDomainNode = {
     time: number;

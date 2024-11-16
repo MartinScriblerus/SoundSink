@@ -4,6 +4,7 @@ import { useSpring, animated } from "react-spring";
 import {VizDataProps} from "./LineChartWrapper";
 const MARGIN = { top: 30, right: 30, bottom: 50, left: 50 };
 import {select, line} from 'd3';
+import { useTheme } from "@mui/material";
 
 type DataPoint = { 
   x: number; 
@@ -25,9 +26,7 @@ type LineChartProps = {
   timeNow: number;
   secLenBeat: number;
   beatCount: number;
-  numerCount: number; 
-  denomCount: number;
-  patternCount: number;
+
   isInFileMode: boolean;
   fileTime: number | undefined | false;
   filesToProcess: any;
@@ -36,7 +35,6 @@ type LineChartProps = {
 };
 
 export const LineChart = ({
-  selectedViz,
   width,
   height,
   data,
@@ -46,17 +44,13 @@ export const LineChart = ({
   timeNow,
   secLenBeat,
   beatCount,
-  numerCount,
-  denomCount,
-  patternCount,
   isInFileMode,
   fileTime,
   filesToProcess,
   graphNeedsUpdate,
-  setGraphNeedsUpdate,
 }: LineChartProps) => {
 
-
+const theme = useTheme();
 
   // if (!data || data.length === 0) return;
 
@@ -219,7 +213,7 @@ export const LineChart = ({
         width={"100%"} 
         height={height} 
         style={{
-          background: "rgba(0,0,0,.91)", 
+          background: theme.palette.black, 
           minHeight: "100%",  
           flexDirection: "row-reverse", 
           overflowX: "scroll"}}>

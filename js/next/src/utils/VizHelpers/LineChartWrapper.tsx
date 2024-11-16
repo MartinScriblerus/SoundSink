@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LineChart } from "./LineChart";
-import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
+import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, useTheme } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import LegendVizx from "@/app/components/VizxHelpers/Legend";
 import BrushChart from "@/app/components/VizxHelpers/BrushChart";
@@ -10,17 +10,10 @@ export interface VizDataProps {
   analysisObject: any;
   timeNow: number;
   closeAnalysisPopup: () => void;
-  handleChangeAnalysisSource: (e: any) => void;
+
   analysisSourceRadioValue: string;
-  secLenBeat:number;
-  beatCount: number;
-  numerCount: number;
-  denomCount: number;
-  patternCount: number;
   filesToProcess: any[];
-  bufferStepLength: number;
-  graphNeedsUpdate: boolean;
-  setGraphNeedsUpdate: any;
+
   handleLegendClicked: (label:any) => void;
   inFileAnalysisMode: boolean;
   handleFileAnalysisMode:() => void;
@@ -35,17 +28,8 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     analysisObject,
     timeNow, 
     closeAnalysisPopup, 
-    handleChangeAnalysisSource,
     analysisSourceRadioValue,
-    secLenBeat,
-    beatCount,
-    numerCount,
-    denomCount,
-    patternCount,
     filesToProcess,
-    bufferStepLength,
-    graphNeedsUpdate,
-    setGraphNeedsUpdate,
     handleLegendClicked,
     inFileAnalysisMode,
     handleFileAnalysisMode,
@@ -61,6 +45,8 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   const [isInFileMode, setIsInFileMode] = useState<boolean>(true);
   const fileTime = useRef<number | undefined | false>();
   
+  const theme = useTheme();
+
   const value = ""
 
   useMemo(() => {
@@ -138,7 +124,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             position: "relative", 
             display: "flex", 
             height: "100%",
-            background: "rgba(0,0,0,0.9)",
+            background: theme.palette.black,
             justifyContent: "right",
             alignItems: "right",
             borderRadius: "16px",
@@ -158,10 +144,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             borderRadius: "8px", 
             padding: "12px", 
             fontSize: "16px",
-            // paddingTop: "72px",
             left: "0px",
-            // background: "rgba(33,33,33,.33)",
-            // display: "flex"
             }}>
               {
                 meydaData && 

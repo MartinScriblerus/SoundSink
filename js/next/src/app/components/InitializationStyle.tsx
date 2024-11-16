@@ -18,6 +18,7 @@ import { Inter } from 'next/font/google'
 import { getBaseUrl } from '@/utils/siteHelpers';
 import { Html, Head, Main, NextScript } from 'next/document'
 import Script from 'next/script'
+import { CREAM_WHITE, FOREST_GREEN, MATTE_BLACK, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE, STEEL_GRAY } from '@/utils/constants';
  
 const DynamicComponentWithNoSSR = dynamic(
   () => import('./InitializationComponent'),
@@ -26,17 +27,26 @@ const DynamicComponentWithNoSSR = dynamic(
 
 
 declare module '@mui/material/styles' {
+    
+    interface PaletteOptions {
+        primaryA: string;
+        primaryB: string;
+        secondaryA: string;
+        secondaryB: string;
+        black: string;
+        white: string;
+        gray: string;
+    }
+        
     interface Theme {
         palette: {
-            primary: {
-              main: "blue",
-            }, 
-            secondary: {
-                main: "red",
-              }, 
-            background: {
-                main: "#000000",
-            }
+            primaryA: string;
+            secondaryA:string; 
+            primaryB: string;
+            secondaryB: string;
+            black: string;
+            gray: string;
+            white: string;
         },
         status: {
             danger: string;
@@ -45,9 +55,9 @@ declare module '@mui/material/styles' {
     }
     // allow configuration using `createTheme`
     interface ThemeOptions {
-        status?: {
-            danger?: string;
-            text?: string;
+        colors?: {
+            // danger?: string;
+            // text?: string;
         };
     }
 }
@@ -83,22 +93,29 @@ interface MediaStreamAudioDestinationNode extends AudioNode {
 }
 
 
-
 // If loading a variable font, you don't need to specify the font weight
 const inter = Inter({ subsets: ['latin'] })
 
+type StyleProps = {
+    onChuckScreen:()=>void;
+} 
 
 export default async function InitializationStyle(
     // props: {preloadedFiles: any}
     ) {
-
     // const {preloadedFiles} = props;
 
     const theme = createTheme({
-        status: {
-            danger: 'rgba(0,0,0,0.68)',
-            text: 'rgba(255,255,255,0.87)',
+        palette: {
+            primaryA: FOREST_GREEN,
+            primaryB: MUTED_OLIVE,
+            secondaryA: PALE_BLUE,
+            secondaryB: RUSTY_ORANGE,
+            black: MATTE_BLACK,
+            white: CREAM_WHITE,
+            gray: STEEL_GRAY,
         },
+            
     });
     
     const headerDict = {
@@ -115,29 +132,6 @@ export default async function InitializationStyle(
         }
     };
 
-    // const baseUrl = getBaseUrl(); // start creating variables for envs
-    // const res: any = await axios.get(`${baseUrl}/api/preloadedFiles`, {
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-    // });
-    // const awaitNote = async (note: string) => {
-    //     return new Promise((resolve) => {
-    //         const getVals = axios.get(`${process.env.NEXT_PUBLIC_FLASK_API_URL}api/note/${note}`, requestOptions);
-    //         console.log('get vals? ',getVals);
-    //         resolve(getVals);
-    //     }).then(async (res: any) => {
-    //         return await res.data;
-    //         // setKeysReady(true);
-    //     });
-    // };
-
-    // console.log('baseURL ', baseUrl);
-
-    // useEffect(() => {
-        // awaitNote('A4');
-    // }, []);
-
 
     return (
         <ThemeProvider theme={theme}>
@@ -149,8 +143,8 @@ export default async function InitializationStyle(
                 boxSizing: "border-box", 
                 display: "flex", 
                 flexDirection: "column", 
-                border: "solid 1px #000000",
-                backgroundColor: "rgba(255,255,255, 0.1",
+                border: theme.palette.primaryB,
+                backgroundColor: theme.palette.white,
                 alignItems: "center",
                 justifyContent: "center",
 
@@ -158,7 +152,13 @@ export default async function InitializationStyle(
                 margin: 0,
                 fontFamily: "Lobster"
             }}>
-                <DynamicComponentWithNoSSR />
+                <style jsx global>{`
+                    html {
+                    font-family: ${inter.style.fontFamily};
+                    }
+                `}</style>
+                <DynamicComponentWithNoSSR 
+                />
             </Box>
         </ThemeProvider>
     )

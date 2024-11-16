@@ -5,9 +5,9 @@
     'Roboto Mono', 'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro',
     'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 
-  --foreground-rgb: 0, 0, 0;
+  /* --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255; */
 
   --primary-glow: conic-gradient(
     from 180deg at 50% 50%,
@@ -790,10 +790,10 @@ ul {
   background-color: linear-gradient(45deg, rgba(0,172,224,0.88) 0%, rgba(17,110,224,0.88) 40%);
 }
 
-.countWrapper {
+/* .countWrapper {
   left: 140px;
   width: 100%;
-}
+} */
 
 .MuiSlider-markLabel {
   color: rgb(27, 191, 202);
@@ -822,13 +822,13 @@ ul {
 }
 
 
-@media screen and (max-width: 900px) {
+/* @media screen and (max-width: 900px) {
   .countWrapper {
     position: inherit;
     left: 0px;
     width: 100%;
   }
-}
+} */
 
 @media screen and (min-width: 1400px) {
   canvas {

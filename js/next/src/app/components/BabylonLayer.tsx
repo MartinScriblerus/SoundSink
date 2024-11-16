@@ -143,7 +143,7 @@ function BabylonScene(props: {
 
             game.camera1 = {};
             game.camera1 = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
-            game.camera1.setTarget(new BABYLON.Vector3(-2.6,-0.8,0.0));
+            game.camera1.setTarget(new BABYLON.Vector3(-2.6,-1.8,0.0));
             game.camera1.attachControl(game.scene, false);
             game.camera1.position = new BABYLON.Vector3(0, 0, 12);
             game.camera1.inputs.attached.keyboard.detachControl();
@@ -156,7 +156,7 @@ function BabylonScene(props: {
             game.camera1.inputs.removeByType("ArcRotationCameraInputs");
             game.camera1.wheelDeltaPercentage = 0.0;
             game.camera1.panningSensibility = 0.0;
-            game.camera1.fov = 0.89;
+            game.camera1.fov = 0.99;
             game.camera1.alpha = 1.553;
             game.camera1.beta = 1.532;
             game.camera1.id = "camera1";
@@ -199,7 +199,7 @@ function BabylonScene(props: {
         camera2.inputs.removeByType("ArcRotationCameraInputs");
         camera2.wheelDeltaPercentage = 0.0;
         camera2.panningSensibility = 0.0;
-        camera2.fov = 0.75;
+        camera2.fov = 1.05;
         camera2.id = "camera2";
         // camera2.alpha = camera2TargetPosition.alpha;
         camera2.alpha = 1.5685;
@@ -325,7 +325,7 @@ function BabylonScene(props: {
 
                             // This is the effects knob: use this to handle "amount" based values (eg. 0.0–1.0 / 1–100)
                             BABYLON.SceneLoader.ImportMesh("", "/", "knob3.glb", game.scene, function (newMeshes: any) {
-                                newMeshes[0].position.y = 6.8 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -2.7);
+                                newMeshes[0].position.y = 7 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
                                 newMeshes[0].position.x = 6.5 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
                                 newMeshes[0].position.z = zPos;
 
@@ -496,12 +496,12 @@ function BabylonScene(props: {
                 minWidth: window.innerWidth,
                 display: "flex",
                 flexDirection: "column",
-                background: "rgba(56, 60, 84, .1)",
+                background: theme.palette.black,
                 alignItems: "center",
                 // paddingLeft: "140px !important"
             }}
         >
-            <canvas 
+            <canvas
                 style={{
                     minWidth: "800px", 
                     minHeight: "800px", 
@@ -517,7 +517,18 @@ function BabylonScene(props: {
                     // top: '0px',
 
                 }} id={`babylonCanvas`} 
-                ref={elem => game.canvas = elem}></canvas>
+                ref={elem => game.canvas = elem}/>
+            <canvas 
+            ref={elem => game.canvas2 = elem}
+            
+            id="babylonCanvas2" 
+            style={{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                zIndex: 2,
+                display: 'none' 
+            }}></canvas>
         </Box>
     </ThemeProvider>)
 }

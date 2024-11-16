@@ -1,7 +1,8 @@
-import { Box, Button, FormLabel } from "@mui/material";
+import { Box, Button, FormLabel, useTheme } from "@mui/material";
 import React, {useEffect, useRef, useState} from "react";
 import { useForm } from "react-hook-form";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import theme from "../styles/theme";
 
 
 interface Props {
@@ -14,10 +15,10 @@ interface Props {
 }
 
 const FileManager = (props: Props) => {
-    // console.log("AYO AYO PROPS: ", props);
-    // const { register, handleSubmit, watch } = useForm();
+
     const {onSubmit, handleSubmit, register, watch, beginProgram, programIsOn} = props;
 
+    const theme = useTheme();
 
     return (
         <Box sx={{
@@ -38,29 +39,25 @@ const FileManager = (props: Props) => {
                     display: programIsOn ? "flex" : "none",
                     flexDirection: "row",
                     width: "100%",
-                    border: '0.5px solid #b2b2b2',
-                    backgroundColor: 'rgba(30,34,26,0.96)',
-                    color: 'rgba(255,255,255,.95)',
-                    // backgroundColor: 'rgba(158, 210, 162, 0.8)',
+                    cursor: "pointer",
+                    border: theme.palette.primaryB,
+                    background: theme.palette.black,
+                    color: theme.palette.white,
                     position: 'relative', 
                     minWidth: '140px',
-                    background: 'rbga(0,0,0,.91)', 
                     marginLeft: '0px', 
-                    // top: '188px',
                     zIndex: 15,
-                    // display: programIsOn ? "flex" : "none",
                     maxHeight: '40px',
                     '&:hover': {
-                        color: '#f5f5f5',
-                        background: 'rgba(0,0,0,.98)',
-                        // border: 'solid 1px #1976d2'
+                        color: theme.palette.primaryA,
+                        background: theme.palette.secondaryA,
                     }
                 }}
-                className="ui_SynthLayerButton"
-                // variant="outlined" 
+                // className="ui_SynthLayerButton"
+
                 endIcon={<FileUploadIcon />}
             >
-                {window.innerWidth < 900 ? <>File</> : <>File Upload</>}
+                {window.innerWidth < 900 ? <>File</> : <>File</>}
 
                
                     <input
