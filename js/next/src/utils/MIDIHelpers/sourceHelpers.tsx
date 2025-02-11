@@ -38,10 +38,12 @@ export const expEnvString = (source: string, T60: number, radius: number, value:
 `;
 
 export const wpDiodeLadderString = (source: string, cutoff: number, resonance: number, nlp_type: number, nonlinear: number, saturation: number) => {
-    const nlp_str = nlp_type === 1 ? 'true' : 'false';
+    // const nlp_str = nlp_type === 1 ? 'true' : 'false';
+    const nlp_str = nlp_type;
+    console.log("<><><><> ", nlp_str)
     const nonlinear_str = nonlinear === 1 ? 'true' : 'false';
     return `
-    fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int resonance,  nlp_type, int nonlinear, float saturation) {
+    fun void playWpDiodeLadderWindow(WPDiodeLadder @ win, float cutoff, int resonance, int nlp_type, int nonlinear, float saturation) {
         saw2 => blackhole;
         SinOsc sinb => blackhole;
   
@@ -72,7 +74,7 @@ export const wpKorg35String = (source: string, cutoff: number, resonance: number
 
     return `
     fun void playWpKorg35Window(WPKorg35 @ win, float cutoff, int resonance, int nonlinear, float saturation) {
-        saw2 => blackhole;
+        SawOsc saw2 => blackhole;
         SinOsc sinb => blackhole;
   
         0.004 => saw2.gain;
@@ -101,24 +103,10 @@ export const modulateString = (source: string, vibratoRate: number, vibratoGain:
     return `
 
     fun void playModWindow(Modulate @ win, float vibratoRate, float vibratoGain, float randomGain) {
-        // multiply
-        // 3 => hpf.op;
-        if ("${source}" == "osc1") {
-            3 => hpf.op;
-        } else if ("${source }" == "s1") {
-            3 => limiter_Sampler.op;
-        } else if ("${source}" == "stk1") {
-            3 => limiter_STK.op;
-        } 
-
-        // set freq
-        // 220 => testSin.freq;
 
         // set rate in hz
         vibratoRate => win.vibratoRate;
-        // set gain
         vibratoGain => win.vibratoGain;
-        // set random gain
         randomGain => win.randomGain;
 
         whole/${currentNoteVals.master[0]} - (now % whole/${currentNoteVals.master[0]}) => now;
@@ -155,13 +143,6 @@ export const delayString = (source: string, delay: number, lines: number, syncDe
     fun void playDelayWindow(Delay @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
         for (0 => int i; i < ${lines}; i++) 
         { 
-            if ("${source}" == "osc1") {
-                hpf => win[i] => dac;
-            } else if ("${source}" == "s1") {
-                limiter_Sampler => win[i] => dac;
-            } else if ("${source}" == "stk1") {
-                limiter_STK => win[i] => dac;
-            }
             win[i] => OneZero filter_delay_${source} => win[i]; 
             zero => filter_delay_${source}.zero;
             b0 => filter_delay_${source}.b0;
@@ -183,13 +164,6 @@ export const delayAString = (source: string, delay: number, lines: number, syncD
     fun void playDelayAWindow(DelayA @ win[], float delay, int lines, float syncDelay, float zero, float b0, float b1) {
         for (0 => int i; i < ${lines}; i++) 
         { 
-            if ("${source}" == "osc1") {
-                hpf => win[i] => dac;  
-            } else if ("${source }" == "s1") {
-                limiter_Sampler => win[i] => dac;
-            } else if ("${source}" == "stk1") {
-                limiter_STK => win[i] => dac;
-            }
             win[i] => OneZero filter_delayA_${source} => win[i]; 
             zero => filter_delayA_${source}.zero;
             b0 => filter_delayA_${source}.b0;
@@ -204,7 +178,7 @@ export const delayAString = (source: string, delay: number, lines: number, syncD
     `;
 };
 
-export const delayLString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number, currentNoteVals: any, numeratorSignature: number) => {
+export const delayLString = (source: string, delay: number, lines: number, syncDelay: number, zero: number, b0: number, b1: number, currentNoteVals: any) => {
     const convertedSyncDelay = Math.pow(2, syncDelay);
     console.log("sanity check delayL source: ", source);
     return `
@@ -212,20 +186,13 @@ export const delayLString = (source: string, delay: number, lines: number, syncD
         // while (true) {
                 for (0 => int i; i < ${lines}; i++) 
                 { 
-                    if ("${source}" == "osc1") {
-                        hpf => win[i] => dac;  
-                    } else if ("${source}" == "s1") {
-                        limiter_Sampler => win[i] => dac;
-                    } else if ("${source}" == "stk1") {
-                        limiter_STK => win[i] => dac;
-                    }
+
                     win[i] => OneZero filter_delayL_${source} => win[i];
                     zero => filter_delayL_${source}.zero;
                     b0 => filter_delayL_${source}.b0;
                     b1 => filter_delayL_${source}.b1;
                     0.6 => win[i].gain; 
-                    // ((whole * ${numeratorSignature})/((syncDelay) * (1/(1 + i*0.7)))) => win[i].max => win[i].delay;
-                    (whole * ${numeratorSignature})/((syncDelay) * (1/(1 + i*0.7))) => win[i].max => win[i].delay;
+                    whole /((syncDelay) * (1/(1 + i*0.7))) => win[i].max => win[i].delay;
 
                     // me.yield();
                 }
@@ -238,8 +205,7 @@ export const delayLString = (source: string, delay: number, lines: number, syncD
 
 export const expDelayString = (source: string, ampcurve: number, durcurve: number, delay: number, mix: number, reps: number, gain: number, currentNoteVals: any) => {
     const convertedSyncDelay = Math.pow(2, delay);
-    console.log("WHAT IS CONVERTED SYNC DELAY? ", convertedSyncDelay);
-    console.log("all good???? ", currentNoteVals.master[0]);
+
     return `
     fun void playExpDelayWindow(ExpDelay @ win, float ampcurve, float durcurve, float delay, float mix, int reps, float gain) {
 
@@ -308,22 +274,10 @@ export const defaultSources: Sources = {
         masterVolume: 0.5,
         detune: 0,
         effects: {
-            WinEnv: {
+            WinFuncEnv: {
                 VarName: '',
                 On: false,
                 Declaration: ' WinFuncEnv winfuncenv_osc1 =>',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            WinFunc: {
-                VarName: '',
-                On: false,
-                Declaration: '',
                 presets: [],
                 Type: '',
                 Visible: false,
@@ -399,7 +353,7 @@ export const defaultSources: Sources = {
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper: any, currentNoteVals: any) => delayString('osc1', helper.osc1.delay, helper.osc1.lines, helper.osc1.syncDelay, helper.osc1.zero, helper.current.osc1.b0, helper.osc1.b1, currentNoteVals),
+                Code: (helper: any, currentNoteVals: any) => delayString('osc1', helper.osc1.delay, helper.osc1.lines, helper.osc1.syncDelay, helper.osc1.zero, helper.osc1.b0, helper.osc1.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -423,7 +377,7 @@ export const defaultSources: Sources = {
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper: any, currentNoteVals: any, numeratorSignature: any) => delayLString('osc1', helper.osc1.delay, helper.osc1.lines, helper.osc1.syncDelay, helper.osc1.zero, helper.osc1.b0, helper.osc1.b1, currentNoteVals, numeratorSignature),
+                Code: (helper: any, currentNoteVals: any, numeratorSignature: any) => delayLString('osc1', helper.osc1.delay, helper.osc1.lines, helper.osc1.syncDelay, helper.osc1.zero, helper.osc1.b0, helper.osc1.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -488,7 +442,7 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            FoldbackSaturation: {
+            FoldbackSaturator: {
                 VarName: '',
                 On: false,
                 Declaration: '',
@@ -596,30 +550,18 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            ASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            PowerASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
+            // ADSR: {
+            //     VarName: '',
+            //     On: false,
+            //     Declaration: '',
+            //     presets: [],
+            //     Type: '',
+            //     Visible: false,
+            //     Code: '',
+            //     EnvSetting: '',
+            //     ConnectionIn: [],
+            //     ConnectionOut: []
+            // },
             KasFilter: {
                 VarName: '',
                 On: false,
@@ -668,13 +610,34 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            SndBuf: [{
+            SndBuf: {
                 src: '',
-            }],
-            LiSa: [{
+                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
+            LiSa: {
                 src: '',
-            }],
+                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
         },
+        effectsString: '',
         pattern: [{
             time: {
                 bpm: 120,
@@ -688,32 +651,413 @@ export const defaultSources: Sources = {
             ],
             patternArrName: ''
         }],
-        arpeggiateOn: false
+        arpeggiateOn: false,
+        active: true,
+        isEditing: true,
     },
+
+
+
+
+
+
+    // osc2: {
+    //     masterVolume: 0.5,
+    //     detune: 0,
+    //     effects: {
+    //         WinFuncEnv: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: ' WinFuncEnv winfuncenv_osc2 =>',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: (helper: any) => winFuncString('osc2', helper.osc2.attackTime, helper.osc2.releaseTime, helper.osc2.envSetting),
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         PowerADSR: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         ExpEnv: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         WPDiodeLadder: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         WPKorg35: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Modulate: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Delay: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         DelayA: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         DelayL: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         ExpDelay: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Elliptic: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Spectacle: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Gain: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Bitcrusher: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         FoldbackSaturator: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Echo: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Chorus: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         PitShift: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         AmbPan3: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         JCRev: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         NRev: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         PRCRev: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         GVerb: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         // ADSR: {
+    //         //     VarName: '',
+    //         //     On: false,
+    //         //     Declaration: '',
+    //         //     presets: [],
+    //         //     Type: '',
+    //         //     Visible: false,
+    //         //     Code: '',
+    //         //     EnvSetting: '',
+    //         //     ConnectionIn: [],
+    //         //     ConnectionOut: []
+    //         // },
+    //         KasFilter: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Multicomb: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         PitchTracker: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         Sigmund: {
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         SndBuf: {
+    //             src: '',
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //         LiSa: {
+    //             src: '',
+    //             VarName: '',
+    //             On: false,
+    //             Declaration: '',
+    //             presets: [],
+    //             Type: '',
+    //             Visible: false,
+    //             Code: '',
+    //             EnvSetting: '',
+    //             ConnectionIn: [],
+    //             ConnectionOut: []
+    //         },
+    //     },
+    //     effectsString: '',
+    //     pattern: [{
+    //         time: {
+    //             bpm: 120,
+    //             numerator: 4,
+    //             denominator: 4,
+    //             sequencerRate: 8,
+    //             listenToMidiClock: true,
+    //         },
+    //         patternArr: [
+
+    //         ],
+    //         patternArrName: ''
+    //     }],
+    //     arpeggiateOn: false,
+    //     active: false,
+    //     isEditing: false,
+    // },
     osc2: {
         masterVolume: 0.5,
         detune: 0,
         effects: {
-            WinEnv: {
+            WinFuncEnv: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' WinFuncEnv winfuncenv_osc2 =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            WinFunc: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
+                Code: (helper: any) => winFuncString('osc2', helper.osc2.attackTime, helper.osc2.releaseTime, helper.osc2.envSetting),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -721,11 +1065,11 @@ export const defaultSources: Sources = {
             PowerADSR: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' PowerADSR poweradsr_osc2 =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any) => powerADSRString('osc2', helper.osc2.attackTime, helper.osc2.attackCurve, helper.osc2.decayTime, helper.osc2.decayCurve, helper.osc2.sustainLevel, helper.osc2.releaseTime, helper.osc2.releaseCurve),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -733,11 +1077,11 @@ export const defaultSources: Sources = {
             ExpEnv: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' ExpEnv expenv_osc2 =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any) => expEnvString('osc2', helper.osc2.T60, helper.osc2.radius, helper.osc2.value),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -745,11 +1089,11 @@ export const defaultSources: Sources = {
             WPDiodeLadder: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' WPDiodeLadder wpdiodeladder_osc2 =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any) => wpDiodeLadderString('osc2', helper.osc2.cutoff, helper.osc2.resonance, helper.osc2.nlp_type, helper.osc2.nonlinear, helper.osc2.saturation),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -757,11 +1101,11 @@ export const defaultSources: Sources = {
             WPKorg35: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: 'saw2 => WPKorg35 wpkorg35_osc2 => dac;',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any) => wpKorg35String('osc2', helper.osc2.cutoff, helper.osc2.resonance,helper.osc2.nonlinear, helper.osc2.saturation),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -769,11 +1113,11 @@ export const defaultSources: Sources = {
             Modulate: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: 'hpf => Modulate mod_osc2 => dac;',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any, currentNoteVals: any) => modulateString('osc2', helper.osc2.vibratoRate, helper.osc2.vibratoGain, helper.osc2.randomGain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -781,11 +1125,11 @@ export const defaultSources: Sources = {
             Delay: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: (lines: any) => `Delay delay_osc2[${lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any, currentNoteVals: any) => delayString('osc2', helper.osc2.delay, helper.osc2.lines, helper.osc2.syncDelay, helper.osc2.zero, helper.osc2.b0, helper.osc2.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -793,11 +1137,11 @@ export const defaultSources: Sources = {
             DelayA: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: (lines: any) => `DelayA delayA_osc2[${lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any, currentNoteVals: any) => delayAString('osc2', helper.osc2.delay, helper.osc2.lines, helper.osc2.syncDelay, helper.osc2.zero, helper.osc2.b0, helper.osc2.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -805,11 +1149,11 @@ export const defaultSources: Sources = {
             DelayL: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: (lines: any) => `DelayL delayL_osc2[${lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any, currentNoteVals: any, numeratorSignature: any) => delayLString('osc2', helper.osc2.delay, helper.osc2.lines, helper.osc2.syncDelay, helper.osc2.zero, helper.osc2.b0, helper.osc2.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -817,11 +1161,11 @@ export const defaultSources: Sources = {
             ExpDelay: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' ExpDelay expDelay_osc2 =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any, currentNoteVals: any) => expDelayString('osc2', helper.osc2.ampcurve, helper.osc2.durcurve, helper.osc2.delay, helper.osc2.mix, helper.osc2.reps, helper.osc2.gain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -829,11 +1173,11 @@ export const defaultSources: Sources = {
             Elliptic: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' Elliptic elliptic_osc2 =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any, currentNoteVals: any) =>  ellipticString('osc2', helper.osc2.filterLow, helper.osc2.filterMid, helper.osc2.filterHigh, helper.osc2.atten, helper.osc2.ripple, helper.osc2.filterMode, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -841,11 +1185,11 @@ export const defaultSources: Sources = {
             Spectacle: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' => Spectacle spectacle_osc2 ',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper: any) => spectacleString('osc2', helper.osc2.bands, helper.osc2.delay, helper.osc2.eq, helper.osc2.feedback, helper.osc2.fftlen, helper.osc2.freqMax, helper.osc2.freqMin, helper.osc2.mix, helper.osc2.overlap, helper.osc2.table),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -874,7 +1218,7 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            FoldbackSaturation: {
+            FoldbackSaturator: {
                 VarName: '',
                 On: false,
                 Declaration: '',
@@ -982,30 +1326,18 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            ASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            PowerASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
+            // ADSR: {
+            //     VarName: '',
+            //     On: false,
+            //     Declaration: '',
+            //     presets: [],
+            //     Type: '',
+            //     Visible: false,
+            //     Code: '',
+            //     EnvSetting: '',
+            //     ConnectionIn: [],
+            //     ConnectionOut: []
+            // },
             KasFilter: {
                 VarName: '',
                 On: false,
@@ -1054,13 +1386,34 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            SndBuf: [{
+            SndBuf: {
                 src: '',
-            }],
-            LiSa: [{
+                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
+            LiSa: {
                 src: '',
-            }],
+                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
         },
+        effectsString: '',
         pattern: [{
             time: {
                 bpm: 120,
@@ -1074,381 +1427,389 @@ export const defaultSources: Sources = {
             ],
             patternArrName: ''
         }],
-        arpeggiateOn: false
+        arpeggiateOn: false,
+        active: true,
+        isEditing: true,
     },
+    
+    
+    
+    
+    
+    
+    
     stk1: {
             masterVolume: 0.5,
             detune: 0,
-            effects: {
-                WinEnv: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                WinFunc: {
-                    VarName: '',
-                    On: false,
-                    Declaration: ' WinFuncEnv winfuncenv_stk1 =>',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper:any) => winFuncString('stk1', helper.stk.attackTime, helper.stk.releaseTime, helper.stk.envSetting),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                PowerADSR: {
-                    VarName: '',
-                    On: false,
-                    Declaration: ' PowerADSR poweradsr_stk1 =>',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper: any) => powerADSRString('stk1', helper.stk.attackTime, helper.stk.attackCurve, helper.stk.decayTime, helper.stk.decayCurve, helper.stk.sustainLevel, helper.stk.releaseTime, helper.stk.releaseCurve),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                ExpEnv: {
-                    VarName: '',
-                    On: false,
-                    Declaration: ' ExpEnv expenv_stk1 =>',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper:any) => expEnvString('stk1', helper.stk.T60, helper.stk.radius, helper.stk.value) ,
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                WPDiodeLadder: {
-                    VarName: '',
-                    On: false,
-                    Declaration: ' WPDiodeLadder wpdiodeladder_stk1 =>',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper: any) => wpDiodeLadderString('stk1', helper.stk.cutoff, helper.stk.resonance, helper.stk.nlp_type, helper.stk.nonlinear, helper.stk.saturation),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                WPKorg35: {
-                    VarName: '',
-                    On: false,
-                    Declaration: 'limiter_STK => WPKorg35 wpkorg35_stk1 => dac;',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper:any) => wpKorg35String('stk1', helper.stk.cutoff, helper.stk.resonance, helper.stk.nonlinear, helper.stk.saturation),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Modulate: {
-                    VarName: '',
-                    On: false,
-                    Declaration: ' Modulate mod_stk1 =>',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper:any, currentNoteVals: any) =>  modulateString('stk1', helper.stk.vibratoRate, helper.stk.vibratoGain, helper.stk.randomGain, currentNoteVals),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Delay: {
-                    VarName: '',
-                    On: false,
-                    Declaration: (helper:any) => `Delay delay_stk1[${helper.stk.lines}];`,
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                   
-                    Code: (helper: any, currentNoteVals: any) => delayString('stk1', helper.stk.delay, helper.stk.lines, helper.stk.syncDelay, helper.stk.zero, helper.stk.b0, helper.stk.b1, currentNoteVals),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                DelayA: {
-                    VarName: '',
-                    On: false,
-                    Declaration: (helper:any) => `DelayA delayA_stk1[${helper.stk.lines}];`,
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper: any, currentNoteVals: any) => delayAString('stk1', helper.stk.delay, helper.stk.lines, helper.stk.syncDelay, helper.stk.zero, helper.stk.b0, helper.stk.b1, currentNoteVals),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                DelayL: {
-                    VarName: '',
-                    On: false,
-                    Declaration: (helper:any) => `DelayL delayL_stk1[${helper.stk.lines}];`,
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper: any, currentNoteVals: any, numeratorSignature: number) => delayLString('stk1', helper.stk.delay, helper.stk.lines, helper.stk.syncDelay, helper.stk.zero, helper.stk.b0, helper.stk.b1, currentNoteVals, numeratorSignature),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                ExpDelay: {
-                    VarName: '',
-                    On: false,
-                    Declaration: ' ExpDelay expDelay_stk1 =>',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper: any, currentNoteVals: any) => expDelayString('stk1', helper.stk.ampcurve, helper.stk.durcurve, helper.stk.delay, helper.stk.mix, helper.stk.reps, helper.stk.gain, currentNoteVals),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Elliptic: {
-                    VarName: '',
-                    On: false,
-                    Declaration: ' Elliptic elliptic_stk1 =>',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: (helper:any, currentNoteVals:any) => ellipticString('stk1', helper.stk.filterLow, helper.stk.filterMid, helper.stk.filterHigh, helper.stk.atten, helper.stk.ripple, helper.stk.filterMode, currentNoteVals),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Spectacle: {
-                    VarName: '',
-                    On: false,
-               
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Declaration: 'Spectacle spectacle_stk1 =>',
-                    Code: (helper: any) => spectacleString('stk1', helper.stk.bands, helper.stk.delay, helper.stk.eq, helper.stk.feedback, helper.stk.fftlen, helper.stk.freqMax, helper.stk.freqMin, helper.stk.mix, helper.stk.overlap, helper.stk.table),
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Gain: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Bitcrusher: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                FoldbackSaturation: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Echo: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Chorus: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                PitShift: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                AmbPan3: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                JCRev: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                NRev: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                PRCRev: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                GVerb: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                ASDR: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                PowerASDR: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                KasFilter: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Multicomb: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                PitchTracker: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                Sigmund: {
-                    VarName: '',
-                    On: false,
-                    Declaration: '',
-                    presets: [],
-                    Type: '',
-                    Visible: false,
-                    Code: '',
-                    EnvSetting: '',
-                    ConnectionIn: [],
-                    ConnectionOut: []
-                },
-                SndBuf: [{
-                    src: '',
-                }],
-                LiSa: [{
-                    src: '',
-                }],
-            },
+            effects: 
+                {
+
+                        WinFuncEnv: {
+                            VarName: '',
+                            On: false,
+                            Declaration: ' WinFuncEnv winfuncenv_stk1 =>',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper:any) => winFuncString('stk1', helper.stk1.attackTime, helper.stk1.releaseTime, helper.stk1.envSetting),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        PowerADSR: {
+                            VarName: '',
+                            On: false,
+                            Declaration: ' PowerADSR poweradsr_stk1 =>',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper: any) => powerADSRString('stk1', helper.stk1.attackTime, helper.stk1.attackCurve, helper.stk1.decayTime, helper.stk1.decayCurve, helper.stk1.sustainLevel, helper.stk1.releaseTime, helper.stk1.releaseCurve),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        ExpEnv: {
+                            VarName: '',
+                            On: false,
+                            Declaration: ' ExpEnv expenv_stk1 =>',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper:any) => expEnvString('stk1', helper.stk1.T60, helper.stk1.radius, helper.stk1.value) ,
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        WPDiodeLadder: {
+                            VarName: '',
+                            On: false,
+                            Declaration: ' WPDiodeLadder wpdiodeladder_stk1 =>',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper: any) => wpDiodeLadderString('stk1', helper.stk1.cutoff, helper.stk1.resonance, helper.stk1.nlp_type, helper.stk1.nonlinear, helper.stk1.saturation),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        WPKorg35: {
+                            VarName: '',
+                            On: false,
+                            Declaration: 'limiter_STK => WPKorg35 wpkorg35_stk1 => dac;',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper:any) => wpKorg35String('stk1', helper.stk1.cutoff, helper.stk1.resonance, helper.stk1.nonlinear, helper.stk1.saturation),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Modulate: {
+                            VarName: '',
+                            On: false,
+                            Declaration: ' Modulate mod_stk1 =>',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper:any, currentNoteVals: any) =>  modulateString('stk1', helper.stk1.vibratoRate, helper.stk1.vibratoGain, helper.stk1.randomGain, currentNoteVals),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Delay: {
+                            VarName: '',
+                            On: false,
+                            Declaration: (helper:any) => `Delay delay_stk1[${helper.stk1.lines}];`,
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                        
+                            Code: (helper: any, currentNoteVals: any) => delayString('stk1', helper.stk1.delay, helper.stk1.lines, helper.stk1.syncDelay, helper.stk1.zero, helper.stk1.b0, helper.stk1.b1, currentNoteVals),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        DelayA: {
+                            VarName: '',
+                            On: false,
+                            Declaration: (helper:any) => `DelayA delayA_stk1[${helper.stk1.lines}];`,
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper: any, currentNoteVals: any) => delayAString('stk1', helper.stk1.delay, helper.stk1.lines, helper.stk1.syncDelay, helper.stk1.zero, helper.stk1.b0, helper.stk1.b1, currentNoteVals),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        DelayL: {
+                            VarName: '',
+                            On: false,
+                            Declaration: (helper:any) => `DelayL delayL_stk1[${helper.stk1.lines}];`,
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper: any, currentNoteVals: any, numeratorSignature: number) => delayLString('stk1', helper.stk1.delay, helper.stk1.lines, helper.stk1.syncDelay, helper.stk1.zero, helper.stk1.b0, helper.stk1.b1, currentNoteVals),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        ExpDelay: {
+                            VarName: '',
+                            On: false,
+                            Declaration: ' ExpDelay expDelay_stk1 =>',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper: any, currentNoteVals: any) => expDelayString('stk1', helper.stk1.ampcurve, helper.stk1.durcurve, helper.stk1.delay, helper.stk1.mix, helper.stk1.reps, helper.stk1.gain, currentNoteVals),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Elliptic: {
+                            VarName: '',
+                            On: false,
+                            Declaration: ' Elliptic elliptic_stk1 =>',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: (helper:any, currentNoteVals:any) => ellipticString('stk1', helper.stk1.filterLow, helper.stk1.filterMid, helper.stk1.filterHigh, helper.stk1.atten, helper.stk1.ripple, helper.stk1.filterMode, currentNoteVals),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Spectacle: {
+                            VarName: '',
+                            On: false,
+                    
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Declaration: 'Spectacle spectacle_stk1 =>',
+                            Code: (helper: any) => spectacleString('stk1', helper.stk1.bands, helper.stk1.delay, helper.stk1.eq, helper.stk1.feedback, helper.stk1.fftlen, helper.stk1.freqMax, helper.stk1.freqMin, helper.stk1.mix, helper.stk1.overlap, helper.stk1.table),
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Gain: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Bitcrusher: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        FoldbackSaturator: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Echo: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Chorus: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        PitShift: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        AmbPan3: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        JCRev: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        NRev: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        PRCRev: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        GVerb: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        // ADSR: {
+                        //     VarName: '',
+                        //     On: false,
+                        //     Declaration: '',
+                        //     presets: [],
+                        //     Type: '',
+                        //     Visible: false,
+                        //     Code: '',
+                        //     EnvSetting: '',
+                        //     ConnectionIn: [],
+                        //     ConnectionOut: []
+                        // },
+                        KasFilter: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Multicomb: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        PitchTracker: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        Sigmund: {
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        SndBuf: {
+                            src: '',
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                        LiSa: {
+                            src: '',
+                            VarName: '',
+                            On: false,
+                            Declaration: '',
+                            presets: [],
+                            Type: '',
+                            Visible: false,
+                            Code: '',
+                            EnvSetting: '',
+                            ConnectionIn: [],
+                            ConnectionOut: []
+                        },
+                    },
+            effectsString: '',
             pattern: [{
                 time: {
                     bpm: 120,
@@ -1468,203 +1829,218 @@ export const defaultSources: Sources = {
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '' 
                 },
                 Karplus: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '' 
                 },
                 Sitar: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',
                 },
                 FrencHrn: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '', 
                 },
                 Moog: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '', 
                 },
                 Rhodey: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',
                 },
                 Saxofony: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '', 
                 },
                 Mandolin: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',  
                 },
                 BandedWaveGuide: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '', 
                 },
                 Bottle: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '', 
                 },
                 Blowhole: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '', 
                 },
                 Bowed: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '', 
                 },
                 Brass: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',  
                 },
                 Flute: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',  
                 },
                 ModalBar: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',  
                 },
                 Shakers: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',  
                 },
                 VoiceForm: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: ''  
                 },
                 B3: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: ''  
                 },
                 ElectricGuitar: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: ''  
                 },
                 HonkeyTonk: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',  
                 },
                 FMVoices: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: '',  
                 },
                 ChrystalChoir: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: ''  
                 },
                 PercFlute: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: ''  
                 },
                 TubeBell: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: ''  
                 },
                 Wurley: {
                     VarName: '',
                     Type: '',
                     On: false,
                     Visible: false,
-                    stkFXPresets: [] 
+                    presets: [],
+                    Declaration: ''  
                 },
             },
-            arpeggiateOn: false
+            arpeggiateOn: false,
+            active: false,
+            isEditing: false,
         },
     sampler: {
         masterVolume: 0.5,
         detune: 0,
         effects: {
-            WinEnv: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: (helper:any) => winFuncString('sampler1', helper.sampler.attackTime, helper.sampler.releaseTime, helper.sampler.envSetting),
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            WinFunc: {
+            WinFuncEnv: {
                 VarName: '',
                 On: false,
                 Declaration: ' WinFuncEnv winfuncenv_sampler1 =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any) => winFuncString('sampler1', helper.sampler.attackTime, helper.sampler.releaseTime, helper.sampler.envSetting),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -1760,7 +2136,7 @@ export const defaultSources: Sources = {
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals: any, numeratorSignature: number) => delayLString('sampler1', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals, numeratorSignature),
+                Code: (helper:any, currentNoteVals: any, numeratorSignature: number) => delayLString('sampler1', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -1825,7 +2201,7 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            FoldbackSaturation: {
+            FoldbackSaturator: {
                 VarName: '',
                 On: false,
                 Declaration: '',
@@ -1933,30 +2309,18 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            ASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            PowerASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
+            // ADSR: {
+            //     VarName: '',
+            //     On: false,
+            //     Declaration: '',
+            //     presets: [],
+            //     Type: '',
+            //     Visible: false,
+            //     Code: '',
+            //     EnvSetting: '',
+            //     ConnectionIn: [],
+            //     ConnectionOut: []
+            // },
             KasFilter: {
                 VarName: '',
                 On: false,
@@ -2005,13 +2369,34 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            SndBuf: [{
+            SndBuf: {
                 src: '',
-            }],
-            LiSa: [{
+                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
+            LiSa: {
                 src: '',
-            }],
+                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
         },
+        effectsString: '',
         pattern: [{
             time: {
                 bpm: 120,
@@ -2025,32 +2410,22 @@ export const defaultSources: Sources = {
             ],
             patternArrName: ''
         }],
-        arpeggiateOn: false
+        arpeggiateOn: false,
+        active: false,
+        isEditing: false,
     },
     audioIn: {
         masterVolume: 0.5,
         detune: 0,
         effects: {
-            WinEnv: {
+            WinFuncEnv: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' WinFuncEnv winfuncenv_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            WinFunc: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
+                Code: (helper:any) => winFuncString('audioIn', helper.audioIn.attackTime, helper.audioIn.releaseTime, helper.audioIn.envSetting),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2058,11 +2433,11 @@ export const defaultSources: Sources = {
             PowerADSR: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' PowerADSR poweradsr_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any) => powerADSRString('audioIn', helper.audioIn.attackTime, helper.audioIn.attackCurve, helper.audioIn.decayTime, helper.audioIn.decayCurve, helper.audioIn.sustainLevel, helper.audioIn.releaseTime, helper.audioIn.releaseCurve),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2070,11 +2445,11 @@ export const defaultSources: Sources = {
             ExpEnv: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' ExpEnv expenv_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any) => expEnvString('audioIn', helper.audioIn.T60, helper.audioIn.radius, helper.audioIn.value),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2082,11 +2457,11 @@ export const defaultSources: Sources = {
             WPDiodeLadder: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' WPDiodeLadder wpdiodeladder_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any) => wpDiodeLadderString('audioIn', helper.audioIn.cutoff, helper.audioIn.resonance, helper.audioIn.nlp_type, helper.audioIn.nonlinear, helper.audioIn.saturation),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2094,11 +2469,11 @@ export const defaultSources: Sources = {
             WPKorg35: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: 'limiter_audioIn => WPKorg35 wpkorg35_audioIn => dac;',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any) => wpKorg35String('audioIn', helper.audioIn.cutoff, helper.audioIn.resonance, helper.audioIn.nonlinear, helper.audioIn.saturation) ,
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2106,11 +2481,11 @@ export const defaultSources: Sources = {
             Modulate: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' Modulate mod_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any, currentNoteVals:any) => modulateString('audioIn', helper.audioIn.vibratoRate, helper.audioIn.vibratoGain, helper.audioIn.randomGain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2118,11 +2493,11 @@ export const defaultSources: Sources = {
             Delay: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: (helper: any) => `Delay delay_audioIn[${helper.audioIn.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any, currentNoteVals: any) => delayString('audioIn', helper.audioIn.delay, helper.audioIn.lines, helper.audioIn.syncDelay, helper.audioIn.zero, helper.audioIn.b0, helper.audioIn.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2130,11 +2505,11 @@ export const defaultSources: Sources = {
             DelayA: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: (helper:any) => `DelayA delayA_audioIn[${helper.audioIn.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any, currentNoteVals: any) => delayAString('audioIn', helper.audioIn.delay, helper.audioIn.lines, helper.audioIn.syncDelay, helper.audioIn.zero, helper.audioIn.b0, helper.audioIn.b1, currentNoteVals) ,
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2142,11 +2517,11 @@ export const defaultSources: Sources = {
             DelayL: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: (helper:any) => `DelayL delayL_audioIn[${helper.audioIn.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any, currentNoteVals: any, numeratorSignature: number) => delayLString('audioIn', helper.audioIn.delay, helper.audioIn.lines, helper.audioIn.syncDelay, helper.audioIn.zero, helper.audioIn.b0, helper.audioIn.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2154,11 +2529,11 @@ export const defaultSources: Sources = {
             ExpDelay: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' ExpDelay expDelay_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any, currentNoteVals:any) => expDelayString('audioIn', helper.audioIn.ampcurve, helper.audioIn.durcurve, helper.audioIn.delay, helper.audioIn.mix, helper.audioIn.reps, helper.audioIn.gain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2166,11 +2541,11 @@ export const defaultSources: Sources = {
             Elliptic: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: ' Elliptic elliptic_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any, currentNoteVals:any) => ellipticString('audioIn', helper.audioIn.filterLow, helper.audioIn.filterMid, helper.audioIn.filterHigh, helper.audioIn.atten, helper.audioIn.ripple, helper.audioIn.filterMode, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2178,11 +2553,11 @@ export const defaultSources: Sources = {
             Spectacle: {
                 VarName: '',
                 On: false,
-                Declaration: '',
+                Declaration: 'Spectacle spectacle_audioIn =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: '',
+                Code: (helper:any) => spectacleString('audioIn', helper.audioIn.bands, helper.audioIn.delay, helper.audioIn.eq, helper.audioIn.feedback, helper.audioIn.fftlen, helper.audioIn.freqMax, helper.audioIn.freqMin, helper.audioIn.mix, helper.audioIn.overlap, helper.audioIn.table),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2211,7 +2586,7 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            FoldbackSaturation: {
+            FoldbackSaturator: {
                 VarName: '',
                 On: false,
                 Declaration: '',
@@ -2319,30 +2694,18 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            ASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
-            PowerASDR: {
-                VarName: '',
-                On: false,
-                Declaration: '',
-                presets: [],
-                Type: '',
-                Visible: false,
-                Code: '',
-                EnvSetting: '',
-                ConnectionIn: [],
-                ConnectionOut: []
-            },
+            // ADSR: {
+            //     VarName: '',
+            //     On: false,
+            //     Declaration: '',
+            //     presets: [],
+            //     Type: '',
+            //     Visible: false,
+            //     Code: '',
+            //     EnvSetting: '',
+            //     ConnectionIn: [],
+            //     ConnectionOut: []
+            // },
             KasFilter: {
                 VarName: '',
                 On: false,
@@ -2391,13 +2754,34 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            SndBuf: [{
+            SndBuf: {
                 src: '',
-            }],
-            LiSa: [{
+                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
+            LiSa: {
                 src: '',
-            }],
+                                VarName: '',
+                On: false,
+                Declaration: '',
+                presets: [],
+                Type: '',
+                Visible: false,
+                Code: '',
+                EnvSetting: '',
+                ConnectionIn: [],
+                ConnectionOut: []
+            },
         },
+        effectsString: '',
         pattern: [{
             time: {
                 bpm: 120,
@@ -2411,6 +2795,8 @@ export const defaultSources: Sources = {
             ],
             patternArrName: ''
         }],
-        arpeggiateOn: false
+        arpeggiateOn: false,
+        active: false,
+        isEditing: false,
     },
 }

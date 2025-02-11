@@ -13,13 +13,14 @@ const FullScreenHexbin = ({ game, numHexes, values, onHexClick }: NewHexProps) =
 
 
       return (
-        <canvas
-          ref={game.canvas2}
-          style={{
-            width: "100vw",
-            height: "100vh",
-          }}
-        />
+        // <canvas
+        //   ref={game.canvas2}
+        //   style={{
+        //     width: "100vw",
+        //     height: "100vh",
+        //   }}
+        // />
+        <></>
       );
 };
     

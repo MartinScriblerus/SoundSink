@@ -5,6 +5,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import { Box, useTheme } from '@mui/material';
+import { FOREST_GREEN } from '@/utils/constants';
 
 interface Props {
     checkedEffectsListHook: Array<string> | any;
@@ -15,9 +16,9 @@ const CheckedFXRadioBtns = (props: Props) => {
     const {checkedEffectsListHook, handleCheckedFXToShow} = props;
     const theme = useTheme();
         
-    useEffect(() => {
-        console.log("checked effects list hook: ", checkedEffectsListHook);
-    }, [])
+    // useEffect(() => {
+    //     console.log("checked effects list hook: ", checkedEffectsListHook);
+    // }, [])
 
     return (
         <Box sx={{position: 'relative'}}>
@@ -28,13 +29,17 @@ const CheckedFXRadioBtns = (props: Props) => {
                     aria-labelledby="demo-row-radio-buttons-group-label-checkedFX"
                     name="row-radio-buttons-group-checkedFX"
                     onChange={handleCheckedFXToShow}
-                    sx={{color: theme.palette.primaryA, zIndex: 9999}}
+                    sx={{
+                        color: FOREST_GREEN, 
+                        zIndex: 9999, 
+                        fontSize: '13px'
+                    }}
                 >
                     {
                         checkedEffectsListHook && checkedEffectsListHook.length > 0 && checkedEffectsListHook.forEach((cFX: any) => {
                             <FormControlLabel 
                             key={`${cFX}_fx_radio_btn`}
-                                sx={{color: 'white'}}
+                                sx={{color: 'rgba(255,255,255,0.78)'}}
                                 value={`${cFX}`} 
                                 control={<Radio />} 
                                 label={`YOO${cFX}`} />

@@ -107,13 +107,12 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   return (
     <>
       <Box
-        className="findme"
         sx={{
           top: "0px",
           pointerEvents: "none",
           borderRadius: "24px",
           width: "100%",
-          height: "100%",
+          height: "calc(100vh - 13rem)",
           display: "inline-flex",
           position: "relative",
         }}
@@ -124,7 +123,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             position: "relative", 
             display: "flex", 
             height: "100%",
-            background: theme.palette.black,
+            background: "rgba(0,0,0,0.78)",
             justifyContent: "right",
             alignItems: "right",
             borderRadius: "16px",
@@ -136,7 +135,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
 
 
           <Box sx={{
-            width: "100%", 
+            // width: "100%", 
             position: "relative", 
             boxSizing: "border-box", 
             justifyContent: "center",
@@ -145,6 +144,10 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             padding: "12px", 
             fontSize: "16px",
             left: "0px",
+            width: "calc(100vw - 142px);",
+            top: "12px",
+            right: "0",
+            // left: "142px"
             }}>
               {
                 meydaData && 
@@ -158,16 +161,17 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
                 <span style={{
                   // position: "relative",
                   // top: '142px',
-                  width: "100%",
+                  // width: "100%",
                   height: "auto",
                   left: "152px",
                 }}>
-                  {
-                    !meydaParam.includes("chroma") ?
-                  <BrushChart height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></BrushChart>
-                  : 
-                  <Steamgraph height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></Steamgraph>
-                  }
+                  {/* {
+                    !meydaParam.includes("chroma") 
+                    ?
+                      <BrushChart height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></BrushChart>
+                    : 
+                      <Steamgraph height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></Steamgraph>
+                  } */}
                 </span>
                 </div>
               }
@@ -185,7 +189,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
           <CloseIcon 
             onClick={closeAnalysisPopup} 
             sx={{ 
-              pointerEvents: "all", 
+              pointerEvents: "auto", 
               position: "relative", 
               display: "flex", 
               flexDirection: "column", 

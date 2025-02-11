@@ -1,33 +1,11 @@
 import { Box, FormLabel, SelectChangeEvent, useTheme } from '@mui/material';
 import React, { useState } from 'react';
-import MingusPopup from './MingusPopup'
 import { KeyboardProps } from '@/types/audioTypes';
-import STKManagerDropdown from './STKManagerDropdown';
-import CustomAriaLive from './MicrotonesSearch';
 import axios from 'axios';
-import CheckedFXRadioBtns from './CheckedFXRadioBtns';
-import SelectInputSourceRadioButtons from './SelectInputSourceRadioButtons';
 
 const KeyboardControls = (
    {        
-        programIsOn,
-        selectRef,
-        tune,
-        currentMicroTonalScale,
         chuckHook,
-        updateStkKnobs,
-        stkValues,
-        setStkValues,
-        handleCheckedFXToShow,
-        checkedEffectsListHook,
-
-
-        handleChange,
-        value,
-        updateCurrentFXScreen,
-        currentScreen,
-        playUploadedFile,
-        lastFileUpload,
     }
     : KeyboardProps
 ) => {
@@ -95,66 +73,15 @@ const KeyboardControls = (
     return (
         <Box 
             sx={{
-                backgroundColor: theme.palette.black,
-                color: theme.palette.white, 
+                color: `rgba(0,0,0,0.78) !important`, 
                 flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center',
-                top: '120px',
-                left: '172px',
-                position: 'absolute',
-                display: chuckHook && window.innerHeight > 520 ? 'flex': 'none',
+                justifyContent: 'left',
+                alignItems: 'left',
+                display: chuckHook ? 'flex': 'none',
                 fontFamily: 'monospace',
-                width: '140px'
             }}>
 
-            <Box 
-                sx={{
-                    display: 'none', // TODO --> return the above styling when ready...                  
-                }} 
-                // className={'fx-popup-left-row'}
-            >    
-                <MingusPopup 
-                    submitMingus={submitMingus}
-                    audioKey={audioKey}
-                    octave={octave}
-                    audioScale={audioScale}
-                    audioChord={audioChord}
-                    handleChangeScale={handleChangeScale}
-                    handleChangeChord={handleChangeChord}
-                    selectRef={selectRef}
-                    tune={tune}
-                    currentMicroTonalScale={currentMicroTonalScale}
-                />
-                <STKManagerDropdown
-                    updateStkKnobs={updateStkKnobs}
-                    stkValues={stkValues}
-                    setStkValues={setStkValues}
-                ></STKManagerDropdown>
-                <CustomAriaLive 
-                    selectRef={selectRef} 
-                    tune={tune} 
-                    currentMicroTonalScale={currentMicroTonalScale} 
-                />
-                    <CheckedFXRadioBtns 
-                        handleCheckedFXToShow={handleCheckedFXToShow} 
-                        checkedEffectsListHook={checkedEffectsListHook}
-                    >
-                    </CheckedFXRadioBtns>
-                    {
-                (<SelectInputSourceRadioButtons 
-                    handleChange={handleChange} 
-                    value={value}
-                    updateStkKnobs={updateStkKnobs}
-                    setStkValues={setStkValues}
-                    stkValues={stkValues}
-                    updateCurrentFXScreen={updateCurrentFXScreen}
-                    currentScreen={currentScreen.current}
-                    playUploadedFile={playUploadedFile}
-                    lastFileUpload={lastFileUpload}
-                />)
-            }
-            </Box>
+
         </Box>
     )
 }

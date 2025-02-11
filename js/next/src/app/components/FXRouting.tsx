@@ -1,5 +1,5 @@
-import React, { SetStateAction, useEffect, useRef, useState } from 'react';
-import { Box, styled, useTheme } from '@mui/system';
+import React, { SetStateAction, useRef } from 'react';
+import { Box, useTheme } from '@mui/system';
 import FXCheckboxLabels from './FXCheckboxes';
 import { STKOption } from '@/utils/fixedOptionsDropdownData';
 import "../../app/page.module.css"
@@ -37,8 +37,8 @@ interface FXRoutingProps {
   fxData: any;
   width: number;
   height: number;
-  fxChainNeedsUpdate: (msg: any) => void;
-  fxValsRef: any;
+  // fxChainNeedsUpdate: (msg: any) => void;
+  // fxValsRef: any;
   handleFXGroupChange: (e: any) => void;
   updateCheckedFXList: (e: any) => void;
   fxGroupsArrayList: Array<any>;
@@ -53,26 +53,20 @@ interface FXRoutingProps {
   updateStkKnobs: (knobVals: any) => void;
   setStkValues: React.Dispatch<SetStateAction<any>>;
   stkValues: STKOption[] | [];
-  updateCurrentFXScreen: () => void;
   currentScreen: string;
   lastFileUpload: string;
   updateFileUploads: (e: any) => void;
-  babylonGame: any;
   handleCheckedFXToShow: (x:any) => void;
   checkedEffectsListHook: any;
 }
 
 export default function FXRouting(props: FXRoutingProps) {
   const {
-    fxData,
-    fxChainNeedsUpdate,
     handleFXGroupChange,
     updateCheckedFXList,
     fxGroupsArrayList,
     checkedFXList,
     fxFX,
-    clickFXChain,
-    fxRadioValue,
     handleCheckedFXToShow,
     checkedEffectsListHook,
   } = props;
@@ -100,43 +94,22 @@ export default function FXRouting(props: FXRoutingProps) {
 
   const theme = useTheme();
 
-  useEffect(() => {
-    fxData.length > 0 && Object.entries(fxData.filter((f: any) => f.visible === true && f)).map(([k, v]: Array<any>, idx: number) => {
-      if (nodesRef.current[k].map((i: any) => i.id).indexOf(v.var) === -1) {
-        if (k === fxRadioValue) {
-          nodesRef.current[k].push({
-            id: v.var,
-            name: v.type,
-            group: `${idx}`
-          });
-          linksRef.current[k].push({
-            source: v.var || fxRadioValue,
-            target: 'DAC Out',
-            value: 1
-          })
-          if (clickFXChain) {
-            fxChainNeedsUpdate(linksRef.current[fxRadioValue]);
-          }
-        }
-      } else if (idx > 0) {
-        console.log("LINKS REF: ", linksRef.current);
-        if (clickFXChain) {
-          fxChainNeedsUpdate(linksRef.current);
-        }
-      }
-    });
-    data.current = Object({ nodes: nodesRef.current, links: linksRef.current });
-  }, [nodesRef, fxData, fxRadioValue]);
-
+  
   return (
-    <Box>
+    // <Box sx={{
+    //   maxHeight: "27rem",
+    // }}>
       <Box sx={{
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
-        maxHeight: "calc(100vh - 240px)",
-        paddingBottom: '60px',
+        maxHeight: "calc(100vh - 204px)",
+        paddingBottom: "160px",
+        width: "180px",
+        // paddingBottom: '60px',
         overflowY: "auto",
+        background: 'rgba(0,0,0,0.78)',
+        zIndex: 1
       }}>             
           <FXCheckboxLabels
             fxValsRef={fxFX}
@@ -154,7 +127,7 @@ export default function FXRouting(props: FXRoutingProps) {
             flexDirection: { xs: 'column', sm: 'row' },
             gap: 2,
             zIndex: 0,
-            background: theme.palette.black,
+            background: 'rgba(0,0,0,0.78)',
             overflow: 'hidden',
             boxSizing: 'border-box',
             alignItems: 'center',
@@ -171,7 +144,7 @@ export default function FXRouting(props: FXRoutingProps) {
           </Box>
         </Box>
       </Box>
-    </Box>
+    // {/* </Box> */}
   );
 }
 

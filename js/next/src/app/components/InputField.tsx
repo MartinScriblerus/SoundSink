@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Box, styled } from '@mui/system';
-import { Button } from '@mui/base/Button';
-import { Input as BaseInput, InputProps, inputClasses } from '@mui/base/Input';
+import { Button, Input as BaseInput, InputProps, inputClasses } from '@mui/material';
+// import { Input as BaseInput, InputProps, inputClasses } from '@mui/base/Input';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
@@ -119,23 +119,21 @@ const grey = {
 const InputRoot = styled('div')(
   ({ theme }) => `
   // font-family: 'IBM Plex Sans', sans-serif;
-  font-family: 'Inter', sans-serif;
   font-weight: 400;
   border-radius: 8px;
-  color: ${theme.palette.black};
-  background: ${theme.palette.white};
-  border: 1px solid ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
-  box-shadow: 0px 2px 4px ${
-    theme.palette.mode === 'dark' ? 'rgba(0,0,0, 0.5)' : 'rgba(0,0,0, 0.05)'
-  };
+  color: rgba(0,0,0,0.78);
+  background: rgba(255,255,255,0.78);
+  border: 1px solid ${grey[700]};
+  box-shadow: 0px 2px 4px rgba(0,0,0, 0.05);
   display: flex;
+  width: 180px;
   align-items: center;
   justify-content: center;
 
 
   &.${inputClasses.focused} {
     border-color: ${blue[400]};
-    box-shadow: 0 0 0 3px ${theme.palette.mode === 'dark' ? blue[600] : blue[200]};
+    box-shadow: 0 0 0 3px ${blue[600]};
   }
 
   &:hover {
@@ -156,7 +154,7 @@ const InputElement = styled('input')(
   font-weight: 400;
   line-height: 1.5;
   flex-grow: 1;
-  color: ${theme.palette.mode === 'dark' ? grey[300] : grey[900]};
+  color: ${grey[300]};
   background: inherit;
   border: none;
   border-radius: inherit;
@@ -173,7 +171,7 @@ const IconButton = styled(Button)(
   border: none;
   background: inherit;
   cursor: pointer;
-  color: ${theme.palette.mode === 'dark' ? grey[300] : grey[700]};
+  color: ${grey[300]};
   `,
 );
 

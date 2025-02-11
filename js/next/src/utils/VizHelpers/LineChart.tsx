@@ -139,7 +139,7 @@ const theme = useTheme();
       .domain(getStaticDomain)
       .range([0, boundsWidth]);
     }
-  }, [data, width, beatCount, fileTime]);
+  }, [data, beatCount, fileTime]);
 
   // Render the X and Y axis using d3.js, not react
   useEffect(() => {
@@ -213,10 +213,10 @@ const theme = useTheme();
         width={"100%"} 
         height={height} 
         style={{
-          background: theme.palette.black, 
+          background: 'rgba(0,0,0,0.78)', 
           minHeight: "100%",  
           flexDirection: "row-reverse", 
-          overflowX: "scroll"}}>
+          overflowX: "auto"}}>
         <g
           width={boundsWidth}
           height={boundsHeight}

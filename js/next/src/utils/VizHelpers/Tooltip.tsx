@@ -5,10 +5,10 @@ type TooltipProps = {
   interactionData: InteractionData | null;
   width: number;
   height: number;
-  patternsHash: any;
+  masterPatternsHashHook: any;
 };
 
-export const Tooltip = ({ interactionData, width, height, patternsHash }: TooltipProps) => {
+export const Tooltip = ({ interactionData, width, height, masterPatternsHashHook }: TooltipProps) => {
   if (!interactionData) {
     return null;
   }
@@ -37,7 +37,7 @@ export const Tooltip = ({ interactionData, width, height, patternsHash }: Toolti
         <TooltipRow label={"x"} value={interactionData.xLabel} />
         <TooltipRow label={"y"} value={interactionData.yLabel} />
         {/* <TooltipRow label={"value"} value={String(interactionData.value)} /> */}
-        <TooltipRow label={"subdivisions"} value={String(patternsHash[interactionData.yLabel][interactionData.xLabel].subdivisions)} />
+        <TooltipRow label={"subdivisions"} value={String(masterPatternsHashHook[interactionData.yLabel][interactionData.xLabel].subdivisions)} />
       </div>
     </div>
   );

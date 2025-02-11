@@ -1,7 +1,5 @@
-import { Box, FormLabel } from '@mui/material';
 import React from 'react';
 import FixedOptionsDropdown from './FixedOptionsSelect';
-import { STKOption } from '@/utils/fixedOptionsDropdownData';
 
 interface Props {
     updateStkKnobs: (e: any) => void;
@@ -22,6 +20,7 @@ const STKManagerDropdown = (
             stkValues={stkValues} 
             setStkValues={setStkValues} 
         />
+
     )
 }
 export default STKManagerDropdown;

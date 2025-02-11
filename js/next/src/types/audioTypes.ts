@@ -6,7 +6,7 @@ import { Chuck } from "webchuck";
 // ******************************************
 
 export type KeyboardProps = {
-    programIsOn: boolean;
+    // programIsOn: boolean;
     selectRef: any; // what is this???
     tune: any;
     currentMicroTonalScale: any;
@@ -14,14 +14,14 @@ export type KeyboardProps = {
     updateStkKnobs: any;
     stkValues: any;
     setStkValues: any;
+    handleChange: (msg: any) => void;
     handleCheckedFXToShow: (msg: any) => void;
     checkedEffectsListHook: any[];
-    handleChange: any;
-    value: any;
-    updateCurrentFXScreen: any
-    currentScreen: any
-    playUploadedFile: any;
-    lastFileUpload: any,
+    // value: any;
+    // updateCurrentFXScreen: (msg: any) => void;
+    // currentScreen: string;
+    // playUploadedFile: (name: string) => void;
+    // lastFileUpload: (name: string) => void;
 }
 
 // AUTOMATION *******************************
@@ -49,6 +49,7 @@ export type PatternCell = {
     duration: number;
     volume: number;
     effects: string[];
+    files?: File[];
     automationParams: AutomationParams[];
     subpattern: PatternCell[];
 }
@@ -75,42 +76,48 @@ export type Pattern = {
 export type InstrumentNameVal = {
     name: string; 
     value: any;
+    type: string;
+    effectsString: string;
+    effectsHelper: any;
+
 }
 
-export type STKSettings = {
-    VarName: string;
-    Type: string;
-    On: boolean;
-    Visible: boolean;
-    stkFXPresets: InstrumentNameVal[]; 
-}
+// export type STKSettings = {
+//     VarName: string;
+//     Type: string;
+//     On: boolean;
+//     Visible: boolean;
+//     presets: any; 
+// }
+
+
 
 export type STKInstruments = {
-    Clarinet: STKSettings;
-    Karplus: STKSettings;
-    Sitar: STKSettings;
-    FrencHrn: STKSettings;
-    Moog: STKSettings;
-    Rhodey: STKSettings;
-    Saxofony: STKSettings;
-    Mandolin: STKSettings;
-    BandedWaveGuide: STKSettings;
-    Bottle: STKSettings;
-    Blowhole: STKSettings;
-    Bowed: STKSettings;
-    Brass: STKSettings;
-    Flute: STKSettings;
-    ModalBar: STKSettings;
-    Shakers: STKSettings;
-    VoiceForm: STKSettings;
-    B3: STKSettings;
-    ElectricGuitar: STKSettings;
-    HonkeyTonk: STKSettings;
-    FMVoices: STKSettings;
-    ChrystalChoir: STKSettings;
-    PercFlute: STKSettings;
-    TubeBell: STKSettings;
-    Wurley: STKSettings;
+    Clarinet: EffectsSettings;
+    Karplus: EffectsSettings;
+    Sitar: EffectsSettings;
+    FrencHrn: EffectsSettings;
+    Moog: EffectsSettings;
+    Rhodey: EffectsSettings;
+    Saxofony: EffectsSettings;
+    Mandolin: EffectsSettings;
+    BandedWaveGuide: EffectsSettings;
+    Bottle: EffectsSettings;
+    Blowhole: EffectsSettings;
+    Bowed: EffectsSettings;
+    Brass: EffectsSettings;
+    Flute: EffectsSettings;
+    ModalBar: EffectsSettings;
+    Shakers: EffectsSettings;
+    VoiceForm: EffectsSettings;
+    B3: EffectsSettings;
+    ElectricGuitar:EffectsSettings;
+    HonkeyTonk:EffectsSettings;
+    FMVoices:EffectsSettings;
+    ChrystalChoir:EffectsSettings;
+    PercFlute:EffectsSettings;
+    TubeBell:EffectsSettings;
+    Wurley:EffectsSettings;
 }
 
 
@@ -121,10 +128,27 @@ export type Source = {
     masterVolume: number;
     detune: number;
     effects: Effects;
+    effectsString: string;
     pattern: Pattern[];
     arpeggiateOn: boolean;
-    instruments?: STKInstruments
+    instruments?: STKInstruments;
+    files?: File[];
+    active: boolean;
+    isEditing: boolean;
 }
+
+// export type STKSource = {
+//     masterVolume: number;
+//     detune: number;
+//     effects: STKEffect[];
+//     effectsString: string;
+//     pattern: Pattern[];
+//     arpeggiateOn: boolean;
+//     instruments: STKInstruments;
+//     files?: File[];
+//     active: boolean;
+//     isEditing: boolean;
+// }
 
 export type Sources = {
     osc1: Source;
@@ -132,37 +156,72 @@ export type Sources = {
     stk1: Source;
     sampler: Source;
     audioIn: Source;
-
 }
 
 // EFFECTS ***********************************
 // *******************************************
 
-export type SndBufObj = {
-    src: string;
-}
+// export type SndBufObj = {
+//     src: string;
+//     VarName: '',
+//     On: false,
+//     Declaration: '',
+//     presets: [],
+//     Type: '',
+//     Visible: false,
+//     Code: '',
+//     EnvSetting: '',
+//     ConnectionIn: [],
+//     ConnectionOut: []
+// }
 
-export type LiSaObj = {
-    src: string;
+// export type LiSaObj = {
+//     src: string;
+//     VarName: '',
+//     On: false,
+//     Declaration: '',
+//     presets: [],
+//     Type: '',
+//     Visible: false,
+//     Code: '',
+//     EnvSetting: '',
+//     ConnectionIn: [],
+//     ConnectionOut: []
+// }
+
+export type Preset = {
+    fxType?: string; 
+    group?: number | string;
+    label: string;
+    max: number; 
+    min: number;
+    name: string;
+    screenInterface: string;
+    type?: string;
+    value: number;
 }
 
 export type EffectsSettings = {
     VarName: string;
     On: boolean;
     Declaration: string | any;
-    presets: InstrumentNameVal[]
+    presets: Preset[];
     Type: string;
     Visible: boolean;
     Code?: string | any;
     EnvSetting?: number | string;
+    blackholeString?: string;
+    windowFunctionString?: string;
     ConnectionIn?: string[];
     ConnectionOut?: string[];
+    Instrument?: string;
+    finalHelper?: string;
+    src?: string;
 }
 
 export type Effects = {
-    WinEnv: EffectsSettings;
-    WinFunc: EffectsSettings;
-    PowerADSR: EffectsSettings;
+    WinFuncEnv: EffectsSettings;
+    // WinFunc: EffectsSettings;
     ExpEnv: EffectsSettings;
     WPDiodeLadder: EffectsSettings;
     WPKorg35: EffectsSettings;
@@ -173,10 +232,9 @@ export type Effects = {
     ExpDelay: EffectsSettings;
     Elliptic: EffectsSettings;
     Spectacle: EffectsSettings;
-
     Gain: EffectsSettings;
     Bitcrusher: EffectsSettings;
-    FoldbackSaturation: EffectsSettings;
+    FoldbackSaturator: EffectsSettings;
     Echo: EffectsSettings;
     Chorus: EffectsSettings;
     PitShift: EffectsSettings;
@@ -185,16 +243,20 @@ export type Effects = {
     NRev: EffectsSettings;
     PRCRev: EffectsSettings;
     GVerb: EffectsSettings;
-    ASDR: EffectsSettings;
-    PowerASDR: EffectsSettings;
+    // ADSR: EffectsSettings;
+    PowerADSR: EffectsSettings;
     KasFilter: EffectsSettings;
     Multicomb: EffectsSettings;
     PitchTracker: EffectsSettings;
     Sigmund: EffectsSettings;
-    SndBuf: SndBufObj[];
-    LiSa: LiSaObj[];
+    SndBuf: EffectsSettings;
+    LiSa: EffectsSettings;
 }
 
+// export type STKEffect = {
+//     instrument: string;
+//     instrumentEffects: Effects
+// }
 
 // ANALYSIS *********************************
 // ******************************************

@@ -1,103 +1,76 @@
-import React, { SetStateAction, useState } from 'react';
-
-import Select, { ActionMeta, OnChangeValue, StylesConfig } from 'react-select';
-
+import React, { useState } from 'react';
 import { STKOption, stkOptions } from '../../utils/fixedOptionsDropdownData';
-import { useTheme } from '@mui/material';
 
+import { NAVY, PEACH, ROYALBLUE } from '@/utils/constants';
 
 type Props = {
     stkValues: STKOption[] | undefined;
-    setStkValues: React.Dispatch<SetStateAction<any>>;
+    setStkValues: React.Dispatch<React.SetStateAction<STKOption[]>>;
     updateStkKnobs: (e: STKOption[]) => void;
 };
 
+const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, updateStkKnobs }) => {
+    const [isOpen, setIsOpen] = useState(false);
 
-const FixedOptionsDropdown = ({stkValues, setStkValues, updateStkKnobs}: Props) => {
-    
-    // const [value, setValue] = useState<readonly STKOption[] | Array<any>>([]);
-    const theme = useTheme();
+    const toggleDropdown = () => setIsOpen(!isOpen);
 
-    const styles: StylesConfig<any, true> = {
-        container: (provided: any) => ({
-            ...provided,
-            flexGrow: 1,
-        }),
-        control: (provided: any) => ({
-            ...provided,
-            background: theme.palette.black,
-            // borderColor: theme.palette.black,
-            minHeight: '24px',
-        }),
-        option: (styles, {isFocused, isSelected}) => ({
-            ...styles,
-            background: isFocused
-                ? theme.palette.black
-                : isSelected
-                    ? theme.palette.primaryB
-                    : undefined,
-            zIndex: 1
-        }),
-        menu: base => ({
-            ...base,
-            borderRadius: 0,
-            background: theme.palette.black,
-            marginTop: 0
-        }),
-        menuList: base => ({
-            ...base,
-            padding: 0
-        })
-    }
-    
-    const orderOptions = (values: readonly STKOption[]) => {
-        return values
-            .filter((v) => v.isFixed)
-            .concat(values.filter((v) => !v.isFixed));
-    };
-    
-    const onChange = (
-    newValue: OnChangeValue<STKOption, true>,
-    actionMeta: ActionMeta<STKOption>
-) => {
-    switch (actionMeta.action) {
-        case 'remove-value':
-        case 'pop-value':
-            if (actionMeta.removedValue.isFixed) {
-                return;
-            }
-            break;
-        case 'clear':
-            newValue = stkOptions.filter((v) => v.isFixed);
-            break;
+    const handleSelect = (option: STKOption) => {
+        let newValues = stkValues ? [...stkValues] : [];
+        if (newValues.some((v) => v.value === option.value)) {
+            newValues = newValues.filter((v) => v.value !== option.value);
+        } else {
+            newValues.push(option);
         }
-        if (orderOptions(newValue).length > 0) {
-            let newOpts;
-            if (orderOptions(newValue).length > 2) {
-                Object.entries(orderOptions(newValue)[0]).slice(0,1);
-                newOpts = orderOptions(newValue).filter((opt: any, index: number) => (index > 0) && (opt));
-                console.log('IF NEW OPS! ', newOpts);
-            } else {
-                newOpts = orderOptions(newValue);
-                console.log('ELSE NEW OPS! ', newOpts);
-            }
-            setStkValues(newOpts);
-            updateStkKnobs(newOpts);
-        }
+        setStkValues(newValues);
+        updateStkKnobs(newValues);
     };
 
     return (
-        <Select
-            value={stkValues}
-            isMulti
-            styles={styles}
-            isClearable={stkValues?.some((v) => !v.isFixed)}
-            name="colors"
-            className="basic-multi-select"
-            classNamePrefix="select"
-            onChange={onChange}
-            options={stkOptions}
-        />
+        <div className="dropdown-container" style={{ minHeight: '100%', height: '100%', background: '', width: '180px', position: 'relative' }}>
+            <button id={"toggleDropdown"} className="dropdown-button" onClick={toggleDropdown} 
+            // style={{
+            //     width: '100%',
+            //     padding: '5px',
+            //     fontFamily: 'monospace',
+            //     fontSize: '12px',
+            //     background: 'rgba(0,0,0,0.3)',
+            //     color: 'rgba(255,255,255,0.78)',
+            //     border: '1px solid #9e9e9e',
+            //     minHeight: '32px',
+            //     height: '100%',
+            // }}
+            >
+                Select Instrument
+            </button>
+            {isOpen && (
+                <ul className="dropdown-menu" style={{
+                    position: 'absolute',
+                    width: '100%',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    background: 'rgba(0,0,0,0.78)',
+                    color: 'rgba(255,255,255,0.78)',
+                    fontFamily: 'monospace',
+                    listStyle: 'none',
+                    padding: 0,
+                    margin: 0,
+                    zIndex: 9999,
+                }}>
+                    {stkOptions.map((option) => (
+                        <li key={option.value} onClick={() => handleSelect(option)}
+                            style={{
+                                borderTop: '1px solid rgba(255,255,255,0.4)',
+                                padding: '5px',
+                                cursor: 'pointer',
+                                background: stkValues?.some((v) => v.value === option.value) ? PEACH : ROYALBLUE,
+                            }}>
+                            {option.label}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
     );
 };
-export default FixedOptionsDropdown
+
+export default FixedOptionsDropdown;

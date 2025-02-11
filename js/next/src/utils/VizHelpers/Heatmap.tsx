@@ -8,27 +8,34 @@ type HeatmapProps = {
   width: number;
   height: number;
   currentNumerCount: number;
-  handleOscRateUpdate: (val: any) => void;
+  handleOsc1RateUpdate: (val: any) => void;
+  handleOsc2RateUpdate: (val: any) => void;
+  handleMasterFastestRate: (val: any) => void;
   handleStkRateUpdate: (val: any) => void;
   handleSamplerRateUpdate: (val: any) => void;
   handleAudioInRateUpdate: (val: any) => void;
   updateCellColor: (val: any) => void;
   updateCellColorBool: boolean; 
   currentBeatSynthCount: number;
-  filesToProcess: any[];
   currentNoteVals: any;
   numeratorSignature: number;
+  filesToProcess: File[];
   denominatorSignature: number;
   editPattern: any;
-  patternsHash: any;
-  patternsHashUpdated: boolean;
+  masterPatternsHashHook: any;
+  masterPatternsHashHookUpdated: boolean;
   inPatternEditMode:(state: boolean) => void;
   selectFileForAssignment: (e: Event) => void;
-  sortFileItemUp: (e: Event) => void;
-  sortFileItemDown: (e: Event) => void;
   handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
   cellSubdivisions: number;
   resetCellSubdivisionsCounter: (x: number, y: number) => void;
+  handleClickUploadedFiles: (x: any) => void;
+  vizSource: string;
+
+  currentBeatCountToDisplay: number;
+  currentNumerCountColToDisplay: number;
+  currentDenomCount: number;
+  currentPatternCount: number;
 };
 
 export type InteractionData = {
@@ -47,25 +54,32 @@ export const Heatmap = ({
   currentNumerCount,
   currentNoteVals,
   filesToProcess,
-  handleOscRateUpdate,
+  handleOsc1RateUpdate,
+  handleOsc2RateUpdate,
+  handleMasterFastestRate,
   handleStkRateUpdate,
   handleSamplerRateUpdate,
   handleAudioInRateUpdate,
   numeratorSignature,
   denominatorSignature,
   editPattern,
-  patternsHash,
-  patternsHashUpdated,
+  masterPatternsHashHook,
+  masterPatternsHashHookUpdated,
   updateCellColor,
   updateCellColorBool,
-  // data
   inPatternEditMode,
   selectFileForAssignment, 
-  sortFileItemUp, 
-  sortFileItemDown,
   handleChangeCellSubdivisions,
   cellSubdivisions,
-  resetCellSubdivisionsCounter
+  resetCellSubdivisionsCounter,
+  vizSource,
+
+  currentBeatCountToDisplay,
+  currentNumerCountColToDisplay,
+  currentDenomCount,
+  currentPatternCount
+
+
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -85,14 +99,14 @@ useEffect(() => {
   setDoRebuildHeatmap(true);
 }, [doRebuildHeatmap])
 
-  useEffect(() => {
-    console.log("patterns hash updated: ", patternsHashUpdated);
-  },[patternsHashUpdated])
+  // useEffect(() => {
+  //   console.log("patterns hash updated: ", masterPatternsHashHookUpdated);
+  // },[masterPatternsHashHookUpdated])
 
+  // useEffect(() => {
+  //   console.log("phash: ", masterPatternsHashHook);
+  // }, [masterPatternsHashHook.length])
 
-  useEffect(() => {
-    console.log("phash: ", patternsHash);
-  }, [patternsHash.length])
 
   useEffect(() => {
     if (updateCellColorBool) {
@@ -111,7 +125,6 @@ useEffect(() => {
         x: patternarr[x],
         y: patternarr[y],
         value: y !== 0 && x === (currentNumerCount % numeratorSignature) ? 9 : (y === 0 && x === (currentBeatSynthCount)) ? 18 : x,
-  
       });
     }
   }
@@ -122,59 +135,71 @@ useEffect(() => {
 
   return (
     <Box sx={{ 
-      background: theme.palette.secondaryB,
+      background: 'rgba(0,0,0,0.78)',
       position: "relative", 
-      // height: "100vh",
-      // paddingTop: "8vh",
-      left: '0px',
-      width: '100%',
-      height: '100%',
+      left: '0',
+      right: '0',
       zIndex: '40',
       textAlign: 'center',
       justifyContent: 'center',
-      paddingLeft: '24px'
-      // height: `calc(100vh - 272px)`
+      alignSelf: 'stretch',
+      height: '100%',
+      width: '100%',
     }}>
-      <ArpSpeedSliders 
-        handleOscRateUpdate={handleOscRateUpdate} 
-        handleStkRateUpdate={handleStkRateUpdate} 
-        handleSamplerRateUpdate={handleSamplerRateUpdate} 
-        handleAudioInRateUpdate={handleAudioInRateUpdate}
+      <Box sx={{
+        width:'100%',
+        justifyContent: 'center',
+      }}>
+        <ArpSpeedSliders 
+          handleOsc1RateUpdate={handleOsc1RateUpdate} 
+          handleOsc2RateUpdate={handleOsc2RateUpdate}
+          handleMasterFastestRate={handleMasterFastestRate}
+          handleStkRateUpdate={handleStkRateUpdate} 
+          handleSamplerRateUpdate={handleSamplerRateUpdate} 
+          handleAudioInRateUpdate={handleAudioInRateUpdate}
+          filesToProcess={filesToProcess}
+          currentNoteVals={currentNoteVals}
+          vizSource={vizSource}
+        />  
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'center',
+        }}>
+          {
+            <Renderer
+              width={400}
+              height={270}
+              data={heatmapData}
+              setHoveredCell={setHoveredCell}
+              editPattern={editPattern}
+              masterPatternsHashHook={masterPatternsHashHook}
+              masterPatternsHashHookUpdated={masterPatternsHashHookUpdated}
+              updateCellColorBool={updateCellColorBool}
+              updateCellColor={updateCellColor}
+              inPatternEditMode={inPatternEditMode}
+              filesToProcess = {filesToProcess}
+              selectFileForAssignment = {selectFileForAssignment}
+              handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+              cellSubdivisions={cellSubdivisions}
+              resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
+              rebuildHeatmap={rebuildHeatmap}
 
-        filesToProcess={filesToProcess}
-        currentNoteVals={currentNoteVals}
-      />   
-{
-// !patternsHashUpdated && (
-      <Renderer
-        width={width - 60}
-        height={height}
-        // data={data}
-        data={heatmapData}
-        setHoveredCell={setHoveredCell}
-        editPattern={editPattern}
-        patternsHash={patternsHash}
-        patternsHashUpdated={patternsHashUpdated}
-        updateCellColorBool={updateCellColorBool}
-        updateCellColor={updateCellColor}
-        inPatternEditMode={inPatternEditMode}
-        filesToProcess = {filesToProcess}
-        selectFileForAssignment = {selectFileForAssignment}
-        sortFileItemUp={sortFileItemUp}
-        sortFileItemDown={sortFileItemDown}
-        handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-        cellSubdivisions={cellSubdivisions}
-        resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
-        rebuildHeatmap={rebuildHeatmap}
-      />
-  // )
-}
-      <Tooltip 
-        interactionData={hoveredCell} 
-        width={width} 
-        height={height}
-        patternsHash={patternsHash}
-      />
+              currentBeatCountToDisplay={currentBeatCountToDisplay}
+              currentNumerCountColToDisplay={currentNumerCountColToDisplay}
+              currentDenomCount={currentDenomCount}
+              currentPatternCount={currentPatternCount}
+              
+            />
+          }
+          <Tooltip 
+            interactionData={hoveredCell} 
+            width={width || 0} 
+            height={height || 0}
+            masterPatternsHashHook={masterPatternsHashHook}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 };

@@ -1,6 +1,8 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
+import { useTheme } from '@mui/material';
+import { useEffect } from 'react';
 
 function valuetext(value: number) {
   return `${value}°C`;
@@ -30,150 +32,148 @@ const marks = [
   ];
 
 interface SliderProps {
-    handleOscRateUpdate: (val: any) => void;
+    handleOsc1RateUpdate: (val: any) => void;
+    handleOsc2RateUpdate: (val: any) => void;
+    handleMasterFastestRate: (val: any) => void;
     handleStkRateUpdate: (val: any) => void;
     handleSamplerRateUpdate: (val: any) => void;
     handleAudioInRateUpdate: (val: any) => void;
-
+    vizSource:string;
     filesToProcess: any[];
     currentNoteVals: any;
 }
 
 export default function DiscreteSlider(props: SliderProps) {
+    const theme = useTheme();
     const {
-        handleOscRateUpdate, 
+        handleOsc1RateUpdate,
+        handleOsc2RateUpdate,
+        handleMasterFastestRate, 
         handleStkRateUpdate, 
         handleSamplerRateUpdate, 
         handleAudioInRateUpdate,
         currentNoteVals,
-        filesToProcess
+        filesToProcess,
+        vizSource,
     } = props;
-
-    if (currentNoteVals.length > 0) {
-        console.log("CURRENT NOTE VALS! ", currentNoteVals);
-    }
-    if (filesToProcess.length > 0) {
-        console.log("FILES TO PROCESS: ", filesToProcess);
-    }
-
 
     return (
     <Box style={{
         display: 'flex',
-        width: '100%'
+        height: '72px',
+        fontSize: '13px',
+        flexDirection: 'row',
+        width: '100%',
+        minWidth: '400px'
     }}>
-        {/* <Box sx={{ 
-            maxHeight: '40px', 
-            width: '100%', 
-            // display: window.innerHeight > 800 ? 'flex' : 'none', 
-            flexDirection: 'row',
-            paddingTop: '12px', 
-            marginLeft: '-12px',
-            textAlign: 'center',
-            justifyContent: 'center',
-            fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif', 
-            fontWeight: '300' 
-        }}> */}
-            <Box sx={{ 
-                maxHeight: '40px', 
-                width: '40%', 
-                paddingRight: '8PX', 
-                paddingLeft: '8PX',
-            }}>
-                Osc:
+        {
+        vizSource && vizSource.includes("osc1") 
+        ?
+            <Box className={'pattern-rate-title'}>
+                Oscillator (Poly):
                 <Slider
                     aria-label="OscRate"
-                    defaultValue={currentNoteVals.oscs[0]}
+                    value={currentNoteVals.osc1[0]}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'white'}}
-                    onChange={handleOscRateUpdate}
+                    sx={{color: 'rgba(255,255,255,0.78)'}}
+                    onChange={handleOsc1RateUpdate}
                     marks={marks}
                     min={1}
                     max={64}
                     color="secondary"
                 />
             </Box>
-            <Box sx={{ 
-                maxHeight: '40px',
-                width: '40%', 
-                paddingRight: '8PX', 
-                paddingLeft: '8PX' 
-            }}>
-                STK:
+        :
+            <></>
+        }
+                {
+        vizSource && vizSource.includes("osc2") 
+        ?
+            <Box className={'pattern-rate-title'}>
+                Oscillator (Mono):
                 <Slider
-                    aria-label="StkRate"
-                    defaultValue={currentNoteVals.stks[0]} //
+                    aria-label="OscRate"
+                    value={currentNoteVals.osc2[0]}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'white'}}
+                    sx={{color: 'rgba(255,255,255,0.78)'}}
+                    onChange={handleOsc2RateUpdate}
+                    marks={marks}
+                    min={1}
+                    max={64}
+                    color="secondary"
+                />
+            </Box>
+        :
+            <></>
+        }
+        {
+        vizSource && vizSource.includes("stk") 
+        ?
+            <Box className={'pattern-rate-title'}>
+                Instrument:
+                <Slider
+                    aria-label="StkRate"
+                    value={currentNoteVals.stks[0]} //
+                    getAriaValueText={valuetext}
+                    valueLabelDisplay="auto"
+                    step={null}
+                    sx={{color: 'rgba(255,255,255,0.78)'}}
                     onChange={handleStkRateUpdate}
                     marks={marks}
                     min={1}
                     max={64}
                 />
             </Box>
-        {/* </Box>
-        <Box sx={{
-                fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif', 
-                fontWeight: '300', 
-                maxHeight: '40px', 
-                width: '100%', 
-                // display: window.innerHeight > 680 ? 'flex' : 'none', 
-                display: 'flex',
-                flexDirection: 'row',
-                marginLeft: '-12px', 
-                textAlign: 'center',
-                justifyContent: 'center',
-            }}
-        >
-             */}
-            <Box sx={{ 
-                    // paddingTop: '48px', 
-                    maxHeight: '40px', 
-                    width: '40%', 
-                    paddingRight: '8PX', 
-                    paddingLeft: '8PX' 
-                }}
-            >
+        : 
+            <></>
+        }
+        {
+        vizSource && vizSource.includes("sample") 
+        ?
+            <Box className={'pattern-rate-title'}>
                 Sampler: 
                 <Slider
                     aria-label="SamplerRate"
-                    defaultValue={currentNoteVals.samples[0]}
+                    value={currentNoteVals.samples[0]}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'white'}}
+                    sx={{color: 'rgba(255,255,255,0.78)'}}
                     onChange={handleSamplerRateUpdate}
                     marks={marks}
                     min={1}
                     max={64}
                 />
             </Box>
-            <Box sx={{ 
-                // paddingTop: '48px',
-                maxHeight: '40px', 
-                width: '40%', 
-                paddingRight: '8PX', 
-                paddingLeft: '8PX' 
-                }}
+        :
+            <></>
+        }
+        {
+        vizSource && vizSource.includes("audioIn") 
+        ?
+            <Box className={'pattern-rate-title'}
             >
-                Audio In: 
+                Line In: 
                 <Slider
                     aria-label="AudioInRate"
-                    defaultValue={4}
+                    value={currentNoteVals.audioIn[0]}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'white'}}
+                    sx={{color: 'rgba(255,255,255,0.78)'}}
                     onChange={handleAudioInRateUpdate}
                     marks={marks}
                     min={1}
                     max={64}
                 />
             </Box>
+        :
+            <></>
+    }
         {/* </Box> */}
     </Box>
   );

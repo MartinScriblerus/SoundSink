@@ -1,24 +1,15 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
+
 import '../globals.css';
-import { Box, Button, useTheme } from '@mui/material';
-import FixedOptionsDropdown from './FixedOptionsSelect';
-import { STKOption } from '@/utils/fixedOptionsDropdownData';
+import { Box, useTheme } from '@mui/material';
+
 
 interface Props {
     value: string;
     handleChange: (msg: any) => void;
-    updateStkKnobs: (knobVals: any) => void;
-    setStkValues: React.Dispatch<React.SetStateAction<any>>;
-    stkValues: STKOption[] | [];
-    updateCurrentFXScreen: () => void;
-    currentScreen: string;
-    playUploadedFile: (name: string) => void;
-    lastFileUpload: string;
-    // updateFileUploads: (e: any) => void;
 }
 
 const SelectInputSourceRadioButtons = (props: Props) => {
@@ -32,68 +23,47 @@ const SelectInputSourceRadioButtons = (props: Props) => {
     return (
         <Box 
             className="side-nav"
-            sx={{
-                display: window.innerHeight > 480 ? 'flex' : 'none', 
-                // display:'none', // <<<<<< TODO --> return display styling above when ready
-                flexDirection: 'row', 
-                justifyContent: 'top !important',
-                alignItems: 'top',
-                fontFamily: '12px',
-
-                
-                height: '100%',
-                maxWidth: '122px',
-                color: theme.palette.white,
-                backgroundColor: theme.palette.black,
-                // background: "transparent !important",
-                left: "0PX",
-                // position: "absolute",
-                border: "0px",
-                width: "100%",
-                zIndex: "99",
-                paddingLeft: "4px",
-            }}>
-                {/* <FormLabel 
-                    sx={{
-                        fontSize:'20px',
-                        fontWeight:'300',
-                        width: '100%',
-                        textAlign: 'center',
-                        color: theme.palette.white,
-                        display: 'flex',
-                        flexDirection: 'row',
-                        
-                    }} 
-                    id="demo-controlled-radio-buttons-group"
-                >
-                    FX Input
-                </FormLabel> */}
+            // id="toggleSourceGroup"
+        >
 
             {/* /////// FX to INPUT */}
-            <Box sx={{
-                    color: theme.palette.white,
-                    zIndex:'0'
-                }} 
-                className={'fx-popup-left-row'}>           
+            <Box 
+                // sx={{
+                //     color: theme.palette.white,
+                //     zIndex:'0',
+                //     fontSize: "13px"
+                // }} 
+                className={'fx-popup-left-row'}
+            >           
                 <RadioGroup
                     aria-labelledby="demo-controlled-radio-buttons-group"
                     name="controlled-radio-buttons-group"
                     value={value}
                     sx={{
-                        color: theme.palette.white,
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        color: 'red',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'flex-start',
+                        // width:'252px',
+                        height: '100%',
+                        paddingLeft:'4px',
+
+                        paddingRight: '4px' // paddingTop: '10px',
                     }}
                     onChange={handleChange}
                 >
                     <FormControlLabel 
                         sx={{
-                            color: theme.palette.white,
+                            color: 'rgba(255,255,255,0.78)',
                         }} 
                         value="Osc1" 
                         control={<Radio />} 
                         label="Osc1" />
                     <FormControlLabel 
                         sx={{
-                            color: theme.palette.white,
+                            color: 'rgba(255,255,255,0.78)',
                         }} 
                         value="Osc2" 
                         control={<Radio />} 
@@ -101,26 +71,26 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                     />
                     <FormControlLabel 
                         sx={{
-                            color: theme.palette.white,
+                            color: 'rgba(255,255,255,0.78)',
                         }} 
                         value="STK" 
                         control={<Radio />} 
-                        label="STK" />
+                        label="Inst" />
                     <FormControlLabel 
                         sx={{
-                            color: theme.palette.white,
+                            color: 'rgba(255,255,255,0.78)',
                         }} 
                         value="Sampler" 
                         control={<Radio />} 
-                        label="Sampler" 
+                        label="Samp" 
                     />
                     <FormControlLabel 
                         sx={{
-                            color: theme.palette.white,
+                            color: 'rgba(255,255,255,0.78)',
                         }} 
                         value="AudioIn" 
                         control={<Radio />} 
-                        label="Audio In" />
+                        label="Line In" />
                 </RadioGroup>
             </Box>
         </Box>

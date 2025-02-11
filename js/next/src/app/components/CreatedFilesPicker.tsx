@@ -3,9 +3,9 @@ import Box from '@mui/material/Box';
 
 const CreatedFilesList = ({createdFilesList}: {createdFilesList: Array<any>}) => {
     
-    useEffect(() => {
-        console.log("YO CREATED FILES! ", createdFilesList);
-    }, [createdFilesList])
+    // useEffect(() => {
+    //     console.log("YO CREATED FILES! ", createdFilesList);
+    // }, [createdFilesList])
 
     return (
         <Box>

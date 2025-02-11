@@ -58,7 +58,7 @@ export const analysisObjectDefaults = {
 export async function convertFrequency(notefreqchart: any, freq: number, microFreq: any, microMidiNum: any) { 
     console.log("WHAT ARE THESE??? ", freq, microFreq, microMidiNum);
     const freqLets: string[] = [];
-    Object.values(notefreqchart).forEach((val: any, idx: number) => {
+    Object.values(notefreqchart).forEach((val: any, idx: number) => {        
         // console.log("WHAT IS VAL? ", val, Object.keys(notefreqchart)[idx - 1])
         freqLets.push(Object.keys(notefreqchart)[idx - 1])
         // newMicroTonalArr.push({

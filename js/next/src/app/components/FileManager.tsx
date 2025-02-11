@@ -1,8 +1,8 @@
-import { Box, Button, FormLabel, useTheme } from "@mui/material";
-import React, {useEffect, useRef, useState} from "react";
-import { useForm } from "react-hook-form";
+import { Box, Button, useTheme } from "@mui/material";
+import React from "react";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
-import theme from "../styles/theme";
+import { PALE_BLUE } from "@/utils/constants";
+
 
 
 interface Props {
@@ -11,65 +11,66 @@ interface Props {
     handleSubmit: any;
     watch: any;
     programIsOn: boolean;
-    beginProgram: (val: boolean) => void;
+    // beginProgram: (val: boolean) => void;
 }
 
 const FileManager = (props: Props) => {
 
-    const {onSubmit, handleSubmit, register, watch, beginProgram, programIsOn} = props;
+    const {onSubmit, handleSubmit, register, watch} = props;
 
     const theme = useTheme();
 
+    // useEffect(() => {
+    //     const subscription = watch(() => handleSubmit(onSubmit)())
+    //     console.log('SUBSCRIPTION: ', subscription); // what is this for???qw2e3
+    //     return () => subscription.unsubscribe();
+    // }, [handleSubmit, watch, register]);
+
     return (
-        <Box sx={{
-            display: programIsOn ? "flex" : "none",
-            flexDirection: "row",
-            width: "100%",
-        }}>
+        // <Box sx={{
+        //     display: "flex",
+        //     flexDirection: "row",
+        //     width: "100%",
+        // }}>
          <form
-         style={{
-            display: programIsOn ? "flex" : "none",
-            flexDirection: "row",
-            width: "100%",
-         }} 
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                width: "100%",
+            }} 
             onSubmit={handleSubmit(onSubmit)}>
-            <Button
-                component="label"
-                sx={{ 
-                    display: programIsOn ? "flex" : "none",
-                    flexDirection: "row",
-                    width: "100%",
-                    cursor: "pointer",
-                    border: theme.palette.primaryB,
-                    background: theme.palette.black,
-                    color: theme.palette.white,
-                    position: 'relative', 
-                    minWidth: '140px',
-                    marginLeft: '0px', 
-                    zIndex: 15,
-                    maxHeight: '40px',
-                    '&:hover': {
-                        color: theme.palette.primaryA,
-                        background: theme.palette.secondaryA,
-                    }
-                }}
-                // className="ui_SynthLayerButton"
+                <Button
+                    component="label"
+                    sx={{ 
+                        display: "flex",
+                        flexDirection: "row",
+                        width: "100%",
+                        cursor: "pointer",
+                        border: 'rgba(0,0,0,0.78)',
+                        background: 'rgba(0,0,0,0.78)',
+                        color: 'rgba(255,255,255,0.78)',
+                        position: 'relative', 
+                        minWidth: '140px',
+                        marginLeft: '0px', 
+                        zIndex: 15,
+                        maxHeight: '40px',
+                        '&:hover': {
+                            background: PALE_BLUE,
+                        }
+                    }}
+                    // className="ui_SynthLayerButton"
 
-                endIcon={<FileUploadIcon />}
-            >
-                {window.innerWidth < 900 ? <>File</> : <>File</>}
-
-               
+                    endIcon={<FileUploadIcon />}
+                >
+                    {<>File</>}
                     <input
                         type={"file"}
                         {...register("file") } 
                         hidden={true}
                     />
-             
-          
-            </Button>
+                </Button>
             </form>
-        </Box>
+        // {/* </Box> */}
     )
 }
 

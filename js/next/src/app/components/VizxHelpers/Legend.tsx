@@ -28,10 +28,6 @@ const sizeColorScale = scaleLinear({
   range: ['#75fcfc', '#3236b8'],
 });
 
-// const spectralColorScale = scaleLinear({
-//     domain: [0, 10],
-//     range: ['#75fcfc', '#3236b8'],
-//   });
 
 const quantileScale = scaleQuantile({
   domain: [0, 0.15],
@@ -41,12 +37,7 @@ const quantileScale = scaleQuantile({
 const chromaScale = scaleLinear({
     domain: [0, 11],
     range: ['#ed4fbb', '#e9a039'],
-  });
-
-// const linearScale = scaleLinear({
-//   domain: [0, 10],
-//   range: ['#ed4fbb', '#e9a039'],
-// });
+});
 
 const thresholdScale = scaleThreshold({
   domain: [0.01, 0.02, 0.04, 0.06, 0.08],
@@ -136,17 +127,21 @@ export default function LegendVizx({
     <div className="legends" style={{
         position: "absolute", 
         padding: "0px",
-        right: "160px",
+        // right: "160px",
         textAlign: "center",
+        left: '0px',
         // left: '25%',
         // marginLeft: '28px',
         // marginTop: '-36px',
+        paddingTop: '42px',
     
         justifyContent: 'center',
         alignItems: 'center',
-        width: '100%',
-        height: "100%",
+        width: 'calc(100vw - 140px)',
+        height: 'calc(100vh - 13rem)',
     }}>
+      {legendGlyphSize && 
+      <Box>
         <LegendHelper title="Input Source">
             <LegendOrdinal scale={inputSourceColorScale } labelFormat={(label) => `${label.toUpperCase()}`}>
             {(labels) => (
@@ -203,183 +198,125 @@ export default function LegendVizx({
         </LegendHelper>
 
      
-    <Box style={{display: 'flex', flexDirection: 'column'}}>
+        <Box style={{display: 'flex', marginTop: '-36px', flexDirection: 'column'}}>
 
-        <Box style={{display: 'flex', flexDirection: 'row'}}>
-            <LegendHelper title="Chroma">
-        <LegendLinear scale={chromaScale}>
-          {(labels) =>
-            labels.map((label, i) => (
-              <LegendItem
-                key={`legend-${i}`}
-                onClick={() => {
-                    if (events) {
-                        handleLegendClicked(label);
-                    }
-                }}
-              >
-                <svg 
-                    width={legendGlyphSize} 
-                    height={legendGlyphSize} 
-                    style={{
-                        margin: '2px 0',
-                        pointerEvents: 'all' 
-                    }}>
-                  <circle
-                    style={{pointerEvents: 'auto'}}
-                    fill={label.value}
-                    r={legendGlyphSize / 2}
-                    cx={legendGlyphSize / 2}
-                    cy={legendGlyphSize / 2}
-                  />
-                </svg>
-                <LegendLabel align="left" margin="0 4px">
-                  {label.text}
-                </LegendLabel>
-              </LegendItem>
-            ))
-          }
-        </LegendLinear>
-            </LegendHelper>
-            <LegendHelper title="MFCC">
-        <LegendQuantile scale={quantileScale}>
-          {(labels) =>
-            labels.map((label, i) => (
-              <LegendItem
-                key={`legend-${i}`}
-                onClick={() => {
-                    if (events) {
-                        handleLegendClicked(label);
-                    }
-                }}
-              >
-                <svg width={legendGlyphSize} height={legendGlyphSize} style={{ margin: '2px 0' }}>
-                  <circle
-                    fill={label.value}
-                    r={legendGlyphSize / 2}
-                    cx={legendGlyphSize / 2}
-                    cy={legendGlyphSize / 2}
-                  />
-                </svg>
-                <LegendLabel align="left" margin="0 4px">
-                  {label.text}
-                </LegendLabel>
-              </LegendItem>
-            ))
-          }
-        </LegendQuantile>
-            </LegendHelper>
-        </Box>
-        <Box sx={{display: "flex", flexDirection: "column"}}>
-      <LegendHelper title="Spectral Features">
-        <LegendOrdinal scale={spectralColorScale} labelFormat={(label) => `${label.toUpperCase()}`}>
-          {(labels) => (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {labels.map((label, i) => (
-                <LegendItem
-                  key={`legend-quantile-${i}`}
-                  margin="0 5px"
-                  onClick={() => {
-                    if (events) {
-                        handleLegendClicked(label);
-                    }
-                  }}
-                >
-                  {/* <svg width={legendGlyphSize} height={legendGlyphSize}>
-                    <rect fill={label.value} width={legendGlyphSize} height={legendGlyphSize} />
-                  </svg> */}
-                  <svg width={legendGlyphSize} height={legendGlyphSize} style={{ margin: '2px 0' }}>
-                  <circle
-                    fill={label.value}
-                    r={legendGlyphSize / 2}
-                    cx={legendGlyphSize / 2}
-                    cy={legendGlyphSize / 2}
-                  />
-                </svg>
-                  <LegendLabel align="left" margin="0 0 0 4px">
-                    {label.text}
-                  </LegendLabel>
-                </LegendItem>
-              ))}
-            </div>
-          )}
-        </LegendOrdinal>
-      </LegendHelper>
-    </Box>
-    </Box>
-    {/* <Box sx={{
-        background: 'yellow', 
-        display: 'flex', 
-        flexDirection: 'column',
-        position: 'absolute',
-        top: '112px'
-    }}>
-    {/* <Button sx={{
-            zIndex: 9999,
-            alignItems: "left",
-            justifyContent: "left",
-            background: "blue",
-            pointerEvents: "all",
-            cursor: "pointer",
-        }} onClick={handleFileAnalysisMode}>Files</Button> */}
-        {/* <BrushChart height={500} width={500}></BrushChart>
-</Box> */} 
-      {/* <LegendHelper title="Custom Legend">
-        <Legend scale={shapeScale}>
-          {(labels) => (
-            <div style={{ display: 'flex', flexDirection: 'row' }}>
-              {labels.map((label, i) => {
-                const color = ordinalColor2Scale(label.datum);
-                const shape = shapeScale(label.datum);
-                const isValidElement = React.isValidElement(shape);
-                return (
+            <Box style={{display: 'flex',  flexDirection: 'row'}}>
+                <LegendHelper title="Chroma">
+            <LegendLinear scale={chromaScale}>
+              {(labels) =>
+                labels.map((label, i) => (
                   <LegendItem
-                    key={`legend-quantile-${i}`}
-                    margin="0 4px 0 0"
-                    flexDirection="column"
+                    key={`legend-${i}`}
                     onClick={() => {
-                      const { datum, index } = label;
-                      if (events) alert(`clicked: ${JSON.stringify({ datum, color, index })}`);
+                        if (events) {
+                            handleLegendClicked(label);
+                        }
                     }}
                   >
-                    <svg
-                      width={legendGlyphSize}
-                      height={legendGlyphSize}
-                      style={{ margin: '0 0 8px 0' }}
-                    >
-                      {isValidElement
-                        ? React.cloneElement(shape as React.ReactElement)
-                        : React.createElement(shape as React.ComponentType<{ fill: string }>, {
-                            fill: color,
-                          })}
+                    <svg 
+                        width={legendGlyphSize} 
+                        height={legendGlyphSize} 
+                        style={{
+                            margin: '2px 0',
+                            pointerEvents: 'auto' 
+                        }}>
+                      <circle
+                        style={{pointerEvents: 'auto'}}
+                        fill={label.value}
+                        r={legendGlyphSize / 2}
+                        cx={legendGlyphSize / 2}
+                        cy={legendGlyphSize / 2}
+                      />
                     </svg>
-                    <LegendLabel align="left" margin={0}>
+                    <LegendLabel align="left" margin="0 4px">
                       {label.text}
                     </LegendLabel>
                   </LegendItem>
-                );
-              })}
-            </div>
-          )}
-        </Legend>
-      </LegendHelper> */}
+                ))
+              }
+            </LegendLinear>
+                </LegendHelper>
+                <LegendHelper title="MFCC">
+            <LegendQuantile scale={quantileScale}>
+              {(labels) =>
+                labels.map((label, i) => (
+                  <LegendItem
+                    key={`legend-${i}`}
+                    onClick={() => {
+                        if (events) {
+                            handleLegendClicked(label);
+                        }
+                    }}
+                  >
+                    <svg width={legendGlyphSize} height={legendGlyphSize} style={{ margin: '2px 0' }}>
+                      <circle
+                        fill={label.value}
+                        r={legendGlyphSize / 2}
+                        cx={legendGlyphSize / 2}
+                        cy={legendGlyphSize / 2}
+                      />
+                    </svg>
+                    <LegendLabel align="left" margin="0 4px">
+                      {label.text}
+                    </LegendLabel>
+                  </LegendItem>
+                ))
+              }
+            </LegendQuantile>
+                </LegendHelper>
+            </Box>
+            <Box sx={{display: "flex", flexDirection: "column"}}>
+          <LegendHelper title="Spectral Features">
+            <LegendOrdinal scale={spectralColorScale} labelFormat={(label) => `${label.toUpperCase()}`}>
+              {(labels) => (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {labels.map((label, i) => (
+                    <LegendItem
+                      key={`legend-quantile-${i}`}
+                      margin="0 5px"
+                      onClick={() => {
+                        if (events) {
+                            handleLegendClicked(label);
+                        }
+                      }}
+                    >
+                      <svg width={legendGlyphSize} height={legendGlyphSize} style={{ margin: '2px 0' }}>
+                      <circle
+                        fill={label.value}
+                        r={legendGlyphSize / 2}
+                        cx={legendGlyphSize / 2}
+                        cy={legendGlyphSize / 2}
+                      />
+                    </svg>
+                      <LegendLabel align="left" margin="0 0 0 4px">
+                        {label.text}
+                      </LegendLabel>
+                    </LegendItem>
+                  ))}
+                </div>
+              )}
+            </LegendOrdinal>
+          </LegendHelper>
+        </Box>
+        </Box>
 
-      <style jsx>{`
-        .legends {
-          font-family: arial;
-          font-weight: 900;
-          background-color: black;
-          border-radius: 14px;
-          padding: 24px 24px 24px 32px;
-          overflow-y: auto;
-          flex-grow: 1;
-          max-width: fit-content;
-          background: transparent;
-        }
-        .chart h2 {
-          margin-left: 10px;
-        }
-      `}</style>
+          <style jsx>{`
+            .legends {
+              font-family: arial;
+              font-weight: 900;
+              background-color: black;
+              border-radius: 14px;
+              padding: 24px 24px 24px 32px;
+              overflow-y: auto;
+              flex-grow: 1;
+              max-width: fit-content;
+              background: transparent;
+            }
+            .chart h2 {
+              margin-left: 10px;
+            }
+          `}</style>
+        </Box>}
     </div>
   );
 }

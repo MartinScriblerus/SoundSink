@@ -1,16 +1,17 @@
+import { PALE_BLUE } from '@/utils/constants';
 import { Box, FormControl, TextField, useTheme } from '@mui/material';
 import React from 'react';
 
 interface SubdivisionsPickerProps {
     xVal: number;
     yVal: number;
-    patternsHash: any;
+    masterPatternsHashHook: any;
     cellSubdivisions: number;
     handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
 }
 
 const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
-    const {  xVal, yVal, patternsHash, cellSubdivisions, handleChangeCellSubdivisions } = props;
+    const {  xVal, yVal, masterPatternsHashHook, cellSubdivisions, handleChangeCellSubdivisions } = props;
     
     const theme = useTheme();
     
@@ -44,7 +45,7 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
                     sx={{
                         input: { color: 'primary.contrastText' },
                         // minWidth: "2rem",
-                        backgroundColor: theme.palette.secondaryA,
+                        backgroundColor: PALE_BLUE,
                         color: 'status.text',
                         // paddingTop: 0,
                         fontFamily: 'sans-serif',
@@ -63,17 +64,17 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
                     //     shrink: true,
                     //   }}
                     type="number"
-                    id="standard-textarea"
+                    id="standard-textarea-cellSubdivisions"
                     className="inputSampleInfo"
                     variant="outlined"
-                    defaultValue={cellSubdivisions}
+                    value={cellSubdivisions}
                     onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
                             event.preventDefault();
                             const inputCellDivisions: any = parseInt(event.target.value);
                             // alert(`${inputCellDivisions} _ ${xVal} _ ${yVal}`);
                             if (inputCellDivisions && inputCellDivisions > 0 ) {
                                 handleChangeCellSubdivisions(inputCellDivisions, xVal, yVal);
-                                    patternsHash[`${yVal}`][`${Number(xVal)}`].subdivisions = inputCellDivisions;
+                                    masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = inputCellDivisions;
                             }
                         }
                     }
