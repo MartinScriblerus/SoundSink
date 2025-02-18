@@ -40,6 +40,7 @@ type QuickDashProps = {
     resetCellSubdivisionsCounter: any;
     handleClickUploadedFiles: any;
     parentDiv: any;
+    masterFastestRate: number;
 
     currentBeatCountToDisplay: number;
     currentNumerCountColToDisplay: number;
@@ -89,6 +90,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
         currentNumerCountColToDisplay,
         currentDenomCount,
         currentPatternCount,
+        masterFastestRate,
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
@@ -182,6 +184,8 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
                             handleClickUploadedFiles={handleClickUploadedFiles}
                             vizSource={vizSource}    
+
+                            masterFastestRate={masterFastestRate}
 
                             currentBeatCountToDisplay={currentBeatCountToDisplay}
                             currentNumerCountColToDisplay={currentNumerCountColToDisplay}

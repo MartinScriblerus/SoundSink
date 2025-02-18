@@ -41,7 +41,7 @@ import setupAudioWorklet from '../../audio/setupAudioWorklet';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import setupAudioAnalysisWorklet from '../../audio/setupAudioAnalysisWorklet';
 import { NAVY, PALE_BLUE, ROYALBLUE } from '@/utils/constants';
-
+import serverFilesToPreload from '../../utils/serverFilesToPreload';
 
 export default function InitializationComponent() {
     const [programIsOn, setProgramIsOn] = useState<boolean>(false);
@@ -54,6 +54,11 @@ export default function InitializationComponent() {
     const currNotesHash = useRef<any>({}); // ** MISSING TYPE (THIS ONE WOULD BE USEFUL)
     const [notesNeedUpdate, setNotesNeedUpdate] = useState<boolean>(false);
     const [midiAccessHook, setMidiAccessHook] = useState<any>({}); // do we do anything with this value?
+
+    // NEEDS WORK (after samples)...
+    const [resetNotes, setResetNotes] = useState<any>([0]);
+    
+    
     const lastMidiNote: any = useRef('');
     lastMidiNote.current = '';
     const lastMidiCommand: any = useRef('');
@@ -157,13 +162,13 @@ export default function InitializationComponent() {
 
     const [keysFullscreen, setKeysFullscreen] = useState<boolean>(false);
     const masterPatternsRef = useRef<any>({
-        1: {},
-        2: {},
-        3: {},
-        4: {},
-        5: {},
-        6: {},
-        7: {},
+        // 1: {},
+        // 2: {},
+        // 3: {},
+        // 4: {},
+        // 5: {},
+        // 6: {},
+        // 7: {},
     });
     const parentDivRef = useRef<any>(null);
     const [masterPatternsHashHook, setPatternsHashHook] = useState<any>({});
@@ -282,10 +287,45 @@ export default function InitializationComponent() {
     // currentFX are the ones we are actively editing
     const currentFX = useRef<any>();
 
-    const notesToAssign = useRef<any>({
-        midiHz: 0.0,
-        midiNum: 0,
-    });
+    interface NoteHzAndNum {
+        isRest: boolean,
+        midiHz?: number;
+        midiNum?: number;
+        fileItemNum?: any;
+        volume: number;
+    }
+
+    // NEEDS WORK!!!!
+    const notesToAssign = useRef<NoteHzAndNum[]>([
+        {
+            isRest: false,
+            midiHz: 0.0,
+            midiNum: 0,
+            fileItemNum: 1,
+            volume: 0.5,
+        },
+        {
+            isRest: true,
+            midiHz: 0.0,
+            midiNum: 0,
+            fileItemNum: 1,
+            volume: 0.5,
+        },
+        {
+            isRest: true,
+            midiHz: 0.0,
+            midiNum: 0,
+            fileItemNum: 1,
+            volume: 0.5,
+        },
+        {
+            isRest: true,
+            midiHz: 0.0,
+            midiNum: 0,
+            fileItemNum: 1,
+            volume: 0.5,
+        }
+    ]);
 
     const midiAccess = useRef<WebMidi.MIDIAccess>();
 
@@ -295,12 +335,20 @@ export default function InitializationComponent() {
     // }, [currentBeatCount]);
 
     useEffect(() => {
-        const bC: number = +Number(chuckMsg.replace(/\D/g, ''));
+
         let isMounted = true;
-        setCurrentBeatCountToDisplay((Math.floor( bC / masterFastestRate) % numeratorSignature) + 1);
-        setCurrentNumerCountColToDisplay(Math.floor((Math.floor( bC / masterFastestRate) / numeratorSignature) % numeratorSignature) + 1);   
-        setCurrentDenomCount(Math.floor((Math.floor( bC / masterFastestRate) / (numeratorSignature * denominatorSignature)) % (denominatorSignature)) + 1);
-        setCurrentPatternCount(Math.floor(Math.floor((Math.floor( bC / masterFastestRate) / (numeratorSignature * denominatorSignature * patternsPerCycle)) % (denominatorSignature))) + 1);
+        const bC: number = parseInt(chuckMsg.match(/\d+/)?.[0] || "0", 10);
+
+        const beatDisplay = (Math.floor(bC) % (numeratorSignature * denominatorSignature)) + 1;
+        const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
+        const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
+        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle + 1;
+            
+        setCurrentBeatCountToDisplay(beatDisplay);
+        setCurrentNumerCountColToDisplay(numerCount);
+        setCurrentDenomCount(denomCount);
+        setCurrentPatternCount(patternCount);
+        
         return () => {
             isMounted = false;
         }
@@ -382,45 +430,58 @@ export default function InitializationComponent() {
         } else if (z === 1) {
             col = "maroon"
         }
+
         // masterPatternsRef.current[`${z}`][`${x}`] = {};
-        masterPatternsRef.current[`${z}`][`${x}`] = {
+        masterPatternsRef.current[`${z}`][`${x}`] = masterPatternsRef.current[`${z}`][`${x}`] 
+            ?  masterPatternsRef.current[`${z}`][`${x}`] 
+            : (x % masterFastestRate < 2) ? {
             on: true,
-            note: [notesToAssign.current.midiNum],
-            noteHz: [notesToAssign.current.midiHz],
+            note: [],
+            noteHz: [],
             velocity: 0.9,
             color: col,
+            fileNums: [2],
             // subdivisions: masterPatternsRef.current[`${inst}_${z}`][`${x}`].subdivisions || 1
             subdivisions: cellSubdivisions
-        };
+        } : {
+            on: false,
+            note: [],
+            noteHz: [],
+            velocity: 0.9,
+            color: col,
+            fileNums: [0],
+            // subdivisions: masterPatternsRef.current[`${inst}_${z}`][`${x}`].subdivisions || 1
+            subdivisions: cellSubdivisions
+        } ;
         // console.log('wtf master pattern??? ', masterPatternsRef.current);
         // console.log("CHECK IT!!! ", masterPatternsRef.current[`${z}`][`${x}`])      
     }
 
     useEffect(() => {
-        for (let x = 1; x < (numeratorSignature) + 1; x++) {
+        for (let x = 1; x < (numeratorSignature * masterFastestRate) + 1; x++) {
             for (let y = 1; y < denominatorSignature + 1; y++) {
-                for (let z = 1; z < 9; z++) {
-                    if (z == 5) {
+                for (let z = 1; z < (9); z++) {
+                    if (z % 5 === 0) {
                         // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
                         // assign osc pattern values below
                         fillHashSlot(x, y, z, `osc1`);
                     }
-                    else if (z == 6) {
+                    else if (z % 6 === 0) {
                         // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
                         // assign osc pattern values below
                         fillHashSlot(x, y, z, `osc2`);
                     }
-                    else if (z == 7) {
+                    else if (z % 7 === 0) {
                         // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
                         // assign osc pattern values below
                         fillHashSlot(x, y, z, `stk1`);
                     }
-                    else if (z == 7) {
+                    else if (z % 8 === 0) {
                         // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
                         // assign osc pattern values below
                         fillHashSlot(x, y, z, `audioIn`);
                     }
-                    else if (z < 5) {
+                    else {
                         // console.log("Z LESS THAN 5 ... x: ", x, "y: ", y, "z: ", z);
                         // assign sample pattern values below
                         fillHashSlot(x, y, z, `sample`);
@@ -1542,6 +1603,10 @@ export default function InitializationComponent() {
     }, [chuckUpdateNeeded]) // if there are problems, switch back to [${chuckUpdateNeeded}]
 
 
+    // NEEDS WORK...
+    const NOTES_SET_REF = useRef<any>();
+
+
     useEffect(() => {
         const subscription = watch(() => handleSubmit(onSubmit)())
         console.log('SUBSCRIPTION: ', subscription); // what is this for???qw2e3
@@ -1560,20 +1625,34 @@ export default function InitializationComponent() {
 
     const triggerNote = (note: any) => {
         console.log("chuck ref!!!!!! : ", chuckRef.current);
-        console.log('wtf note??? ', note);
-        console.log('wtf note sanity??? ', Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []);
+        console.log('note??? ', note);
+        console.log('note sanity??? ', Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []);
         // Object.entries(currNotesHash.current).map((note: any) => {
         //     chuckRef.current && chuckRef.current.setAssociativeFloatArrayValue(`na_${getConvertedRadio(fxRadioValue)}`, "innerNotes", parseFloat(note[1]));
         // });
 
-        
 
-        chuckRef.current && chuckRef.current.setFloatArray("NOTES_SET",
-            Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []
-        )
+        NOTES_SET_REF.current = Object.values(currNotesHash.current)
+        .map((i: any) => {
+          const parsed = parseFloat(i[0]);
+          return !isNaN(parsed) ? parsed : null;  // If valid, return the parsed float
+        })
+        .filter(i => i !== null)  // Filter out any null values
+        .map(i => {
+          return i % 1 === 0 ? i + 0.0 : i; // Ensure it's a float (even if it's an integer)
+        });
+        console.log("Notes set ref // curr notes hash :::: ", NOTES_SET_REF.current, currNotesHash.current)
+
+
+        // chuckRef.current && chuckRef.current.setFloatArray("NOTES_SET",
+        //     Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []
+        // )
+        // console.log("CHECK HASH!!! ", currNotesHash.current);
+        // NOTES_SET_REF.current = Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || [];
         // chuckRef.current && chuckRef.current.setInt("numVoices", Object.values(currNotesHash.current).map((i:any) => i[0]).filter(i=>i).length)   
-        chuckRef.current && chuckRef.current.broadcastEvent('playNote');
-        console.log("CHECK HASH!!! ", currNotesHash.current);
+        NOTES_SET_REF.current && NOTES_SET_REF.current.length > 0 && chuckRef.current && chuckRef.current.broadcastEvent('playNote');
+
+        // console.log("CHECK HASH!!! ", currNotesHash.current);
         currNotesHash.current = {};
     };
 
@@ -1684,17 +1763,6 @@ export default function InitializationComponent() {
 
 
 
-    // const testSTK_Architecture = () => {
-
-    //     stkOn.current = playSTKOn() || '';
-
-    //     console.log("stk ON STK STHHHHRING: ", stkOn.current);
-
-    //     // const playOffString = playSTKOff();
-
-    //     // console.log("PLAY OFF STK STRING: ", playOffString);
-
-    // };
 
 
 
@@ -1733,15 +1801,23 @@ export default function InitializationComponent() {
 
 
 
-        if (chuckRef.current) {
+        console.log("ENSURE CHUCK REF??? ", NOTES_SET_REF.current);
 
+        // setResetNotes(NOTES_SET_REF.current)
+
+        if (chuckRef.current) {
+            console.log("sanity check properties RADIO values", getConvertedRadio(fxRadioValue));
             // SHOULD WE PICK UP HERE & FOCUS ON REFACTORING AS A GENERAL (TO GET CURRENT RADIOFX SELECTED)?
             const getOsc1FX = universalSources.current && Object.values(universalSources.current.osc1.effects).filter(i => i.On);
 
+            const getSamplerFX = universalSources.current && Object.values(universalSources.current.sampler.effects).filter(i => i.On);
+
             const signalChain: any = [];
             const valuesReadout: any = {};
+            const signalChainSampler: any = [];
+            const valuesReadoutSampler: any = {};
 
-            getOsc1FX?.map((fx: any) => {
+            getConvertedRadio(fxRadioValue).toLowerCase() === "osc1" && getOsc1FX?.map((fx: any) => {
                 const type = fx.Type;
                 const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
                 const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
@@ -1751,7 +1827,19 @@ export default function InitializationComponent() {
                     const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
                     if (!fx.Code) valuesReadout[preset.name] = latestValue;
                 })
-            })
+            });
+
+            getConvertedRadio(fxRadioValue).toLowerCase() === "sampler" && getSamplerFX?.map((fx: any) => {
+                const type = fx.Type;
+                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
+                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
+                signalChain.indexOf(addedEffect) === -1 && signalChain.push(addedEffect);
+
+                Object.values(fx.presets).map((preset: any) => {
+                    const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
+                    if (!fx.Code) valuesReadout[preset.name] = latestValue;
+                })
+            });
 
             // console.log("HEYO CHECK MASTER PATTERNS BEFORE CHUCK START: ", masterPatternsRef.current);
             // console.log("heyo rate update sanity (mfr): ", masterFastestRate);
@@ -1759,12 +1847,12 @@ export default function InitializationComponent() {
             // console.log('what is sig chain? ', signalChain);
 
             console.log("what are stk instruments? ", universalSources.current && universalSources.current.stk1.instruments && universalSources.current.stk1.instruments)
-            const shredCount = chuckHook && await chuckHook.runCode(`Machine.numShreds();`);
+            // const shredCount = chuckHook && await chuckHook.runCode(`Machine.numShreds();`);
 
-            console.log("Shred Count: ", shredCount);
-            
-            
-    console.log("WTF WTF WTF: ", moogGrandmotherEffects.current.adsrAttack);
+            // console.log("Shred Count: ", shredCount);
+            console.log("WHAT ARE PATTERNS? ", masterPatternsRef.current)
+
+
             const newChuckCode = `
                 "" => global string currentSrc;
 
@@ -1772,8 +1860,6 @@ export default function InitializationComponent() {
                 global Event playNote;
                 global Event startMeasure;
                 global Event playAudioIn;
-
-                SinOsc testSin;
 
                 0 => global int arpeggiatorOn;
 
@@ -1829,333 +1915,89 @@ export default function InitializationComponent() {
                     ////////////////////////////////////////////
                 }
 
-                class SynthVoice extends Chugraph
+
+                class Sampler_EffectsChain extends Chugraph
                 {
-                    int id;
+                    inlet => ${signalChainSampler.join(' ')} outlet;
 
-                    fun void setId(int newId) {
-                        newId => id;
-                    }
 
-                    saw1[id] => lpf[id] => adsr[id] => limiter[id] => outlet;
-                    saw2[id] => lpf[id];
-                    noiseSource[id] => lpf[id];
-                    ${moogGrandmotherEffects.current.noise.value || 0} / numVoices => noiseSource[id].gain;
+                    ${Object.values(valuesReadoutSampler).map((value: any) => value).join(' ')}
 
-                    SinLfo[id] => pitchLfo[id] => blackhole;
-                    SinLfo[id] => filterLfo[id] => blackhole;
+                    ////////////////////////////////////////////
+                    // THIS WORKS BUT CAUSES ISSUES WHEN ADSR IS !!LONGER!! THAN MASTER TIMER... ALSO, CLEARLY WE NEED NON-HARDCODED OPTION
+                    // should we do this for each source? should we have selected sources more clearly marked in UI? 
+                    // should we call once for all sources (& handle selected stuff in helper? seems cleanest...)
+                    ${getSourceFX('sampler')}
 
-                    fun void SetLfoFreq(float frequency) 
-                    {
-                        frequency => SinLfo[id].freq => SawLfo[id].freq => SqrLfo[id].freq;
-                    }
-                    0.0 => SetLfoFreq;
-                    0.0 => filterLfo[id].gain;
-                    0.0 => pitchLfo[id].gain;            
-                    2 => saw1[id].sync => saw2[id].sync => tri1[id].sync => tri2[id].sync => sqr1[id].sync => sqr2[id].sync;
+                    ////////////////////////////////////////////
+                }
 
-                    pitchLfo[id] => saw1[id];
-                    pitchLfo[id] => saw2[id];
-                    pitchLfo[id] => tri1[id];
-                    pitchLfo[id] => tri2[id];
-                    pitchLfo[id] => sqr1[id];
-                    pitchLfo[id] => sqr2[id];
 
-                    ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter[id].attackTime;
-                    ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter[id].thresh;
 
-                    0.01/numVoices => saw1[id].gain => saw2[id].gain;
-                    0.08/numVoices => tri1[id].gain => tri2[id].gain;
-                    0.02/numVoices => sqr1[id].gain => sqr2[id].gain;
+                // SinOsc testSin => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
 
-                    ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
-                    filterCutoff => lpf[id].freq;
+                SndBuf buffers[5] => Sampler_EffectsChain sampler_FxChain =>  Dyno audInDynoSampler => dac;
+         
 
-                    0.1 => float offset;
-                    220 => float filterEnv;
-                    1.0 => float osc2Detune;
-                    0 => int oscOffset;
 
-                    fun void SetOsc1Freq(float frequency)
-                    {
-                        frequency => tri1[id].freq => sqr1[id].freq => saw1[id].freq; 
-                    }
+         
+                fun void SilenceAllBuffers()
+                {
+                    buffers[0].samples() => buffers[0].pos;
+                    buffers[1].samples() => buffers[1].pos;
+                    buffers[2].samples() => buffers[2].pos;
+                    buffers[3].samples() => buffers[3].pos;
+                    buffers[4].samples() => buffers[4].pos;
+                }
 
-                    fun void SetOsc2Freq(float frequency)
-                    {
-                        frequency => tri2[id].freq => sqr2[id].freq => saw2[id].freq; 
-                    }
 
-                    fun void keyOn(float noteNumber)
-                    {
-                        Std.mtof(offset + noteNumber) => SetOsc1Freq;
-                        Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
-                        1 => adsr[id].keyOn;
-                        Std.ftoi(${moogGrandmotherEffects.current.adsrAttack.value})::ms => adsr[id].attackTime; // FIX NUM HERE!!!
-                        Std.ftoi(500.0)::ms => adsr[id].decayTime; // FIX NUM HERE!!!
-                        0.2 => adsr[id].sustainLevel; // FIX NUM HERE!!!
-                        Std.ftoi(200.0)::ms => adsr[id].releaseTime; // FIX NUM HERE!!!
-                        if (adsr[id].state() == 0) {
-                            adsr[id].set(10::ms, beat, 0.01, 500::ms);
+
+                // // SAMPLER
+                // ////////////////////////////////////////////////////////////////
+                fun void handlePlayMeasure(int tickCount) {
+                    string files[4]; // Specify size
+
+                    me.dir() + "${filesToProcess.current[0].filename}" => files[0];
+                    me.dir() + "${filesToProcess.current[1].filename}" => files[1];
+                    me.dir() + "${filesToProcess.current[2].filename}" => files[2];
+                    me.dir() + "${filesToProcess.current[3].filename}" => files[3];
+
+                    (fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1 % fastestRateUpdate => int masterTick;
+
+
+                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `[${999}]` ) )}] @=> int testArr2[][]; 
+
+
+                   tickCount % (${numeratorSignature * masterFastestRate}) => int recurringTickCount;
+                   
+                   if (recurringTickCount >= testArr2.size()) return; // Prevent out-of-bounds access
+                   if (testArr2[recurringTickCount][0] != 999) {
+                        for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
+                                0 => buffers[x].pos;
+                                files[testArr2[recurringTickCount][x]] => buffers[x].read;
+                                buffers[x].samples() => buffers[x].pos;
+                                0 => buffers[x].pos;
+                                buffers[x].length() => now;
+                                me.yield();
                         }
+                    } else {
                         
-                        spork ~ filterEnvelope();
-                        me.yield();
                     }
-
-                    fun void ChooseOsc1(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            tri1[id] =< lpf[id];
-                            saw1[id] =< lpf[id];
-                            sqr1[id] =< lpf[id];
-                        }
-                        if(oscType == 1)
-                        {
-                            tri1[id] => lpf[id];
-                            saw1[id] =< lpf[id];
-                            sqr1[id] =< lpf[id];
-                        }
-                        if(oscType == 2)
-                        {
-                            tri1[id] =< lpf[id];
-                            saw1[id] => lpf[id];
-                            sqr1[id] =< lpf[id];
-                        }
-                        if(oscType == 3)
-                        {
-                            tri1[id] =< lpf[id];
-                            saw1[id] =< lpf[id];
-                            sqr1[id] => lpf[id];
-                        }
-                    }
-                    fun void ChooseOsc2(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                        if(oscType == 1)
-                        {
-                            tri2[id] => lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                        if(oscType == 2)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] => lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                        if(oscType == 3)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] => lpf[id];
-                        }
-                        if(oscType == 4)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                    }
-
-                    fun void ChooseLfo(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            SinLfo[id] =< filterLfo[id];
-                            SinLfo[id] =< pitchLfo[id];
-                            SawLfo[id] =< filterLfo[id];
-                            SawLfo[id] =< pitchLfo[id];
-                            SqrLfo[id] =< filterLfo[id];
-                            SqrLfo[id] =< pitchLfo[id];
-                        }
-                        if(oscType == 1)
-                        {
-                            SinLfo[id] => filterLfo[id];
-                            SinLfo[id] => pitchLfo[id];
-                            SawLfo[id] =< filterLfo[id];
-                            SawLfo[id] =< pitchLfo[id];
-                            SqrLfo[id] =< filterLfo[id];
-                            SqrLfo[id] =< pitchLfo[id];
-                        }
-                        if(oscType == 2)
-                        {
-                            SinLfo[id] =< filterLfo[id];
-                            SinLfo[id] =< pitchLfo[id];
-                            SawLfo[id] => filterLfo[id];
-                            SawLfo[id] => pitchLfo[id];
-                            SqrLfo[id] =< filterLfo[id];
-                            SqrLfo[id] =< pitchLfo[id];
-                        }
-                        if(oscType == 3)
-                        {
-                            SinLfo[id] =< filterLfo[id];
-                            SinLfo[id] =< pitchLfo[id];
-                            SawLfo[id] =< filterLfo[id];
-                            SawLfo[id] =< pitchLfo[id];
-                            SqrLfo[id] => filterLfo[id];
-                            SqrLfo[id] => pitchLfo[id];
-                        }
-                    }
-
-                    fun void keyOff(int noteNumber)
-                    {
-                        noteNumber => adsr[id].keyOff;
-                    }
-
-                    fun void filterEnvelope()
-                    {
-                        filterCutoff => float startFreq;
-                        while((adsr[id].state() != 0 && adsr[id].value() == 0) == false)
-                        {
-                            Std.fabs((filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last()) => lpf[id].freq;                     
-                            adsr[id].releaseTime() => now;
-                            1 => adsr[id].keyOff;
-                            me.yield();
-                        }
-                        me.exit();
-                    }
-
-                    fun void cutoff(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        (amount / 100) * 5000 => filterCutoff;
-
-                        (whole)/numVoices - (now % (whole)/numVoices) => now;
-
-                    }
-
-                    fun void rez(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        20 * (amount / 100) + 0.3 => lpf[id].Q;
-                    }
-                    
-                    fun void env(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        5000 * (amount / 100) => filterEnv;
-                    }
-                    
-                    fun void detune(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        5 * (amount / 100) => osc2Detune;
-                    }
-                    
-                    fun void pitchMod(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        .84 * (amount / 100) => pitchLfo[id].gain;
-                    }               
-                    
-                    fun void cutoffMod(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        5000 * (amount / 100) => filterLfo[id].gain;
-                    }
-                    
-                    fun void noise(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        1.0 * (amount / 100) => noiseSource[id].gain;
-                    }  
-
+                    me.yield();
                 }
 
-                SynthVoice voice[numVoices + 1];
-
-                for (0 => int i; i < numVoices; i++) {
-                    ${moogGrandmotherEffects.current.cutoff.value} => voice[i].cutoff;
-                    ${moogGrandmotherEffects.current.rez.value} => voice[i].rez;
-                    ${moogGrandmotherEffects.current.env.value} => voice[i].env;
-                    ${moogGrandmotherEffects.current.oscType1.value} => voice[i].ChooseOsc1;
-                    ${moogGrandmotherEffects.current.oscType2.value} => voice[i].ChooseOsc2;
-                    ${moogGrandmotherEffects.current.detune.value} => voice[i].detune;
-                    ${moogGrandmotherEffects.current.oscOffset.value} => voice[i].oscOffset;
-                    ${moogGrandmotherEffects.current.cutoffMod.value} => voice[i].cutoffMod;
-                    ${moogGrandmotherEffects.current.pitchMod.value} => voice[i].pitchMod;
-                    ${moogGrandmotherEffects.current.lfoVoice.value} => voice[i].ChooseLfo; // Lfo Voc
-                    // 0.5 => voice[i].filterLfo.gain;
-                    ${moogGrandmotherEffects.current.offset.value} => voice[i].offset;
-    
-                   ${moogGrandmotherEffects.current.noise.value} => voice[i].noise;
-                }
-                
-
-                // voice[numVoices] => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
-
-                testSin => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
 
                 // REALTIME NOTES (POLY)
                 ////////////////////////////////////////////////////////////////
                 fun void handlePlayNote(){
-                    while (true) {
+                    while (false) {
                         playNote => now;
-                        120.0 => testSin.freq;
-                        // for (0 => int i; i < NOTES_SET.size(); i++) {
-                        //     voice[i] => dac;
+                        [${resetNotes}] @=> int nts[];
 
-                        //     if (NOTES_SET.size() > 0) {
-                        //         voice[i].setId(i);
-                        //         voice[i].keyOn(NOTES_SET[i]);
-                        //     }
-                        // }
+                        // 220 => testSin.freq;
+                        for (0 => int i; i < nts.size(); i++) {
+                            <<< "LOG: ", nts[i] >>>;
+                        }
                         
                     }
                 }
@@ -2170,32 +2012,40 @@ export default function InitializationComponent() {
                 now => time startTimeMeasureLoop;
                 
 
-                // tickCounter is equivalent to beat by default
+                // // tickCounter is equivalent to beat by default
                 
-                // spork ~ handlePlaySTK();
+                // // spork ~ handlePlaySTK();
 
-                spork ~ handlePlayNote();
-
+                // // if (${Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)).length > 0} == true) {
+                   // //  spork ~ handlePlayNote();
+                // // }
+                // // spork ~ handlePlayNote();
+               
                 while(true)
                 {
-  
                     if (now >= startTimeMeasureLoop + (beat / fastestRateUpdate) ) {
                         fastestTickCounter + 1 => fastestTickCounter;
+                         <<< fastestTickCounter >>>;
                     }
                     if (now >= startTimeMeasureLoop + beat) {
                         tickCounter + 1 => tickCounter;
-                        <<< tickCounter >>>;
+                        <<< "LOG TICK COUNTER: ", tickCounter >>>;
+                        spork ~ handlePlayMeasure(tickCounter);
                         now => startTimeMeasureLoop;
                     }
                     whole / ${masterFastestRate} => now;
                 }
             `;
 
-            chuckRef.current.runCode(newChuckCode)
+     
+                chuckRef.current.runCode(newChuckCode);
+                console.log("ran chuck code!");
+  
             console.log("HERE IS CHUCK CODE: ", newChuckCode);
         } else {
             console.log("NO aChuck!");
         }
+
     }
 
 
@@ -3094,7 +2944,7 @@ export default function InitializationComponent() {
                     : PROD_CHUCK_SRC;
             // Create theChuck
             const theChuck = await Chuck.init(
-                [],
+                serverFilesToPreload,
                 audioContext,
                 audioContext.destination.maxChannelCount,
                 whereIsChuck
@@ -3115,7 +2965,13 @@ export default function InitializationComponent() {
             chuckRef.current = theChuck;
             chuckRef.current && setChuckHook(chuckRef.current);
 
-            chuckRef.current.chuckPrint = (message) => { setChuckMsg(message); }
+            chuckRef.current.chuckPrint = (message) => { 
+                if (message.includes("LOG")) {
+                    console.log("here is log... ", message);
+                } else {
+                    setChuckMsg(message); 
+                }
+            }
 
             setBabylonReady(true);
         })();
@@ -3358,6 +3214,7 @@ export default function InitializationComponent() {
                                                 handleClickUploadedFiles={handleClickUploadedFiles}
                                                 parentDiv={parentDivRef.current}
 
+                                                masterFastestRate={masterFastestRate}
 
                                                 currentBeatCountToDisplay={currentBeatCountToDisplay}
                                                 currentNumerCountColToDisplay={currentNumerCountColToDisplay}

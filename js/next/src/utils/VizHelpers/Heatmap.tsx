@@ -36,6 +36,8 @@ type HeatmapProps = {
   currentNumerCountColToDisplay: number;
   currentDenomCount: number;
   currentPatternCount: number;
+
+  masterFastestRate: number;
 };
 
 export type InteractionData = {
@@ -77,7 +79,9 @@ export const Heatmap = ({
   currentBeatCountToDisplay,
   currentNumerCountColToDisplay,
   currentDenomCount,
-  currentPatternCount
+  currentPatternCount,
+
+  masterFastestRate,
 
 
 }: HeatmapProps) => {
@@ -86,11 +90,11 @@ export const Heatmap = ({
 
   const theme = useTheme();
 
-  const nCol = numeratorSignature;
+  const nCol = numeratorSignature * denominatorSignature;
   const nRow = 4;
   const patternarr: Array<any> = [];
   let counter = 0;
-  Array.from(Array(numeratorSignature * 2 - 1)).forEach(()=>{
+  Array.from(Array(numeratorSignature * denominatorSignature * masterFastestRate)).forEach(()=>{
     counter += 1;
     patternarr.push(counter);
   });
