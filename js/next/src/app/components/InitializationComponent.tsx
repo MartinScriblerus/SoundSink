@@ -1,7 +1,6 @@
 "use client"
 
-import { Box, Button } from '@mui/material';
-import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
+import { Box, Button, SelectChangeEvent } from '@mui/material';
 import React, { useState, useEffect, useRef } from 'react'
 import BabylonLayer from './BabylonLayer';
 import { Chuck } from 'webchuck';
@@ -42,12 +41,12 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import setupAudioAnalysisWorklet from '../../audio/setupAudioAnalysisWorklet';
 import { NAVY, PALE_BLUE, ROYALBLUE } from '@/utils/constants';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
+import axios from 'axios';
 
 export default function InitializationComponent() {
     const [programIsOn, setProgramIsOn] = useState<boolean>(false);
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const [babylonReady, setBabylonReady] = useState(false);
-    const [microTonalLetters, setMicroTonalLetters] = useState<any>([]);
     const [formats, setFormats] = React.useState<any>(() => []); // ** UNCLEAR VARNAME => WHAT ARE FORMATS?
     // const [currNotes, setCurrNotes] = useState<any>([]);
     const currNotes = useRef<any>([0]);
@@ -75,6 +74,13 @@ export default function InitializationComponent() {
     const [pedalChainNeedsUpdate, setPedalChainNeedsUpdate] = useState<boolean>(false);
     const [initialNodesHook, setInitialNodesHook] = useState<any>();
     const [initialEdgesHook, setInitialEdgesHook] = useState<any>();
+    const [keyScaleChord, setKeyScaleChord] = useState<any>({
+        octaveMax: '4',
+        octaveMin: '3',
+        key: 'C',
+        scale: 'Diatonic',
+        chord: 'M',
+    });
 
     const [rightPanelOptions, setRightPanelOptions] = useState<any>(['effects', 'pattern']);
 
@@ -110,6 +116,9 @@ export default function InitializationComponent() {
     const [showBPM, setShowBPM] = useState<boolean>(true);
     const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
 
+    const [octave, setOctave] = useState('4'); // ** THESE SHOULD EXIST AS NEW OBJECT
+    const [audioKey, setAudioKey] = useState('C'); // ** THESE SHOULD EXIST AS NEW OBJECT
+    
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     // const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
     const [clickFXChain, setClickFXChain] = useState<boolean>(false);
@@ -130,6 +139,7 @@ export default function InitializationComponent() {
 
     const [tune, setTune] = useState<any>(null);
     const [mingusKeyboardData, setMingusKeyboardData] = useState<any>([]);
+    const [mingusChordsData, setMingusChordsData] = useState<any>([]);
     const [keyBoard, setKeyBoard] = useState<any>();
 
     const [currentChain, setCurrentChain] = useState<any>();
@@ -175,6 +185,8 @@ export default function InitializationComponent() {
     const [masterPatternsHashUpdated, setPatternsHashUpdated] = useState<boolean>(false);
     const [isInPatternEditMode, setIsInPatternEditMode] = useState<boolean>(false);
     const [currentMidiMsg, setCurrentMidiMsg] = useState<any>({ data: [0, 0, 0] });
+    const [mTFreqs, setMTFreqs] = useState<any>([]);
+    const [mTMidiNums, setMTMidiNums] = useState<any>([]);
     // const [inFileAnalysisMode, setInFileAnalysisMode] = useState<boolean>(false);
 
     const [chuckMsg, setChuckMsg] = useState<string>('');
@@ -287,6 +299,27 @@ export default function InitializationComponent() {
     // currentFX are the ones we are actively editing
     const currentFX = useRef<any>();
 
+
+    // const headerDict = {
+    //     'Content-Type': 'application/json',
+    //     'Accept': 'application/json',
+    //     'Access-Control-Allow-Headers': 'Content-Type',
+    // }
+    const headerDict = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS"
+    }
+
+    const requestOptions = {                                                                                                                                                                                 
+        headers: headerDict,
+        params: {
+            key: audioKey || 'A',
+        }
+    };
+
     interface NoteHzAndNum {
         isRest: boolean,
         midiHz?: number;
@@ -339,11 +372,13 @@ export default function InitializationComponent() {
         let isMounted = true;
         const bC: number = parseInt(chuckMsg.match(/\d+/)?.[0] || "0", 10);
 
-        const beatDisplay = (Math.floor(bC) % (numeratorSignature * denominatorSignature)) + 1;
+        const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
         const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
         const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
-        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle + 1;
-            
+        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
+        
+        console.log("Beat display: ", beatDisplay);
+
         setCurrentBeatCountToDisplay(beatDisplay);
         setCurrentNumerCountColToDisplay(numerCount);
         setCurrentDenomCount(denomCount);
@@ -436,8 +471,8 @@ export default function InitializationComponent() {
             ?  masterPatternsRef.current[`${z}`][`${x}`] 
             : (x % masterFastestRate < 2) ? {
             on: true,
-            note: [],
-            noteHz: [],
+            note: mTFreqs[x + (x * y) + (x * y * z)],
+            noteHz: mTMidiNums[x + (x * y) + (x * y * z)],
             velocity: 0.9,
             color: col,
             fileNums: [2],
@@ -445,8 +480,8 @@ export default function InitializationComponent() {
             subdivisions: cellSubdivisions
         } : {
             on: false,
-            note: [],
-            noteHz: [],
+            note: mTFreqs[x + (x * y) + (x * y * z)],
+            noteHz: mTMidiNums[x + (x * y) + (x * y * z)],
             velocity: 0.9,
             color: col,
             fileNums: [0],
@@ -493,7 +528,10 @@ export default function InitializationComponent() {
         setPatternsHashUpdated(true);
         return () => {
         };
-    }, [numeratorSignature, denominatorSignature]);
+    }, [numeratorSignature, denominatorSignature, mTMidiNums]);
+
+    const allOctaveMidiFreqs = useRef<any>({});
+    allOctaveMidiFreqs.current = {};
 
     const selectRef: any = React.useCallback((selectedMicrotone: string, i: any) => {
         if (selectedMicrotone) {
@@ -504,12 +542,14 @@ export default function InitializationComponent() {
         }
     }, []);
 
-    const newMicroTonalArr: any = []
+    const [newMicroTonalArr, setNewMicroTonalArr] = useState<any>([])//
 
     const currentMicroTonalScale = (scale: any) => {
         let theScale;
         if (!scale || scale && !scale.name || scale.length < 1) return;
-        tune.loadScale(scale.name)
+        
+        theScale = scale.name;
+        tune.loadScale(scale.name);
         tune.tonicize(440);
         const microtonalFreqs: any[] = [];
         const microtonalMidiNums: any[] = [];
@@ -522,29 +562,23 @@ export default function InitializationComponent() {
                 microtonalFreqs.push(tune.note(j, i).toFixed(2));
                 tune.mode.output = "MIDI";
                 microtonalMidiNums.push(tune.note(j, i).toFixed(4));
+
+                if (!allOctaveMidiFreqs.current[`${i + 3}`]) {
+                    allOctaveMidiFreqs.current[`${i + 3}`] = {};
+                }
+                allOctaveMidiFreqs.current[`${i + 3}`][`${j}`] = [microtonalFreqs[microtonalFreqs.length - 1] || 'r1', microtonalMidiNums[microtonalMidiNums.length - 1] || 'r2'];
             }
         }
 
-        setMicroTonalLetters([]);
+        const sanityChuck = Object.values(allOctaveMidiFreqs.current).map((i:any, idx: number) => Object.values(i).map((j:any) => [idx, Number(j[0])])).flat();
+        setMTFreqs(sanityChuck.map((i:any) => i[1]))
 
-        for (const i in microtonalFreqs) {
-            (async () => {
-                const getMTA = (await convertFrequency(notefreqchart, parseFloat(i), microtonalFreqs[i], microtonalMidiNums[i])).filter(i => i);
 
-                if (parseInt(i) === 0) console.log("Name: ", getMTA.map(i => i));
+        masterPatternsRef.current = {};
+        microtonalFreqs.length && setMTFreqs(microtonalFreqs);
+        microtonalMidiNums.length && setMTMidiNums(microtonalMidiNums);
+        
 
-                await newMicroTonalArr.push({
-                    freq: microtonalFreqs[i],
-                    midiNum: microtonalMidiNums[i],
-                    noteName: getMTA.map(i => i),
-                })
-                setMicroTonalLetters((x: any) => [...x, {
-                    freq: microtonalFreqs[i],
-                    midiNum: microtonalMidiNums[i],
-                    noteName: getMTA.map(i => i),
-                }]);
-            })();
-        }
         setHasHexKeys(true);
 
         theScale = scale && scale.length > 0 && scale.value && scale.value;
@@ -602,92 +636,13 @@ export default function InitializationComponent() {
         setIsAudioView(!isAudioView);
     };
     if (!currentFX.current && (!masterPatternsRef.current || masterPatternsRef.current.length < 1)) {
-
-        masterPatternsRef.current[0] = [
-            {
-                on: true,
-                note: [58],
-                velocity: 0.9,
-                subdivisions: 1
-            },
-            {
-                on: true,
-                note: [60],
-                velocity: 0.9,
-                subdivisions: 1
-            },
-            {
-                on: true,
-                note: [56],
-                velocity: 0.9,
-                subdivisions: 1
-            },
-            {
-                on: true,
-                note: [57],
-                velocity: 0.9,
-                subdivisions: 1
-            }
-        ]
         currentFX.current = moogGrandmotherEffects.current;
     }
 
     const lastFileUploadMeydaData = useRef<any>([])
 
-    const indexedFileFeatureArray = useRef<any>({});
-
-    const theme = useTheme();
 
 
-
-    // useEffect(() => {
-    //     let isMounted = true;
-    //     // console.log("sanity! ", featuresLegendParam)
-    //     // console.log("INDEXDE FEAT ARR ", indexedFileFeatureArray.current);
-    //     // indexedFileFeatureArray.current = {};
-    //     // const meydaFileArray =  lastFileUploadMeydaData.current &&  lastFileUploadMeydaData.current.length > 0 && lastFileUploadMeydaData.current.map((i: any) => i[featuresLegendParam]);
-    //     // lastFileUploadMeydaData.current = undefined;
-    //     // if (featuresLegendParam.toLowerCase() === "chroma") {
-    //     //     meydaFileArray.map((i: any, idx: number) => {
-    //     //         indexedFileFeatureArray.current[`${idx}`] = i;
-    //     //     })
-    //     // } else {
-
-    //     //     for (var i in meydaFileArray) {
-    //     //         indexedFileFeatureArray.current[`${i}`] = meydaFileArray[i];
-    //     //         console.log("Moo this is meyda file array ", i, meydaFileArray[i])
-    //     //     }
-    //     // }
-    //     // indexedFileFeatureArray.current && 
-    //     // Object.values(indexedFileFeatureArray.current) &&
-    //     // Object.values(indexedFileFeatureArray.current).length > 0 &&
-    //     // Object.values(indexedFileFeatureArray.current).map((i: any, idx: number) => {
-    //     //     // setFeaturesLegendData(indexedFileFeatureArray.current);
-    //     //     console.log("Indexed file feat arr time data: ", { "date": idx, "close": i })
-    //     //     setFeaturesLegendData((d: any) => [...d, { "date": idx, "close": i }]);
-    //     // });
-    //     return () => {
-    //         // Cleanup side effects
-    //         isMounted = false;
-    //     };
-    // }, [meydaNeedsUpdate]);
-    // }, []);
-
-    // useEffect(() => {
-    //     // setMeydaNeedsUpdate(true);
-    //     // setFeaturesLegendData([]);
-    //     let isMounted = false;
-    //     indexedFileFeatureArray.current = {};
-    //     return () => {
-    //         isMounted = false;
-    //         // Cleanup side effects
-    //         // For example, remove event listeners, cancel subscriptions, clear intervals, etc.
-    //     };
-    // }, [featuresLegendParam])
-
-    // useEffect(() => {
-    //     console.log("FEATURES LEGEND DATA IS NOW... ", featuresLegendData);
-    // }, [featuresLegendData])
 
     const getMeydaData = (fileData: ArrayBuffer) => {
         // WE DOOOO WANT TO USE OFFLINE CONTEXT FOR FILE ANALYSIS (not realtime)
@@ -797,8 +752,6 @@ export default function InitializationComponent() {
                 microtonalMidiNums.includes(tune.note(j, i).toFixed(4)) && microtonalMidiNums.push(tune.note(j, i).toFixed(4));
             }
         }
-        console.log("WOOHA: ", microtonalFreqs);
-        console.log("WOOHA2: ", microtonalMidiNums);
         return () => {
             isMounted = false;
         };
@@ -830,23 +783,6 @@ export default function InitializationComponent() {
     initialNodes.current = initialNodesDefaults && initialNodesDefaults;
 
     initialEdges.current = initialEdgesDefaults && initialEdgesDefaults;
-
-    // useEffect(() => {
-    //     return () => {
-    //         console.log("Clearing masterPatternsRef on unmount...");
-    //         masterPatternsRef.current = {}; 
-    //     };
-    // }, []);
-
-    // useEffect(() => {
-    //     // if (updated) {
-    //     let isMounted = true;
-    //     // console.log('Update detected HERE IS WHERE EDIT/UPDATE SHOULD HAPPENS: ', universalSources.current);
-    //     return () => {
-    //         isMounted = false;
-    //     };
-    //     // this is working when user turns knob... should we be using this in some way?
-    // }, [updated]);
 
     const keysAndTuneDone = useRef<boolean>();
 
@@ -923,7 +859,6 @@ export default function InitializationComponent() {
 
         if (!tune && Tune) {
             const getTune = new Tune();
-         
             setTune(getTune);
         }
         
@@ -937,7 +872,7 @@ export default function InitializationComponent() {
 
     // CHANGE THIS USEEFFECT TO A FUNCTION!
     useEffect(() => {
-        let isMounted = true;
+        let isMountd = true;
         let visibleStkAndFX: Array<any>;
         if (universalSources.current) {
             console.log('curr screen / doReturnToSynth / checkedFXUpdating: ', currentScreen.current, doReturnToSynth.current, checkedFXUpdating);
@@ -966,7 +901,7 @@ export default function InitializationComponent() {
 
             } else {
                 visibleStkAndFX = Object.values(moogGMPresets);
-                // console.log("look good 2? ",  Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]))
+                console.log("look good 2? ",  Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]))
                 visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
             }
             visibleFXKnobs.current =
@@ -992,7 +927,7 @@ export default function InitializationComponent() {
             setInitialEdgesHook(initialEdges.current.filter((i: any) => i));
         }
         return () => {
-            isMounted = false;
+            isMountd = false;
         }
     }, [checkedFXUpdating]);
 
@@ -1770,36 +1705,7 @@ export default function InitializationComponent() {
         if (typeof window === 'undefined') return;
 
         console.log("good so far w/ aChuck... ")
-        // ****************************************************************
-        // Props for main ChucK file
-        // ****************************************************************
-        // gather an object with effects settings
-        // gather timing information & parameters
-        // gather score information & instruments
-        // get an array of all files we want to load
-        // ****************************************************************
-
-
         console.log("running chuck now... ", chuckUpdateNeeded);
-
-        const uploadedFilesArrsGenericCode: any = {};
-
-        uploadedFilesArrsGenericCode && Object.keys(uploadedFilesArrsGenericCode) && Object.keys(uploadedFilesArrsGenericCode).length > 0 && Object.keys(uploadedFilesArrsGenericCode).forEach((buf: any, idx: number) => {
-            if (idx !== Object.keys(uploadedFilesArrsGenericCode).length - 1) {
-                console.log("FILES CHUCK TO DAC 1: ", filesChuckToDac);
-                filesChuckToDac.current = filesToProcess.current.length > 0 ? filesChuckToDac.current + `SndBuf buffer_${buf} => ` : filesChuckToDac.current;
-            } else {
-                console.log("FILES CHUCK TO DAC 2: ", filesChuckToDac);
-                filesChuckToDac.current = filesToProcess.current.length > 0 ? filesChuckToDac.current + `SndBuf buffer_${buf} => dac;` : filesChuckToDac.current;
-            }
-        });
-
-        uploadedFilesArrsGenericCode && Object.keys(uploadedFilesArrsGenericCode) && Object.keys(uploadedFilesArrsGenericCode).length > 0 && Object.values(uploadedFilesArrsGenericCode).forEach((codeString: any) => {
-            filesGenericCodeString.current = filesGenericCodeString.current + codeString;
-            console.log("FILES CHUCK TO DAC 3: ", filesGenericCodeString.current);
-        });
-
-
 
         console.log("ENSURE CHUCK REF??? ", NOTES_SET_REF.current);
 
@@ -1833,11 +1739,11 @@ export default function InitializationComponent() {
                 const type = fx.Type;
                 const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
                 const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
-                signalChain.indexOf(addedEffect) === -1 && signalChain.push(addedEffect);
+                signalChainSampler.indexOf(addedEffect) === -1 && signalChainSampler.push(addedEffect);
 
                 Object.values(fx.presets).map((preset: any) => {
                     const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
-                    if (!fx.Code) valuesReadout[preset.name] = latestValue;
+                    if (!fx.Code) valuesReadoutSampler[preset.name] = latestValue;
                 })
             });
 
@@ -1853,6 +1759,10 @@ export default function InitializationComponent() {
             console.log("WHAT ARE PATTERNS? ", masterPatternsRef.current)
 
 
+console.log("what is alloctavemidifreqs? ", allOctaveMidiFreqs.current);
+console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999 ) ) );
+
+
             const newChuckCode = `
                 "" => global string currentSrc;
 
@@ -1863,7 +1773,7 @@ export default function InitializationComponent() {
 
                 0 => global int arpeggiatorOn;
 
-                ${(60000 / bpm) / masterFastestRate} => float beatInt;
+                ${(60000 / bpm) / masterFastestRate * 2} => float beatInt;
 
                 (beatInt)::ms => dur beat;
                 ${numeratorSignature} => global int numeratorSignature;
@@ -1937,10 +1847,7 @@ export default function InitializationComponent() {
                 // SinOsc testSin => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
 
                 SndBuf buffers[5] => Sampler_EffectsChain sampler_FxChain =>  Dyno audInDynoSampler => dac;
-         
-
-
-         
+                  
                 fun void SilenceAllBuffers()
                 {
                     buffers[0].samples() => buffers[0].pos;
@@ -1951,6 +1858,343 @@ export default function InitializationComponent() {
                 }
 
 
+                // BEGIN SYNTH VOICE DEFAULTS
+                class SynthVoice extends Chugraph
+                {
+                    int id;
+                    // Constructor to initialize id
+                    fun void setId(int newId) {
+                        newId => id;
+                    }
+
+                    saw1[id] => lpf[id] => adsr[id] => limiter[id] => outlet;
+                    saw2[id] => lpf[id];
+                    noiseSource[id] => lpf[id];
+                    0 => noiseSource[id].gain;
+
+                    SinLfo[id] => pitchLfo[id] => blackhole;
+                    SinLfo[id] => filterLfo[id] => blackhole;
+
+                    fun void SetLfoFreq(float frequency) 
+                    {
+                        frequency => SinLfo[id].freq => SawLfo[id].freq => SqrLfo[id].freq;
+                    }
+                    6.0 => SetLfoFreq; // what is this???
+                    0.05 => filterLfo[id].gain;
+                    0.05 => pitchLfo[id].gain;            
+                    2 => saw1[id].sync => saw2[id].sync => tri1[id].sync => tri2[id].sync => sqr1[id].sync => sqr2[id].sync;
+
+                    pitchLfo[id] => saw1[id];
+                    pitchLfo[id] => saw2[id];
+                    pitchLfo[id] => tri1[id];
+                    pitchLfo[id] => tri2[id];
+                    pitchLfo[id] => sqr1[id];
+                    pitchLfo[id] => sqr2[id];
+
+                    ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter[id].attackTime; // can we hardcode these???
+                    ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter[id].thresh; // can we hardcode these???
+
+                    
+                    // rethink volume when creating a master panel....
+                    0.06/numVoices => saw1[id].gain => saw2[id].gain;
+                    0.28/numVoices => tri1[id].gain => tri2[id].gain;
+                    0.08/numVoices => sqr1[id].gain => sqr2[id].gain;
+
+                    ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
+                    filterCutoff => lpf[id].freq;
+
+                    // moogGrandmotherEffects["offset"] => float offset;
+                    ${moogGrandmotherEffects.current.offset.value} => float offset; // why are we hardcoding these???
+                    880 => float filterEnv;
+                    1.0 => float osc2Detune;
+                    ${moogGrandmotherEffects.current.oscOffset.value} => float oscOffset;
+
+                    fun void SetOsc1Freq(float frequency)
+                    {
+                        frequency => tri1[id].freq => sqr1[id].freq => saw1[id].freq; 
+                    }
+
+                    fun void SetOsc2Freq(float frequency)
+                    {
+                        frequency => tri2[id].freq => sqr2[id].freq => saw2[id].freq; 
+                    }
+
+                    fun void keyOn(float noteNumber)
+                    {
+                     
+                        Std.mtof(offset + noteNumber) => SetOsc1Freq;
+                        Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
+                        1 => adsr[id].keyOn;
+                        ${moogGrandmotherEffects.current.adsrAttack.value}::ms => adsr[id].attackTime; // FIX NUM HERE!!!
+                        ${moogGrandmotherEffects.current.adsrDecay.value}::ms => adsr[id].decayTime; // FIX NUM HERE!!!
+                        ${moogGrandmotherEffects.current.adsrSustain.value} => adsr[id].sustainLevel; // FIX NUM HERE!!!
+                        ${moogGrandmotherEffects.current.adsrRelease.value}::ms => adsr[id].releaseTime; // FIX NUM HERE!!!
+
+     
+                        spork ~ filterEnvelope();
+                        me.yield();
+                    }
+
+                    fun void ChooseOsc1(int oscType)
+                    {
+                        if(oscType == 0)
+                        {
+                            tri1[id] =< lpf[id];
+                            saw1[id] =< lpf[id];
+                            sqr1[id] =< lpf[id];
+                        }
+                        if(oscType == 1)
+                        {
+                            tri1[id] => lpf[id];
+                            saw1[id] =< lpf[id];
+                            sqr1[id] =< lpf[id];
+                        }
+                        if(oscType == 2)
+                        {
+                            tri1[id] =< lpf[id];
+                            saw1[id] => lpf[id];
+                            sqr1[id] =< lpf[id];
+                        }
+                        if(oscType == 3)
+                        {
+                            tri1[id] =< lpf[id];
+                            saw1[id] =< lpf[id];
+                            sqr1[id] => lpf[id];
+                        }
+                    }
+                    fun void ChooseOsc2(int oscType)
+                    {
+                        if(oscType == 0)
+                        {
+                            tri2[id] =< lpf[id];
+                            saw2[id] =< lpf[id];
+                            sqr2[id] =< lpf[id];
+                        }
+                        if(oscType == 1)
+                        {
+                            tri2[id] => lpf[id];
+                            saw2[id] =< lpf[id];
+                            sqr2[id] =< lpf[id];
+                        }
+                        if(oscType == 2)
+                        {
+                            tri2[id] =< lpf[id];
+                            saw2[id] => lpf[id];
+                            sqr2[id] =< lpf[id];
+                        }
+                        if(oscType == 3)
+                        {
+                            tri2[id] =< lpf[id];
+                            saw2[id] =< lpf[id];
+                            sqr2[id] => lpf[id];
+                        }
+                        if(oscType == 4)
+                        {
+                            tri2[id] =< lpf[id];
+                            saw2[id] =< lpf[id];
+                            sqr2[id] =< lpf[id];
+                        }
+                    }
+                    fun void ChooseLfo(int oscType)
+                    {
+                        if(oscType == 0)
+                        {
+                            SinLfo[id] =< filterLfo[id];
+                            SinLfo[id] =< pitchLfo[id];
+                            SawLfo[id] =< filterLfo[id];
+                            SawLfo[id] =< pitchLfo[id];
+                            SqrLfo[id] =< filterLfo[id];
+                            SqrLfo[id] =< pitchLfo[id];
+                        }
+                        if(oscType == 1)
+                        {
+                            SinLfo[id] => filterLfo[id];
+                            SinLfo[id] => pitchLfo[id];
+                            SawLfo[id] =< filterLfo[id];
+                            SawLfo[id] =< pitchLfo[id];
+                            SqrLfo[id] =< filterLfo[id];
+                            SqrLfo[id] =< pitchLfo[id];
+                        }
+                        if(oscType == 2)
+                        {
+                            SinLfo[id] =< filterLfo[id];
+                            SinLfo[id] =< pitchLfo[id];
+                            SawLfo[id] => filterLfo[id];
+                            SawLfo[id] => pitchLfo[id];
+                            SqrLfo[id] =< filterLfo[id];
+                            SqrLfo[id] =< pitchLfo[id];
+                        }
+                        if(oscType == 3)
+                        {
+                            SinLfo[id] =< filterLfo[id];
+                            SinLfo[id] =< pitchLfo[id];
+                            SawLfo[id] =< filterLfo[id];
+                            SawLfo[id] =< pitchLfo[id];
+                            SqrLfo[id] => filterLfo[id];
+                            SqrLfo[id] => pitchLfo[id];
+                        }
+                    }
+                    fun void keyOff(int noteNumber) {
+                        noteNumber => adsr[id].keyOff;
+                        // Wait for the envelope to fully release
+                        while (adsr[id].state() != 0) {
+                            adsr[id].releaseTime() => now;
+                        }
+                    }
+                    fun void filterEnvelope()
+                    {
+                        filterCutoff => float startFreq;
+                        while((adsr[id].state() != 0 && adsr[id].value() == 0) == false)
+                        {
+                            Std.fabs((filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last()) => lpf[id].freq;                     
+                            adsr[id].releaseTime() => now;
+                            // 1 => adsr[id].keyOff;
+                            me.yield();
+                        }
+                        // me.exit();
+
+                        // filterCutoff => float startFreq;
+                        // while((adsr[id].state() != 0 && adsr[id].value() == 0) == false)
+                        // {
+                        //     (filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last() => lpf[id].freq;            
+                        //     10::ms => now;
+                        // }
+                    }
+                    fun void cutoff(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        (amount / 100) * 5000 => filterCutoff;
+                        ////////////////////////////////////////////////////////
+                        // is this fix ok?
+                        // 10::ms => now;
+                        //   whole/4 => now;
+                        // if (arpeggiatorOn == 1) {
+                            (whole)/numVoices - (now % (whole)/numVoices) => now;
+                        // } else {
+                        //     (whole) - (now % (whole)) => now;
+                        // } 
+                        ////////////////////////////////////////////////////////
+                    }
+                    fun void rez(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        20 * (amount / 100) + 0.3 => lpf[id].Q;
+                    }
+                    fun void env(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        5000 * (amount / 100) => filterEnv;
+                    }
+                    fun void detune(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 0)
+                        {
+                            0 => amount;
+                        }
+                        5 * (amount / 100) => osc2Detune;
+                    }
+                    fun void pitchMod(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 1)
+                        {
+                            0 => amount;
+                        }
+                        84 * (amount / 100) => pitchLfo[id].gain;
+                    }               
+                    fun void cutoffMod(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 1)
+                        {
+                            0 => amount;
+                        }
+                        5000 * (amount / 100) => filterLfo[id].gain;
+                    }
+                    fun void noise(float amount)
+                    {
+                        if(amount > 100)
+                        {
+                            100 => amount;
+                        }
+                        if(amount < 1)
+                        {
+                            0 => amount;
+                        }
+                        1.0 * (amount / 100) => noiseSource[id].gain;
+                    }            
+                }
+                SynthVoice voice;
+
+                for (0 => int i; i < numVoices; i++) {
+                    ${moogGrandmotherEffects.current.cutoff.value} => voice.cutoff;
+                    ${moogGrandmotherEffects.current.rez.value} => voice.rez;
+                    ${moogGrandmotherEffects.current.env.value} => voice.env;
+                    Std.ftoi(${moogGrandmotherEffects.current.oscType1.value}) => voice.ChooseOsc1;
+                    Std.ftoi(${moogGrandmotherEffects.current.oscType2.value}) => voice.ChooseOsc2;
+                    ${moogGrandmotherEffects.current.detune.value} => voice.detune;
+                    Std.ftoi(${moogGrandmotherEffects.current.oscOffset.value}) => voice.oscOffset;
+                    ${moogGrandmotherEffects.current.cutoffMod.value} => voice.cutoffMod;
+                    ${moogGrandmotherEffects.current.pitchMod.value} => voice.pitchMod;
+                    Std.ftoi(${moogGrandmotherEffects.current.lfoVoice.value}) => voice.ChooseLfo; // Lfo Voc
+                    // 0.5 => voice.filterLfo.gain;
+                    ${moogGrandmotherEffects.current.offset.value} => voice.offset;
+                    ${moogGrandmotherEffects.current.lfoFreq.value} => voice.filterEnv;
+                    ${moogGrandmotherEffects.current.noise.value} => voice.noise;
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                voice => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
+                0.6 => voice.gain;
 
                 // // SAMPLER
                 // ////////////////////////////////////////////////////////////////
@@ -1967,22 +2211,52 @@ export default function InitializationComponent() {
 
                     [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `[${999}]` ) )}] @=> int testArr2[][]; 
 
+                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999 ) )}] @=> float testNotesArr2[]; 
 
-                   tickCount % (${numeratorSignature * masterFastestRate}) => int recurringTickCount;
-                   
-                   if (recurringTickCount >= testArr2.size()) return; // Prevent out-of-bounds access
-                   if (testArr2[recurringTickCount][0] != 999) {
+
+                    [${mTFreqs}] @=> float allFreqs[];
+                    [${mTFreqs}] @=> float newTestFreqs[];
+
+                    int recurringTickCount;
+
+                    if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
+                        tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
+                    } else {
+                        tickCount => recurringTickCount;
+                    }
+
+
+
+
+
+
+
+                    if (recurringTickCount >= testArr2.size()) return; // Prevent out-of-bounds access
+                    
+                    if (testArr2[recurringTickCount][0] != 999) {
                         for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
                                 0 => buffers[x].pos;
                                 files[testArr2[recurringTickCount][x]] => buffers[x].read;
+
+
+                                // Calculate the exact time for this note within the measure
+                                (recurringTickCount * (whole / ${masterFastestRate})) => dur noteTimeOffset;
+
+                                // Wait until the correct time to play the note
+                                noteTimeOffset => now;
+
+
+                                // Play the note
+                                tickCount % testNotesArr2.size() => int notesCount;
+   
+                                allFreqs[recurringTickCount] => voice.keyOn;
+
                                 buffers[x].samples() => buffers[x].pos;
                                 0 => buffers[x].pos;
                                 buffers[x].length() => now;
                                 me.yield();
                         }
-                    } else {
-                        
-                    }
+                    } 
                     me.yield();
                 }
 
@@ -1995,9 +2269,7 @@ export default function InitializationComponent() {
                         [${resetNotes}] @=> int nts[];
 
                         // 220 => testSin.freq;
-                        for (0 => int i; i < nts.size(); i++) {
-                            <<< "LOG: ", nts[i] >>>;
-                        }
+                
                         
                     }
                 }
@@ -2011,25 +2283,16 @@ export default function InitializationComponent() {
                
                 now => time startTimeMeasureLoop;
                 
-
-                // // tickCounter is equivalent to beat by default
-                
-                // // spork ~ handlePlaySTK();
-
-                // // if (${Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)).length > 0} == true) {
-                   // //  spork ~ handlePlayNote();
-                // // }
-                // // spork ~ handlePlayNote();
                
                 while(true)
                 {
                     if (now >= startTimeMeasureLoop + (beat / fastestRateUpdate) ) {
                         fastestTickCounter + 1 => fastestTickCounter;
-                         <<< fastestTickCounter >>>;
+                        <<< fastestTickCounter >>>;
                     }
                     if (now >= startTimeMeasureLoop + beat) {
                         tickCounter + 1 => tickCounter;
-                        <<< "LOG TICK COUNTER: ", tickCounter >>>;
+
                         spork ~ handlePlayMeasure(tickCounter);
                         now => startTimeMeasureLoop;
                     }
@@ -2090,7 +2353,30 @@ export default function InitializationComponent() {
     // ========================================================
 
 
-
+    const updateKeyScaleChord = (key: string, scale: string, chord: string, octaveMax: string, octaveMin: string) => {
+        setKeyScaleChord({key: key, scale: scale, chord: chord, octaveMax: octaveMax, octaveMin: octaveMin});
+        // const submitMingus = async () => {
+        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, { audioKey: key, audioScale: scale, octave: octaveMax }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(({ data }) => {
+            console.log("TEST SCALES HERE 1# ", data);
+            // return 
+            handleMingusKeyboardData(data);
+        });
+        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, { audioChord: chord, audioKey: key }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(({ data }) => {
+            console.log("TEST CHORDS 1# ", data);
+            // return 
+            handleMingusChordsData(data);
+            return data;
+        });
+        // }
+    };
 
     // SLIDER CONTROL KNOB
     // ========================================================
@@ -2139,7 +2425,6 @@ export default function InitializationComponent() {
             ) {
                 if (universalSources.current && universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources]) {
                     universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].presets[`${obj.name}` as any].value = value;
-                    console.log("yeah getting update: ",  universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].presets[`${obj.name}` as any].value)
                     markUpdated()
                 }
             }
@@ -2195,7 +2480,7 @@ export default function InitializationComponent() {
 
     const updateFXInputRadio = (value: any) => {
         if (value && value !== fxRadioValue) {
-            console.log('VALUE: ', value);
+            alert(`VALUE: ${value}`);
             setFxRadioValue(value);
         }
         setChuckUpdateNeeded(true);
@@ -2242,7 +2527,7 @@ export default function InitializationComponent() {
         console.log('YA')
         setHasHexKeys(false);
         setKeysVisible(true);
-        setMicroTonalLetters([])
+        setNewMicroTonalArr([])
         // console.log("NEW FORMATS ", newFormats);
         if (newFormats.length > 1) {
             setFormats(newFormats.reverse());
@@ -2305,7 +2590,6 @@ export default function InitializationComponent() {
 
 
     const handleSourceToggle = (name: string, val: any) => {
-        console.log("NAME: ", name, "VALUE: ", val);
         updateFXInputRadio(val);
         setVizSource(val);
         visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
@@ -2814,6 +3098,10 @@ export default function InitializationComponent() {
         return Object.values(allSTKs);
     }
 
+    useEffect(() => {
+        console.log("******************************* BAM ----> ", mingusChordsData, "//** ", mingusKeyboardData);
+    }, [mingusChordsData, mingusKeyboardData]);
+
     // TODO: CONVERT THIS TO A HELPER!!!
     const playSTKOff = () => {
 
@@ -2886,11 +3174,10 @@ export default function InitializationComponent() {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
                     }
                     else if (stkInst.VarName === "sax") {
-                        console.log("HEll ", stkInst.presets)
                         return `                                
-                                    ${stkInst.presets.filter((i: any) => i.name === "stopBlowing")[0].value} => ${stkInst.VarName}[i-1].stopBlowing;  
-                                    1 => ${stkInst.VarName}[i-1].noteOff;
-                                `;
+                            ${stkInst.presets.filter((i: any) => i.name === "stopBlowing")[0].value} => ${stkInst.VarName}[i-1].stopBlowing;  
+                            1 => ${stkInst.VarName}[i-1].noteOff;
+                        `;
                     } else if (stkInst.VarName === "bthree") {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
 
@@ -2914,14 +3201,28 @@ export default function InitializationComponent() {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
                     }
                 })
-                // } else {
-                //     console.log("yup");
-
-                // aChuck && runMainChuckCode(aChuck);
                 return ``;
             }
         })
     }
+
+    const handleMingusKeyboardData = (data: any) => {
+        setMingusKeyboardData(data);
+    }
+
+    const handleMingusChordsData = (data: any) => {
+        setMingusChordsData(data);
+    }
+
+    const handleChangeAudioKey = (key: string) => {
+        console.log('ALL GOOD ON KEY ', key);
+        setAudioKey(key as string);
+    };
+
+    const handleChangeOctave = (octave: string) => {
+        console.log('ALL GOOD ON OCTAVE ', octave);
+        setOctave(octave);
+    };
 
     const newInitChuck = async () => {
         // await initChuck();
@@ -2954,10 +3255,8 @@ export default function InitializationComponent() {
                 const theChuckContext: any = theChuck.context;
                 theChuckContext.resume();
             }
-            console.log("WebChucK is ready riiiight here!");
-
             let chuckVersion = '';
-
+            
             theChuck.getParamString("VERSION").then((value: string) => {
                 chuckVersion = value;
             });
@@ -2993,14 +3292,9 @@ export default function InitializationComponent() {
 
     return (
         <Box 
-            // sx={{
-            //     height: '100%',
-            //     width: 'auto',
-            // }}
             id={'frontendOuterWrapper'}
         >
             <Box id={'relativeFrontendWrapper'}>
-                
                 {/* RESPONSIVE APP BAR */}
                 {chuckHook &&
                     <Box 
@@ -3010,7 +3304,6 @@ export default function InitializationComponent() {
                             left: '140px'
                         }} 
                         // id="centerRoot"
-                      
                     >
                         <ResponsiveAppBar
                             selectRef={selectRef}
@@ -3039,7 +3332,7 @@ export default function InitializationComponent() {
                             updateHasHexKeys={updateHasHexkeys}
                             handleFormat={handleFormat}
                             setStkValues={setStkValues}
-                            handleSourceToggle={handleSourceToggle}
+                            // handleSourceToggle={handleSourceToggle}
                             updateStkKnobs={updateStkKnobs}
                             handleSwitchToggle={handleSwitchToggle}
                             handleChange={handleFXRadioChange}
@@ -3048,10 +3341,10 @@ export default function InitializationComponent() {
                             handleToggleArpeggiator={handleToggleArpeggiator}
                             runChuck={runChuck}
                             stopChuckInstance={stopChuckInstance}
+                            chuckMicButton={chuckMicButton}
                         />
                     </Box>
                 }
-
 
                 {typeof window !== 'undefined' && window && (typeof fxKnobsCount !== undefined) && (
                     <Box
@@ -3059,33 +3352,13 @@ export default function InitializationComponent() {
                             width: "100%",
                             height: "calc(100vh - 12.5rem)",
                             textAlign: "center",
-                            // backgroundColor: theme.palette.black,
-                            // backgroundColor: `${NAVY}`,
                         }}
                     >
                         {
                             clickedBegin ? 
                             (
-                                // <Box sx={{
-                                //     height: '(100vh',
-                                //     width: '100vw',
-                                //     display: clickedBegin ? 'block' : 'none',
-                                //     justifyContent: 'center',
-                                //     alignItems: 'center',
-                                //     backgroundColor: 'orange',
-                                //     // background: theme.palette.black,
-                                // }}>
-                                //     {/* <Stack sx={{ width: '100%', color: 'grey.500' }} spacing={2}>
-                                //     <LinearProgress color="secondary" />
-                                // </Stack> */}
-                                // </Box>
                                 <></>
                             ) :
-                        // // }
-
-                        // {/* BPM Guess --- <>{parseInt(midiBPMClockIncoming)}</> */}
-
-                        // {/* {!showLoader && ( */}
                             (
                                 <Button
                                     sx={{
@@ -3145,15 +3418,9 @@ export default function InitializationComponent() {
                                                     <Button id='toggleSliderPanelChildren_Pattern' className='right-panel-header-button' onClick={(e: any) => toggleSliderPanelChildren('pattern')}>Patterns View</Button>
                                                 </Box>
                                             </Box>
-
-
-
                                             <Box sx={{ maxHeight: 'calc(100% - 6rem)', display: rightPanelOptions[0] === 'effects' ? "flex" : "none" }}>
-
-
                                                 <FXRouting
                                                     key={fXChainKey + fxRadioValue}
-                                                    // fxChainNeedsUpdate={fxChainNeedsUpdate}
                                                     fxData={universalSources.current || defaultSources}
                                                     width={440}
                                                     height={440}
@@ -3177,7 +3444,6 @@ export default function InitializationComponent() {
                                                     handleCheckedFXToShow={handleCheckedFXToShow}
                                                     checkedEffectsListHook={checkedEffectsListHook}
                                                 />
-
                                                 <Box id={'reactDiagramsPedalboardWrapper'}>
                                                     <ReactDiagramsPedalboard
                                                         currentChain={currentChain}
@@ -3185,46 +3451,43 @@ export default function InitializationComponent() {
                                                     />
                                                 </Box>
                                             </Box>
+                                            <Box sx={{display: rightPanelOptions[0] !== 'effects' ? "flex" : "none" }}>
+                                                <NotesQuickDash
+                                                    featuresLegendData={[]}
+                                                    universalSources={universalSources.current}
+                                                    handleSourceToggle={handleSourceToggle}
+                                                    vizSource={vizSource}
+                                                    currentNumerCount={currentNumerCount}
+                                                    currentBeatSynthCount={currentBeatSynthCount}
+                                                    handleMasterFastestRate={handleMasterRateUpdate}
+                                                    handleOsc1RateUpdate={handleOsc1RateUpdate}
+                                                    handleOsc2RateUpdate={handleOsc2RateUpdate}
+                                                    handleStkRateUpdate={handleStkRateUpdate}
+                                                    handleSamplerRateUpdate={handleSamplerRateUpdate}
+                                                    handleAudioInRateUpdate={handleAudioInRateUpdate}
+                                                    currentNoteVals={currentNoteVals}
+                                                    filesToProcess={filesToProcess.current}
+                                                    numeratorSignature={numeratorSignature}
+                                                    denominatorSignature={denominatorSignature}
+                                                    editPattern={editPattern}
+                                                    masterPatternsHashHook={masterPatternsHashHook}
+                                                    masterPatternsHashHookUpdated={masterPatternsHashUpdated}
+                                                    inPatternEditMode={inPatternEditMode}
+                                                    selectFileForAssignment={selectFileForAssignment}
+                                                    handleChangeCellSubdivisions={(() => { })}
+                                                    cellSubdivisions={cellSubdivisions}
+                                                    resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
+                                                    handleClickUploadedFiles={handleClickUploadedFiles}
+                                                    parentDiv={parentDivRef.current}
 
-                                            <NotesQuickDash
-                                                featuresLegendData={[]}
-                                                universalSources={universalSources.current}
-                                                handleSourceToggle={handleSourceToggle}
-                                                vizSource={vizSource}
-                                                currentNumerCount={currentNumerCount}
-                                                currentBeatSynthCount={currentBeatSynthCount}
-                                                handleMasterFastestRate={handleMasterRateUpdate}
-                                                handleOsc1RateUpdate={handleOsc1RateUpdate}
-                                                handleOsc2RateUpdate={handleOsc2RateUpdate}
-                                                handleStkRateUpdate={handleStkRateUpdate}
-                                                handleSamplerRateUpdate={handleSamplerRateUpdate}
-                                                handleAudioInRateUpdate={handleAudioInRateUpdate}
-                                                currentNoteVals={currentNoteVals}
-                                                filesToProcess={filesToProcess.current}
-                                                numeratorSignature={numeratorSignature}
-                                                denominatorSignature={denominatorSignature}
-                                                editPattern={editPattern}
-                                                masterPatternsHashHook={masterPatternsHashHook}
-                                                masterPatternsHashHookUpdated={masterPatternsHashUpdated}
-                                                inPatternEditMode={inPatternEditMode}
-                                                selectFileForAssignment={selectFileForAssignment}
-                                                handleChangeCellSubdivisions={(() => { })}
-                                                cellSubdivisions={cellSubdivisions}
-                                                resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
-                                                handleClickUploadedFiles={handleClickUploadedFiles}
-                                                parentDiv={parentDivRef.current}
+                                                    masterFastestRate={masterFastestRate}
 
-                                                masterFastestRate={masterFastestRate}
-
-                                                currentBeatCountToDisplay={currentBeatCountToDisplay}
-                                                currentNumerCountColToDisplay={currentNumerCountColToDisplay}
-                                                currentDenomCount={currentDenomCount} 
-                                                currentPatternCount={currentPatternCount}
-
-                  
-
-
-                                            />
+                                                    currentBeatCountToDisplay={currentBeatCountToDisplay}
+                                                    currentNumerCountColToDisplay={currentNumerCountColToDisplay}
+                                                    currentDenomCount={currentDenomCount} 
+                                                    currentPatternCount={currentPatternCount}
+                                                />
+                                            </Box>
                                         </Box>
                                     </Box>
 
@@ -3249,7 +3512,7 @@ export default function InitializationComponent() {
                                             hasHexKeys={hasHexKeys}
                                             showFX={{ showFX }}
                                             programIsOn={programIsOn}
-                                            microTonalArr={microTonalLetters}
+                                            microTonalArr={newMicroTonalArr}
                                             updateHasHexKeys={updateHasHexkeys}
                                             fxRadioValue={fxRadioValue || "osc1"}
                                         />}
@@ -3257,42 +3520,28 @@ export default function InitializationComponent() {
 
                                     {/* LEFT CONTAINER */}
                                     <Box id="leftContainerWrapper">
-
-
-                                        {/* ANALYSIS */}
-                                        <Box sx={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                        }}>
-                                            <Box
-                                                sx={{
+                                        {
+                                            showBPM && (
+                                                <Box sx={{
+                                                    position: "relative",
                                                     display: "flex",
-                                                    flexDirection: "row"
-                                                }}
-                                            >
-                                                {chuckHook && (<Button
-                                                    sx={{
-                                                        minWidth: '140px',
-                                                        paddingLeft: '24px',
-                                                        display: "flex",
-                                                        flexDirection: "row",
-                                                        width: "100%",
-                                                        marginLeft: '0px',
-                                                        // border: theme.palette.black,
-                                                        // background: theme.palette.black,
-                                                        // color: `${theme.palette.white}`,
-                                                        '&:hover': {
-                                                            background: PALE_BLUE,
-                                                        }
-                                                    }}
-                                                    // variant="contained"
-                                                    id="analyzeChuckButton"
-                                                    onClick={closeAnalysisPopup}
-                                                    endIcon={<AutoGraphIcon />}>
-                                                    Analysis
-                                                </Button>)}
-                                            </Box>
-                                        </Box>
+                                                    flexDirection: "row",
+                                                    paddingTop: "12px",
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                    paddingBottom: "32px",
+                                                }}>
+                                                    <BPMModule
+                                                        bpm={bpm}
+                                                        handleChangeBPM={handleChangeBPM}
+                                                        beatsNumerator={beatsNumerator}
+                                                        beatsDenominator={beatsDenominator}
+                                                        handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                                        handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                                    />
+                                                </Box>
+                                            )
+                                        }
 
                                         {/* FILES */}
                                         <Box sx={{
@@ -3306,15 +3555,6 @@ export default function InitializationComponent() {
                                                 width: "100%",
                                             }}
                                             >
-
-                                                {/* <FileManager
-                                            onSubmit={onSubmit}
-                                            handleSubmit={handleSubmit}
-                                            register={register}
-                                            watch={watch}
-                                            // beginProgram={beginProgram}
-                                            programIsOn={!!chuckHook}
-                                        /> */}
                                                 <form
                                                     style={{
                                                         display: "flex",
@@ -3357,54 +3597,6 @@ export default function InitializationComponent() {
                                             </Box>
                                         </Box>
 
-                                        {/* RECORD */}
-                                        <Box sx={{ display: "flex", flexDirection: "column" }}>
-                                            <Box sx={{ display: "flex", flexDirection: "row" }}>
-                                                {chuckHook && (
-                                                    <Button
-                                                        sx={{
-                                                            display: "flex",
-                                                            flexDirection: "row",
-                                                            width: "100%",
-                                                            minWidth: '140px',
-                                                            marginLeft: '0px',
-                                                            // border: theme.palette.primaryB,
-                                                            // background: theme.palette.black,
-                                                            // color: `${theme.palette.white}`,
-                                                            '&:hover': {
-                                                                // color: theme.palette.primaryA,
-                                                                backgroundColor: PALE_BLUE,
-                                                            }
-                                                        }}
-                                                        // variant="contained"
-                                                        id="micStartRecordButton"
-                                                        onClick={chuckMicButton}
-                                                        endIcon={<KeyboardVoiceIcon />}>
-                                                        Record
-                                                    </Button>
-                                                )
-                                                }
-                                            </Box>
-                                        
-                                        {/* BPM & SIGNATURE */}
-                                        </Box>
-                                        {
-                                            showBPM && (
-                                                <Box sx={{
-                                                    position: "relative",
-                                                    display: "flex",
-                                                    flexDirection: "column"
-                                                }}>
-                                                    <BPMModule
-                                                        bpm={bpm}
-                                                        handleChangeBPM={handleChangeBPM}
-                                                        beatsNumerator={beatsNumerator}
-                                                        beatsDenominator={beatsDenominator}
-                                                        handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                                                        handleChangeBeatsDenominator={handleChangeBeatsDenominator}
-                                                    />
-                                                </Box>)
-                                        }
 
                                         <Box sx={{ position: "relative" }}>
                                             <Box sx={{
@@ -3424,6 +3616,7 @@ export default function InitializationComponent() {
                                                         return <Button
                                                             sx={{
                                                                 // left: '24px'
+                                                                border: '1px solid rgba(0,0,0,0.78)',
                                                                 width: '100%'
                                                             }}
                                                             key={`handleClickUploadedFilesBtn_${file.filename}`}
@@ -3434,8 +3627,6 @@ export default function InitializationComponent() {
                                                 </Box>
                                             </Box>
                                         </Box>
-
-
                                     </Box>
                                 </>
                             }
@@ -3449,7 +3640,7 @@ export default function InitializationComponent() {
                         zIndex: "9999",
                         bottom: '0px',
                     }}
-                >
+                >                                        
                     <KeyboardControls
                         selectRef={selectRef}
                         tune={tune}
@@ -3461,6 +3652,8 @@ export default function InitializationComponent() {
                         handleCheckedFXToShow={handleCheckedFXToShow}
                         setStkValues={setStkValues}
                         updateStkKnobs={updateStkKnobs}
+                        handleMingusKeyboardData={handleMingusKeyboardData}
+                        handleMingusChordsData={handleMingusChordsData}
                     />
 
                     <Keyboard
@@ -3472,6 +3665,7 @@ export default function InitializationComponent() {
                         organizeLocalStorageRows={organizeLocalStorageRows}
                         noteOnPlay={noteOnPlay}
                         compare={compare}
+                        updateKeyScaleChord={updateKeyScaleChord}
                     />
                 </Box>
             </Box>

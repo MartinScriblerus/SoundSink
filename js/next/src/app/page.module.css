@@ -93,9 +93,9 @@
 }
 
 .center::before {
-  background: var(--secondary-glow);
+  /* background: var(--secondary-glow); */
   /* background-color: var(--animate-glow); */
-  border-radius: 50%;
+  /* border-radius: 100%; */
   justify-content: center;
   width: 100%;
   height: 100%;
@@ -130,8 +130,14 @@
   justify-content: center;
   flex-direction: row;
   z-index: -1;
-  
-  background: conic-gradient(from 0deg, #ff7b7b, #ffdb4d, #76ff7a, #4d91ff, #ff7b7b);
+  background: #000000;
+  /* background: conic-gradient(from 0deg, 
+  #99D2A4,
+  #9979D2,
+  #ff7b7b,
+  #4d91ff,
+  ); */
+  /* #ff7b7b, #ffdb4d, #76ff7a, #4d91ff, #ff7b7b */
 }
 
 .center::before,
@@ -140,9 +146,18 @@
   position: absolute;
   left: 0;
   top: 0;
-  filter: blur(80px);
+  filter: blur(120px);
   /* transform: translateZ(30); */
-  background: conic-gradient(from 0deg, blue, #ffdb4d, #76ff7a, #4d91ff, purple);
+  background: conic-gradient(from 60deg, 
+  /* #eee2A4, */
+  /* #9979D2, */
+  #111111,
+  #333333,
+  #0e0e0e
+  /* #4d91ff */
+  /* #93D2A4 */
+  );
+    /* blue, #ffdb4d, #76ff7a, #4d91ff, purple */
 }
 
 @-webkit-keyframes fadeInFromNone {
@@ -340,9 +355,9 @@
     filter: invert(1);
   }
 
-  .logo {
+  /* .logo {
     filter: invert(1) drop-shadow(0 0 0.3rem #ffffff70);
-  }
+  } */
 }
 /* 
 @keyframes rotate {

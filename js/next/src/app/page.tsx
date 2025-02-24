@@ -12,29 +12,25 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-
-      
       <div 
         id={'centerRoot'} 
         style={{
           // width: 'inherit',
           display: 'flex',
           alignSelf: 'flex-start'
-      }} 
-      className={styles.center}
+        }} 
+        className={styles.center}
       >
       </div>
-
-      <div  style={{
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        width: '100vw',
-      }}>
-
+      <div  
+        style={{
+          boxSizing: 'border-box',
+          flexDirection: 'column',
+          height: '100vh',
+          width: '100vw',
+        }}
+      >
         <InitializationStyle />
-
       </div>
     </main>
   )

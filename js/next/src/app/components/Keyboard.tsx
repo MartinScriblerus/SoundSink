@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import React, { useState, useEffect, useRef } from 'react';
 import ShowFXView from './ShowFXBtn';
+import MingusPopup from './MingusPopup';
 
 interface Props {
     chuckHook: any;
@@ -11,6 +12,7 @@ interface Props {
     noteOnPlay: (midiNote: number, midiVelocity: number, midiHz?: number) => any;
     compare: (a: any, b: any) => number;
     notesAddedDetails: any;
+    updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
 };
 
 const Keyboard = ({
@@ -22,6 +24,7 @@ const Keyboard = ({
     noteOnPlay,
     compare,
     notesAddedDetails,
+    updateKeyScaleChord
 }: Props) => {
     const [keysToDisplay, setKeysToDisplay] = useState<any>([]);
     const addedDetails = useRef<any>(notesAddedDetails);
@@ -119,6 +122,9 @@ const Keyboard = ({
                 <Box
                     id="keyboardBox"
                 >
+                    <Box sx={{ width: 'calc(100vw - 560px)', display: 'flex', flexDirection: 'row', marginLeft: '-6px'}}><MingusPopup 
+                        updateKeyScaleChord={updateKeyScaleChord}
+                    /> </Box>
                     <ul id="keyboard" key={'keyboard'}>
                         {keysToDisplay &&
                             keysToDisplay.length > 0 &&

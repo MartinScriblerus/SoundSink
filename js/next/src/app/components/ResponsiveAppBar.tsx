@@ -8,6 +8,7 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
+import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import PianoIcon from '@mui/icons-material/Piano';
 import { Chuck } from 'webchuck';
@@ -16,7 +17,7 @@ import GenericToggle from './GenericToggle';
 import { Sources } from '@/types/audioTypes';
 import STKManagerDropdown from './STKManagerDropdown';
 import CustomAriaLive from './MicrotonesSearch';
-import { FOREST_GREEN, PALE_BLUE } from '@/utils/constants';
+import { FOREST_GREEN, PALE_BLUE, RUSTY_ORANGE } from '@/utils/constants';
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
@@ -46,7 +47,6 @@ export interface KeysAppBarProps {
   universalSources: Sources | undefined;
   vizSource: string;
   handleSwitchToggle: () => void;
-  handleSourceToggle: (x:string,val:any) => void; //
   updateStkKnobs: any;
   stkValues: any;
   setStkValues: any;
@@ -54,6 +54,7 @@ export interface KeysAppBarProps {
   currentNumerCountColToDisplay: number;
   currentDenomCount: number;
   currentPatternCount: number;
+  chuckMicButton: () => void;
 }
 
 function ResponsiveAppBar(props: KeysAppBarProps) {
@@ -76,6 +77,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
     currentNumerCountColToDisplay,
     currentDenomCount,
     currentPatternCount,
+    chuckMicButton,
   } = props;
 
   const theme = useTheme();
@@ -129,7 +131,6 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 left: '0px',
                 top: '0px',
                 position: 'relative',
-                flexDirection: "column"
             }}>
                 {chuckHook && (
                     <Box sx={{
@@ -152,7 +153,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                               textAlign: "center",
                               justifyContent: "center",
                               // width: "280px",
-                              marginLeft: "48px",
+                              marginLeft: "8px",
                               top: "8px",
                           }}
                         >
@@ -175,14 +176,52 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                     </Box>
                 )}
             </Box>
-
+                {/* RECORD */}
+                <Box sx={{ 
+                    display: "flex", 
+                    flexDirection: "column",
+                    padding: '4px !important', 
+                  }}>
+                    <Box sx={{ 
+                      display: "flex", 
+                      flexDirection: "row" 
+                    }}>
+                    {chuckHook && (
+                        <Button
+                        sx={{
+                          border:'rgba(255,255,255,0.78)',
+                          backgroundColor: chuckHook && 'rgba(0,0,0,0.78)',
+                          color: 'rgba(255,255,255,0.78)',
+                          height: '48px',
+                      
+                          width: '100px',
+                          marginBottom: '4px',
+                          minHeight: '48px',
+                          display: "flex",
+                          zIndex: '99',
+                          pointerEvents: "auto",
+                          cursor: "pointer",
+                          '&:hover': {
+                            color: 'rgba(255,255,255,0.78)',
+                            background: RUSTY_ORANGE,
+                          }
+                        }}
+                        className="ui_SynthLayerButton"
+                            id="micStartRecordButton"
+                            onClick={chuckMicButton}
+                            endIcon={<KeyboardVoiceIcon />}>
+                            Rec
+                        </Button>
+                        )
+                      }
+                    </Box>
+                  </Box>
             {/* PLAY CHUCK */}
             <Box 
               sx={{ 
                 display: "flex", 
                 flexDirection: "column",
                 padding: '4px !important', 
-                marginRight: "8px"
               }}
             >
             {chuckHook && (
@@ -252,71 +291,26 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               )}
             </Box>
 
-            {/* ARPS */}
-            {/* <Box
-              sx={{
-                // display: hideCircularArpBtnsHook ? 'none' : 'flex',
-                display: 'flex',
-                flexDirection: 'row',
-                right: '0px',
-                // left: '4px',
-                position: 'relative'
-              }}
-            >
-              <Button
-                sx={{
-                  border: theme.palette.primaryB,
-                  background: theme.palette.black,
-                  color: `${theme.palette.white} important!`,
-                  marginLeft: '0px',
-                  // maxWidth: '28px',
-                  minWidth: '60px',
-                  maxWidth: '60px',
-                  maxHeight: '40px',
-                  borderRadius: '50% !important',
-                  transform: 'scale(0.7)',
-                  marginBottom: '4px',
-                  minHeight: '60px',
-                  // display: hasHexKeys ? "flex" : "none",
-                  display: "flex",
-                  zIndex: '9999',
-                  '&:hover': {
-                    color: theme.palette.white,
-                    background: theme.palette.black,
-                    border: `1px solid ${theme.palette.secondaryB}`,
-                  }
-                }}
-                variant="outlined"
-                className="ui_SynthLayerButton"
-                onClick={(e: any) => handleFormat(e, ['key'])}
-              // endIcon={<AnimationIcon />}
-              >
-                <PianoIcon style={{ pointerEvents: 'none' }} />
-              </Button>
-            </Box> */}
           </Box>
-
-          {/* {hideCircularArpBtnsHook && */}
-            <GenericToggle 
-              handleSwitchToggle={handleSwitchToggle}
-              programIsOn={programIsOn}
-              handleToggleArpeggiator={handleToggleArpeggiator}
-              handleToggleStkArpeggiator={handleToggleStkArpeggiator}
-            />
-          {/* } */}
+          <GenericToggle 
+            handleSwitchToggle={handleSwitchToggle}
+            programIsOn={programIsOn}
+            handleToggleArpeggiator={handleToggleArpeggiator}
+            handleToggleStkArpeggiator={handleToggleStkArpeggiator}
+          />
           <Box sx={{ 
-            // flexGrow: 0, 
             zIndex: 20,
             right: '0px',
             left: '0px',
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            width: '100%',
+            width: "75%",
           }}>
             <div style={{
               display: "flex",
               flexDirection: "row",
+              minWidth: "70%",
             }}>
               <STKManagerDropdown
                   updateStkKnobs={updateStkKnobs}
@@ -349,21 +343,21 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               </Tooltip>
             )}
             <Menu
-            sx={{ mt: '45px' }}
-            id="menu-appbar"
-            anchorEl={anchorElUser}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={Boolean(anchorElUser)}
-            onClose={handleCloseUserMenu}
-          >
+              sx={{ mt: '45px' }}
+              id="menu-appbar"
+              anchorEl={anchorElUser}
+              anchorOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorElUser)}
+              onClose={handleCloseUserMenu}
+            >
             {settings.map((setting) => (
               <MenuItem key={setting} onClick={handleCloseUserMenu}>
                 <Typography textAlign="center">{setting}</Typography>
@@ -373,7 +367,6 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           </Box>
         </Box>
       </Box>
-    // {/* </Box> */}
   );
 }
 export default ResponsiveAppBar;

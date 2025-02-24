@@ -160,7 +160,7 @@ export default function DiscreteSlider(props: SliderProps) {
                 Line In: 
                 <Slider
                     aria-label="AudioInRate"
-                    value={currentNoteVals.audioIn[0]}
+                    value={currentNoteVals.linesIn[0]}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}

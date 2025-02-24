@@ -35,7 +35,7 @@ const adsrPresets = {
         label: "Attack Time",
         value: 0.01,
         min: 0.01,
-        max: 2000,
+        max: 4000,
         screenInterface: "knob",
         type: "dur", 
         group: 4,

@@ -550,18 +550,6 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            // ADSR: {
-            //     VarName: '',
-            //     On: false,
-            //     Declaration: '',
-            //     presets: [],
-            //     Type: '',
-            //     Visible: false,
-            //     Code: '',
-            //     EnvSetting: '',
-            //     ConnectionIn: [],
-            //     ConnectionOut: []
-            // },
             KasFilter: {
                 VarName: '',
                 On: false,
@@ -655,397 +643,6 @@ export const defaultSources: Sources = {
         active: true,
         isEditing: true,
     },
-
-
-
-
-
-
-    // osc2: {
-    //     masterVolume: 0.5,
-    //     detune: 0,
-    //     effects: {
-    //         WinFuncEnv: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: ' WinFuncEnv winfuncenv_osc2 =>',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: (helper: any) => winFuncString('osc2', helper.osc2.attackTime, helper.osc2.releaseTime, helper.osc2.envSetting),
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         PowerADSR: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         ExpEnv: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         WPDiodeLadder: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         WPKorg35: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Modulate: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Delay: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         DelayA: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         DelayL: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         ExpDelay: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Elliptic: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Spectacle: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Gain: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Bitcrusher: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         FoldbackSaturator: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Echo: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Chorus: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         PitShift: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         AmbPan3: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         JCRev: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         NRev: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         PRCRev: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         GVerb: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         // ADSR: {
-    //         //     VarName: '',
-    //         //     On: false,
-    //         //     Declaration: '',
-    //         //     presets: [],
-    //         //     Type: '',
-    //         //     Visible: false,
-    //         //     Code: '',
-    //         //     EnvSetting: '',
-    //         //     ConnectionIn: [],
-    //         //     ConnectionOut: []
-    //         // },
-    //         KasFilter: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Multicomb: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         PitchTracker: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         Sigmund: {
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         SndBuf: {
-    //             src: '',
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //         LiSa: {
-    //             src: '',
-    //             VarName: '',
-    //             On: false,
-    //             Declaration: '',
-    //             presets: [],
-    //             Type: '',
-    //             Visible: false,
-    //             Code: '',
-    //             EnvSetting: '',
-    //             ConnectionIn: [],
-    //             ConnectionOut: []
-    //         },
-    //     },
-    //     effectsString: '',
-    //     pattern: [{
-    //         time: {
-    //             bpm: 120,
-    //             numerator: 4,
-    //             denominator: 4,
-    //             sequencerRate: 8,
-    //             listenToMidiClock: true,
-    //         },
-    //         patternArr: [
-
-    //         ],
-    //         patternArrName: ''
-    //     }],
-    //     arpeggiateOn: false,
-    //     active: false,
-    //     isEditing: false,
-    // },
     osc2: {
         masterVolume: 0.5,
         detune: 0,
@@ -2036,11 +1633,11 @@ export const defaultSources: Sources = {
             WinFuncEnv: {
                 VarName: '',
                 On: false,
-                Declaration: ' WinFuncEnv winfuncenv_sampler1 =>',
+                Declaration: ' WinFuncEnv winfuncenv_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => winFuncString('sampler1', helper.sampler.attackTime, helper.sampler.releaseTime, helper.sampler.envSetting),
+                Code: (helper:any) => winFuncString('sampler', helper.sampler.attackTime, helper.sampler.releaseTime, helper.sampler.envSetting),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2048,11 +1645,11 @@ export const defaultSources: Sources = {
             PowerADSR: {
                 VarName: '',
                 On: false,
-                Declaration: ' PowerADSR poweradsr_sampler1 =>',
+                Declaration: ' PowerADSR poweradsr_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => powerADSRString('sampler1', helper.sampler.attackTime, helper.sampler.attackCurve, helper.sampler.decayTime, helper.sampler.decayCurve, helper.sampler.sustainLevel, helper.sampler.releaseTime, helper.sampler.releaseCurve),
+                Code: (helper:any) => powerADSRString('sampler', helper.sampler.attackTime, helper.sampler.attackCurve, helper.sampler.decayTime, helper.sampler.decayCurve, helper.sampler.sustainLevel, helper.sampler.releaseTime, helper.sampler.releaseCurve),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2060,11 +1657,11 @@ export const defaultSources: Sources = {
             ExpEnv: {
                 VarName: '',
                 On: false,
-                Declaration: ' ExpEnv expenv_sampler1 =>',
+                Declaration: ' ExpEnv expenv_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => expEnvString('sampler1', helper.sampler.T60, helper.sampler.radius, helper.sampler.value),
+                Code: (helper:any) => expEnvString('sampler', helper.sampler.T60, helper.sampler.radius, helper.sampler.value),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2072,11 +1669,11 @@ export const defaultSources: Sources = {
             WPDiodeLadder: {
                 VarName: '',
                 On: false,
-                Declaration: ' WPDiodeLadder wpdiodeladder_sampler1 =>',
+                Declaration: ' WPDiodeLadder wpdiodeladder_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => wpDiodeLadderString('sampler1', helper.sampler.cutoff, helper.sampler.resonance, helper.sampler.nlp_type, helper.sampler.nonlinear, helper.sampler.saturation),
+                Code: (helper:any) => wpDiodeLadderString('sampler', helper.sampler.cutoff, helper.sampler.resonance, helper.sampler.nlp_type, helper.sampler.nonlinear, helper.sampler.saturation),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2084,11 +1681,11 @@ export const defaultSources: Sources = {
             WPKorg35: {
                 VarName: '',
                 On: false,
-                Declaration: 'limiter_Sampler => WPKorg35 wpkorg35_sampler1 => dac;',
+                Declaration: 'limiter_Sampler => WPKorg35 wpkorg35_sampler => dac;',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => wpKorg35String('sampler1', helper.sampler.cutoff, helper.sampler.resonance, helper.sampler.nonlinear, helper.sampler.saturation) ,
+                Code: (helper:any) => wpKorg35String('sampler', helper.sampler.cutoff, helper.sampler.resonance, helper.sampler.nonlinear, helper.sampler.saturation) ,
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2096,11 +1693,11 @@ export const defaultSources: Sources = {
             Modulate: {
                 VarName: '',
                 On: false,
-                Declaration: ' Modulate mod_sampler1 =>',
+                Declaration: ' Modulate mod_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals:any) => modulateString('sampler1', helper.sampler.vibratoRate, helper.sampler.vibratoGain, helper.sampler.randomGain, currentNoteVals),
+                Code: (helper:any, currentNoteVals:any) => modulateString('sampler', helper.sampler.vibratoRate, helper.sampler.vibratoGain, helper.sampler.randomGain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2108,11 +1705,11 @@ export const defaultSources: Sources = {
             Delay: {
                 VarName: '',
                 On: false,
-                Declaration: (helper: any) => `Delay delay_sampler1[${helper.sampler.lines}];`,
+                Declaration: (helper: any) => `Delay delay_sampler[${helper.sampler.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals: any) => delayString('sampler1', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals),
+                Code: (helper:any, currentNoteVals: any) => delayString('sampler', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2120,11 +1717,11 @@ export const defaultSources: Sources = {
             DelayA: {
                 VarName: '',
                 On: false,
-                Declaration: (helper:any) => `DelayA delayA_sampler1[${helper.sampler.lines}];`,
+                Declaration: (helper:any) => `DelayA delayA_sampler[${helper.sampler.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals: any) => delayAString('sampler1', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals) ,
+                Code: (helper:any, currentNoteVals: any) => delayAString('sampler', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals) ,
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2132,11 +1729,11 @@ export const defaultSources: Sources = {
             DelayL: {
                 VarName: '',
                 On: false,
-                Declaration: (helper:any) => `DelayL delayL_sampler1[${helper.sampler.lines}];`,
+                Declaration: (helper:any) => `DelayL delayL_sampler[${helper.sampler.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals: any, numeratorSignature: number) => delayLString('sampler1', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals),
+                Code: (helper:any, currentNoteVals: any, numeratorSignature: number) => delayLString('sampler', helper.sampler.delay, helper.sampler.lines, helper.sampler.syncDelay, helper.sampler.zero, helper.sampler.b0, helper.sampler.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2144,11 +1741,11 @@ export const defaultSources: Sources = {
             ExpDelay: {
                 VarName: '',
                 On: false,
-                Declaration: ' ExpDelay expDelay_sampler1 =>',
+                Declaration: ' ExpDelay expDelay_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals:any) => expDelayString('sampler1', helper.sampler.ampcurve, helper.sampler.durcurve, helper.sampler.delay, helper.sampler.mix, helper.sampler.reps, helper.sampler.gain, currentNoteVals),
+                Code: (helper:any, currentNoteVals:any) => expDelayString('sampler', helper.sampler.ampcurve, helper.sampler.durcurve, helper.sampler.delay, helper.sampler.mix, helper.sampler.reps, helper.sampler.gain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2156,11 +1753,11 @@ export const defaultSources: Sources = {
             Elliptic: {
                 VarName: '',
                 On: false,
-                Declaration: ' Elliptic elliptic_sampler1 =>',
+                Declaration: ' Elliptic elliptic_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals:any) => ellipticString('sampler1', helper.sampler.filterLow, helper.sampler.filterMid, helper.sampler.filterHigh, helper.sampler.atten, helper.sampler.ripple, helper.sampler.filterMode, currentNoteVals),
+                Code: (helper:any, currentNoteVals:any) => ellipticString('sampler', helper.sampler.filterLow, helper.sampler.filterMid, helper.sampler.filterHigh, helper.sampler.atten, helper.sampler.ripple, helper.sampler.filterMode, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2168,11 +1765,11 @@ export const defaultSources: Sources = {
             Spectacle: {
                 VarName: '',
                 On: false,
-                Declaration: 'Spectacle spectacle_sampler1 =>',
+                Declaration: 'Spectacle spectacle_sampler =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => spectacleString('sampler1', helper.sampler.bands, helper.sampler.delay, helper.sampler.eq, helper.sampler.feedback, helper.sampler.fftlen, helper.sampler.freqMax, helper.sampler.freqMin, helper.sampler.mix, helper.sampler.overlap, helper.sampler.table),
+                Code: (helper:any) => spectacleString('sampler', helper.sampler.bands, helper.sampler.delay, helper.sampler.eq, helper.sampler.feedback, helper.sampler.fftlen, helper.sampler.freqMax, helper.sampler.freqMin, helper.sampler.mix, helper.sampler.overlap, helper.sampler.table),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2309,18 +1906,6 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            // ADSR: {
-            //     VarName: '',
-            //     On: false,
-            //     Declaration: '',
-            //     presets: [],
-            //     Type: '',
-            //     Visible: false,
-            //     Code: '',
-            //     EnvSetting: '',
-            //     ConnectionIn: [],
-            //     ConnectionOut: []
-            // },
             KasFilter: {
                 VarName: '',
                 On: false,
@@ -2769,7 +2354,7 @@ export const defaultSources: Sources = {
             },
             LiSa: {
                 src: '',
-                                VarName: '',
+                VarName: '',
                 On: false,
                 Declaration: '',
                 presets: [],

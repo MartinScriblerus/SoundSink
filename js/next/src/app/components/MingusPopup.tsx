@@ -1,299 +1,598 @@
-import { MIDDLE_FONT_SIZE, MUTED_OLIVE } from '@/utils/constants';
-import { Autocomplete, Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, TextField } from '@mui/material';
-import React from 'react';
+import { ROYALBLUE } from '@/utils/constants';
+import { Box, FormControl, Input } from '@mui/material';
+import React, { useEffect } from 'react';
 // import '../page.module.css';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 // import microtoneDescsData from '../microtone_descriptions.json'; 
 import { StylesConfig } from 'react-select';
 
-interface MicrotonalSearchProps {
-    selectRef: any; 
-    tune: any;
-    currentMicroTonalScale: any;
-}
 interface Props {
-    submitMingus: () => any;
-    audioKey: string;
-    octave: string;
-    audioScale: string;
-    audioChord: string;
-    handleChangeScale: (event: SelectChangeEvent) => void;
-    handleChangeChord: (event: SelectChangeEvent) => void;
-    selectRef: any;
-    tune: any;
-    currentMicroTonalScale: any;
+    updateKeyScaleChord: (key: string, scale: string, chord: string, octaveMax:any, octaveMin:any) => void;
 };
 
 const MingusPopup = ({
-    submitMingus, 
-    audioKey, 
-    octave, 
-    audioScale, 
-    audioChord, 
-    handleChangeScale, 
-    handleChangeChord,
-    selectRef,
-    tune,
-    currentMicroTonalScale,
+    updateKeyScaleChord
 }: Props) => {
-    const theme = useTheme();
-    // const {selectRef, tune, currentMicroTonalScale} = props;
-    const [microtoneDescs, setMicrotoneDescs] = React.useState<any>([]);
-    // console.log("PPPROPS? ", selectRef, currentMicroTonalScale.current);
+    const [isKeySelectOpen, setIsKeySelectOpen] = React.useState(false);
+    const [isScaleSelectOpen, setIsScaleSelectOpen] = React.useState(false);
+    const [isChordSelectOpen, setIsChordSelectOpen] = React.useState(false);
+    const [isOctaveMaxSelectOpen, setIsOctaveMaxSelectOpen] = React.useState(false);
+    const [isOctaveMinSelectOpen, setIsOctaveMinSelectOpen] = React.useState(false);
+    const [selectedKey, setSelectedKey] = React.useState<string | null>('C');
+    const [selectedScale, setSelectedScale] = React.useState<string | null>('Diatonic');
+    const [selectedChord, setSelectedChord] = React.useState<string | null>('M');
+    const [selectedOctaveMax, setSelectedOctaveMax] = React.useState<string | null>('4');
+    const [selectedOctaveMin, setSelectedOctaveMin] = React.useState<string | null>('3');
 
-    const styles: StylesConfig<any, true> = {
-        container: (provided: any) => ({
-            ...provided,
-            flexGrow: 1,
-            width: '180px',
-            maxWidth: '180px'
-        }),
-        control: (provided: any) => ({
-            ...provided,
-            background: 'rgba(0,0,0,0.78)',
-            borderColor: '#9e9e9e',
-            minHeight: '24px',
-            width: '180px',
-            maxWidth: '180px'
-        }),
-        option: (styles, {isFocused, isSelected}) => ({
-            ...styles,
-            color: 'rgba(255,255,255,0.78)',
-            background: isFocused
-                ? 'hsla(291, 64%, 42%, 0.5)'
-                : isSelected
-                    ? 'hsla(291, 64%, 42%, 1)'
-                    : undefined,
-            zIndex: 1
-        }),
-        menu: base => ({
-            ...base,
-            borderRadius: 0,
-            background: 'rgba(0,0,0,0.78)',
-            maxHeight: '32px',
-            marginTop: 0,
-            color: 'rgba(255,255,255,0.78)',
-            width: '180px',
-            backgroundColor: 'rgba(0,0,0,0.78)',
-        }),
-        menuList: base => ({
-            ...base,
-            padding: 0,
-            color: 'rgba(255,255,255,0.78)',
-            backgroundColor: 'rgba(0,0,0,0.78)',
-            background: 'rgba(0,0,0,0.78)',
-        })
-    }
+    const [searchKeyTerm, setSearchKeyTerm] = React.useState('');
+    const [searchScaleTerm, setSearchScaleTerm] = React.useState('');
+    const [searchChordTerm, setSearchChordTerm] = React.useState('');
+    const [searchOctaveMaxTerm, setSearchOctaveMaxTerm] = React.useState('');
+    const [searchOctaveMinTerm, setSearchOctaveMinTerm] = React.useState('');
+
+    const selectKeyRef = React.useRef<HTMLDivElement | null>(null);
+    const selectScaleRef = React.useRef<HTMLDivElement | null>(null);
+    const selectChordRef = React.useRef<HTMLDivElement | null>(null);
+    const dropdownOctaveMaxSelectRef = React.useRef<HTMLDivElement | null>(null);
+    const dropdownOctaveMinSelectRef = React.useRef<HTMLDivElement | null>(null);
+    const dropdownKeySelectRef = React.useRef<HTMLDivElement | null>(null);
+    const dropdownScaleSelectRef = React.useRef<HTMLDivElement | null>(null);
+    const dropdownChordSelectRef = React.useRef<HTMLDivElement | null>(null);
+    const selectOctaveMaxRef = React.useRef<HTMLDivElement | null>(null);
+    const selectOctaveMinRef = React.useRef<HTMLDivElement | null>(null);
   
-    // React.useMemo(() => {
-    //   setMicrotoneDescs(
-    //     microtoneDescsData.map((i: any, idx: number) => {
-    //         if (microtoneDescs && microtoneDescs.map((i:any) => i.description).indexOf(i.description) === -1) {
-    //             return {
-    //                 index: idx,
-    //                 label: i.name,
-    //                 value: i.name,
-    //                 name: i.name,
-    //                 description: i.description,
-    //             }
-    //         }}));
-    // }, []); 
-    const defaultProps = {
-        options: microtoneDescs,
-        getOptionLabel: (option: any) => `${option.name}: ${option.description}`,
+    useEffect(() => {
+        selectedKey && 
+        selectedScale && 
+        selectedChord && 
+        selectedOctaveMax && 
+        selectedOctaveMin &&
+        updateKeyScaleChord(selectedKey, selectedScale, selectedChord, selectedOctaveMax, selectedOctaveMin);
+    }, [selectedKey, selectedScale, selectedChord, selectedOctaveMax, selectedOctaveMin]);
+
+
+
+    const handleKeySelect = (option: any) => {
+        setSelectedKey(option.label);
+        setIsKeySelectOpen(false);
     };
 
-    const handleUpdateMicrotones = (e: any) => {
-        currentMicroTonalScale(e.target.innerText.split(":")[0]);
-    }
+    const handleScaleSelect = (option: any) => {
+        setSelectedScale(option.label);
+        setIsScaleSelectOpen(false);
+    };
+
+    const handleChordSelect = (option: any) => {
+        setSelectedChord(option.label);
+        setIsChordSelectOpen(false);
+    };
+
+    const handleOctaveMaxSelect = (option: any) => {
+        setSelectedOctaveMax(option.label);
+        setIsOctaveMaxSelectOpen(false);
+    };
+
+    const handleOctaveMinSelect = (option: any) => {
+        setSelectedOctaveMin(option.label);
+        setIsOctaveMinSelectOpen(false);
+    };
+
+    const keyOptions = [
+        {value: 'C', label: 'C'},
+        {value: 'C♯', label: 'C♯'},
+        {value: 'D', label: 'D'},
+        {value: 'D♯', label: 'D♯'},
+        {value: 'E', label: 'E'},
+        {value: 'F', label: 'F'},
+        {value: 'F♯', label: 'F♯'},
+        {value: 'G', label: 'G'},
+        {value: 'G♯', label: 'G♯'},
+        {value: 'A', label: 'A'},
+        {value: 'A♯', label: 'A♯'},
+        {value: 'B', label: 'B'},
+    ];
+
+    const scaleOptions = [
+        {value: 'Diatonic', label: 'Diatonic'},
+        {value: 'Major', label: 'Major'},
+        {value: 'Harmonic Major', label: 'Harmonic Major'},
+        {value: 'Natural Minor', label: 'Natural Minor'},
+        {value: 'Harmonic Minor', label: 'Harmonic Minor'},
+        {value: 'Melodic Minor', label: 'Melodic Minor'},
+        {value: 'Bachian', label: 'Bachian'},
+        {value: 'MinorNeapolitan', label: 'Minor Neapolitan'},
+        {value: 'Chromatic', label: 'Chromatic'},
+        {value: 'WholeTone', label: 'Whole Tone'},
+        {value: 'Octatonic', label: 'Octatonic'},
+        {value: 'Ionian', label: 'Ionian'},
+        {value: 'Dorian', label: 'Dorian'},
+        {value: 'Phrygian', label: 'Phrygian'},
+        {value: 'Lydian', label: 'Lydian'},
+        {value: 'Mixolydian', label: 'Mixolydian'},
+        {value: 'Aeolian', label: 'Aeolian'},
+        {value: 'Locrian', label: 'Locrian'},
+        {value: 'Fifths', label: 'Fifths'},
+    ];
+
+    const chordOptions = [
+        {value: 'M', label: 'Major Triad'},
+        {value: 'm', label: 'Minor Triad'},
+        {value: 'aug', label: 'Augmented Triad'},
+        {value: 'dim', label: 'Diminished Triad'},
+        {value: 'dim7', label: 'Diminished Seventh'},
+        {value:'sus2', label: 'Suspended Second Triad'},
+        {value:'sus', label: 'Suspended Fourth Triad'},
+        {value:'madd4', label: 'Minor Add Fourth'},
+        {value:'5', label: 'Perfect Fifth'},
+        {value:'7b5', label: 'Dominant Flat Five'},
+        {value:'6', label: 'Major Sixth'},
+        {value:'67', label: 'Dominant Sixth'},
+        {value:'69', label: 'Sixth Ninth'},
+        {value:'m6', label: 'Minor Sixth'},
+        {value:'M7', label: 'Major Seventh'},
+        {value:'m7', label: 'Minor Seventh'},
+        {value:'M7+', label: 'Augmented Major Seventh'},
+        {value:'m7+', label: 'Augmented Minor Seventh'},
+        {value:'sus47', label: 'Suspended Seventh'},
+        {value:'m7b5', label: 'Half Diminished Seventh'},
+        {value:'mM7', label: 'Minor Major Seventh'},
+        {value:'dom7', label: 'Dominant Seventh'},
+        {value:'7+', label: 'Augmented Major Seventh'},
+        {value:'7#5', label: 'Augmented Minor Seventh'},
+        {value:'7#11', label: 'Lydian Dominant Seventh'},
+        {value:'m/M7', label: 'Minor Major Seventh'},
+        {value:'7sus4', label: 'Suspended Seventh'},
+        {value:'M9', label: 'Major Ninth'},
+        {value:'m9', label: 'Minor Ninth'},
+        {value:'add9', label: 'Dominant Ninth'},
+        {value:'susb9', label: 'Suspended Fourth Ninth 1'},
+        {value:'sus4b9', label: 'Suspended Fourth Ninth 2'},
+        {value:'9', label: 'Dominant Ninth'},
+        {value:'m9b5', label: 'Minor Ninth Flat Five'},
+        {value:'7_#9', label: 'Dominant Sharp Ninth'},
+        {value:'7b9', label: 'Dominant Flat Ninth'},
+        {value:'9#', label: 'Dominant Sharp Ninth'},
+        {value:'11', label: 'Dominant Eleventh'},
+        {value:'m11', label: 'Minor Eleventh'},
+        {value:'add11', label: 'Dominant Eleventh'},
+        {value:'hendrix', label: 'Hendrix Chord 2'},
+        {value:'M13', label: 'Major Thirteenth'},
+        {value:'m13', label: 'Minor Thirteenth'},
+        {value:'13', label: 'Dominant Thirteenth'},
+    ];
+
+    const octaveMaxOptions = [
+        {value: '1', label: '1'},
+        {value: '2', label: '2'},
+        {value: '3', label: '3'},
+        {value: '4', label: '4'},
+        {value: '5', label: '5'},
+        {value: '6', label: '6'},
+        {value: '7', label: '7'},
+        {value: '8', label: '8'},
+    ];
+
+    const octaveMinOptions = [
+        {value: '1', label: '1'},
+        {value: '2', label: '2'},
+        {value: '3', label: '3'},
+        {value: '4', label: '4'},
+        {value: '5', label: '5'},
+        {value: '6', label: '6'},
+        {value: '7', label: '7'},
+        {value: '8', label: '8'},
+    ];
 
     return (
         <Box 
             sx={{
-                display: 'flex', 
-                // width: '122px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(5, 1fr)',
                 width: '100%',
                 outline: 'none',
-            }}>    
+                flexDirection: 'column',
+            }}
+        >    
     
-
-            <Box sx={{
-                flexDirection:'column', 
-                outline: 'none',
-                width: '100%',
-                left: '-13px',
-            }}>    
-                <Box sx={{
-                    display:'flex',  
-                    flexDirection:'row', 
+            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+                <div
+                ref={selectOctaveMinRef}
+                style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    border: '0.5px solid rgba(255,255,255,0.38',
+                    padding: '8px',
+                    color: 'rgba(255,255,255,0.78)',
+                    cursor: 'pointer',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
                     width: '100%',
-                }}>
-                    <FormControl 
-                        sx={{
-                            color: 'rgba(255,255,255,0.78)',
+                    minWidth: '60px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                    textOverflow: 'ellipsis',
+                }}
+                onClick={() => setIsOctaveMinSelectOpen(!isOctaveMinSelectOpen)}
+                >
+                Octave Min: {selectedOctaveMin}
+                </div>
+                {isOctaveMinSelectOpen && (
+                <div
+                    ref={dropdownOctaveMinSelectRef}
+                    // onScroll={handleScroll}
+                    style={{
+                    position: 'absolute',
+                    top: '100%',
+                    width: '100%',
+                    maxHeight: '12rem',
+                    overflowY: 'auto',
+                    backgroundColor: ROYALBLUE,
+                    color: 'rgba(255,255,255,0.78)',
+                    zIndex: 9999,
+                    }}
+                >
+                    <Input
+                        placeholder="Search..."
+                        value={searchOctaveMinTerm}
+                        onChange={(e) => setSearchOctaveMinTerm(e.target.value)}
+                        style={{
                             width: '100%',
+                            padding: '8px',
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            marginBottom: '8px',
+                            background: 'rgba(0,0,0,0.6)',
+                            color: 'rgba(255,255,255,0.78)',
                         }}
-                        // fullWidth
+                    />
+                    {
+                        ( 
+                        searchOctaveMinTerm.length > 0 
+                        ? 
+                            octaveMinOptions.filter((x: any) => x.label.includes(searchOctaveMinTerm)) 
+                        : 
+                            octaveMinOptions).map((option) => (
+                                <div
+                                    key={option.value}
+                                    onClick={() => handleOctaveMinSelect(option)}
+                                    style={{
+                                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                                    padding: '5px',
+                                    cursor: 'pointer',
+                                    fontFamily: 'monospace',
+                                    background: ROYALBLUE,
+                                    }}
+                                >
+                                    {option.label}
+                                </div>
+                            )
+                        )
+                    }
+                </div>
+                )}
+            </FormControl>
+
+            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+                <div
+                ref={selectOctaveMaxRef}
+                style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    border: '0.5px solid rgba(255,255,255,0.38',
+                    padding: '8px',
+                    color: 'rgba(255,255,255,0.78)',
+                    cursor: 'pointer',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    width: '100%',
+                    minWidth: '60px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                    textOverflow: 'ellipsis',
+                }}
+                onClick={() => setIsOctaveMaxSelectOpen(!isOctaveMaxSelectOpen)}
+                >
+                Octave Max: {selectedOctaveMax}
+                </div>
+                {isOctaveMaxSelectOpen && (
+                <div
+                    ref={dropdownOctaveMaxSelectRef}
+                    // onScroll={handleScroll}
+                    style={{
+                    position: 'absolute',
+                    top: '100%',
+                    width: '100%',
+                    maxHeight: '12rem',
+                    overflowY: 'auto',
+                    backgroundColor: ROYALBLUE,
+                    color: 'rgba(255,255,255,0.78)',
+                    zIndex: 9999,
+                    }}
+                >
+                    <Input
+                        placeholder="Search..."
+                        value={searchOctaveMaxTerm}
+                        onChange={(e) => setSearchOctaveMaxTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '8px',
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            marginBottom: '8px',
+                            background: 'rgba(0,0,0,0.6)',
+                            color: 'rgba(255,255,255,0.78)',
+                        }}
+                    />
+                    {( 
+                        searchOctaveMaxTerm.length > 0 
+                        ? 
+                            octaveMaxOptions.filter((x: any) => x.label.includes(searchOctaveMaxTerm)) 
+                        : 
+                            octaveMaxOptions).map((option) => (
+                                <div
+                                    key={option.value}
+                                    onClick={() => handleOctaveMaxSelect(option)}
+                                    style={{
+                                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                                    padding: '5px',
+                                    cursor: 'pointer',
+                                    fontFamily: 'monospace',
+                                    background: ROYALBLUE,
+                                    }}
+                                >
+                                    {option.label}
+                                </div>
+                            )
+                        )
+                    }
+                </div>
+                )}
+            </FormControl>
+
+            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+                <div
+                ref={selectKeyRef}
+                style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    border: '0.5px solid rgba(255,255,255,0.38',
+                    padding: '8px',
+                    color: 'rgba(255,255,255,0.78)',
+                    cursor: 'pointer',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    width: '100%',
+                    minWidth: '60px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                    textOverflow: 'ellipsis',
+                }}
+                onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
+                >
+                Key: {selectedKey}
+                </div>
+                {isKeySelectOpen && (
+                <div
+                    ref={dropdownKeySelectRef}
+                    // onScroll={handleScroll}
+                    style={{
+                    position: 'absolute',
+                    top: '100%',
+                    width: '100%',
+                    maxHeight: '12rem',
+                    overflowY: 'auto',
+                    backgroundColor: ROYALBLUE,
+                    color: 'rgba(255,255,255,0.78)',
+                    zIndex: 9999,
+                    }}
+                >
+                    {/* Search Input */}
+                    <Input
+                        placeholder="Search..."
+                        value={searchKeyTerm}
+                        onChange={(e) => setSearchKeyTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '8px',
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            marginBottom: '8px',
+                            background: 'rgba(0,0,0,0.6)',
+                            color: 'rgba(255,255,255,0.78)',
+                            overflow: 'hidden',
+                        }}
+                    />
+                    {/* Dropdown Options */}
+                    {( searchKeyTerm.length > 0 ? keyOptions.filter((x: any) => x.label.includes(searchKeyTerm)) : keyOptions).map((option) => (
+                    <div
+                        key={option.value}
+                        onClick={() => handleKeySelect(option)}
+                        style={{
+                        borderTop: '1px solid rgba(255,255,255,0.4)',
+                        padding: '5px',
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                        background: ROYALBLUE,
+                        }}
                     >
-                        <Select
-                            sx={{                             
-                                fontWeight: 'bold', 
-                                fontSize: MIDDLE_FONT_SIZE, 
+                        {option.label}
+                    </div>
+                    ))}
+                </div>
+                )}
+            </FormControl>
+
+            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+                <div
+                    ref={selectScaleRef}
+                    style={{
+                        background: 'rgba(0,0,0,0.6)',
+                        border: '0.5px solid rgba(255,255,255,0.38',
+                        padding: '8px',
+                        color: 'rgba(255,255,255,0.78)',
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        width: '100%',
+                        minWidth: '60px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        display: 'block',
+                        textOverflow: 'ellipsis',
+                        }}
+                        onClick={() => setIsScaleSelectOpen(!isScaleSelectOpen)}
+                    >
+                    Scale: {selectedScale}
+                </div>
+                {isScaleSelectOpen && (
+                    <div
+                        ref={dropdownScaleSelectRef}
+                        // onScroll={handleScroll}
+                        style={{
+                            position: 'absolute',
+                            top: '100%',
+                            width: '100%',
+                            maxHeight: '12rem',
+                            overflowY: 'auto',
+                            backgroundColor: ROYALBLUE,
+                            color: 'rgba(255,255,255,0.78)',
+                            zIndex: 9999,
+                        }}
+                    >
+                        <Input
+                            placeholder="Search..."
+                            value={searchScaleTerm}
+                            onChange={(e) => setSearchScaleTerm(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '8px',
                                 fontFamily: 'monospace',
+                                fontSize: '12px',
+                                marginBottom: '8px',
+                                background: 'rgba(0,0,0,0.6)',
                                 color: 'rgba(255,255,255,0.78)',
                             }}
-                            labelId="audioKey-simple-select-label"
-                            id="audioKey-simple-select"
-                            value={audioKey}
-
-                            // onChange={handleChangeAudioKey}
-                        >
-                            <MenuItem sx={{fontFamily: 'monospace'}} value={'C'}>C</MenuItem>
-                            <MenuItem sx={{fontFamily: 'monospace'}} value={'C♯'}>C♯</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'D'}>D</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'D♯'}>D♯</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'E'}>E</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'F'}>F</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'F♯'}>F♯</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'G'}>G</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'G♯'}>G♯</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'A'}>A</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'A♯'}>A♯</MenuItem>
-                            <MenuItem sx={{fontFamily: 'typography.fontFamily'}} value={'B'}>B</MenuItem>
-                        </Select>
-                    </FormControl>
-
-                </Box>
-                <Box sx={{
-                    display:'flex', 
-                    flexDirection:'row', 
-                    color: 'rgba(255,255,255,0.78)',
-                    outline: 'none',
-                }}>
-                    <FormControl 
-                        sx={{
-                            width: '120px', 
-                            outline: 'none', 
-                            color: 'rgba(255,255,255,0.78)',
-                        }}
-                    >
-                        <Select
-                            sx={{fontWeight: 'bold', fontSize: MIDDLE_FONT_SIZE}}
-                            labelId="scale-simple-select-label"
-                            id="scale-simple-select"
-                            value={audioScale}
-                            label="Scale"
-                            onChange={handleChangeScale}
-                        >
-                            <MenuItem value={'Diatonic'}>Diatonic</MenuItem>
-                            <MenuItem value={'Major'}>Major</MenuItem>
-                            <MenuItem value={'HarmonicMajor'}>Harmonic Major</MenuItem>
-                            <MenuItem value={'NaturalMinor'}>Natural Minor</MenuItem>
-                            <MenuItem value={'HarmonicMinor'}>Harmonic Minor</MenuItem>
-                            <MenuItem value={'MelodicMinor'}>Melodic Minor</MenuItem>
-                            <MenuItem value={'Bachian'}>Bachian</MenuItem>
-                            <MenuItem value={'MinorNeapolitan'}>Minor Neapolitan</MenuItem>
-                            <MenuItem value={'Chromatic'}>Chromatic</MenuItem>
-                            <MenuItem value={'WholeTone'}>Whole Tone</MenuItem>
-                            <MenuItem value={'Octatonic'}>Octatonic</MenuItem>
-                            <MenuItem value={'Ionian'}>Ionian</MenuItem>
-                            <MenuItem value={'Dorian'}>Dorian</MenuItem>
-                            <MenuItem value={'Phyrygian'}>Phrygian</MenuItem>
-                            <MenuItem value={'Lydian'}>Lydian</MenuItem>
-                            <MenuItem value={'Mixolydian'}>Mixolydian</MenuItem>
-                            <MenuItem value={'Aeolian'}>Aeolian</MenuItem>
-                            <MenuItem value={'Locrian'}>Locrian</MenuItem>
-                            <MenuItem value={'Fifths'}>Fifths</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
-                <Box sx={{
-                    display: 'flex', 
-                    flexDirection:'row', 
-                }}>
-                    <FormControl 
-                        // fullWidth
-                        sx={{
-                            color: 'rgba(255,255,255,0.78)',
-                            width: '120px'
-                        }}
-                    >
-                        <Select
-                            labelId="chord-simple-select-label"
-                            id="chord-simple-select"
-                            value={audioChord}
-                            label="Chord"
-                            onChange={handleChangeChord}
-                            sx={{
-                    
-                                fontWeight: 'bold', 
-                                fontSize: MIDDLE_FONT_SIZE,
-                                '& .MuiList-root': {
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    background: MUTED_OLIVE,
-                                    color: 'rgba(255,255,255,0.78)',
-                                }
+                        />
+                        {( searchScaleTerm.length > 0 
+                            ? 
+                                scaleOptions.filter((x: any) => x.label.includes(searchScaleTerm)) 
+                            : 
+                                scaleOptions).map((option) => (
+                                    <div
+                                        key={option.value}
+                                        onClick={() => handleScaleSelect(option)}
+                                        style={{
+                                            borderTop: '1px solid rgba(255,255,255,0.4)',
+                                            padding: '5px',
+                                            cursor: 'pointer',
+                                            fontFamily: 'monospace',
+                                            background: ROYALBLUE,
+                                        }}
+                                    >   
+                                    {option.label}
+                                    </div>
+                                )
+                            )
+                        }
+                    </div>
+                )}
+            </FormControl>
+            
+            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+                <div
+                    ref={selectChordRef}
+                    style={{
+                        background: 'rgba(0,0,0,0.6)',
+                        border: '0.5px solid rgba(255,255,255,0.38',
+                        padding: '8px',
+                        color: 'rgba(255,255,255,0.78)',
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        width: '100%',
+                        minWidth: '60px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        display: 'block',
+                        textOverflow: 'ellipsis',
+                    }}
+                    onClick={() => setIsChordSelectOpen(!isChordSelectOpen)}
+                >   
+                    Chord: {selectedChord}
+                </div>
+                {
+                    isChordSelectOpen && (
+                        <div
+                            ref={dropdownChordSelectRef}
+                            // onScroll={handleScroll}
+                            style={{
+                                position: 'absolute',
+                                top: '100%',
+                                width: '100%',
+                                maxHeight: '12rem',
+                                overflowY: 'auto',
+                                backgroundColor: ROYALBLUE,
+                                color: 'rgba(255,255,255,0.78)',
+                                zIndex: 9999,
                             }}
                         >
-                            <MenuItem value={'M'}>Major Triad</MenuItem>
-                            <MenuItem value={'m'}>Minor Triad</MenuItem>
-                            <MenuItem value={'aug'}>Augmented Triad</MenuItem>
-                            <MenuItem value={'dim'}>Diminished Triad</MenuItem>
-                            <MenuItem value={'dim7'}>Diminished Seventh</MenuItem>
-                            <MenuItem value={'sus2'}>Suspended Second Triad</MenuItem>
-                            <MenuItem value={'sus'}>Suspended Fourth Triad</MenuItem>
-                            <MenuItem value={'madd4'}>Minor Add Fourth</MenuItem>
-                            <MenuItem value={'5'}>Perfect Fifth</MenuItem>
-                            <MenuItem value={'7b5'}>Dominant Flat Five</MenuItem>
-                            <MenuItem value={'6'}>Major Sixth</MenuItem>
-                            <MenuItem value={'67'}>Dominant Sixth</MenuItem>
-                            <MenuItem value={'69'}>Sixth Ninth</MenuItem>
-                            <MenuItem value={'m6'}>Minor Sixth</MenuItem>
-                            <MenuItem value={'M7'}>Major Seventh</MenuItem>
-                            <MenuItem value={'m7'}>Minor Seventh</MenuItem>
-                            <MenuItem value={'M7+'}>Augmented Major Seventh</MenuItem>
-                            <MenuItem value={'m7+'}>Augmented Minor Seventh</MenuItem>
-                            <MenuItem value={'sus47'}>Suspended Seventh</MenuItem>
-                            <MenuItem value={'m7b5'}>Half Diminished Seventh</MenuItem>
-                            <MenuItem value={'mM7'}>Minor Major Seventh</MenuItem>
-                            <MenuItem value={'dom7'}>Dominant Seventh</MenuItem>
-
-                            <MenuItem value={'7+'}>Augmented Major Seventh</MenuItem>
-                            <MenuItem value={'7#5'}>Augmented Minor Seventh</MenuItem>
-                            <MenuItem value={'7#11'}>Lydian Dominant Seventh</MenuItem>
-                            <MenuItem value={'m/M7'}>Minor Major Seventh</MenuItem>
-                            <MenuItem value={'7sus4'}>Suspended Seventh</MenuItem>
-                            <MenuItem value={'M9'}>Major Ninth</MenuItem>
-                            <MenuItem value={'m9'}>Minor Ninth</MenuItem>
-                            <MenuItem value={'add9'}>Dominant Ninth</MenuItem>
-                            <MenuItem value={'susb9'}>Suspended Fourth Ninth 1</MenuItem>
-                            <MenuItem value={'sus4b9'}>Suspended Fourth Ninth 2</MenuItem>
-                            <MenuItem value={'9'}>Dominant Ninth</MenuItem>
-                            <MenuItem value={'m9b5'}>Minor Ninth Flat Five</MenuItem>
-                            <MenuItem value={'7_#9'}>Dominant Sharp Ninth</MenuItem>
-                            <MenuItem value={'7b9'}>Dominant Flat Ninth</MenuItem>
-                            <MenuItem value={'6/9'}>Sixth Ninth</MenuItem>
-                            <MenuItem value={'11'}>Eleventh</MenuItem>
-                            <MenuItem value={'m11'}>Minor Eleventh</MenuItem>
-                            <MenuItem value={'add11'}>Add Eleventh</MenuItem>
-    
-                            <MenuItem value={'hendrix'}>Hendrix Chord 2</MenuItem>
-                            <MenuItem value={'M13'}>Major Thirteenth</MenuItem>
-                            <MenuItem value={'m13'}>Minor Thirteenth</MenuItem>
-                            <MenuItem value={'13'}>Dominant Thirteenth</MenuItem>
-                            <MenuItem value={'add13'}>Dominant Thirteenth</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Box>
-                <Box sx={{
-                    display: 'flex', 
-                    flexDirection:'row', 
-                    outline: 'none',
-                }}>
-    
-                </Box>
-            </Box>
+                            {/* Search Input */}
+                            <Input
+                                placeholder="Search..."
+                                value={searchChordTerm}
+                                onChange={(e) => setSearchChordTerm(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '8px',
+                                    fontFamily: 'monospace',
+                                    fontSize: '12px',
+                                    marginBottom: '8px',
+                                    background: 'rgba(0,0,0,0.6)',
+                                    color: 'rgba(255,255,255,0.78)',
+                                }}
+                            />
+                            {/* Dropdown Options */}
+                            {
+                                ( searchChordTerm.length > 0 
+                                    ? 
+                                        chordOptions.filter((x: any) => x.label.includes(searchChordTerm)) 
+                                    : 
+                                        chordOptions).map((option) => (
+                                            <div
+                                                key={option.value}
+                                                onClick={() => handleChordSelect(option)}
+                                                style={{
+                                                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                                                    padding: '5px',
+                                                    cursor: 'pointer',
+                                                    fontFamily: 'monospace',
+                                                    background: ROYALBLUE,
+                                                }}
+                                            >
+                                                {option.label}
+                                            </div>
+                                        )
+                                )
+                            }
+                        </div>
+                    )
+                }           
+            </FormControl>
 
         </Box>
     );

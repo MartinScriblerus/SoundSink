@@ -1,9 +1,6 @@
 import { Box, useTheme } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
-import GroupToggle from "./GroupToggle";
-import { EffectsSettings, Sources } from "@/types/audioTypes";
-import STKManagerDropdown from "./STKManagerDropdown";
-import CustomAriaLive from "./MicrotonesSearch";
+
 
 import { Heatmap } from "@/utils/VizHelpers/Heatmap";
 
@@ -12,12 +9,6 @@ type QuickDashProps = {
     universalSources: any;
     handleSourceToggle: (name: string, val: any) => void;
     vizSource: string;
-    // updateStkKnobs: any;
-    // stkValues: any;
-    // setStkValues: any
-    // selectRef: any;
-    // tune: Tune;
-    // currentMicroTonalScale: any;
     currentNumerCount: any;
     currentBeatSynthCount: any;
     handleOsc1RateUpdate: any;
@@ -53,15 +44,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
     const theme = useTheme();
     const {
         featuresLegendData, 
-        universalSources, 
-        handleSourceToggle, 
         vizSource,
-        // updateStkKnobs,
-        // stkValues,
-        // setStkValues,
-        // selectRef,
-        // tune,
-        // currentMicroTonalScale,
         currentNumerCount,
         currentBeatSynthCount,
         handleOsc1RateUpdate,
@@ -79,8 +62,6 @@ const NotesQuickDash = (props:QuickDashProps) => {
         masterPatternsHashHookUpdated,
         inPatternEditMode,
         selectFileForAssignment,
-        // sortFileItemDown={sortFileItemDown}
-        // sortFileItemUp={sortFileItemUp}
         handleChangeCellSubdivisions,
         cellSubdivisions,
         resetCellSubdivisionsCounter,
@@ -122,17 +103,14 @@ const NotesQuickDash = (props:QuickDashProps) => {
         <Box 
             sx={{
                 top: '36px',
-                // height: "calc(100% - 16rem)",
                 textAlign: "center",
                 background: 'rgba(0,0,0,0.78)',
                 color: 'rgba(255,255,255,0.78)',
-                // position: "absolute",
                 zIndex: "1",
                 right: "0",
                 width: "100%",
             }}
         >
-
             <Box>
                 <Box sx={{
                     top: '0px !important',
@@ -156,8 +134,20 @@ const NotesQuickDash = (props:QuickDashProps) => {
                         // parentDivRef.current !== 0 && parentDivRef.current.getBoundingClientRect() &&
                         width && height &&
                         <Heatmap 
-                            width={parentDivRef.current ? parentDivRef.current.getBoundingClientRect().width : 0} 
-                            height={parentDivRef.current ? parentDivRef.current.getBoundingClientRect().height / 2 : 0} 
+                            width={
+                                parentDivRef.current 
+                                ? 
+                                    parentDivRef.current.getBoundingClientRect().width 
+                                : 
+                                    0
+                            } 
+                            height={
+                                parentDivRef.current 
+                                ? 
+                                    parentDivRef.current.getBoundingClientRect().height / 2 
+                                : 
+                                    0
+                            } 
                             currentNumerCount={currentNumerCount}
                             currentBeatSynthCount={currentBeatSynthCount}
                             handleOsc1RateUpdate={handleOsc1RateUpdate}
@@ -177,16 +167,12 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             updateCellColorBool={updateCellColorBool}
                             inPatternEditMode={inPatternEditMode}
                             selectFileForAssignment={selectFileForAssignment}
-                            // sortFileItemDown={sortFileItemDown}
-                            // sortFileItemUp={sortFileItemUp}
                             handleChangeCellSubdivisions={handleChangeCellSubdivisions}
                             cellSubdivisions={cellSubdivisions}
                             resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
                             handleClickUploadedFiles={handleClickUploadedFiles}
-                            vizSource={vizSource}    
-
+                            vizSource={vizSource}
                             masterFastestRate={masterFastestRate}
-
                             currentBeatCountToDisplay={currentBeatCountToDisplay}
                             currentNumerCountColToDisplay={currentNumerCountColToDisplay}
                             currentDenomCount={currentDenomCount}
@@ -203,7 +189,6 @@ const NotesQuickDash = (props:QuickDashProps) => {
                     <div key={`${f[0]}`}>{f[0] + f[1]}</div>
                 ))}
             </Box>
-
         </Box>
     )
 }

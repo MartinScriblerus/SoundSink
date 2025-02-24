@@ -23,12 +23,10 @@ const BPMModuleFun = (props: BPMModule) => {
             flexDirection: "column",
             // border: "0.5px solid #b2b2b2",
             paddingBottom: "12px",
-            paddingTop: "24px",
-            paddingRight: "12px",
-            paddingLeft: "12px",
+            paddingTop: "32px",
             minWidth: "140px",
             width: "100%",
-            justifyContent: "center",
+            justifyContent: "stretch",
             alignItems: "center",
             // borderRadius: "solid .5px rgba(255,255,255,0.78)",
         }}>
@@ -41,11 +39,8 @@ const BPMModuleFun = (props: BPMModule) => {
                     alignItems: 'center',
                     color: 'rgba(228,225,209,1)',
                     textAlign: 'center',
-                    // border: "solid .5px rgba(255,255,255,0.78)",
-                    // maxWidth: '86px',
-                    // paddingTop: '18px',
-                    // top: "20px",
-                    // left: "0px",
+                    justifySelf: 'center',
+                    paddingBottom: "24px",
                 }}
                 onSubmit={(e) => {
                     e.preventDefault();
@@ -55,23 +50,35 @@ const BPMModuleFun = (props: BPMModule) => {
                     // focused
                     inputProps={{
                         style: {
-                            color: 'rgba(255,255,255,0.78)',
-                            fontSize: '24px',
+                            color: 'rgba(255,255,255,0.94)',
+                            fontSize: '36px',
                             textAlign: 'center',
-                            width: '100%'
+                            width: '100%',
+                            paddingRight: '10%',
+                            paddingLeft: '10%',
+                            fontFamily: 'monospace',
+                            background: 'rgba(0,0,0,0.78)',
+                            border: '0px',
+                            borderRadius: '0px',
+                            padding: '0px',
                         }
                     }}
                     sx={{
                         input: { color: 'rgba(255,255,255,0.78)' },
-                        // backgroundColor: 'rgba(0,0,0,0.78)',
                         color: 'rgba(255,255,255,0.78)',
                         display: 'inline-flex',
-                        fontSize: '32px',
+                        fontSize: '36px',
                         alignItems: 'center',
                         height: "100%",
-                        // background: "rgba(255,255,255,0.78)",
-                        border: 'solid 1px red'
-                        // width: '84px',
+                        width: '100%',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        backgroundColor: 'rgba(0,0,0,0.78)',
+                        border: '0px',
+                        fontFamily: 'monospace',
+                        background: 'rgba(0,0,0,0.78)',
+                        borderRadius: '0px',
+                        padding: '0px',
                     }}
                     label={"BPM"}
                     placeholder="BPM"
@@ -79,9 +86,6 @@ const BPMModuleFun = (props: BPMModule) => {
                         shrink: true,
                     }}
                     type="number"
-                    // id="standard-textarea-inputSampleInfo"
-                    // className="inputSampleInfo"
-                    // variant="outlined"
                     value={bpm}
                     onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
                         event.preventDefault();
@@ -99,14 +103,14 @@ const BPMModuleFun = (props: BPMModule) => {
                 justifyContent: 'center',
                 width: '100%',
                 alignItems: 'center',
+                paddingTop: "12px",
             }}>
                 <FormControl
                     hiddenLabel
                     sx={{
                         margin: '4px',
                         padding: '0',
-                        maxWidth: '40px',
-                        marginTop: '8px !important'
+                        maxWidth: '100%',
                     }}
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -117,9 +121,14 @@ const BPMModuleFun = (props: BPMModule) => {
                         focused
                         inputProps={{
                             style: {
-                                fontSize: '18px',
-                                textAlign: 'right',
-                                color: 'primary.contrastText'
+                                fontSize: '24px',
+                                textAlign: 'center',
+                                color: 'primary.contrastText',
+                                fontFamily: 'monospace',
+                                background: 'rgba(0,0,0,0.78)',
+                                border: '0px',
+                                borderRadius: '0px',
+                                padding: '0px',
                             }
                         }}
                         sx={{
@@ -131,7 +140,14 @@ const BPMModuleFun = (props: BPMModule) => {
                             alignItems: 'right',
                             paddingBottom: 0,
                             width: '100%',
+                            paddingRight: '10%',
+                            paddingLeft: '10%',
                             fontSize: '24px',
+                            fontFamily: 'monospace',
+                            background: 'rgba(0,0,0,0.78)',
+                            border: '0px',
+                            borderRadius: '0px',
+                            padding: '0px',
                         }}
                         placeholder="Numerator"
                         type="number"
@@ -153,7 +169,7 @@ const BPMModuleFun = (props: BPMModule) => {
 
                 <FormControl
                     hiddenLabel
-                    sx={{ margin: '4px', padding: '0', maxWidth: '40px', }}
+                    sx={{ margin: '4px', padding: '0', maxWidth: '100%', }}
                     onSubmit={(e) => {
                         e.preventDefault();
                     }
@@ -162,9 +178,14 @@ const BPMModuleFun = (props: BPMModule) => {
                         hiddenLabel
                         inputProps={{
                             style: {
-                                fontSize: '18px',
-                                textAlign: 'right',
-                                color: 'primary.contrastText'
+                                fontSize: '24px',
+                                textAlign: 'center',
+                                color: 'primary.contrastText',
+                                fontFamily: 'monospace',
+                                background: 'rgba(0,0,0,0.78)',
+                                border: '0px',
+                                borderRadius: '0px',
+                                padding: '0px',
                             }
                         }}
                         sx={{

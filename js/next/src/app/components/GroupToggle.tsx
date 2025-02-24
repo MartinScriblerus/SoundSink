@@ -1,7 +1,6 @@
 import * as React from 'react';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import { useTheme } from '@mui/material';
 
 type GroupToggleProps = {
     name: string;
@@ -12,8 +11,6 @@ type GroupToggleProps = {
 export default function GroupToggle(props: GroupToggleProps) {
   const {name, options, handleSourceToggle} = props;
   const [alignment, setAlignment] = React.useState('osc1');
-
-  const theme = useTheme();
 
   const handleChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -33,7 +30,6 @@ export default function GroupToggle(props: GroupToggleProps) {
       onChange={handleChange}
       aria-label="Platform"
     >
-      HELLO!
       {options.map((option: string, idx: number) => {
           return <ToggleButton 
             key={`toggleWrapper_${idx}`}
@@ -41,8 +37,8 @@ export default function GroupToggle(props: GroupToggleProps) {
             value={`${option.toLowerCase()}`}>{
               option.toLowerCase().includes('osc1') ? 'Poly' : 
               option.toLowerCase().includes('osc2') ? 'Mono' :
-              option.toLowerCase().includes('stk') ? 'Samp' :
-              option.toLowerCase().includes('sampler') ? 'Inst' :
+              option.toLowerCase().includes('stk') ? 'Inst' :
+              option.toLowerCase().includes('sampler') ? 'Samp' :
               option.toLowerCase().includes('audioin') ? 'Line' : option
             }</ToggleButton>
         })

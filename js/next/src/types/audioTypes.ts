@@ -6,7 +6,6 @@ import { Chuck } from "webchuck";
 // ******************************************
 
 export type KeyboardProps = {
-    // programIsOn: boolean;
     selectRef: any; // what is this???
     tune: any;
     currentMicroTonalScale: any;
@@ -17,11 +16,8 @@ export type KeyboardProps = {
     handleChange: (msg: any) => void;
     handleCheckedFXToShow: (msg: any) => void;
     checkedEffectsListHook: any[];
-    // value: any;
-    // updateCurrentFXScreen: (msg: any) => void;
-    // currentScreen: string;
-    // playUploadedFile: (name: string) => void;
-    // lastFileUpload: (name: string) => void;
+    handleMingusKeyboardData: (x: any) => void,
+    handleMingusChordsData: (x: any) => void,
 }
 
 // AUTOMATION *******************************
@@ -81,16 +77,6 @@ export type InstrumentNameVal = {
     effectsHelper: any;
 
 }
-
-// export type STKSettings = {
-//     VarName: string;
-//     Type: string;
-//     On: boolean;
-//     Visible: boolean;
-//     presets: any; 
-// }
-
-
 
 export type STKInstruments = {
     Clarinet: EffectsSettings;

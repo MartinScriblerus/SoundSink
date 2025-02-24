@@ -73,7 +73,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
             name: `${sourceName} source`,
             color: PALE_BLUE,
         });
-        node1.setPosition(0, 12);
+        node1.setPosition(0, 280);
   
         // Node Outlet
         const node2 = new DefaultNodeModel({

@@ -248,7 +248,7 @@ function BabylonScene(props: {
                 game.camera1 = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
                 // game.camera1.setTarget(new BABYLON.Vector3(-2.6,-1.8,0.0));
                 game.camera1.setTarget(new BABYLON.Vector3(-2.6,-1.8,0.0));
-                game.camera1.attachControl(game.scene, false);
+                game.camera1.attachControl(game.scene, false);            
                 game.camera1.position = new BABYLON.Vector3(0, 0, 12);
                 game.camera1.inputs.attached.keyboard.detachControl();
                 game.camera1.inputs.attached.mousewheel.detachControl();
@@ -631,7 +631,7 @@ function BabylonScene(props: {
                     minWidth: "1200px", 
                     minHeight: "800px", 
                     display: "visible",
-                    background: 'transparent', 
+                    // background: 'transparent', 
                     position: 'relative', 
                 }} 
                 id={`babylonCanvas`} 
