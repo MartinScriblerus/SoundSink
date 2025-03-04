@@ -1,4 +1,4 @@
-export const stkVariablePercFlut = "prcflt";
+export const stkVariablePercFlut = "percFlut";
 export const stkIdentifierPercFlut = "PercFlut";
 
 const percFlutPresets = {

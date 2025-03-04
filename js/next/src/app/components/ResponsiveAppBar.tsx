@@ -10,7 +10,7 @@ import MenuItem from '@mui/material/MenuItem';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
-import PianoIcon from '@mui/icons-material/Piano';
+// import PianoIcon from '@mui/icons-material/Piano';
 import { Chuck } from 'webchuck';
 import { useTheme } from '@mui/material';
 import GenericToggle from './GenericToggle';
@@ -110,7 +110,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
 
   return (
     // <Box style={{ zIndex: '10000', width: '100vw', display: "block", background: "black" }} position="static">
-      <Box sx={{ height: "54px" }}>
+      <Box sx={{ height: "64px", borderBottom: "solid 0.5px rgba(255,255,255,0.78)" }}>
         <Box 
           sx={{ 
             minHeight: '54px !important', 

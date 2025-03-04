@@ -52,7 +52,7 @@ import sitarPresets, {stkVariableSitar, stkIdentifierSitar} from '@/utils/STKPre
 import stifKarpPresets, {stkVariableStifKarp, stkIdentifierStifKarp} from '@/utils/STKPresets/stifKarpPresets';
 import shakersPresets, {stkVariableShakers, stkIdentifierShakers} from '@/utils/STKPresets/shakersPresets';
 import tubeBellPresets, {stkVariableTubeBell, stkIdentifierTubeBell} from '@/utils/STKPresets/tubeBell';
-import voicFormPresets, {stkVariableVoiceForm, stkIdentifierVoiceForm} from '@/utils/STKPresets/voicFormPresets';
+import voicFormPresets, {stkVariableVoicForm, stkIdentifierVoicForm} from '@/utils/STKPresets/voicFormPresets';
 import wurleyPresets, {stkVariableWurley, stkIdentifierWurley} from '@/utils/STKPresets/wurleyPresets';
 import ambPan3Presets, { stkIdentifierAmbPan3, stkVariableAmbPan3 } from './FXPresets/ambPanPresets';
 import bitcrusherPresets, { stkIdentifierBitcrusher, stkVariableBitcrusher } from './FXPresets/bitcrusherPresets';
@@ -75,6 +75,7 @@ import sndBufPresets, {stkIdentifierSndBuf, stkVariableSndBuf, stkIdentifierLisa
 
 
 export const getSTK1Preset = (stkVal: string) => {
+    console.log("STK VAL::: ", stkVal);
     let theStk1Fx;
     if (stkVal === 'saxofony' || stkVal === 'Saxofony') {
         theStk1Fx = {
@@ -94,7 +95,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'karplus' || stkVal === 'stifkrp' || stkVal === "Karplus") {
+    } else if (stkVal === 'karplus' || stkVal === 'stifkrp' || stkVal === "m") {
         theStk1Fx = {
             presets: stifKarpPresets,
             type: stkIdentifierStifKarp,
@@ -103,6 +104,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
+        console.log("test test test: ", theStk1Fx);
     } else if (stkVal === 'sitar' || stkVal === 'Sitar') {
         theStk1Fx = {
             presets: sitarPresets,
@@ -239,11 +241,11 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'voiceForm' || stkVal === 'voiceform') {
+    } else if (stkVal === 'voicForm' || stkVal === 'voicform') {
         theStk1Fx = {
             presets: voicFormPresets,
-            type: stkIdentifierVoiceForm,
-            var: stkVariableVoiceForm,
+            type: stkIdentifierVoicForm,
+            var: stkVariableVoicForm,
             fxType: 'stk',
             visible: true,
             checked: true
@@ -275,7 +277,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'percFlute' || stkVal === 'percflute') {
+    } else if (stkVal === 'percFlut' || stkVal === 'percFlut') {
         theStk1Fx = {
             presets: percFlutPresets,
             type: stkIdentifierPercFlut,
@@ -328,7 +330,7 @@ export const getSTK2Preset = (stkVal: string) => {
             type: stkIdentifierClarinet,
             var: stkVariableClarinet
         };
-    } else if (stkVal === 'stifkrp') {
+    } else if (stkVal === 'm') {
         theStk2Fx = {
             presets: stifKarpPresets,
             type: stkIdentifierStifKarp,
@@ -412,11 +414,11 @@ export const getSTK2Preset = (stkVal: string) => {
             type: stkIdentifierShakers,
             var: stkVariableShakers
         };
-    } else if (stkVal === 'voiceForm') {
+    } else if (stkVal === 'voicForm') {
         theStk2Fx = {
             presets: voicFormPresets,
-            type: stkIdentifierVoiceForm,
-            var: stkVariableVoiceForm
+            type: stkIdentifierVoicForm,
+            var: stkVariableVoicForm
         };
     } else if (stkVal === 'beeThree') {
         theStk2Fx = {
@@ -430,7 +432,7 @@ export const getSTK2Preset = (stkVal: string) => {
             type: stkIdentifierKrstlChr,
             var: stkVariableKrstlChr
         };
-    } else if (stkVal === 'percFlute') {
+    } else if (stkVal === 'percFlut') {
         theStk2Fx = {
             presets: percFlutPresets,
             type: stkIdentifierPercFlut,
