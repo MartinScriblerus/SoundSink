@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LineChart } from "./LineChart";
-import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
+import { Box, Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, useTheme } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import LegendVizx from "@/app/components/VizxHelpers/Legend";
 import BrushChart from "@/app/components/VizxHelpers/BrushChart";
@@ -10,17 +10,10 @@ export interface VizDataProps {
   analysisObject: any;
   timeNow: number;
   closeAnalysisPopup: () => void;
-  handleChangeAnalysisSource: (e: any) => void;
+
   analysisSourceRadioValue: string;
-  secLenBeat:number;
-  beatCount: number;
-  numerCount: number;
-  denomCount: number;
-  patternCount: number;
   filesToProcess: any[];
-  bufferStepLength: number;
-  graphNeedsUpdate: boolean;
-  setGraphNeedsUpdate: any;
+
   handleLegendClicked: (label:any) => void;
   inFileAnalysisMode: boolean;
   handleFileAnalysisMode:() => void;
@@ -35,17 +28,8 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     analysisObject,
     timeNow, 
     closeAnalysisPopup, 
-    handleChangeAnalysisSource,
     analysisSourceRadioValue,
-    secLenBeat,
-    beatCount,
-    numerCount,
-    denomCount,
-    patternCount,
     filesToProcess,
-    bufferStepLength,
-    graphNeedsUpdate,
-    setGraphNeedsUpdate,
     handleLegendClicked,
     inFileAnalysisMode,
     handleFileAnalysisMode,
@@ -61,6 +45,8 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   const [isInFileMode, setIsInFileMode] = useState<boolean>(true);
   const fileTime = useRef<number | undefined | false>();
   
+  const theme = useTheme();
+
   const value = ""
 
   useMemo(() => {
@@ -121,13 +107,12 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
   return (
     <>
       <Box
-        className="findme"
         sx={{
           top: "0px",
           pointerEvents: "none",
           borderRadius: "24px",
           width: "100%",
-          height: "100%",
+          height: "calc(100vh - 13rem)",
           display: "inline-flex",
           position: "relative",
         }}
@@ -138,7 +123,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             position: "relative", 
             display: "flex", 
             height: "100%",
-            background: "rgba(0,0,0,0.9)",
+            background: "rgba(0,0,0,0.78)",
             justifyContent: "right",
             alignItems: "right",
             borderRadius: "16px",
@@ -150,7 +135,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
 
 
           <Box sx={{
-            width: "100%", 
+            // width: "100%", 
             position: "relative", 
             boxSizing: "border-box", 
             justifyContent: "center",
@@ -158,10 +143,11 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             borderRadius: "8px", 
             padding: "12px", 
             fontSize: "16px",
-            // paddingTop: "72px",
             left: "0px",
-            // background: "rgba(33,33,33,.33)",
-            // display: "flex"
+            width: "calc(100vw - 142px);",
+            top: "12px",
+            right: "0",
+            // left: "142px"
             }}>
               {
                 meydaData && 
@@ -175,16 +161,17 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
                 <span style={{
                   // position: "relative",
                   // top: '142px',
-                  width: "100%",
+                  // width: "100%",
                   height: "auto",
                   left: "152px",
                 }}>
-                  {
-                    !meydaParam.includes("chroma") ?
-                  <BrushChart height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></BrushChart>
-                  : 
-                  <Steamgraph height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></Steamgraph>
-                  }
+                  {/* {
+                    !meydaParam.includes("chroma") 
+                    ?
+                      <BrushChart height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></BrushChart>
+                    : 
+                      <Steamgraph height={window.innerHeight - 350} width={(window.innerWidth - 400) > 500 ? window.innerWidth - 450 : 500 } meydaData={meydaFeatures}></Steamgraph>
+                  } */}
                 </span>
                 </div>
               }
@@ -202,7 +189,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
           <CloseIcon 
             onClick={closeAnalysisPopup} 
             sx={{ 
-              pointerEvents: "all", 
+              pointerEvents: "auto", 
               position: "relative", 
               display: "flex", 
               flexDirection: "column", 

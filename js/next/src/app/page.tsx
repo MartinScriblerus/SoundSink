@@ -1,34 +1,36 @@
-import Image from 'next/image'
+import React from 'react'
+export const config = {
+  presets: ['next/babel'],
+  plugins: ['styled-components'],
+};
+// import Image from 'next/image'
 import styles from './page.module.css'
 import InitializationStyle from './components/InitializationStyle'
-import { CssBaseline } from '@mui/material'
-import axios from 'axios';
-import { Inter } from 'next/font/google'
-import PianoIcon from '@mui/icons-material/Piano';
- 
-// If loading a variable font, you don't need to specify the font weight
-const inter = Inter({ subsets: ['latin'] })
+
 
 export default function Home() {
+
   return (
     <main className={styles.main}>
-
-
-      <div className={styles.center}>
-        {/* <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        /> */}
+      <div 
+        id={'centerRoot'} 
+        style={{
+          // width: 'inherit',
+          display: 'flex',
+          alignSelf: 'flex-start'
+        }} 
+        className={styles.center}
+      >
       </div>
-
-      <div  style={{boxSizing: 'border-box'}}>
-
+      <div  
+        style={{
+          boxSizing: 'border-box',
+          flexDirection: 'column',
+          height: '100vh',
+          width: '100vw',
+        }}
+      >
         <InitializationStyle />
-
       </div>
     </main>
   )

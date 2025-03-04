@@ -35,15 +35,6 @@ export interface BPMModule {
     beatsDenominator: number;
     handleChangeBeatsNumerator: (beatspm: number) => void; 
     handleChangeBeatsDenominator: (mpb: number) => void;
-
-
-    programIsOn: boolean;
-    handleToggleArpeggiator: () => void;
-    handleToggleStkArpeggiator: () => void;
-    handleReturnToSynth: () => void;
-    stkFX: any;
-    checkedFXList: any[];
-    keysVisible: boolean;
 };
 
 
@@ -97,4 +88,6 @@ export interface FXGroupsArray {
     updateCheckedFXList: (e: any) => void;
     fxValsRef: any;
     checkedFXList: Array<any>;
+    handleCheckedFXToShow: (x:any) => void;
+    checkedEffectsListHook: any;
 }

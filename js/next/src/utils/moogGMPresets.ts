@@ -1,20 +1,4 @@
 const moogGMPresets = {
-    // lfoGain: {
-    //     name: "lfoGain",
-    //     label: "Lfo Gn",
-    //     value: 0.50,
-    //     min: 0,
-    //     max: 4,
-    //     screenInterface: "knob",
-    // }, // lfo gain 
-    // lfoPitch: {
-    //     name: "lfoPitch",
-    //     label: "Lfo Pit",
-    //     value: 0.5,
-    //     min: 0,
-    //     max: 1000,
-    //     screenInterface: "knob",
-    // }, // lfo pitch
     lfoVoice: {
         name: "lfoVoice",
         label: "Lfo Voc",
@@ -118,7 +102,7 @@ const moogGMPresets = {
         label: "Attack",
         value: 1,
         min: 0,
-        max: 500,
+        max: 2000,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr attack (0-100) amount over time
@@ -179,9 +163,9 @@ const moogGMPresets = {
     pitchMod: {
         name: "pitchMod",
         label: "Pitch Mod",
-        value: 0.5,
+        value: 0.01,
         min: 0,
-        max: 100,
+        max: 2,
         fxType: "default",
         screenInterface: "knob",
     }, // pitch modulation (0-100)
@@ -194,14 +178,6 @@ const moogGMPresets = {
         fxType: "default",
         screenInterface: "knob",
     }, // cutoff modulation (0-100)
-    // filterEnv: {
-    //     name: "filterEnv",
-    //     label: "Filt Env",
-    //     value: 0,
-    //     min: 0,
-    //     max: 3200,
-    //     screenInterface: "knob",
-    // }, // controls filter envelope in Hz (NEEDS TESTING!)
     highPassFreq: {
         name: "highPassFreq",
         label: "HP Freq",
@@ -210,15 +186,7 @@ const moogGMPresets = {
         max: 1000,
         fxType: "default",
         screenInterface: "knob",
-    }, // high pass filter frequency in hZ (NEEDS TESTING!)
-    // reverb: {
-    //     name: "reverb",
-    //     label: "Reverb",
-    //     value: 5,
-    //     min: 0,
-    //     max: 100,
-    //     screenInterface: "knob",
-    // }, // reverb amount (0-100)
+    },
 };
 
 export default moogGMPresets;

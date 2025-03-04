@@ -54,7 +54,7 @@ export default function AreaChart({
   left?: number;
   children?: React.ReactNode;
 }) {
-  if (width < 10) return null;
+  if (!width || width < 10) return (<></>);
   return (
     <Group left={left || margin.left} top={top || margin.top}>
       <LinearGradient

@@ -23,6 +23,4 @@ for (let x = 0; x < nCol; x++) {
   }
 }
 
-console.log("what is heatmapData: ", heatmapData)
-
 export { heatmapData };

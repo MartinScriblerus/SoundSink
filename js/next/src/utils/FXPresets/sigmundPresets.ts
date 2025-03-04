@@ -30,8 +30,8 @@ const sigmundPresets = {
     //     type: "float_int",
     //     group: 6,
     // },
-    maxFreq: {
-        name: "maxFreq",
+    maxfreq: {
+        name: "maxfreq",
         label: "Max Freq",
         value: 128,
         min: 0,
@@ -41,8 +41,8 @@ const sigmundPresets = {
         type: "float_float",
         group: 6,
     },
-    minPower: {
-        name: "minPower",
+    minpower: {
+        name: "minpower",
         label: "Min Power",
         value: 50,
         min: 1,

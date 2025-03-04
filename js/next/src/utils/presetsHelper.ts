@@ -76,7 +76,7 @@ import sndBufPresets, {stkIdentifierSndBuf, stkVariableSndBuf, stkIdentifierLisa
 
 export const getSTK1Preset = (stkVal: string) => {
     let theStk1Fx;
-    if (stkVal === 'saxofony') {
+    if (stkVal === 'saxofony' || stkVal === 'Saxofony') {
         theStk1Fx = {
             presets: saxofonyPresets,
             type: stkIdentifierSaxofony,
@@ -85,7 +85,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'clarinet') {
+    } else if (stkVal === 'clarinet' || stkVal === 'Clarinet') {
         theStk1Fx = {
             presets: clarinetPresets,
             type: stkIdentifierClarinet,
@@ -94,7 +94,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'stifkrp') {
+    } else if (stkVal === 'karplus' || stkVal === 'stifkrp' || stkVal === "Karplus") {
         theStk1Fx = {
             presets: stifKarpPresets,
             type: stkIdentifierStifKarp,
@@ -103,7 +103,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'sitar') {
+    } else if (stkVal === 'sitar' || stkVal === 'Sitar') {
         theStk1Fx = {
             presets: sitarPresets,
             type: stkIdentifierSitar,
@@ -112,7 +112,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'moog') {
+    } else if (stkVal === 'moog' || stkVal === 'Moog') {
         theStk1Fx = {
             presets: moogPresets,
             type: stkIdentifierMoog,
@@ -121,7 +121,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'frenchhorn') {
+    } else if (stkVal === 'frenchrn' || stkVal === 'FrencHrn' || stkVal === 'frenchhorn') {
         theStk1Fx = {
             presets: frencHrnPresets,
             type: stkIdentifierFrencHrn,
@@ -131,7 +131,7 @@ export const getSTK1Preset = (stkVal: string) => {
             checked: true
         };
     } 
-    else if (stkVal === 'hevyMetl') {
+    else if (stkVal === 'electricguitar' || stkVal === 'hevyMetl' || stkVal === 'hevymetl') {
         theStk1Fx = {
             presets: hevyMetlPresets,
             type: stkIdentifierHevyMetl,
@@ -140,7 +140,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'hnkyTonk') {
+    } else if (stkVal === 'honkeytonk' || stkVal === 'hnkytonk') {
         theStk1Fx = {
             presets: hnkyTonkPresets,
             type: stkIdentifierHnkyTonk,
@@ -167,7 +167,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'bandedWg') {
+    } else if (stkVal === 'bandedwaveguide' || stkVal === 'bandedWg' || stkVal === 'bandedwg') {
         theStk1Fx = {
             presets: bandedWGPresets,
             type: stkIdentifierBandedWg,
@@ -176,7 +176,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'blowbotl') {
+    } else if (stkVal === 'bottle' || stkVal === 'blowbotl') {
         theStk1Fx = {
             presets: blowBotlPresets,
             type: stkIdentifierBlowBotl,
@@ -221,7 +221,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'modalBar') {
+    } else if (stkVal === 'modalBar' || stkVal === 'modalbar') {
         theStk1Fx = {
             presets: modalBarPresets,
             type: stkIdentifierModalBar,
@@ -239,7 +239,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'voiceForm') {
+    } else if (stkVal === 'voiceForm' || stkVal === 'voiceform') {
         theStk1Fx = {
             presets: voicFormPresets,
             type: stkIdentifierVoiceForm,
@@ -248,7 +248,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'beeThree') {
+    } else if (stkVal === 'b3' || stkVal === 'beeThree' || stkVal === 'beethree') {
         theStk1Fx = {
             presets: beeThreePresets,
             type: stkIdentifierBeeThree,
@@ -257,7 +257,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'fmVoices') {
+    } else if (stkVal === 'fmVoices' || stkVal === 'fmvoices') {
         theStk1Fx = {
             presets: fmVoicesPresets,
             type: stkIdentifierFMVoices,
@@ -266,7 +266,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'krstlChr') {
+    } else if (stkVal === 'chrystalchoir' || stkVal === 'krstlChr' || stkVal === 'krstlchr') {
         theStk1Fx = {
             presets: krstlChrPresets,
             type: stkIdentifierKrstlChr,
@@ -275,7 +275,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'percFlute') {
+    } else if (stkVal === 'percFlute' || stkVal === 'percflute') {
         theStk1Fx = {
             presets: percFlutPresets,
             type: stkIdentifierPercFlut,
@@ -284,7 +284,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'tubeBell') {
+    } else if (stkVal === 'tubeBell' || stkVal === 'tubebell') {
         theStk1Fx = {
             presets: tubeBellPresets,
             type: stkIdentifierTubeBell,
@@ -304,7 +304,7 @@ export const getSTK1Preset = (stkVal: string) => {
         };
     }
     else {
-        console.log("******** WHY IN THE ELSE of STKVAL 1111 ??? *********")
+        console.log("******** WHY IN THE ELSE of STKVAL 1111 ??? ********* ", stkVal)
         theStk1Fx = {
             presets: frencHrnPresets,
             type: stkIdentifierFrencHrn,
@@ -661,14 +661,21 @@ export const getFX1Preset = (fxVal: string) => {
             type: stkIdentifierSndBuf, //
             var: stkVariableSndBuf
         });
-    } 
-    else {
-        console.log('in the else of PresetsHelper');
+    } else if (fxVal === 'lisa') {
         theFX1Fx.push({
-            presets: {},
-            type: '', //
-            var: ''
-        });
+            presets: lisaPresets,
+            type: stkIdentifierLisa,
+            var: stkVariableLisa,
+        })
+    }
+    else {
+        alert('ooof in presets helper')
+        // console.log('in the else of PresetsHelper');
+        // theFX1Fx.push({
+        //     presets: {},
+        //     type: '', //
+        //     var: ''
+        // });
     }
     return theFX1Fx;
 }

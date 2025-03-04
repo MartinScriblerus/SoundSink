@@ -1,7 +1,8 @@
-import { Box, Button, FormLabel } from "@mui/material";
-import React, {useEffect, useRef, useState} from "react";
-import { useForm } from "react-hook-form";
+import { Box, Button, useTheme } from "@mui/material";
+import React from "react";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { PALE_BLUE } from "@/utils/constants";
+
 
 
 interface Props {
@@ -10,69 +11,66 @@ interface Props {
     handleSubmit: any;
     watch: any;
     programIsOn: boolean;
-    beginProgram: (val: boolean) => void;
+    // beginProgram: (val: boolean) => void;
 }
 
 const FileManager = (props: Props) => {
-    // console.log("AYO AYO PROPS: ", props);
-    // const { register, handleSubmit, watch } = useForm();
-    const {onSubmit, handleSubmit, register, watch, beginProgram, programIsOn} = props;
 
+    const {onSubmit, handleSubmit, register, watch} = props;
+
+    const theme = useTheme();
+
+    // useEffect(() => {
+    //     const subscription = watch(() => handleSubmit(onSubmit)())
+    //     console.log('SUBSCRIPTION: ', subscription); // what is this for???qw2e3
+    //     return () => subscription.unsubscribe();
+    // }, [handleSubmit, watch, register]);
 
     return (
-        <Box sx={{
-            display: programIsOn ? "flex" : "none",
-            flexDirection: "row",
-            width: "100%",
-        }}>
+        // <Box sx={{
+        //     display: "flex",
+        //     flexDirection: "row",
+        //     width: "100%",
+        // }}>
          <form
-         style={{
-            display: programIsOn ? "flex" : "none",
-            flexDirection: "row",
-            width: "100%",
-         }} 
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                width: "100%",
+            }} 
             onSubmit={handleSubmit(onSubmit)}>
-            <Button
-                component="label"
-                sx={{ 
-                    display: programIsOn ? "flex" : "none",
-                    flexDirection: "row",
-                    width: "100%",
-                    border: '0.5px solid #b2b2b2',
-                    backgroundColor: 'rgba(30,34,26,0.96)',
-                    color: 'rgba(255,255,255,.95)',
-                    // backgroundColor: 'rgba(158, 210, 162, 0.8)',
-                    position: 'relative', 
-                    minWidth: '140px',
-                    background: 'rbga(0,0,0,.91)', 
-                    marginLeft: '0px', 
-                    // top: '188px',
-                    zIndex: 15,
-                    // display: programIsOn ? "flex" : "none",
-                    maxHeight: '40px',
-                    '&:hover': {
-                        color: '#f5f5f5',
-                        background: 'rgba(0,0,0,.98)',
-                        // border: 'solid 1px #1976d2'
-                    }
-                }}
-                className="ui_SynthLayerButton"
-                // variant="outlined" 
-                endIcon={<FileUploadIcon />}
-            >
-                {window.innerWidth < 900 ? <>File</> : <>File Upload</>}
+                <Button
+                    component="label"
+                    sx={{ 
+                        display: "flex",
+                        flexDirection: "row",
+                        width: "100%",
+                        cursor: "pointer",
+                        border: 'rgba(0,0,0,0.78)',
+                        background: 'rgba(0,0,0,0.78)',
+                        color: 'rgba(255,255,255,0.78)',
+                        position: 'relative', 
+                        minWidth: '140px',
+                        marginLeft: '0px', 
+                        zIndex: 15,
+                        maxHeight: '40px',
+                        '&:hover': {
+                            background: PALE_BLUE,
+                        }
+                    }}
+                    // className="ui_SynthLayerButton"
 
-               
+                    endIcon={<FileUploadIcon />}
+                >
+                    {<>File</>}
                     <input
                         type={"file"}
                         {...register("file") } 
                         hidden={true}
                     />
-             
-          
-            </Button>
+                </Button>
             </form>
-        </Box>
+        // {/* </Box> */}
     )
 }
 

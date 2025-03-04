@@ -1,9 +1,9 @@
 export interface BabylonGame {
     canvas: any;
-    engine: BABYLON.Engine | undefined;
-    scene: BABYLON.Scene | undefined;
-    camera: BABYLON.ArcRotateCamera[];
-    light: BABYLON.HemisphericLight[];
+    engine: any;
+    scene: any;
+    camera: any;
+    light: any;
     gui: any;
     advancedTexture: any;
     panel: any; //GUI.StackPanel[] | undefined;
@@ -11,4 +11,7 @@ export interface BabylonGame {
     slider: any; // GUI.Slider[] | undefined;
     knob: any;
     meshes: any;
+    camera1: any;
+    camera2: any;
+    runRenderLoop: any;
 }

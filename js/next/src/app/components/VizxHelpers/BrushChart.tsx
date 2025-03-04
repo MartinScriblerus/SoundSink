@@ -49,10 +49,10 @@ function BrushChart({
   width,
   height,
   margin = {
-    top: 20,
-    left: 50,
-    bottom: 20,
-    right: 20,
+    top: 6,
+    left: 24,
+    bottom: 6,
+    right: 6,
   },
   meydaData
 }: BrushProps) {
@@ -172,7 +172,7 @@ function BrushChart({
   };
 console.log("HEYA FILT STOCK: ", filteredStock);
   return (
-    <div style={{marginLeft: "-0px", paddingTop: "60px"}}>
+    <div style={{marginLeft: "-0px", paddingTop: "116px"}}>
   {filteredStock && (
     <>
       <svg width={width} height={height}>
@@ -208,7 +208,7 @@ console.log("HEYA FILT STOCK: ", filteredStock);
             strokeWidth={1}
             orientation={['diagonal']}
           />
-          <Brush
+          {/* <Brush
             xScale={brushDateScale}
             yScale={brushStockScale}
             width={xBrushMax}
@@ -224,11 +224,11 @@ console.log("HEYA FILT STOCK: ", filteredStock);
             selectedBoxStyle={selectedBrushStyle}
             useWindowMoveEvents
             renderBrushHandle={(props) => <BrushHandle {...props} />}
-          />
+          /> */}
         </AreaChart>
       </svg>
-      <button style={{pointerEvents: "auto", cursor: "pointer"}} onClick={handleClearClick}>Clear</button>&nbsp;
-      <button style={{pointerEvents: "auto", cursor: "pointer"}} onClick={handleResetClick}>Reset</button>
+      {/* <button style={{pointerEvents: "auto", cursor: "pointer"}} onClick={handleClearClick}>Clear</button>&nbsp;
+      <button style={{pointerEvents: "auto", cursor: "pointer"}} onClick={handleResetClick}>Reset</button> */}
     </>
   )
 }

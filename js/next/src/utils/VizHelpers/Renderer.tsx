@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { InteractionData } from "./Heatmap";
-import { Box, Button } from "@mui/material";
+import { Box, Button, CardHeader, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
 import FileWrapper from "@/app/components/FileWrapper";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
 import WaveSurfer from 'wavesurfer.js'
-import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
-import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
+import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from "../constants";
+// import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
+// import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
 
 
 const MARGIN = { top: 10, right: 50, bottom: 30, left: 50 };
@@ -30,19 +31,25 @@ type RendererProps = {
   data: { x: string; y: string; value: number }[];
   setHoveredCell: (hoveredCell: InteractionData | null) => void;
   editPattern: (x: any, y: any, group: any) => void;
-  patternsHash: any;
-  patternsHashUpdated: boolean;
+  masterPatternsHashHook: any;
+  masterPatternsHashHookUpdated: boolean;
   updateCellColor: (msg: boolean, xVal: number, yVal: number, zVal: number, elToChange: Element) => void;
   updateCellColorBool: boolean;
   inPatternEditMode: (state: boolean) => void;
   filesToProcess: any;
   selectFileForAssignment: (e: Event) => void;
-  sortFileItemUp: (e: Event) => void;
-  sortFileItemDown: (e: Event) => void;
+  // sortFileItemUp: (e: Event) => void;
+  // sortFileItemDown: (e: Event) => void;
   handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
   cellSubdivisions: number;
   resetCellSubdivisionsCounter: (x: number, y: number) => void;
   rebuildHeatmap: () => void;
+
+  currentBeatCountToDisplay: number;
+  currentNumerCountColToDisplay: number;
+  currentDenomCount: number;
+  currentPatternCount: number;
+
 };
 
 export const Renderer = ({
@@ -51,25 +58,31 @@ export const Renderer = ({
   data,
   setHoveredCell,
   editPattern,
-  patternsHash,
-  patternsHashUpdated,
+  masterPatternsHashHook,
+  masterPatternsHashHookUpdated,
   updateCellColor,
   updateCellColorBool,
   inPatternEditMode,
   filesToProcess,
   selectFileForAssignment,
-  sortFileItemUp,
-  sortFileItemDown,
+  // sortFileItemUp,
+  // sortFileItemDown,
   handleChangeCellSubdivisions,
   cellSubdivisions,
   resetCellSubdivisionsCounter,
-  rebuildHeatmap
+  rebuildHeatmap,
+  currentBeatCountToDisplay,
+  currentNumerCountColToDisplay,
+  currentDenomCount,
+  currentPatternCount,
 }: RendererProps) => {
 
   const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [showPatternEditorPopup, setShowPatternEditorPopup] = useState<boolean>(false);
   const [wavesurfer, setWavesurfer] = useState<any>(null)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
+  const theme = useTheme();
 
   const containerRef = useRef<any>();
 
@@ -86,13 +99,22 @@ export const Renderer = ({
   });
   const [instrument, setInstrument] = useState<string>('');
   // The bounds (=area inside the axis) is calculated by substracting the margins
-  const boundsWidth = width - MARGIN.right - MARGIN.left;
-  const boundsHeight = height - MARGIN.top - MARGIN.bottom;
+  const [boundsWidth, setBoundsWidth] = useState<number>(width - MARGIN.right - MARGIN.left || 0);
+  const [boundsHeight, setBoundsHeight] = useState<number>(height - MARGIN.top - MARGIN.bottom || 0);
 
   const allYGroups = useMemo(() => [...new Set(data.map((d) => d.y))], [data]);
   const allXGroups = useMemo(() => [...new Set(data.map((d) => d.x))], [data]);
 
   const [min = 0, max = 0] = d3.extent(data.map((d) => d.value)); // extent can return [undefined, undefined], default to [0,0] to fix types
+
+  useEffect(() => {
+    if (width > 0 && height > 0) {
+      width > 0 && width !== boundsWidth && setBoundsWidth(width - MARGIN.right - MARGIN.left);
+      height > 0 && height !== boundsHeight && setBoundsHeight(height - MARGIN.top - MARGIN.bottom);
+    }
+    return () => {
+    };
+  }, [width, height]);
 
   const xScale = useMemo(() => {
     return d3
@@ -100,7 +122,7 @@ export const Renderer = ({
       .range([0, boundsWidth + 1])
       .domain(allXGroups)
       .padding(0.01);
-  }, [data, width]);
+  }, [data]);
 
   const yScale = useMemo(() => {
     return d3
@@ -108,12 +130,12 @@ export const Renderer = ({
       .range([boundsHeight, 0])
       .domain(allYGroups)
       .padding(0.01);
-  }, [data, height]);
+  }, [data]);
 
-  var colorScale = d3
-    .scaleSequential()
-    .interpolator(d3.interpolateCool)
-    .domain([min, max]);
+  // var colorScale = d3
+  //   .scaleSequential()
+  //   .interpolator(d3.interpolateCool)
+  //   .domain([min, max]);
 
   // Build the rectangles
   const allShapes = data.map((d, i) => {
@@ -125,154 +147,116 @@ export const Renderer = ({
     }
 
     const getInstrumentName = (yVal: number) => {
-      if (yVal === 1) {
-        return setInstrument("Sample 1");
-      } else if (yVal === 2) {
-        return setInstrument("Sample 2");
-      } else if (yVal === 3) {
-        return setInstrument("Sample 3");
-      } else if (yVal === 4) {
-        return setInstrument("Sample 4");
-      } else if (yVal === 5) {
-        return setInstrument("Osc 1");
-      } else if (yVal === 6) {
-        return setInstrument("Osc 2");
-      }
+      switch (yVal) {
+        case 1:
+          return setInstrument("Sample 1");
+        case 2:
+          return setInstrument("Sample 2");
+        case 3:
+          return setInstrument("Sample 3");
+        case 4:
+          return setInstrument("Sample 4");
+        case 5:
+          return setInstrument("Osc 1");
+        case 6:
+          return setInstrument("Osc 2");
+        }
     }
 
-    const triggerEditPattern = async (e: any,num: any) => {
-      
-      console.log("eeee ", num);
-      // const el: any = Object.values(e.target)[1];
+    const triggerEditPattern = async (e: any, num: any) => {
       const el: any = Object.values(e.target)[1];
-      
       const isFill = el.id.includes("fill");
-      
       const vals = !isFill ? el.id.split("_") : el.id.replace("fill_", "").split("_");
-
       const xVal = num;
       const yVal = vals[1];
       const zVal = vals[2];
-      console.log("HEYO HEYO EL ", isFill, xVal, yVal);
       resetCellSubdivisionsCounter(xVal, yVal);
       currentXVal.current = xVal;
       currentYVal.current = yVal;
-
-      cellData.current = { 'xVal': xVal, 'yVal': yVal, 'zVal': zVal, ...patternsHash[`${yVal}`][`${parseInt(xVal)}`] }
-      
+      cellData.current = { 'xVal': xVal, 'yVal': yVal, 'zVal': zVal, ...masterPatternsHashHook[`${yVal}`][`${parseInt(xVal)}`] }
       getInstrumentName(yVal);
-
-      console.log("%cCELL DATA!!!!!: ", "color: magenta;", cellData.current);
-
+      console.log("%cCELL DATA!!!!!: ", isFill, xVal, yVal, "color: magenta;", cellData.current);
       setShowPatternEditorPopup(true);
       document.getElementById(`fill_${xVal}_${yVal}`);
       const elToChange: any = 
-      // !isFill 
-      // ? 
-      // document.getElementById(`${xVal}_${yVal}`) 
-      // : 
-      document.getElementById(`fill_${xVal}_${yVal}`);
-      if (elToChange && elToChange !== null && elToChange.style.fill !== "black") {
-        return elToChange.style.fill = "black";
-      } else {
-        return elToChange.style.fill = colorScale(d.value);
+        document.getElementById(`fill_${xVal}_${yVal}`);
+        if (elToChange && elToChange !== null && elToChange.style.fill !== "black") {
+          return elToChange.style.fill = "black";
+        } else {
+          return elToChange.style.fill = FOREST_GREEN;
       }
     }
 
-
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
-      <>
-        {
-          !showPatternEditorPopup && (
-        <React.Fragment key={`cellRectWrapper_${d.x}_${d.y}_${patternsHashUpdated}`}>
-          {/* {(false == true)
+      <React.Fragment key={`rectFillsWrapper_${d.x}_${d.y}`}>
+        {Array.from(
+            {
+              length: masterPatternsHashHook[`${d.y}`][`${d.x}`].subdivisions
+            }
+          ).map(
+            (x) => {
+              return x; 
+            }
+          ).map(
+            (i, idx) => {
+              const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
+              return (
+                <rect
+                  key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
+                  r={4}
+                  id={`fill_${d.x}_${d.y}`}
+          x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
+                  y={yScale(d.y)}
+                  width={
+                    cellData.current && 
+                    Object.values(cellData.current)[0].length > 5 
+                    ? 
+                      (xScale.bandwidth() / Object.values(cellData.current)[8]) 
+                    : 
+              (xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions)
+                  }
+                  height={yScale.bandwidth()}
+                  opacity={1}
+          // fill={colorScale(d.value)}
+
+          // currentBeatCountToDisplay,
+          // currentNumerCountColToDisplay,
+          // currentDenomCount,
+          // currentPatternCount,
+
+          fill={
+            currentBeatCountToDisplay === Number(d.x)
             ?
-            <rect
-              key={`rectCellWrapper_${d.x}_${d.y}`}
-              r={4}
-              id={`${d.x}_${d.y}`}
-              x={xScale(d.x)}
-              y={yScale(d.y)}
-              width={xScale.bandwidth()}
-              height={yScale.bandwidth()}
-              opacity={1}
-              fill={colorScale(d.value)}
-              // rx={5}
-              stroke={"white"}
-              onClick={(e: any) => triggerEditPattern(e, d.x)}
-              onMouseEnter={(e) => {
-                setHoveredCell({
-                  xLabel: "group " + d.x,
-                  yLabel: "group " + d.y,
-                  instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
-                  xPos: x + xScale.bandwidth() + MARGIN.left - 140,
-                  yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
-                  value: Math.round(d.value * 100) / 100,
-                });
-              }}
-              onMouseLeave={() => setHoveredCell(null)}
-              cursor="pointer"
-              style={{ zIndex: 100, pointerEvents: "all" }}
-            />
-            : */}
-            <React.Fragment 
-              key={`rectFillsWrapper_${d.x}_${d.y}`}>
-                {Array.apply(null, 
-                  // (new Array(Object.values(cellData.current)[2]))).map(
-                  new Array(patternsHash[`${d.y}`][`${d.x}`].subdivisions)).map(
-                    (x, i) => {
-                      // console.log("whhhhhhhhhat is i? ", x, i) 
-                      return x; 
-                    }
-                  ).map((i, idx) => {
-                    const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
-
-
-
-                    return (
-                      <rect
-                        key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
-                        r={4}
-                        id={`fill_${d.x}_${d.y}`}
-                        x={(xScale(d.x)! + (xScale.bandwidth() * idx) / patternsHash[d.y][d.x].subdivisions)}
-                        y={yScale(d.y)}
-                        width={
-                          cellData.current && 
-                          Object.values(cellData.current)[0].length > 5 
-                          ? 
-                            (xScale.bandwidth() / Object.values(cellData.current)[8]) 
-                          : 
-                            (xScale.bandwidth() / patternsHash[d.y][d.x].subdivisions)
-                        }
-                        height={yScale.bandwidth()}
-                        opacity={1}
-                        fill={colorScale(d.value)}
-                        // rx={5}
-                        stroke={"white"}
-                        onClick={(e: any) => triggerEditPattern(e, d.x)}
-                        onMouseEnter={(e) => {
-                          setHoveredCell({
-                            xLabel: d.x,
-                            yLabel: d.y,
-                            xPos: x + xScale.bandwidth() + MARGIN.left,
-                            yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
-                            value: Math.round(d.value * 100) / 100,
-                            instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
-                          });
-                        }}
-                        onMouseLeave={() => setHoveredCell(null)}
-                        cursor="pointer"
-                        style={{ zIndex: 100, pointerEvents: "all" }}
-                      />
-                    )
-            })}</React.Fragment>
-  {/* 
-          } */}
-        </React.Fragment>
+              FOREST_GREEN
+            :
+              (Number(d.y) > 0) 
+              ? 
+                PALE_BLUE 
+              : 
+                RUSTY_ORANGE}
+                  // rx={5}
+          stroke={'rgba(255,255,255,0.78)'}
+                  onClick={(e: any) => triggerEditPattern(e, d.x)}
+                  onMouseEnter={(e) => {
+                    setHoveredCell({
+                      xLabel: d.x,
+                      yLabel: d.y,
+                      xPos: x + xScale.bandwidth() + MARGIN.left,
+                      yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
+                      value: Math.round(d.value * 100) / 100,
+                      instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
+                    });
+                  }}
+                  onMouseLeave={() => setHoveredCell(null)}
+                  cursor="pointer"
+          style={{ zIndex: 100, pointerEvents: "auto" }}
+                />
+              )
+            }
           )
         }
-      </>
+      </React.Fragment>
       );
   });
 
@@ -285,7 +269,7 @@ export const Renderer = ({
 
     return (
       <text
-        key={`middle_text_anchor_${i}`}
+        key={`middle_text_anchor_${i}_${x}_${name}`}
         x={x + xScale.bandwidth() / 2}
         y={boundsHeight + 10}
         textAnchor="middle"
@@ -307,7 +291,7 @@ export const Renderer = ({
 
     return (
       <text
-        key={`${i}_text_middle`}
+        key={`${i}_text_middle_${y}_${name}`}
         x={-5}
         y={y + yScale.bandwidth() / 2}
         textAnchor="end"
@@ -341,222 +325,177 @@ export const Renderer = ({
     console.log("WHAT IS E TARGET FOR NOTE TO REMOVE? ", e.target.id.split('_'));
   }
 
-    // const onReady = (ws:any) => {
-    useEffect(() => {
-      console.log("HERE! ");
-
-
-      // Initialize the Regions plugin
-      const regions = RegionsPlugin.create()
-      if(containerRef.current && filesToProcess && filesToProcess.length > 0) {
-        const wavesurfer = WaveSurfer.create({
-          container: containerRef.current,
-          waveColor: '#4F4A85',
-          progressColor: '#383351',
-          // url: '/audio.mp3',
-          plugins: [regions],
-        })
-      
-        surferBlob.current = new window.Blob([new Uint8Array(filesToProcess[0].data)]);
-        wavesurfer && surferBlob.current && filesToProcess.length > 0 && wavesurfer.loadBlob(surferBlob.current).then((data: any) => console.log("yeehaw ", data))
-
-
-// Play on click
-wavesurfer.on('interaction', () => {
-  wavesurfer.play()
-})
-
-// Rewind to the beginning on finished playing
-wavesurfer.on('finish', () => {
-  wavesurfer.setTime(0)
-})
-
-
-regions.enableDragSelection({
-  color: 'rgb(27, 191, 202, 0.2)',
-})
-
-regions.on('region-updated', (region) => {
-  console.log('Updated region', region)
-})
-
-// Loop a region on click
-let loop = true
-// Toggle looping with a checkbox
-// document.querySelector('input[type="checkbox"]')!.addEventListener("click", (e: any) => {
-//   loop = e.target.checked
-// })
-loop = true;
-
-{
-  let activeRegion: any = null
-  regions.on('region-in', (region) => {
-    console.log('region-in', region)
-    activeRegion = region
-  })
-  regions.on('region-out', (region) => {
-    console.log('region-out', region)
-    if (activeRegion === region) {
-      if (loop) {
-        region.play()
-      } else {
-        activeRegion = null
-      }
-    }
-  })
-  regions.on('region-clicked', (region, e) => {
-    e.stopPropagation() // prevent triggering a click on the waveform
-    activeRegion = region
-    region.play()
-    region.setOptions({
-      color: '#aaf',
-      start: 0
-    })
-  })
-  // Reset the active region when the user clicks anywhere in the waveform
-  wavesurfer.on('interaction', () => {
-    activeRegion = null
-  })
-}
-
-// Update the zoom level on slider change
-  wavesurfer.once('decode', () => {
-    document.querySelector('input[type="range"]')?.addEventListener('input', (e: any) => {
-      const minPxPerSec = Number(e.target.value)
-      wavesurfer.zoom(minPxPerSec)
-    })
-  });
-
-   
-        setWavesurfer(wavesurfer)
-        setIsPlaying(false)
-    }
-
-    },[containerRef.current])
-      // loadBlobToWaveSurfer.then((data: any) => console.log("YEEHAW DATA: ", data));
-      
-
-
   const onPlayPause = () => {
-      if(wavesurfer){
+    if (wavesurfer) {
           wavesurfer.playPause()
       }
   }
 
+  const subdivisionCount = cellData.current.subdivisions;
+
+  const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
+    <Button key={`fillBtn_${i}_${i}`} id={`${i}`} onClick={handleFillEdit} />
+  ));
+  
   return (
     <Box
+      key={`outerbox__${Object.values(cellData.current)[1]}`}
       style={{
         display: "flex",
-        flexDirection: "column",
+        width: '100%',
+        flexDirection: "row",
         textAlign: "center",
-        paddingTop: window.innerHeight < 650 ? "30px" : "92px"
       }}>
       {showPatternEditorPopup && (
         <Box
-          key={"patternEditorPopupCloseButtonWrapper"}
+          key={`patternEditorPopupCloseButtonWrapper_${Object.values(cellData.current)[1]}`}
           sx={{
-            paddingTop: '24px',
-            paddingBottom: '8px',
             position: "absolute",
             display: "flex",
-            flexDirection: "column",
-            textAlign: "center",
-            height: "46%",
-            width: "92%",
-            left: "4%",
-            top: "16%",
-            background: "rgba(0,0,0,0.9)",
+            flexDirection: "row",
+            textAlign: "left",
+            background: 'rgba(0,0,0,0.78)',
             zIndex: "1001",
+            width: "inherit",
           }}>
-          <Box sx={{
+          <Box 
+            key={`wrapCloseBtn__${Object.values(cellData.current)[1]}`}
+            sx={{
             textAlign: 'right',
-            width: "100vw"
-          }}>
+              width: "100vw",
+            }}
+          >
             <CloseIcon
               sx={{
                 right: "0px",
                 position: "absolute",
                 top: "0px",
+                zIndex: '1002'
               }}
-              key={"patternEditorPopupCloseButton"}
+              key={`patternEditorPopupCloseButton_${Object.values(cellData.current)[1]}`}
               onClick={handleCloseEditorPopup}
             />
           </Box>
-          <Box sx={{ width: "100%", display: 'flex', flexDirection: "row" }}>
+
+          <Box key={`wrap_edit_popup_${Object.values(cellData.current)[1]}`}>
+            <Box 
+              key={`inner_wrap_edit_${Object.values(cellData.current)[1]}`}
+              sx={{ 
+                width: "inherit", 
+                display: 'flex', 
+                flexDirection: "row" 
+              }}
+            >
             <Box
+              key={`content_wrap_${Object.values(cellData.current)[1]}`}
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif',
+                fontFamily: 'monospace',
                 fontWeight: '100',
                 marginLeft: '10px',
                 textAlign: 'left',
-                width: '25%',
-                border: 'solid 0.5px rgb(175, 240, 91)',
-                borderRadius: '5px',
-                overflow: 'auto',
-                padding: '8px',
-                margin: '8px',
-  
-              }}
-            >
-              <span><b>Original Values</b></span>
-              <Box sx={{padding: '4px', background: 'rgb(110, 64, 170)'}}>{instrument}</Box><Box sx={{padding: '4px', background: 'rgb(93, 89, 204)'}}> Cell {parseInt(Object.values(cellData.current)[0])}</Box>
-              <span>Velocity:{cellData.current.velocity}</span>
-              <span>Notes: {cellData.current.note}</span>
-              <span>Subdivisions: {cellData.current.subdivisions}</span>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif',
-                fontWeight: '100',
-                marginLeft: '10px',
-                textAlign: 'left',
-                width: '25%',
+                minWidth: '4px',
+                // width: '25%',
                 border: 'solid 0.5px rgb(175, 240, 91)',
                 borderRadius: '5px',
                 // overflow: 'auto',
-                padding: '8px',
-                margin: '8px',
+                padding: '4px',
+                margin: '4px',
               }}
             >
-              <span><b>New Values</b></span>
-              <Box sx={{padding: '4px', background: 'rgb(110, 64, 170)'}}>{instrument}</Box> <Box sx={{padding: '4px', background: 'rgb(93, 89, 204)'}}> Cell {parseInt(Object.values(cellData.current)[0])}</Box>
-              <span>Velocity: {cellData.current.velocity}</span>
-              <span>Notes: {cellData.current.note}</span>
-
+              <span><b>Original Values</b></span>
+                <Box 
+                  key={`wrap_inst_name_${Object.values(cellData.current)[1]}`}
+                  sx={{ 
+                  padding: '4px', 
+                  background: 'rgba(255,255,255,0.78)'
+                }}>
+                  {instrument}
+                </Box>
+                <Box 
+                  key={`wrapcelldetails_${Object.values(cellData.current)[1]}`}
+                  sx={{ 
+                    padding: '4px', background: FOREST_GREEN
+                  }}
+                >
+                  Cell {parseInt(Object.values(cellData.current)[0])}                
+                    Velocity:{cellData.current.velocity}
+                    Notes: {cellData.current.note}
+                    Subdivisions: {cellData.current.subdivisions}
+                </Box>
+            </Box>
+            <Box
+              key={`wrapnewvals__${Object.values(cellData.current)[1]}`}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                fontFamily: 'monospace',
+                fontWeight: '100',
+                marginLeft: '10px',
+                textAlign: 'left',
+                minWidth: '144px',
+                // width: '25%',
+                border: 'solid 0.5px rgb(175, 240, 91)',
+                borderRadius: '5px',
+                // overflow: 'auto',
+                padding: '4px',
+                margin: '4px',
+              }}
+            >
+                New Values
+                <Box 
+                  key={`wrap_new_inst__${Object.values(cellData.current)[1]}`}
+                  sx={{ 
+                    padding: '4px', 
+                    background: 'rgba(255,255,255,0.78)'
+                  }}>
+                  {instrument}
+                </Box>
+                <Box 
+                  key={`wrap_new_details_${Object.values(cellData.current)[1]}`}
+                  sx={{ 
+                  padding: '4px', 
+                  background: FOREST_GREEN
+                  }}>
+                  Cell {parseInt(Object.values(cellData.current)[0])}                
+                  Velocity: {cellData.current.velocity}
+                  Notes: {cellData.current.note}
+              </Box>
               <span
-                key={`noteEditDisplaySpanWrapper_${Object.values(cellData.current)[1]}`}>
-                <span 
+
                   style={{ 
                     display: "flex", 
                     flexDirection: "row" 
                   }}
-                >
+                    key={`noteEditDisplaySpanWrapper_${Object.values(cellData.current)[1]}`}>
+
                   Subdivisions:
                   <SubdivisionsPicker
                     xVal={parseInt(Object.values(cellData.current)[0])}
                     yVal={currentYVal.current}
-                    patternsHash={patternsHash}
+                      masterPatternsHashHook={masterPatternsHashHook}
                     handleChangeCellSubdivisions={handleChangeCellSubdivisions}
                     cellSubdivisions={cellSubdivisions}
                   />
                 </span>
-              </span>
+              </Box>
             </Box>
-            <Box sx={{ 
+            <Box 
+              key={`testanotherwrapperkey_${Object.values(cellData.current)[1]}`}
+              sx={{
                 display: "flex", 
-                flexDirection: "column",
-                width: "calc(%50 - 64px)",
+                flexDirection: "row",
+                width: "calc(100% - 200px)",
                 position: "relative",
                 boxSizing: "border-box"
               }}
             >
-              {(cellData.current.note).map((n: any, idx: number) => {
+              {cellData.current && cellData.current.note.length > 0 && (cellData.current.note).map((n: any, idx: number) => {
                 return (
-                  <Box sx={{
+                  <Box 
+                    key={`testanotherwrapperkey_${Object.values(cellData.current)[1]}_wrapper_${idx}`}
+                    sx={{
                     position: 'relative',
                     display: 'flex',
                     boxSizing: 'border-box'
@@ -567,10 +506,10 @@ loop = true;
                   sx={{
                     fontSize: '20px',
                     border: 'solid 1px black',
-                    background: 'rgb(27, 191, 202)',
-                    color: '#ffffff',
+                    background: MUTED_OLIVE,
+                        color: FOREST_GREEN,
                     borderRadius: '40%',
-                    pointerEvents: 'all',
+                        pointerEvents: 'auto',
                     cursor: 'pointer',
                     position: 'relative',
                     zIndex: '9999',
@@ -578,47 +517,40 @@ loop = true;
                     flexDirection: 'row-reverse',
                   }}
                 >
-                  {n}
+                 TESSSST {n}
                 </Button>
                 <CloseIcon
-                sx={{
-                  fontSize: '16px',
-                  color: 'white',
-                  right: '2px',
-                  top: '2px',
-                  // top: '-8px', 
-                  pointerEvents: 'all',
-                  cursor: 'pointer',
-                  zIndex: '9999',
-                  position: 'absolute',
-                  // height: '24px',
-                  // width: '24px',
-                }}
-                key={`noteEditDisplayCloseIcon_${Object.values(cellData.current)[1]}`}
-                id={`${Object.values(cellData.current)[1]}_noteToRemove`}
-                onClick={(removeExistingNote)}
-              />
+                  sx={{
+                    fontSize: '16px',
+                    color: 'rgba(255,255,255,0.78)',
+                    right: '2px',
+                    top: '2px',
+                    pointerEvents: 'auto',
+                    cursor: 'pointer',
+                    zIndex: '9999',
+                    position: 'absolute',
+                  }}
+                  key={`noteEditDisplayCloseIcon_${Object.values(cellData.current)[1]}`}
+                  id={`${Object.values(cellData.current)[1]}_noteToRemove`}
+                  onClick={(removeExistingNote)}
+                />
               </Box>
-                )
-              })}
-
-
+              )})}
             </Box>
           </Box>
+          <Box 
+            sx={{ 
+              width: "100%", 
+              background: RUSTY_ORANGE, 
+            }} 
+            ref={containerRef} 
+            key={`wavesurfer_${Object.values(cellData.current)[1]}_wrapper`}
+            id={"wavesurfer-wrapper"}
+          >
 
-          <div style={{width: "100%"}} ref={containerRef} id={"wavesurfer-wrapper"}>
-
-            {/* <WavesurferPlayer
-              height={100}
-              waveColor="violet"
-              // url="http://localhost:3000/knob.wav"
-              // url={URL.createObjectURL(surferBlob.current)}
-              onReady={onReady}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-            /> */}
-          </div>
+          </Box>
           <Box
+            key={`testanotherfilewrapperkey_${Object.values(cellData.current)[1]}_wrapper2`}
             sx={{
               display: "flex",
               flexDirection: "row",
@@ -627,71 +559,30 @@ loop = true;
               marginLeft: '10px',
               textAlign: 'left',
               width: '100vw',
-              // background: "rgba(255,255,255,0.78)"
+              fontSize: '12px',
+
             }}
           >
             {
               cellData.current.subdivisions > 1
                 ?
-                Array.apply(null, (new Array(cellData.current.subdivisions))).map(function (x, i) { return i; })
-                  .map((i: any, idx: number) => {
-                    return (
-                      <Button key={`fillBtn_${i[1]}_${idx}`} id={i[1]} onClick={handleFillEdit} />
-                    )
-                  }) :
-                <Box
-                  sx={{ 
-                    fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif', 
-                    fontWeight: '300' 
-                  }}
-                >
-  
-                  {/* <Box
-                    sx={{ display: "flex", width: "100vw" }}
-                  >
-                    <Button
-                      style={{
-                        background: "rgba(255,255,255,0.078)",
-                        minWidth: "80px",
-                        maxWidth: "30%",
-                        justifyContent: "center",
-                        width: "100%",
-                      }}
-                      onClick={handleEditMode}>{
-                        isInEditMode ? "Edit Mode Off" : "Edit Mode On"
-                      }
-                    </Button>
-                  </Box> */}
-
-                  <FileWrapper
-                    filesToProcess={filesToProcess}
-                    selectFileForAssignment={selectFileForAssignment}
-                    sortFileItemUp={sortFileItemUp}
-                    sortFileItemDown={sortFileItemDown}
-
-                  />
-                </Box>
+                  <>{buttons}</>
+                  :
+                <></>
             }
           </Box>
 
+        </Box>
+      )}
 
-
-
-          {/* <Button
-            key={"patternEnterEditMode"}
-            onClick={handlePatternEditMode}
-          >
-
-          </Button> */}
-        </Box>)}
-      <svg
-        key={"heatmapSVG"}
-        width={width}
+      {width && height && boundsWidth && boundsHeight && <svg
+        key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
+        width={width || 0}
         height={height}
         style={{ pointerEvents: "none" }}
       >
         <g
-          key={"heatmapGelement"}
+          key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
           width={boundsWidth}
           height={boundsHeight}
           transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
@@ -701,7 +592,7 @@ loop = true;
           {xLabels}
           {yLabels}
         </g>
-      </svg>
+      </svg>}
     </Box>
   );
 };

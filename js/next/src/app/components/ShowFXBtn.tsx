@@ -3,6 +3,8 @@ import Button from '@mui/material/Button';
 import InputIcon from '@mui/icons-material/Input';
 import '../page.module.css';
 import Stack from '@mui/material/Stack';
+import { useTheme } from '@mui/material';
+import { MUTED_OLIVE } from '@/utils/constants';
 
 type Props = {
     // currentFXScreen: string;
@@ -12,12 +14,16 @@ type Props = {
 };
 
 const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
+    
+    const theme = useTheme();
+
     return (
         <Stack 
             sx={{
                 display: programIsOn ? "flex" : "none",
                 flexDirection: "row",
                 width: "100% !important",
+                background: 'rgba(0,0,0,0.78)',
             }} 
             direction="row" spacing={2}>
             <Button 
@@ -26,17 +32,13 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
                     display: programIsOn ? "flex" : "none",
                     flexDirection: "row",
                     width: "100%",
-                    // color: 'rgba(0,0,0,.98)',
-                    // backgroundColor: 'rgba(158, 210, 162, 0.8)', 
-                    backgroundColor: 'rgba(30,34,26,0.96)',
-                    color: 'rgba(255,255,255,.95)',
-                    background: 'rbga(0,0,0,.7)', 
-                    marginLeft: '0px',
-                    border: '0.5px solid #b2b2b2',
-              
+                    border: MUTED_OLIVE,
+                    background: 'rgba(0,0,0,0.78)',
+                    color: `rgba(0,0,0,0.78) important!`,
+                    marginLeft: '0px',              
                     '&:hover': {
-                        color: '#f5f5f5',
-                        background: 'rgba(0,0,0,.98)',
+                        color: 'rgba(255,255,255,0.78)',
+                        background: 'rgba(0,0,0,0.78)',
                     }
                 }} 
                 className={"ui_SynthLayerButton"}

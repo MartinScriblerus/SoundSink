@@ -10,15 +10,42 @@ import { DeferredPromise } from "webchuck";
  *   preloadFiles
  *   defer
  */
-export interface Filename {
-    serverFilename: string;
-    virtualFilename: string;
+  export interface Filename {
+      serverFilename: string;
+      virtualFilename: string;
   }
-  
   export interface File {
     filename: string;
-    data: ArrayBuffer;
+    data?: ArrayBuffer;
   }
+
+  export const disposeBabylonResources = (scene: any) => {
+      // Dispose of all meshes
+      scene.meshes.forEach((mesh: any) => {
+          mesh.dispose();
+      });
+  
+      // Dispose of all materials
+      scene.materials.forEach((material: any) => {
+          material.dispose();
+      });
+  
+      // Dispose of all textures
+      scene.textures.forEach((texture: any) => {
+          texture.dispose();
+      });
+  
+      // Dispose of cameras
+      scene.cameras.forEach((camera: any) => {
+          camera.dispose();
+      });
+  
+      // Dispose of lights
+      scene.lights.forEach((light: any) => {
+          light.dispose();
+      });
+  };
+  
   
   function readAsync(
     url: string,
@@ -63,6 +90,7 @@ export interface Filename {
   export async function preloadFiles(
     filenamesToPreload: Filename[]
   ): Promise<File[]> {
+    console.log("is this a thing??? ", filenamesToPreload); 
     const promises = filenamesToPreload.map(
       (filenameToPreload) =>
         new Promise<File>((resolve, _reject) => {
@@ -97,3 +125,5 @@ export interface Filename {
   }
   
   export const defer = () => new DeferredPromise();
+
+  export const getConvertedRadio = (fxRadioValue: string) => fxRadioValue === "STK" ? "stk1" : fxRadioValue === "audioin" ? "audioIn" : fxRadioValue.toLowerCase(); 
