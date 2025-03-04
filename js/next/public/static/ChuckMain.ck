@@ -565,7 +565,6 @@ class GrainStretch extends Chugraph {
                 endGrain * 0.5 - grainEnv => now;
             }
         }
-
         mic.play(0);
     }
 }

@@ -1429,7 +1429,7 @@ export const defaultSources: Sources = {
                     presets: [],
                     Declaration: '' 
                 },
-                Karplus: {
+                StifKarp: {
                     VarName: '',
                     Type: '',
                     On: false,
@@ -1485,7 +1485,7 @@ export const defaultSources: Sources = {
                     presets: [],
                     Declaration: '',  
                 },
-                BandedWaveGuide: {
+                BandedWg: {
                     VarName: '',
                     Type: '',
                     On: false,
@@ -1501,7 +1501,7 @@ export const defaultSources: Sources = {
                     presets: [],
                     Declaration: '', 
                 },
-                Blowhole: {
+                BlowHole: {
                     VarName: '',
                     Type: '',
                     On: false,
@@ -1549,7 +1549,7 @@ export const defaultSources: Sources = {
                     presets: [],
                     Declaration: '',  
                 },
-                VoiceForm: {
+                VoicForm: {
                     VarName: '',
                     Type: '',
                     On: false,
@@ -1565,7 +1565,7 @@ export const defaultSources: Sources = {
                     presets: [],
                     Declaration: ''  
                 },
-                ElectricGuitar: {
+                HevyMetl: {
                     VarName: '',
                     Type: '',
                     On: false,
@@ -1589,7 +1589,7 @@ export const defaultSources: Sources = {
                     presets: [],
                     Declaration: '',  
                 },
-                ChrystalChoir: {
+                KrstlChr: {
                     VarName: '',
                     Type: '',
                     On: false,
@@ -1597,7 +1597,7 @@ export const defaultSources: Sources = {
                     presets: [],
                     Declaration: ''  
                 },
-                PercFlute: {
+                PercFlut: {
                     VarName: '',
                     Type: '',
                     On: false,

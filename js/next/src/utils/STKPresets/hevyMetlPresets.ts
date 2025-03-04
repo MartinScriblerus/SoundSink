@@ -1,4 +1,4 @@
-export const stkVariableHevyMetl = "hevymetl";
+export const stkVariableHevyMetl = "hevyMetl";
 export const stkIdentifierHevyMetl = "HevyMetl";
 
 const hevyMetlPresets = { 

@@ -80,28 +80,28 @@ export type InstrumentNameVal = {
 
 export type STKInstruments = {
     Clarinet: EffectsSettings;
-    Karplus: EffectsSettings;
+    StifKarp: EffectsSettings;
     Sitar: EffectsSettings;
     FrencHrn: EffectsSettings;
     Moog: EffectsSettings;
     Rhodey: EffectsSettings;
     Saxofony: EffectsSettings;
     Mandolin: EffectsSettings;
-    BandedWaveGuide: EffectsSettings;
+    BandedWg: EffectsSettings;
     Bottle: EffectsSettings;
-    Blowhole: EffectsSettings;
+    BlowHole: EffectsSettings;
     Bowed: EffectsSettings;
     Brass: EffectsSettings;
     Flute: EffectsSettings;
     ModalBar: EffectsSettings;
     Shakers: EffectsSettings;
-    VoiceForm: EffectsSettings;
+    VoicForm: EffectsSettings;
     B3: EffectsSettings;
-    ElectricGuitar:EffectsSettings;
+    HevyMetl:EffectsSettings;
     HonkeyTonk:EffectsSettings;
     FMVoices:EffectsSettings;
-    ChrystalChoir:EffectsSettings;
-    PercFlute:EffectsSettings;
+    KrstlChr:EffectsSettings;
+    PercFlut:EffectsSettings;
     TubeBell:EffectsSettings;
     Wurley:EffectsSettings;
 }
@@ -123,18 +123,6 @@ export type Source = {
     isEditing: boolean;
 }
 
-// export type STKSource = {
-//     masterVolume: number;
-//     detune: number;
-//     effects: STKEffect[];
-//     effectsString: string;
-//     pattern: Pattern[];
-//     arpeggiateOn: boolean;
-//     instruments: STKInstruments;
-//     files?: File[];
-//     active: boolean;
-//     isEditing: boolean;
-// }
 
 export type Sources = {
     osc1: Source;
@@ -239,10 +227,6 @@ export type Effects = {
     LiSa: EffectsSettings;
 }
 
-// export type STKEffect = {
-//     instrument: string;
-//     instrumentEffects: Effects
-// }
 
 // ANALYSIS *********************************
 // ******************************************

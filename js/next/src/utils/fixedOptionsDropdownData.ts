@@ -18,7 +18,7 @@ export type STKOption = {
   
 export const stkOptions: readonly STKOption[] = [
   { value: 'clarinet', label: 'Clarinet', color: 'rgb(144/255, 204/255, 212/255)' }, // presets written
-  { value: 'stifkrp', label: 'Karplus', color: 'rgb(144/255, 204/255, 212/255)' }, // presets written
+  { value: 'm', label: 'Karplus', color: 'rgb(144/255, 204/255, 212/255)' }, // presets written
   { value: 'sitar', label: 'Sitar', color: 'rgb(144/255, 204/255, 212/255)' }, // presets written
   { value: 'moog', label: 'Moog', color: 'rgb(158/255, 210/255, 162/255)'}, // preset written
   { value: 'frenchhorn', label: 'French Horn', color: 'rgb(158/255, 210/255, 162/255)' }, // *** preset written
@@ -33,14 +33,14 @@ export const stkOptions: readonly STKOption[] = [
   { value: 'flute', label: 'Flute', color: 'rgb(144/255, 204/255, 212/255)' }, // preset written
   { value: 'modalBar', label: 'Modal Bar', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
   { value: 'shakers', label: 'Shakers', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
-  { value: 'voiceForm', label: 'Voice Form', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
+  { value: 'voicForm', label: 'Voice Form', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
   { value: 'beeThree', label: 'B3', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   { value: 'hevyMetl', label: 'Electric Guitar', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   { value: 'hnkyTonk', label: 'Honky Tonk', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   // { value: 'fm', label: 'FM', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   { value: 'fmVoices', label: 'FM Voices', color: 'rgb(236/255, 128/255, 139/255 )' }, // *** preset written
   { value: 'krstlChr', label: 'Crystal Choir', color: 'rgb(236/255, 128/255, 139/255 )' }, // *** preset written
-  { value: 'percFlute', label: 'PercFlute', color: 'rgb(236/255, 128/255, 139/255)'}, // *** preset writtem
+  { value: 'percFlut', label: 'PercFlut', color: 'rgb(236/255, 128/255, 139/255)'}, // *** preset writtem
   { value: 'tubeBell', label: 'Tube Bell', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   { value: 'wurley', label: 'Wurley', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
 ];

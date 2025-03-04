@@ -1,4 +1,4 @@
-export const stkVariableBeeThree = "bthree";
+export const stkVariableBeeThree = "beethree";
 export const stkIdentifierBeeThree = "BeeThree";
 
 const beeThreePresets = {

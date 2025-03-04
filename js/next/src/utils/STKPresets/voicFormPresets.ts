@@ -1,5 +1,5 @@
-export const stkVariableVoiceForm = "voic";
-export const stkIdentifierVoiceForm = "VoicForm";
+export const stkVariableVoicForm = "voic";
+export const stkIdentifierVoicForm = "VoicForm";
 export const phonemes = ["eee",  "ihh",  "ehh",  "aaa", 
 "ahh",  "aww",  "ohh",  "uhh", 
 "uuu",  "ooo",  "rrr",  "lll", 

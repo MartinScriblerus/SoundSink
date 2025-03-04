@@ -122,6 +122,10 @@ export default function InitializationComponent() {
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     // const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
     const [clickFXChain, setClickFXChain] = useState<boolean>(false);
+
+
+    const [activeSTKs, setActiveSTKs] = useState<any[]>([]);
+
     const currentNotesDownDisplay = useRef<Array<number | any>>([]);
     const currentNotesKeyValDownDisplay = useRef<Array<number | any>>([]);
     const [arpeggiatorOn, setArpeggiatorOn] = useState<number>(0);
@@ -992,6 +996,7 @@ export default function InitializationComponent() {
                     if (i[0] === instType) {
                         i[1].Visible = true;
                         i[1].On = true;
+                        if (i[1].presets) i[1].presets = Object.values(getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).presets);
                     } else {
                         i[1].Visible = false
                     }
@@ -1003,11 +1008,9 @@ export default function InitializationComponent() {
 
             currentScreen.current = `stk_${currentFX.current.type}`;
 
-            console.log('*** got stk instruments??? ', stk.instruments);
-
             if (Object.values(stk.instruments).filter((inst: any) => inst.On).length > 0) {
 
-                stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].Type = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type;
+                stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].Type = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type; ///// LOOK HERE!!!!
                 stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].VarName = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).var;
                 stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].On = true;
 
@@ -1335,6 +1338,11 @@ export default function InitializationComponent() {
             // }             
         });
         console.log("CHECK THAT WE ARE GOOD SO FAR ON DEFAULT SOURCE! ", universalSources.current);
+        universalSources.current && 
+        universalSources.current.stk1.instruments &&
+        setActiveSTKs(
+            Object.values(universalSources.current.stk1.instruments).filter((i: any) => i.On)
+        )
         setChuckUpdateNeeded(true);
     };
 
@@ -1479,7 +1487,6 @@ export default function InitializationComponent() {
 
             processor.port.onmessage = (event) => {
                 if (event.data.audioData) {
-                    console.log("ummm.... ", event.data.audioData);
                     event.data.audioData && workerRef.current?.postMessage({
                         audioData: event.data.audioData,
                         sampleRate: audioContext.sampleRate,
@@ -1489,7 +1496,6 @@ export default function InitializationComponent() {
 
 
             const analyzer = audioContext.createAnalyser();
-            // console.log("WTF ANALYZERRRRRR>???? ", analyzer);
             // audioContext.destination.connect(analyzer);
             // processor.connect(audioContext.destination);
 
@@ -1559,7 +1565,6 @@ export default function InitializationComponent() {
     }
 
     const triggerNote = (note: any) => {
-        console.log("chuck ref!!!!!! : ", chuckRef.current);
         console.log('note??? ', note);
         console.log('note sanity??? ', Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []);
         // Object.entries(currNotesHash.current).map((note: any) => {
@@ -1578,13 +1583,6 @@ export default function InitializationComponent() {
         });
         console.log("Notes set ref // curr notes hash :::: ", NOTES_SET_REF.current, currNotesHash.current)
 
-
-        // chuckRef.current && chuckRef.current.setFloatArray("NOTES_SET",
-        //     Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []
-        // )
-        // console.log("CHECK HASH!!! ", currNotesHash.current);
-        // NOTES_SET_REF.current = Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || [];
-        // chuckRef.current && chuckRef.current.setInt("numVoices", Object.values(currNotesHash.current).map((i:any) => i[0]).filter(i=>i).length)   
         NOTES_SET_REF.current && NOTES_SET_REF.current.length > 0 && chuckRef.current && chuckRef.current.broadcastEvent('playNote');
 
         // console.log("CHECK HASH!!! ", currNotesHash.current);
@@ -1602,83 +1600,10 @@ export default function InitializationComponent() {
 
     const lastNotesPlayed = useRef<number[]>([]);
 
-    // const runMainChuckCode = async () => {
-    //     const shredCount = chuckHook && await chuckHook.runCode(`Machine.numShreds();`);
-
-    //     // console.log("YEAH! INIT", shredCount);
-    //     console.log('WHAT IS SHRED COUNT? ', shredCount);
-    //     // console.log('FILES TO PROCESS: ', filesToProcess);
-
-    //     filesToProcess.current &&
-    //     filesToProcess.current.length > 0 &&
-    //     filesToProcess.current.map(async (i: any) => {
-    //         const filename: string = i.name;
-    //         const filedata: Uint8Array | string = i.data;
-    //         // BRING BACK WHEN READY...!
-    //         console.log("HEYA HEYA ", filename, filedata);
-    //         // if (filename && filedata.length > 0) {
-    //         //     chuckRef.current && chuckRef.current.createFile("", filename, filedata);
-    //         // }
-    //     });
-
-    //     const getExtract = chuckHook && chuckHook.runFileWithArgs("extract.ck", filesToProcess.current[-1].name)
-
-    //     // console.log('STK STRING HERE: ', getStk1String());
-    //     //             const connector1Stk = getStk1String && getStk1String.length > 0 ? `=> ${getStk1String[1]} ${getStk1String[2]}[12]` : '';
-
-
-    //     // // PICK UP HERE!!!
-    //     // // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-    //     // WHY NOT JUST LOOP THE DECLARATIONS & CODE FROM UNIVERSALSOURCES.CURRENT IN CHECK CODE?????
-    //     ////////////////////////////////////////////////////////////////
-
-    //     let chuckCode = "";
-
-    //     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    //     // HANDLING CHUCK UGEN => DAC DECLARATIONS 
-    //     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-    //     // chuckToOutlet.current.osc1 = ` SawOsc saw1 => ${wpDiodeLadderDeclaration.osc1} LPF lpf => ADSR adsr => Dyno limiter ${allDecString} => ${winFuncDeclaration.osc1} ${ellipticDeclaration.osc1} ${powerADSRDeclaration.osc1} ${expEnvDeclaration.osc1} ${expDelayDeclaration.osc1} outlet;`;
-    //     // console.log("chuck to outley ", chuckToOutlet.current.osc1) // <-- PROBLEM HERE
-
-    //     // chuckToOutlet.current.sampler = `limiter_Sampler ${genericFXStringToChuck.sampler} => ${winFuncDeclaration.sampler} ${ellipticDeclaration.sampler} ${powerADSRDeclaration.sampler} ${expEnvDeclaration.sampler} ${expDelayDeclaration.sampler} ${modulateDeclaration.sampler} `;
-
-    //     const transitionhandlerSimpleToComplex: any = universalSources.current && universalSources.current.stk1.instruments && Object.values(universalSources.current.stk1.instruments).length > 0 ? `=>` : ``;
-
-    //     // chuckToOutlet.current.stk1 = `${genericFXStringToChuck.stk1} ${transitionhandlerSimpleToComplex} ${winFuncDeclaration.stk1} ${ellipticDeclaration.stk1} ${powerADSRDeclaration.stk1} ${expEnvDeclaration.stk1} ${expDelayDeclaration.stk1} ${modulateDeclaration.stk1} `;
-
-    //     genericFxStringNeedsBlackhole.current.osc1 = genericFxStringNeedsBlackhole.current.osc1.length > 0 ? `voice[i] ${genericFxStringNeedsBlackhole.current.osc1[0].string}` : '';
-    //     genericFxStringNeedsBlackhole.current.osc2 = genericFxStringNeedsBlackhole.current.osc2.length > 0 ? `osc2 ${genericFxStringNeedsBlackhole.current.osc2.current[0].string}` : '';
-    //     genericFxStringNeedsBlackhole.current.sampler = genericFxStringNeedsBlackhole.current.sampler.length > 0 ? `sample1 ${genericFxStringNeedsBlackhole.current.sampler[0].string}` : '';
-    //     genericFxStringNeedsBlackhole.current.stk1 = genericFxStringNeedsBlackhole.current.stk1.length > 0 ? `stk1 ${genericFxStringNeedsBlackhole.current.stk1.current[0].string}` : '';
-    //     genericFxStringNeedsBlackhole.current.audioIn = genericFxStringNeedsBlackhole.current.audioIn.length > 0 ? `stk1 ${genericFxStringNeedsBlackhole.current.audioIn.current[0].string}` : '';
-
-    //     chuckToOutlet.current.osc2 = ` SawOsc saw2 => lpf;`;
-
-    //     let replaceNotRun = false;
-    //     // bring back sync mode on this eventually -> // ${parseInt(moogGrandmotherEffects.current.syncMode.value)} => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
-    //     //  allAnalysisBlocks.current.forEach((block: any) => allAnalysisBlocksCodeGen.concat(block.code));
-
-
-    //     const stkShouldPlay = () => {
-    //         if (
-    //             universalSources.current &&
-    //             universalSources.current.stk1.instruments &&
-    //             Object.values(universalSources.current.stk1.instruments).filter(i => i && i.On).length > 0
-    //         ) {
-    //             return 1;
-    //         } else {
-    //             return 0;
-    //         };
-    //     }
-    //     const SHD_STK_PLAY = stkShouldPlay();
-    //     console.log("SHOULD STK PLAY??? ", SHD_STK_PLAY);
-    // };
+    
 
     const getSourceFX = (thisSource: string) => {
+        if (thisSource === "stk") thisSource = "stk1";
         return `
             ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.PowerADSR.Code(powerADSRFinalHelper.current) : ''}
             ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WinFuncEnv.Code(winFuncEnvFinalHelper.current) : ''}
@@ -1698,7 +1623,10 @@ export default function InitializationComponent() {
 
 
 
-
+    const activeSTKDeclarations = useRef<string>('');
+    const activeSTKSettings = useRef<string>('');
+    const activeSTKPlayOn = useRef<string>('');
+    const activeSTKPlayOff = useRef<string>('');
 
 
     const runChuck = async () => {
@@ -1707,12 +1635,11 @@ export default function InitializationComponent() {
         console.log("good so far w/ aChuck... ")
         console.log("running chuck now... ", chuckUpdateNeeded);
 
-        console.log("ENSURE CHUCK REF??? ", NOTES_SET_REF.current);
+        console.log("NOTES SET REF??? ", NOTES_SET_REF.current);
 
         // setResetNotes(NOTES_SET_REF.current)
 
         if (chuckRef.current) {
-            console.log("sanity check properties RADIO values", getConvertedRadio(fxRadioValue));
             // SHOULD WE PICK UP HERE & FOCUS ON REFACTORING AS A GENERAL (TO GET CURRENT RADIOFX SELECTED)?
             const getOsc1FX = universalSources.current && Object.values(universalSources.current.osc1.effects).filter(i => i.On);
 
@@ -1722,6 +1649,9 @@ export default function InitializationComponent() {
             const valuesReadout: any = {};
             const signalChainSampler: any = [];
             const valuesReadoutSampler: any = {};
+
+            const signalChainSTK: any = [];
+            const valuesReadoutSTK: any = {};
 
             getConvertedRadio(fxRadioValue).toLowerCase() === "osc1" && getOsc1FX?.map((fx: any) => {
                 const type = fx.Type;
@@ -1757,10 +1687,23 @@ export default function InitializationComponent() {
 
             // console.log("Shred Count: ", shredCount);
             console.log("WHAT ARE PATTERNS? ", masterPatternsRef.current)
+            console.log("what is alloctavemidifreqs? ", allOctaveMidiFreqs.current);
+            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999 ) ) );
 
 
-console.log("what is alloctavemidifreqs? ", allOctaveMidiFreqs.current);
-console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999 ) ) );
+            activeSTKDeclarations.current = '';
+            activeSTKSettings.current = ''; 
+            activeSTKs.map((s: any) => {
+                activeSTKDeclarations.current = activeSTKDeclarations.current.concat(`${s.Type} ${s.VarName} => stk_FxChain => Dyno stk_Dyno => dac; `);
+                activeSTKPlayOn.current = activeSTKPlayOn.current.concat(`allFreqs[recurringTickCount] => ${s.VarName}.freq; 1 => ${s.VarName}.noteOn; `);
+                activeSTKPlayOff.current = activeSTKPlayOff.current.concat(`1 => ${s.VarName}.noteOff; `);
+            });
+
+            activeSTKs.map((s_outer: any) => {
+                s_outer.presets.map((s: any) => {
+                    activeSTKSettings.current = activeSTKSettings.current.concat(`${s.value} => ${s_outer.VarName}.${s.name}; `);
+                })
+            });
 
 
             const newChuckCode = `
@@ -1844,9 +1787,25 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
 
 
 
+
+
+
+
+                class STK_EffectsChain extends Chugraph {
+                    inlet => ${signalChainSTK.join(' ')} outlet;
+
+                    ${Object.values(valuesReadoutSTK).map((value: any) => value).join(' ')}
+
+                    ${getSourceFX('stk')}
+                }
+
+
+ 
+
+
                 // SinOsc testSin => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
 
-                SndBuf buffers[5] => Sampler_EffectsChain sampler_FxChain =>  Dyno audInDynoSampler => dac;
+                SndBuf buffers[5] => Sampler_EffectsChain sampler_FxChain => Dyno audInDynoSampler => dac;
                   
                 fun void SilenceAllBuffers()
                 {
@@ -2176,23 +2135,6 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 voice => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
                 0.6 => voice.gain;
 
@@ -2231,30 +2173,42 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
 
 
 
+                    STK_EffectsChain stk_FxChain;
+
+                    ${activeSTKDeclarations.current}
+
+                    ${activeSTKSettings.current}
+
+
                     if (recurringTickCount >= testArr2.size()) return; // Prevent out-of-bounds access
                     
                     if (testArr2[recurringTickCount][0] != 999) {
                         for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
-                                0 => buffers[x].pos;
-                                files[testArr2[recurringTickCount][x]] => buffers[x].read;
+                            0 => buffers[x].pos;
+                            files[testArr2[recurringTickCount][x]] => buffers[x].read;
 
 
-                                // Calculate the exact time for this note within the measure
-                                (recurringTickCount * (whole / ${masterFastestRate})) => dur noteTimeOffset;
+                            // Calculate the exact time for this note within the measure
+                            (recurringTickCount * (whole / ${masterFastestRate})) => dur noteTimeOffset;
 
-                                // Wait until the correct time to play the note
-                                noteTimeOffset => now;
+                            // Wait until the correct time to play the note
+                            noteTimeOffset => now;
 
 
-                                // Play the note
-                                tickCount % testNotesArr2.size() => int notesCount;
-   
-                                allFreqs[recurringTickCount] => voice.keyOn;
+                            // Play the note
+                            tickCount % testNotesArr2.size() => int notesCount;
 
-                                buffers[x].samples() => buffers[x].pos;
-                                0 => buffers[x].pos;
-                                buffers[x].length() => now;
-                                me.yield();
+                            allFreqs[recurringTickCount] => voice.keyOn;
+
+                            
+
+                            ${activeSTKPlayOn.current} 
+
+                            buffers[x].samples() => buffers[x].pos;
+                            0 => buffers[x].pos;
+                            buffers[x].length() => now;
+                             ${activeSTKPlayOff.current} 
+                            me.yield();
                         }
                     } 
                     me.yield();
@@ -2293,10 +2247,25 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
                     if (now >= startTimeMeasureLoop + beat) {
                         tickCounter + 1 => tickCounter;
 
+
+// Handle STK instrument note on
+// spork ~ playSTKOn(60, 127); // Example note and velocity
+
+
+
                         spork ~ handlePlayMeasure(tickCounter);
                         now => startTimeMeasureLoop;
                     }
                     whole / ${masterFastestRate} => now;
+
+
+
+// // Handle STK instrument note off
+// spork ~ playSTKOff();                    
+
+
+
+
                 }
             `;
 
@@ -2381,12 +2350,12 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
     // SLIDER CONTROL KNOB
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    const handleUpdateSliderVal = async (radioVal: string, obj: any, value: any) => {
-        console.log('HHHEEEYYY ', value, obj);
+    const handleUpdateSliderVal = async (radioVal: string, obj: any, value: any) => {       
         if (obj.fxType !== "stk" && (radioVal.trim() !== fxRadioValue.trim())) {
             alert('returning');
             return;
         }
+       
 
         if (universalSources.current) {
             if (!currentEffectType.current) {
@@ -2396,25 +2365,14 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
 
         }
         if (obj.fxType === "stk") {
-            console.log("DOING THE STK THING :: ", universalSources.current);
-            const currStkType = currentStkTypeVar.current.split("#")[0];
-            console.log("WTF STK TYPE??? #$ ", currStkType, obj.name);
-
-
-            console.log("check that the presets can be accessed... ", universalSources.current &&
-                universalSources.current.stk1.instruments && universalSources.current.stk1.instruments[currStkType as keyof STKInstruments] &&
-                universalSources.current.stk1.instruments[currStkType as keyof STKInstruments]);
-
+            const currStkType = currentStkTypeVar.current.split("#")[0];        
+            obj.value = value;
 
             if (
                 universalSources.current &&
                 universalSources.current.stk1.instruments &&
                 universalSources.current.stk1.instruments[currStkType as keyof STKInstruments]
-                // && 
-                // universalSources.current.stk1.instruments[currStkType as keyof STKInstruments].presets
             ) {
-                // universalSources.current.stk1.instruments[currStkType as keyof STKInstruments].presets.map((i:any) => i.name === `${obj.name}` && i.value && i.value)[0] = value;
-                console.log("HEYA SANITY CHECK!@#$: ", Object.values(universalSources.current.stk1.instruments[currStkType.toString() as keyof STKInstruments].presets).map((i: any) => i.name === obj.name && i));
                 Object.values(universalSources.current.stk1.instruments[currStkType.toString() as keyof STKInstruments].presets).filter((i: any) => { if (i.name === obj.name) i.value = value });
                 markUpdated()
             }
@@ -2434,10 +2392,6 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
             // console.log("DOING THE DEFAULT THING :: ", moogGrandmotherEffects.current);
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
         }
-
-        // Promise.resolve(obj.value).then(async (val) => {
-        //     chuckRef.current && await chuckRef.current.broadcastEvent("updateFXEvent"); 
-        // });
         setChuckUpdateNeeded(true);
     };
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2457,7 +2411,6 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
     const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
         if (newBeatsNumerator) {
             setBeatsNumerator(Number(newBeatsNumerator));
-            console.log("HHHHHHHHHH ", Number(newBeatsNumerator));
             setNumeratorSignature(Number(newBeatsNumerator));
         }
         setChuckUpdateNeeded(true);
@@ -2497,18 +2450,6 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
         const theFile = e ? e : lastFileUpload;
         console.log('%cwhat is the uploaded file? ', 'color: beige;', theFile);
     };
-
-    // useEffect(() => {
-    //     let isMounted = true;
-    //     // console.log("current numer count: ", currentNumerCount);
-    //     if (Math.floor(currentNumerCount / (numeratorSignature)) === 0) return;
-    //     // setCurrentDenomCount(Math.floor(currentNumerCount / (numeratorSignature)) + 1);
-    //     //setCurrentPatternCount(Math.floor(currentNumerCount / (numeratorSignature * denominatorSignature))); //
-    //     return () => {
-    //         isMounted = false;
-    //     };
-    // }, [currentNumerCount]);
-
 
     const closeAnalysisPopup = () => {
         setIsAnalysisPopupOpen(!isAnalysisPopupOpen);
@@ -2573,22 +2514,6 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
         setPatternsHashUpdated(true);
     }
 
-    // useEffect(() => {
-    //     let isMounted = true;
-    //     setPatternsHashUpdated(false);
-    //     return () => {
-    //         isMounted = false;
-    //     };
-    // }, [masterPatternsHashUpdated])
-
-    // const handleChangeCellSubdivisions = (num: number, x: number, y: number) => {
-    //     // console.log("num!!!!!!!!! in handleChangeCellSubdivisions ", num, x, y);
-    //     masterPatternsRef.current[`${y}`][`${Number(x)}`].subdivisions = Number(num);
-    //     setCellSubdivisions(num);
-    //     setPatternsHashUpdated(true);
-    // }
-
-
     const handleSourceToggle = (name: string, val: any) => {
         updateFXInputRadio(val);
         setVizSource(val);
@@ -2600,503 +2525,502 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
     };
 
 
-
     // BE SURE TO ADD DURATION DIVISIONS (AND ALSO ELSEWHERE)
-    const playSTKOn = () => {
-        let allSTKs: any = {}; // ALL STKs ARE STRINGS OF INSTs
-        // try {
-        const stkInstsHolder: [string, EffectsSettings][] | undefined = universalSources.current &&
-            universalSources.current.stk1.instruments &&
-            Object.entries(universalSources.current.stk1.instruments).filter((i: any) => i[1].On);
+    // const playSTKOn = () => {
+    //     let allSTKs: any = {}; // ALL STKs ARE STRINGS OF INSTs
+    //     // try {
+    //     const stkInstsHolder: [string, EffectsSettings][] | undefined = universalSources.current &&
+    //         universalSources.current.stk1.instruments &&
+    //         Object.entries(universalSources.current.stk1.instruments).filter((i: any) => i[1].On);
 
-     
+    //     console.log("insts holder??? ", stkInstsHolder);
 
-        stkInstsHolder && stkInstsHolder.map((stkInsts: [string, EffectsSettings]) => {
-            if (stkInsts[1].VarName) {
-                // console.log("getFXOnly_var: ", stkInst.VarName);
-                const presets: Preset[] | undefined | "" = universalSources.current &&
-                    universalSources.current.stk1.instruments &&
-                    universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments] &&
-                    universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments].presets;
+    //     stkInstsHolder && stkInstsHolder.map((stkInsts: [string, EffectsSettings]) => {
+    //         if (stkInsts[1].VarName) {
+    //             // console.log("getFXOnly_var: ", stkInst.VarName);
+    //             const presets: Preset[] | undefined | "" = universalSources.current &&
+    //                 universalSources.current.stk1.instruments &&
+    //                 universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments] &&
+    //                 universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments].presets;
 
 
-                if (presets && presets.length > 0 && stkInsts[1].VarName === "sit") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `                     
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].noteOn;  
-                        0.01/notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //             if (presets && presets.length > 0 && stkInsts[1].VarName === "sit") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `                     
+    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+    //                     notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
+    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].noteOn;  
+    //                     0.01/notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            // duration * ${numeratorSignature} - (now % duration  * ${numeratorSignature} )  => now;
-                            duration - (now % duration)  => now;
-                            1 =>  ${stkInsts[1].VarName}[i-1].noteOff; 
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bow") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'bowPressure')[0].value} => ${stkInsts[1].VarName}[i-1].bowPressure;
-                        ${presets.filter(p => p.name === 'bowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].bowPosition;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         // duration * ${numeratorSignature} - (now % duration  * ${numeratorSignature} )  => now;
+    //                         duration - (now % duration)  => now;
+    //                         1 =>  ${stkInsts[1].VarName}[i-1].noteOff; 
+    //                     }
+    //                 `;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bow") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'bowPressure')[0].value} => ${stkInsts[1].VarName}[i-1].bowPressure;
+    //                     ${presets.filter(p => p.name === 'bowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].bowPosition;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wg") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        // ${presets.filter(p => p.name === 'bowMotion')[0].value} => ${stkInsts[1].VarName}[i-1].bowMotion;
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'strikePosition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
-                        ${presets.filter(p => p.name === 'gain')[0].value} => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-                        ${presets.filter(p => p.name === 'bowRate')[0].value} => ${stkInsts[1].VarName}[i-1].bowRate;
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-                        ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }
+    //                 `;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wg") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     // ${presets.filter(p => p.name === 'bowMotion')[0].value} => ${stkInsts[1].VarName}[i-1].bowMotion;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     ${presets.filter(p => p.name === 'strikePosition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
+    //                     ${presets.filter(p => p.name === 'bowRate')[0].value} => ${stkInsts[1].VarName}[i-1].bowRate;
+    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+    //                     ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
                 
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwbtl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }
+    //                 `;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwbtl") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
                         
-                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
+    //                     notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "brs") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;    
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;    
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-                        ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
-                        ${presets.filter(p => p.name === 'lip')[0].value} => ${stkInsts[1].VarName}[i-1].lip;
-                        ${presets.filter(p => p.name === 'slide')[0].value} => ${stkInsts[1].VarName}[i-1].slide;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+    //                     }
+    //                 `;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "brs") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;    
+    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;    
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+    //                     ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
+    //                     ${presets.filter(p => p.name === 'lip')[0].value} => ${stkInsts[1].VarName}[i-1].lip;
+    //                     ${presets.filter(p => p.name === 'slide')[0].value} => ${stkInsts[1].VarName}[i-1].slide;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
                         
-                        ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+    //                     ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
 
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
                             
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "shak") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'energy')[0].value} => ${stkInsts[1].VarName}[i-1].energy;
-                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-                        ${presets.filter(p => p.name === 'objects')[0].value} => ${stkInsts[1].VarName}[i-1].objects;
-                        ${presets.filter(p => p.name === 'decay')[0].value} => ${stkInsts[1].VarName}[i-1].decay;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }
+    //                 `;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "shak") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'energy')[0].value} => ${stkInsts[1].VarName}[i-1].energy;
+    //                     ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
+    //                     ${presets.filter(p => p.name === 'objects')[0].value} => ${stkInsts[1].VarName}[i-1].objects;
+    //                     ${presets.filter(p => p.name === 'decay')[0].value} => ${stkInsts[1].VarName}[i-1].decay;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mdlbr") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'stickHardness')[0].value} => ${stkInsts[1].VarName}[i-1].stickHardness;
-                        ${presets.filter(p => p.name === 'strikePOsition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'directGain')[0].value} => ${stkInsts[1].VarName}[i-1].directGain;
-                        ${presets.filter(p => p.name === 'masterGain')[0].value} => ${stkInsts[1].VarName}[i-1].masterGain;
-                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-                        ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
-                        ${presets.filter(p => p.name === 'strike')[0].value} => ${stkInsts[1].VarName}[i-1].strike;
-                        ${presets.filter(p => p.name === 'damp')[0].value} => ${stkInsts[1].VarName}[i-1].damp;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }
+    //                 `;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mdlbr") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'stickHardness')[0].value} => ${stkInsts[1].VarName}[i-1].stickHardness;
+    //                     ${presets.filter(p => p.name === 'strikePOsition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     ${presets.filter(p => p.name === 'directGain')[0].value} => ${stkInsts[1].VarName}[i-1].directGain;
+    //                     ${presets.filter(p => p.name === 'masterGain')[0].value} => ${stkInsts[1].VarName}[i-1].masterGain;
+    //                     ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
+    //                     ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
+    //                     ${presets.filter(p => p.name === 'strike')[0].value} => ${stkInsts[1].VarName}[i-1].strike;
+    //                     ${presets.filter(p => p.name === 'damp')[0].value} => ${stkInsts[1].VarName}[i-1].damp;
 
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "flut") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'jetDelay')[0].value} => ${stkInsts[1].VarName}[i-1].jetDelay;
-                        ${presets.filter(p => p.name === 'jetReflection')[0].value} => ${stkInsts[1].VarName}[i-1].jetReflection;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }
+    //                 `;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "flut") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'jetDelay')[0].value} => ${stkInsts[1].VarName}[i-1].jetDelay;
+    //                     ${presets.filter(p => p.name === 'jetReflection')[0].value} => ${stkInsts[1].VarName}[i-1].jetReflection;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
 
 
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-                        ${presets.filter(p => p.name === 'endReflection')[0].value} => ${stkInsts[1].VarName}[i-1].endReflection;
+    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
+    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+    //                     ${presets.filter(p => p.name === 'endReflection')[0].value} => ${stkInsts[1].VarName}[i-1].endReflection;
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "clair") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "clair") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
+    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
 
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
 
 
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "f") {
-                    console.log("IN FRENCH HORN::: ", presets);
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "m") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'pickupPosition')[0].value} => ${stkInsts[1].VarName}[i-1].pickupPosition;
-                        ${presets.filter(p => p.name === 'sustain')[0].value} => ${stkInsts[1].VarName}[i-1].sustain;
-                        ${presets.filter(p => p.name === 'stretch')[0].value} => ${stkInsts[1].VarName}[i-1].stretch;
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-                        ${presets.filter(p => p.name === 'baseLoopGain')[0].value} => ${stkInsts[1].VarName}[i-1].baseLoopGain;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
 
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "prcflt") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "f") {
+    //                 console.log("IN FRENCH HORN::: ", presets);
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "man") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'bodySize')[0].value} => ${stkInsts[1].VarName}[i-1].bodySize;
-                        ${presets.filter(p => p.name === 'pluckPos')[0].value} => ${stkInsts[1].VarName}[i-1].pluckPos;
-                        ${presets.filter(p => p.name === 'stringDamping')[0].value} => ${stkInsts[1].VarName}[i-1].stringDamping;
-                        ${presets.filter(p => p.name === 'stringDetune')[0].value} => ${stkInsts[1].VarName}[i-1].stringDetune;
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "m") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'pickupPosition')[0].value} => ${stkInsts[1].VarName}[i-1].pickupPosition;
+    //                     ${presets.filter(p => p.name === 'sustain')[0].value} => ${stkInsts[1].VarName}[i-1].sustain;
+    //                     ${presets.filter(p => p.name === 'stretch')[0].value} => ${stkInsts[1].VarName}[i-1].stretch;
+    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+    //                     ${presets.filter(p => p.name === 'baseLoopGain')[0].value} => ${stkInsts[1].VarName}[i-1].baseLoopGain;
 
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "tubbl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 48 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwhl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'tonehole')[0].value} => ${stkInsts[1].VarName}[i-1].tonehole;
-                        ${presets.filter(p => p.name === 'vent')[0].value} => ${stkInsts[1].VarName}[i-1].vent;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;                                
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "percFlut") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "man") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'bodySize')[0].value} => ${stkInsts[1].VarName}[i-1].bodySize;
+    //                     ${presets.filter(p => p.name === 'pluckPos')[0].value} => ${stkInsts[1].VarName}[i-1].pluckPos;
+    //                     ${presets.filter(p => p.name === 'stringDamping')[0].value} => ${stkInsts[1].VarName}[i-1].stringDamping;
+    //                     ${presets.filter(p => p.name === 'stringDetune')[0].value} => ${stkInsts[1].VarName}[i-1].stringDetune;
+    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
 
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'speak')[0].value} => ${stkInsts[1].VarName}[i-1].speak;
-                        ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
-                        duration - (now % duration)  => now;
-                        if (${stkArpeggiatorOn} == 1) {
-                            ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "sax") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-                        ${presets.filter(p => p.name === 'stiffness')[0].value} => ${stkInsts[1].VarName}[i-1].stiffness;
-                        ${presets.filter(p => p.name === 'aperture')[0].value} => ${stkInsts[1].VarName}[i-1].aperture;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;              
-                        ${presets.filter(p => p.name === 'blowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].blowPosition;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;                  
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;  
+    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;  
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bthree") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "tubbl") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+
+    //                     notesToPlay[i] + 48 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+
+                        
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwhl") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
+    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+    //                     ${presets.filter(p => p.name === 'tonehole')[0].value} => ${stkInsts[1].VarName}[i-1].tonehole;
+    //                     ${presets.filter(p => p.name === 'vent')[0].value} => ${stkInsts[1].VarName}[i-1].vent;
+    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;                                
+
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+
+                        
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        
+
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     ${presets.filter(p => p.name === 'speak')[0].value} => ${stkInsts[1].VarName}[i-1].speak;
+    //                     ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
+    //                     duration - (now % duration)  => now;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "sax") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        
+    //                     ${presets.filter(p => p.name === 'stiffness')[0].value} => ${stkInsts[1].VarName}[i-1].stiffness;
+    //                     ${presets.filter(p => p.name === 'aperture')[0].value} => ${stkInsts[1].VarName}[i-1].aperture;
+    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;              
+    //                     ${presets.filter(p => p.name === 'blowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].blowPosition;
+    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;                  
+
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;  
+
+                        
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;  
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bthree") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-                        notesToPlay[i] + 12 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 12 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
 
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "fmVoic") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "fmVoic") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-                        ${presets.filter(p => p.name === 'vowel')[0].value} => ${stkInsts[1].VarName}[i-1].vowel;
-                        ${presets.filter(p => p.name === 'spectralTilt')[0].value} => ${stkInsts[1].VarName}[i-1].spectralTilt;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+    //                     ${presets.filter(p => p.name === 'vowel')[0].value} => ${stkInsts[1].VarName}[i-1].vowel;
+    //                     ${presets.filter(p => p.name === 'spectralTilt')[0].value} => ${stkInsts[1].VarName}[i-1].spectralTilt;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                }
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             }
 
-                else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") { // is this a dupe?? see above
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //             else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") { // is this a dupe?? see above
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                                 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
                         
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                    }`;
-                }
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                 }`;
+    //             }
 
-                else if (presets && presets.length > 0 && stkInsts[1].VarName === "krstl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //             else if (presets && presets.length > 0 && stkInsts[1].VarName === "krstl") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
             
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
 
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "rod") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "rod") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wur") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wur") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mog") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mog") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-                        ${presets.filter(p => p.name === 'filterQ')[0].value} => ${stkInsts[1].VarName}[i-1].filterQ;
-                        ${presets.filter(p => p.name === 'filterSweepRate')[0].value} => ${stkInsts[1].VarName}[i-1].filterSweepRate;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'afterTouch')[0].value} => ${stkInsts[1].VarName}[i-1].afterTouch;
-                        ${presets.filter(p => p.name === 'modDepth')[0].value} => ${stkInsts[1].VarName}[i-1].modDepth;
-                        ${presets.filter(p => p.name === 'modSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].modSpeed;
+    //                     ${presets.filter(p => p.name === 'filterQ')[0].value} => ${stkInsts[1].VarName}[i-1].filterQ;
+    //                     ${presets.filter(p => p.name === 'filterSweepRate')[0].value} => ${stkInsts[1].VarName}[i-1].filterSweepRate;
+    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+    //                     ${presets.filter(p => p.name === 'afterTouch')[0].value} => ${stkInsts[1].VarName}[i-1].afterTouch;
+    //                     ${presets.filter(p => p.name === 'modDepth')[0].value} => ${stkInsts[1].VarName}[i-1].modDepth;
+    //                     ${presets.filter(p => p.name === 'modSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].modSpeed;
 
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hevymetl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hevyMetl") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
 
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hnkytonk") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                }
-                else {
-                    console.log("why in the else??? ", stkInsts);
-                }
-                console.log("WHATTTT IS GOING ON? ", allSTKs);
-                return Object.values(allSTKs);
-                // } else if (name === "voic") { // <-- buggy ... needs another look            
-            }
-        });
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hnkytonk") {
+    //                 allSTKs[`${stkInsts[1].VarName}`] = `
+    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                            
+    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-        return Object.values(allSTKs);
-    }
+    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+
+                        
+    //                     if (${stkArpeggiatorOn} == 1) {
+    //                         duration - (now % duration)  => now;
+    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
+    //                     }`;
+    //             }
+    //             else {
+    //                 console.log("why in the else??? ", stkInsts);
+    //             }
+    //             console.log("WHATTTT IS GOING ON? ", allSTKs);
+    //             return Object.values(allSTKs);
+    //             // } else if (name === "voic") { // <-- buggy ... needs another look            
+    //         }
+    //     });
+    //     console.log("RETURNING STKS... ", Object.values(allSTKs));
+    //     return Object.values(allSTKs);
+    // }
 
     useEffect(() => {
         console.log("******************************* BAM ----> ", mingusChordsData, "//** ", mingusKeyboardData);
@@ -3159,7 +3083,7 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
                     } else if (stkInst.VarName === "m") {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "prcflt") {
+                    } else if (stkInst.VarName === "percFlut") {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
                     } else if (stkInst.VarName === "man") {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
@@ -3195,7 +3119,7 @@ console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.curr
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
                     } else if (stkInst.VarName === "mog") {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "hevymetl") {
+                    } else if (stkInst.VarName === "hevyMetl") {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;
                     } else if (stkInst.VarName === "hnkytonk") {
                         return `1 => ${stkInst.VarName}[i-1].noteOff;`;

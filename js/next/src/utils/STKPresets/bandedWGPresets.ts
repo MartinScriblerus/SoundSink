@@ -1,5 +1,5 @@
 export const stkVariableBandedWg = "wg";
-export const stkIdentifierBandedWg = "BandedWG";
+export const stkIdentifierBandedWg = "BandedWg";
 
 const bandedWGPresets = {
     // bowPressure: {
