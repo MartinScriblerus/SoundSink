@@ -9,8 +9,9 @@ string filename;
 // get name
 if( me.args() > 0 ) me.arg(0) => filename;
 // default
-if( filename == "" ) "aiVoiceStitcher_mfr.wav" => filename;
+if( filename == "" ) "jam1_dist.wav" => filename;
 
+adc => Gain g => dac;
 // pull samples from the dac
 dac => Gain g => WvOut w => blackhole;
 // this is the output file name

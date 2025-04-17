@@ -38,10 +38,14 @@ type QuickDashProps = {
     currentDenomCount: number;
     currentPatternCount: number;
 
+    clickHeatmapCell: any;
+
+    exitEditMode: () => void;
+    isInPatternEditMode: boolean;
 }
 
 const NotesQuickDash = (props:QuickDashProps) => {
-    const theme = useTheme();
+    // const theme = useTheme();
     const {
         featuresLegendData, 
         vizSource,
@@ -72,6 +76,9 @@ const NotesQuickDash = (props:QuickDashProps) => {
         currentDenomCount,
         currentPatternCount,
         masterFastestRate,
+        exitEditMode,
+        isInPatternEditMode,
+        clickHeatmapCell,
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
@@ -177,7 +184,10 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             currentNumerCountColToDisplay={currentNumerCountColToDisplay}
                             currentDenomCount={currentDenomCount}
                             currentPatternCount={currentPatternCount}
+                            exitEditMode={exitEditMode}
+                            isInPatternEditMode={isInPatternEditMode}
 
+                            clickHeatmapCell={clickHeatmapCell}
                         />
 
                     }

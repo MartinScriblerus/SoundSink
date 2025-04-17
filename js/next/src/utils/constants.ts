@@ -1,7 +1,7 @@
 export const MIDDLE_FONT_SIZE = '14px';
 
 export const FOREST_GREEN = "#99D2A4"; // lime green
-export const MATTE_BLACK = "#1E1E1E"; // black
+export const MATTE_BLACK = "pink"; // black
 export const CREAM_WHITE = "#EDE5CF"; // off-white
 export const MUTED_OLIVE = "#9979D2"; // yellow
 export const STEEL_GRAY = "#ff7b7b"; // peach

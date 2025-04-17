@@ -39,7 +39,7 @@ export default function GroupToggle(props: GroupToggleProps) {
               option.toLowerCase().includes('osc2') ? 'Mono' :
               option.toLowerCase().includes('stk') ? 'Inst' :
               option.toLowerCase().includes('sampler') ? 'Samp' :
-              option.toLowerCase().includes('audioin') ? 'Line' : option
+              option.toLowerCase().includes('audioin') ? 'AudioIn' : option
             }</ToggleButton>
         })
       }

@@ -16,7 +16,13 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
     const theme = useTheme();
     
     return (
-        <Box sx={{display: "flex", flexDirection: "row", }}>
+        <Box 
+            sx={{
+                display: "flex", 
+                flexDirection: "row", 
+                justifyContent: "flex-end",
+            }}
+        >
             <FormControl
                 sx={{
                     margin: '8px', 
@@ -37,24 +43,26 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
                     inputProps={{ 
                         style: { 
                             color: 'primary.contrastText',
-                            // fontFamily: notoSans,
+                            fontFamily: 'monospace',
                             fontSize: '24px',
-                            width:'100%'
+                            width: '100%',
+                            minWidth: '48px',
+                            minHeight: '48px',
                         } 
                     }}
                     sx={{
                         input: { color: 'primary.contrastText' },
-                        // minWidth: "2rem",
+                        minWidth: "2rem",
                         backgroundColor: PALE_BLUE,
                         color: 'status.text',
-                        // paddingTop: 0,
+                        paddingTop: 0,
                         fontFamily: 'sans-serif',
                         display: 'flex',
                         fontSize: '32px',
                         alignItems: 'center',
-                        // paddingBottom: 0,
-                        // margin: "1rem",
-                        // maxWidth: "6rem",
+                        paddingBottom: 0,
+                        margin: "1rem",
+                        maxWidth: "6rem",
                         height: "100%",
                         width: '72px',
                     }}
@@ -70,8 +78,9 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
                     value={cellSubdivisions}
                     onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
                             event.preventDefault();
-                            const inputCellDivisions: any = parseInt(event.target.value);
-                            // alert(`${inputCellDivisions} _ ${xVal} _ ${yVal}`);
+                            console.log("what is the goddamn event: ", event.target.value);
+                            const inputCellDivisions: any = Number(event.target.value);
+                            console.log('x_y_subbbbb ', xVal, yVal, cellSubdivisions, inputCellDivisions)
                             if (inputCellDivisions && inputCellDivisions > 0 ) {
                                 handleChangeCellSubdivisions(inputCellDivisions, xVal, yVal);
                                     masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = inputCellDivisions;

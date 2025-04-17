@@ -64,7 +64,6 @@ export default function DiscreteSlider(props: SliderProps) {
         fontSize: '13px',
         flexDirection: 'row',
         width: '100%',
-        minWidth: '400px'
     }}>
         {
         vizSource && vizSource.includes("osc1") 
@@ -153,7 +152,7 @@ export default function DiscreteSlider(props: SliderProps) {
             <></>
         }
         {
-        vizSource && vizSource.includes("audioIn") 
+        vizSource && vizSource.includes("audioin") 
         ?
             <Box className={'pattern-rate-title'}
             >

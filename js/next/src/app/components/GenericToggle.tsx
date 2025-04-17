@@ -104,7 +104,7 @@ export default function GenericToggle({
             <Button
               sx={{
                 border: MUTED_OLIVE,
-                background: 'rgba(0,0,0,0.78)',
+                // background: 'rgba(0,0,0,0.78)',
                 color: `rgba(255,255,255,0.78) important!`,
                 minWidth: '60px',
                 maxWidth: '60px',

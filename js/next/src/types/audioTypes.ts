@@ -129,7 +129,7 @@ export type Sources = {
     osc2: Source;
     stk1: Source;
     sampler: Source;
-    audioIn: Source;
+    audioin: Source;
 }
 
 // EFFECTS ***********************************

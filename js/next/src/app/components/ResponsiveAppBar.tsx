@@ -318,7 +318,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                   setStkValues={setStkValues}
               ></STKManagerDropdown>
               <CustomAriaLive 
-                  selectRef={selectRef} 
+                  // selectRef={selectRef} 
                   tune={tune} 
                   currentMicroTonalScale={currentMicroTonalScale} 
               />

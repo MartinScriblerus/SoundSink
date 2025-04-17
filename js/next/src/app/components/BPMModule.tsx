@@ -19,7 +19,7 @@ const BPMModuleFun = (props: BPMModule) => {
 
     return (
         <Box sx={{
-            display: "flex",
+            display: "contents",
             flexDirection: "column",
             // border: "0.5px solid #b2b2b2",
             paddingBottom: "12px",
@@ -51,13 +51,13 @@ const BPMModuleFun = (props: BPMModule) => {
                     inputProps={{
                         style: {
                             color: 'rgba(255,255,255,0.94)',
-                            fontSize: '36px',
-                            textAlign: 'center',
-                            width: '100%',
-                            paddingRight: '10%',
-                            paddingLeft: '10%',
+                            fontSize: '24px',
+                            // textAlign: 'center',
+                            // width: '100%',
+                            // paddingRight: '10%',
+                            // paddingLeft: '10%',
                             fontFamily: 'monospace',
-                            background: 'rgba(0,0,0,0.78)',
+                            // background: 'rgba(0,0,0,0.78)',
                             border: '0px',
                             borderRadius: '0px',
                             padding: '0px',
@@ -73,10 +73,11 @@ const BPMModuleFun = (props: BPMModule) => {
                         width: '100%',
                         justifyContent: 'center',
                         textAlign: 'center',
-                        backgroundColor: 'rgba(0,0,0,0.78)',
+                        backgroundColor: 'rgba(255,255,255,0.28)',
+                        background: 'rgba(255,255,255,0.28)',
                         border: '0px',
                         fontFamily: 'monospace',
-                        background: 'rgba(0,0,0,0.78)',
+                        // background: 'rgba(0,0,0,0.78)',
                         borderRadius: '0px',
                         padding: '0px',
                     }}
@@ -103,7 +104,8 @@ const BPMModuleFun = (props: BPMModule) => {
                 justifyContent: 'center',
                 width: '100%',
                 alignItems: 'center',
-                paddingTop: "12px",
+                paddingBottom: "8px",
+                // paddingTop: "12px",
             }}>
                 <FormControl
                     hiddenLabel
@@ -125,7 +127,7 @@ const BPMModuleFun = (props: BPMModule) => {
                                 textAlign: 'center',
                                 color: 'primary.contrastText',
                                 fontFamily: 'monospace',
-                                background: 'rgba(0,0,0,0.78)',
+                                // background: 'rgba(0,0,0,0.78)',
                                 border: '0px',
                                 borderRadius: '0px',
                                 padding: '0px',
@@ -134,7 +136,7 @@ const BPMModuleFun = (props: BPMModule) => {
                         sx={{
                             input: { color: 'primary.contrastText' },
                             minWidth: "1rem",
-                            backgroundColor: 'rgba(0,0,0,0.78)',
+                            // backgroundColor: 'rgba(0,0,0,0.78)',
                             color: 'rgba(255,255,255,0.78)',
                             paddingTop: 0,
                             alignItems: 'right',
@@ -144,7 +146,7 @@ const BPMModuleFun = (props: BPMModule) => {
                             paddingLeft: '10%',
                             fontSize: '24px',
                             fontFamily: 'monospace',
-                            background: 'rgba(0,0,0,0.78)',
+                            // background: 'rgba(0,0,0,0.78)',
                             border: '0px',
                             borderRadius: '0px',
                             padding: '0px',
@@ -182,7 +184,7 @@ const BPMModuleFun = (props: BPMModule) => {
                                 textAlign: 'center',
                                 color: 'primary.contrastText',
                                 fontFamily: 'monospace',
-                                background: 'rgba(0,0,0,0.78)',
+                                // background: 'rgba(0,0,0,0.78)',
                                 border: '0px',
                                 borderRadius: '0px',
                                 padding: '0px',
@@ -191,7 +193,7 @@ const BPMModuleFun = (props: BPMModule) => {
                         sx={{
                             input: { color: 'primary.contrastText' },
                             minWidth: "1rem",
-                            backgroundColor: 'rgba(0,0,0,0.78)',
+                            // backgroundColor: 'rgba(0,0,0,0.78)',
                             color: 'rgba(255,255,255,0.78)',
                             paddingTop: 0,
                             alignItems: 'right',

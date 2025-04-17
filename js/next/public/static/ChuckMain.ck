@@ -800,7 +800,7 @@ class LisaTrigger extends Chugraph {
 
     0 => int m_listen;
     whole => dur m_bufferLength;
-    whole=> dur m_maxBufferLength;
+    whole => dur m_maxBufferLength;
     whole / (numeratorSignature) => dur m_minimumLength;
     m_minimumLength * 4 => dur m_envLength;
 

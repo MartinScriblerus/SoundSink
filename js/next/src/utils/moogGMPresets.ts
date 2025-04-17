@@ -111,7 +111,7 @@ const moogGMPresets = {
         label: "Decay",
         value: 500,
         min: 0,
-        max: 2000,
+        max: 4000,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr decay (0-100)
@@ -129,7 +129,7 @@ const moogGMPresets = {
         label: "Release",
         value: 200,
         min: 0,
-        max: 2000,
+        max: 4000,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr release (0-100)

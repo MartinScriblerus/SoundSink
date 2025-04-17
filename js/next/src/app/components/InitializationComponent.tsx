@@ -1,7 +1,7 @@
 "use client"
 
 import { Box, Button, SelectChangeEvent } from '@mui/material';
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import BabylonLayer from './BabylonLayer';
 import { Chuck } from 'webchuck';
 import { Note } from "tonal";
@@ -42,8 +42,21 @@ import setupAudioAnalysisWorklet from '../../audio/setupAudioAnalysisWorklet';
 import { NAVY, PALE_BLUE, ROYALBLUE } from '@/utils/constants';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
 import axios from 'axios';
+import MingusPopup from './MingusPopup';
+
+import WaveSurferPlayer from '@wavesurfer/react';
+import Timeline from 'wavesurfer.js/dist/plugins/timeline.esm.js'
+import RegionsPlugin, { Region } from 'wavesurfer.js/dist/plugins/regions';
+import WaveSurfer from 'wavesurfer.js';
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
+
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { InferenceClient } from '@huggingface/inference';
+
+
 
 export default function InitializationComponent() {
+    
     const [programIsOn, setProgramIsOn] = useState<boolean>(false);
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const [babylonReady, setBabylonReady] = useState(false);
@@ -53,7 +66,14 @@ export default function InitializationComponent() {
     const currNotesHash = useRef<any>({}); // ** MISSING TYPE (THIS ONE WOULD BE USEFUL)
     const [notesNeedUpdate, setNotesNeedUpdate] = useState<boolean>(false);
     const [midiAccessHook, setMidiAccessHook] = useState<any>({}); // do we do anything with this value?
+    const [wavesurfer, setWavesurfer] = useState<any>(null)
+    const [isPlaying, setIsPlaying] = useState(false);
 
+    const [loaded, setLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const ffmpegRef = useRef(new FFmpeg());
+    const messageRef = useRef<HTMLParagraphElement | null>(null);
+    
     // NEEDS WORK (after samples)...
     const [resetNotes, setResetNotes] = useState<any>([0]);
     
@@ -88,7 +108,7 @@ export default function InitializationComponent() {
         osc1: "",
         osc2: "",
         stk1: "",
-        audioIn: "",
+        audioin: "",
         sampler: ""
     })
 
@@ -104,7 +124,8 @@ export default function InitializationComponent() {
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
     const { register, handleSubmit, watch } = useForm();
-
+    const currentHeatmapXY = useRef<any>();
+    // currentHeatmapXY.current = { };
     const [clickedBegin, setClickedBegin] = useState<any>(false);
 
     const [stkValues, setStkValues] = useState<STKOption[]>([]);
@@ -154,6 +175,9 @@ export default function InitializationComponent() {
     const [meydaNeedsUpdate, setMeydaNeedsUpdate] = useState<boolean>(false);
 
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
+
+    const uploadedBlob = useRef<any>();
+
     const [numeratorSignature, setNumeratorSignature] = useState(4);
     const [denominatorSignature, setDenominatorSignature] = useState(4);
 
@@ -187,13 +211,16 @@ export default function InitializationComponent() {
     const parentDivRef = useRef<any>(null);
     const [masterPatternsHashHook, setPatternsHashHook] = useState<any>({});
     const [masterPatternsHashUpdated, setPatternsHashUpdated] = useState<boolean>(false);
-    const [isInPatternEditMode, setIsInPatternEditMode] = useState<boolean>(false);
-    const [currentMidiMsg, setCurrentMidiMsg] = useState<any>({ data: [0, 0, 0] });
+
+    // const [currentMidiMsg, setCurrentMidiMsg] = useState<any>({ data: [0, 0, 0] });
     const [mTFreqs, setMTFreqs] = useState<any>([]);
     const [mTMidiNums, setMTMidiNums] = useState<any>([]);
     // const [inFileAnalysisMode, setInFileAnalysisMode] = useState<boolean>(false);
 
     const [chuckMsg, setChuckMsg] = useState<string>('');
+
+    const isInPatternEditMode = useRef<boolean>(false);
+    isInPatternEditMode.current = isInPatternEditMode.current || false;
 
     const [filesToProcessArrayHook, setFilesToProcessArrayHook] = useState<any>(
         [
@@ -215,6 +242,26 @@ export default function InitializationComponent() {
             }
         ]
     );
+
+    const load = async () => {
+        setIsLoading(true);
+        const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd";
+        const ffmpeg = ffmpegRef.current;
+        ffmpeg.on("log", ({ message }) => {
+          if (messageRef.current) messageRef.current.innerHTML = message;
+        });
+        // toBlobURL is used to bypass CORS issue, urls with the same
+        // domain can be used directly.
+        await ffmpeg.load({
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+          wasmURL: await toBlobURL(
+            `${baseURL}/ffmpeg-core.wasm`,
+            "application/wasm"
+          ),
+        });
+        setLoaded(true);
+        setIsLoading(false);
+    };
 
     // const [featuresLegendParam, setFeaturesLegendParam] = useState<string>('rms');
     // const [featuresLegendData, setFeaturesLegendData] = useState<any>([]);
@@ -239,6 +286,199 @@ export default function InitializationComponent() {
     // const [timeNow, setTimeNow] = useState<any>(0);
     const [hold, setHold] = useState<any>(0);
     const [showLoader, setShowLoader] = useState<boolean>(false);
+
+    const wavesurferRef: WaveSurfer = useRef(null);
+
+    const regionStart = useRef<any>();
+    const regionEnd = useRef<any>();
+    const totalDuration = useRef<any>();
+    const clippedDuration = useRef<any>();
+
+
+    function readArrayBufferAsFile(arrayBuffer: ArrayBuffer) {
+        const decoder = new TextDecoder('utf-8');
+        const fileContent = decoder.decode(arrayBuffer);
+        return fileContent;
+      }
+
+
+    async function uploadAudioFile(blob: Blob, name: string) {
+        if (!name.endsWith('.wav')) {
+            console.error('Only WAV files are supported ', name, "BBLLOOBB: ", blob);
+            return;
+          }
+        
+          const formData = new FormData();
+          formData.append('file', blob, name);
+      
+        const response = await fetch('http://localhost:8000/analyze_audio/', {
+          method: 'POST',
+          body: formData,
+        });
+      
+        const result = await response.json();
+        console.log(result);
+    }
+
+      
+    async function clipAudio() {
+        const start: number | any = regionStart.current; 
+        const end: number | any = regionEnd.current;
+                
+        if (!start ||!end ) return;
+        
+        const ffmpeg = ffmpegRef.current;
+        
+        const audioFile = filesToProcess.current[filesToProcess.current.length - 1];
+                
+        console.log("sanity audiofile: ", audioFile);
+
+        try {
+          // Write the audio file to the FFmpeg wasm file system
+          await ffmpeg.writeFile(
+            audioFile.name,
+            audioFile.data
+          );
+          
+          
+
+          // Run the FFmpeg command
+          await ffmpeg.exec([
+            '-i', audioFile.name,
+            '-ss', start.toString(), // Start time
+            '-t', (end - start).toString(), // Duration
+            '-c', 'copy',
+            '-f','wav',
+            // 'clipped_audio.mp3'
+            `clipped_${audioFile.name}`
+          ]);
+      
+          // Read the clipped audio file
+          const clippedAudio = (await ffmpeg.readFile(`clipped_${audioFile.name}`, 'binary')) as Uint8Array;
+          
+          console.log("CLIPPED AUDIO... ", clippedAudio);
+      
+          if (clippedAudio) {
+            // Create a blob from the clipped audio
+            const blob = new Blob([clippedAudio], { type: 'audio/wav' });
+            
+            // Create a URL for the clipped audio
+            const url = URL.createObjectURL(blob);
+
+            const response = await fetch(URL.createObjectURL(blob));
+            const arrayBuffer = await response.arrayBuffer();
+
+            const newClippedFile = readArrayBufferAsFile(arrayBuffer);
+            
+            uploadAudioFile(blob, `clipped_${audioFile.name}`);
+
+
+            
+
+
+//             const HF_API_TOKEN = process.env.NEXT_PUBLIC_HUGGING_INFERENCE_API_KEY
+
+//             console.log('sanity newly clipped file: ', newClippedFile);
+// //             const formData = new FormData();
+// //             formData.append("inputs", newClippedFile);
+          
+//             const apiToken: any = process.env.NEXT_PUBLIC_HUGGING_INFERENCE_API_KEY;
+
+// const client = new InferenceClient(apiToken);
+
+
+// const responseHf = client.audioToAudio({
+//     model: "ddPn08/onsets-and-frames", 
+//     inputs: blob,
+//   });
+
+
+                // console.log('Separated stems$$$$$$$$$$$$$$$$:', responseHf);
+ 
+            
+//             if (!response.ok) {
+//               throw new Error(`Hugging Face API error: ${response.statusText}`);
+//             }
+
+
+
+
+
+
+
+
+
+
+
+            // filesToProcess.current.push({
+            //     data: newClippedFile,
+            //     name: `${audioFile.name}_clipped.mp3`
+            // });
+
+            const newMeydaData = getMeydaData(arrayBuffer);
+            console.log("NEW MEYDA DATA: ", lastFileUploadMeydaData.current);
+            
+            
+            // Save the clipped audio or play it
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `clipped_${audioFile.name}`;
+            a.click();
+          } else {
+            console.error('Error: clipped audio is null or undefined');
+          }
+        } catch (error) {
+          console.error('Error clipping audio:', error);
+        }
+    }
+  
+
+
+
+    const onReady = (ws: any) => {
+        console.log("WAVESURFER READY: ", ws);
+        if (ws) {        
+            const region = ws.plugins[0].addRegion({
+                start: 0,
+                end: 10,
+                color: 'rgba(0, 255, 0, 0.5)',
+            });
+    
+            region.on("update", (e: any) => {
+                console.log('Region clicked!', e);
+            });
+    
+            region.on("update-end", () => {
+                regionStart.current = region.start;
+                regionEnd.current = region.end;
+                totalDuration.current = region.totalDuration;
+                clippedDuration.current = region.end - region.start;
+                // clipAudio(region.start, region.end);
+                console.log('Finished dragging/resizing!', region);
+            });
+
+            region.on("play", function(this: Region) {
+                console.log('PLAY WORKS!!', this as any);
+                setIsPlaying(true);
+            });
+    
+            // console.log("Region listeners (for info):", region);
+        
+        }
+        wavesurferRef.current = ws;
+
+        if ((wavesurferRef.current !== wavesurfer) && wavesurferRef.current && !wavesurfer) {
+            setWavesurfer(wavesurferRef.current)
+        }
+        // setIsPlaying(false)
+    }
+    
+    const onPlayPause = () => {
+        console.log("YOOO!!! ", wavesurferRef.current);
+        wavesurferRef.current && wavesurferRef.current.playPause()
+    }
+
+    
 
 
 
@@ -366,15 +606,21 @@ export default function InitializationComponent() {
 
     const midiAccess = useRef<WebMidi.MIDIAccess>();
 
-    // useEffect(() => {
-    //     console.log("%cBC!!! ", "color: yellow;", currentBeatCount);
+    const resetHeatmapCell = useRef<boolean>();
+    resetHeatmapCell.current = false;
 
-    // }, [currentBeatCount]);
 
     useEffect(() => {
 
         let isMounted = true;
-        const bC: number = parseInt(chuckMsg.match(/\d+/)?.[0] || "0", 10);
+        // const bC: number = parseInt(chuckMsg.match(/\d+/)?.[0] || "0", 10);
+        const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
+        const bC = parsedNumbers.length > 0  
+            ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
+            : currentBeatCountToDisplay;  // Keep previous value if no valid number found
+        
+        console.log("BC: ", bC);
+        console.log("chuckMsg: ", chuckMsg);
 
         const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
         const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
@@ -456,8 +702,14 @@ export default function InitializationComponent() {
         }
 
         let col;
-        if (z === 6) {
-            col = "orange"
+        if (z === 9) {
+            col = "white"
+        } else if (z === 8) {
+            col = "black"
+        } else if (z === 7) {
+            col = "yellow"
+        } else if (z === 6) {
+            col = "red"
         } else if (z === 5) {
             col = "pink"
         } else if (z === 4) {
@@ -468,32 +720,39 @@ export default function InitializationComponent() {
             col = "aqua"
         } else if (z === 1) {
             col = "maroon"
+        } else {
+            col = "blue"
         }
 
         // masterPatternsRef.current[`${z}`][`${x}`] = {};
         masterPatternsRef.current[`${z}`][`${x}`] = masterPatternsRef.current[`${z}`][`${x}`] 
             ?  masterPatternsRef.current[`${z}`][`${x}`] 
-            : (x % masterFastestRate < 2) ? {
+            // : (x % masterFastestRate < 1) ? {
+            : (x === 0 ) ? {
             on: true,
-            note: mTFreqs[x + (x * y) + (x * y * z)],
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)],
+            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
             velocity: 0.9,
             color: col,
             fileNums: [2],
-            // subdivisions: masterPatternsRef.current[`${inst}_${z}`][`${x}`].subdivisions || 1
             subdivisions: cellSubdivisions
-        } : {
+        } : (x === 2) ? {
             on: false,
-            note: mTFreqs[x + (x * y) + (x * y * z)],
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)],
+            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
             velocity: 0.9,
             color: col,
             fileNums: [0],
-            // subdivisions: masterPatternsRef.current[`${inst}_${z}`][`${x}`].subdivisions || 1
             subdivisions: cellSubdivisions
-        } ;
-        // console.log('wtf master pattern??? ', masterPatternsRef.current);
-        // console.log("CHECK IT!!! ", masterPatternsRef.current[`${z}`][`${x}`])      
+        } : {
+            on: false,
+            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
+            velocity: 0.9,
+            color: col,
+            fileNums: [9999],
+            subdivisions: cellSubdivisions
+        };    
     }
 
     useEffect(() => {
@@ -518,7 +777,7 @@ export default function InitializationComponent() {
                     else if (z % 8 === 0) {
                         // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
                         // assign osc pattern values below
-                        fillHashSlot(x, y, z, `audioIn`);
+                        fillHashSlot(x, y, z, `audioin`);
                     }
                     else {
                         // console.log("Z LESS THAN 5 ... x: ", x, "y: ", y, "z: ", z);
@@ -599,7 +858,10 @@ export default function InitializationComponent() {
 
 
     const inPatternEditMode = (state: boolean) => {
-        setIsInPatternEditMode(true);
+        // console.log(
+        //     'HEYO CHECK STATE??? ', state
+        // );
+        isInPatternEditMode.current = true;
     }
 
     const handleMasterRateUpdate = async () => {
@@ -632,7 +894,7 @@ export default function InitializationComponent() {
     }
     const handleAudioInRateUpdate = async (val: any) => {
         const valAudioInRate = await val.target.value;
-        console.log("YES??? ", valAudioInRate, currentNoteVals);
+        console.log("YES AUDIN??? ", valAudioInRate, currentNoteVals);
         setCurrentNoteVals({ ...currentNoteVals, linesIn: [valAudioInRate] });
         handleMasterRateUpdate();
     }
@@ -667,6 +929,8 @@ export default function InitializationComponent() {
                     lastFileUploadMeydaData.current && lastFileUploadMeydaData.current.push(
                         Meyda.extract(
                             [
+                                // "pitch",
+                                // "onsets",
                                 "rms",
                                 "mfcc",
                                 "chroma",
@@ -710,6 +974,9 @@ export default function InitializationComponent() {
         const fileDataBuffer: any = await file.arrayBuffer();
         const fileData: any = new Uint8Array(fileDataBuffer);
         const blob = new Blob([fileDataBuffer], { type: "audio/wav" });
+        if (blob && !uploadedBlob.current) {
+            uploadedBlob.current = blob;
+        }
         testArrBuffFile.current = fileData;
 
         const fileBlob = new File([blob], `${file.name.replace(' ', '_')}`, { type: "audio/wav" });
@@ -794,6 +1061,7 @@ export default function InitializationComponent() {
 
     useEffect(() => {
 
+        load();
        // if (tune || keysAndTuneDone.current === true) return;
         keysAndTuneDone.current = true;
         let isMounted = true;
@@ -872,7 +1140,10 @@ export default function InitializationComponent() {
 
     }, []);
 
-
+    // useEffect(() => {
+    //     console.log("CURRENT HEATMAP X AND Y HERE... ", currentHeatmapXY);
+    //     setIsInPatternEditMode(true);
+    // }, [currentHeatmapXY]);
 
     // CHANGE THIS USEEFFECT TO A FUNCTION!
     useEffect(() => {
@@ -882,19 +1153,16 @@ export default function InitializationComponent() {
             console.log('curr screen / doReturnToSynth / checkedFXUpdating: ', currentScreen.current, doReturnToSynth.current, checkedFXUpdating);
             if (doReturnToSynth.current !== true) {
                 // **** THIS IS WHERE THE ISSUE MAY BE HAPPENING => WHATEVER GETS PASSED INTO VISIBLESTKSANDFX ALWAYS WINS 
-
                 visibleStkAndFX = Object.entries(universalSources.current).filter(
                     (i: any) => i[0].toLowerCase() === getConvertedRadio(fxRadioValue).toLowerCase()
                         && Object.values(i[1].effects).filter(
                             (j: any) => j));
-                console.log("THESE ARE VISIBLE STK AND FX: ", visibleStkAndFX);
 
                 if (!currentScreen.current.includes("stk")) {
                     visibleStkAndFX && visibleStkAndFX.length > 0 && visibleStkAndFX.map((i: any) => {
                         i[0].toLowerCase() === getConvertedRadio(fxRadioValue).toLowerCase() && Object.values(i[1].effects).map((j: any) => {
                             if (j.type === currentEffectType.current) {
                                 Object.values(j.presets).map((x: any) => {
-                                    console.log("look good 1? ", ([x.label, x]))
                                     visibleFXKnobs.current?.push([x.label, x]);
                                 })
                             }
@@ -905,7 +1173,6 @@ export default function InitializationComponent() {
 
             } else {
                 visibleStkAndFX = Object.values(moogGMPresets);
-                console.log("look good 2? ",  Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]))
                 visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
             }
             visibleFXKnobs.current =
@@ -1129,7 +1396,7 @@ export default function InitializationComponent() {
             osc2: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[1] ? Object.values(pedalChain)[1].map((i: any) => i.VarName) : [],
             stk: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[2] ? Object.values(pedalChain)[2].map((i: any) => i.VarName) : [],
             sampler: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[3] ? Object.values(pedalChain)[3].map((i: any) => i.VarName) : [],
-            audioIn: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[4] ? Object.values(pedalChain)[4].map((i: any) => i.VarName) : [],
+            audioin: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[4] ? Object.values(pedalChain)[4].map((i: any) => i.VarName) : [],
         }
 
         const currentInst: any[] = chain[`${getConvertedRadio(fxRadioValue).toLowerCase()}`]
@@ -1564,6 +1831,10 @@ export default function InitializationComponent() {
         initialRun.current = true;
     }
 
+    const clickHeatmapCell = (x: number, y: number) => {
+        currentHeatmapXY.current = { x, y };
+    };
+
     const triggerNote = (note: any) => {
         console.log('note??? ', note);
         console.log('note sanity??? ', Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []);
@@ -1583,7 +1854,32 @@ export default function InitializationComponent() {
         });
         console.log("Notes set ref // curr notes hash :::: ", NOTES_SET_REF.current, currNotesHash.current)
 
-        NOTES_SET_REF.current && NOTES_SET_REF.current.length > 0 && chuckRef.current && chuckRef.current.broadcastEvent('playNote');
+        if (isInPatternEditMode.current === true) {
+            // if (resetHeatmapCell.current === true) {
+            //     masterPatternsRef.current[currentHeatmapXY.x][currentHeatmapXY.y].note = 0;
+            //     masterPatternsRef.current[currentHeatmapXY.x][currentHeatmapXY.y].noteHz = 0;
+            //     resetHeatmapCell.current = false;
+            // }
+
+            console.log("WHAT IS CURR NOTES HASH? ", currNotesHash.current);
+
+            const baseHashCurrNotes: any = Object.values(currNotesHash.current)[0];
+
+            console.log("dang shit and fuck: ", currentHeatmapXY.current);
+
+            masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x].note = baseHashCurrNotes[0];
+            masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x].noteHz = baseHashCurrNotes[1];
+
+            setPatternsHashUpdated(!masterPatternsHashHook);
+            setPatternsHashHook(masterPatternsRef.current);
+            setPatternsHashUpdated(masterPatternsRef.current);
+
+        }
+
+        NOTES_SET_REF.current && 
+        NOTES_SET_REF.current.length > 0 && 
+        chuckRef.current && 
+        chuckRef.current.broadcastEvent('playNote');
 
         // console.log("CHECK HASH!!! ", currNotesHash.current);
         currNotesHash.current = {};
@@ -1604,20 +1900,27 @@ export default function InitializationComponent() {
 
     const getSourceFX = (thisSource: string) => {
         if (thisSource === "stk") thisSource = "stk1";
+        console.log("AYYY ", thisSource);
+        console.log("OYYY ", getConvertedRadio(fxRadioValue));
+        console.log("UYYY ", universalSources.current);
+        console.log("DAFUQ? ", universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources])
+        console.log("SANITY??? ", universalSources.current && 
+            universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources] && 
+            universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects);
         return `
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.PowerADSR.Code(powerADSRFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WinFuncEnv.Code(winFuncEnvFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.ExpEnv.Code(expEnvFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Elliptic.Code(ellipticFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Spectacle.Code(spectacleFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WPDiodeLadder.Code(wpDiodeLadderFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WPKorg35.Code(wpKorg35FinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.ExpDelay.Code(expDelayFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Modulate.Code(modulateFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.PowerADSR.Code(powerADSRFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WinFuncEnv.Code(winFuncEnvFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.ExpEnv.Code(expEnvFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Elliptic.Code(ellipticFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Spectacle.Code(spectacleFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WPDiodeLadder.Code(wpDiodeLadderFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35 && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WPKorg35.Code(wpKorg35FinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.ExpDelay.Code(expDelayFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Modulate.Code(modulateFinalHelper.current, currentNoteVals) : ''}
 
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Delay.Code(delayFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.DelayA.Code(delayAFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.DelayL.Code(delayLFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Delay.Code(delayFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.DelayA.Code(delayAFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.DelayL.Code(delayLFinalHelper.current, currentNoteVals) : ''}
         `;
     };
 
@@ -1645,13 +1948,16 @@ export default function InitializationComponent() {
 
             const getSamplerFX = universalSources.current && Object.values(universalSources.current.sampler.effects).filter(i => i.On);
 
+            const getAudioInFX = universalSources.current && Object.values(universalSources.current.audioin.effects).filter(i => i.On);
+
             const signalChain: any = [];
             const valuesReadout: any = {};
             const signalChainSampler: any = [];
             const valuesReadoutSampler: any = {};
-
             const signalChainSTK: any = [];
             const valuesReadoutSTK: any = {};
+            const signalChainAudioIn: any = [];
+            const valuesReadoutAudioIn: any = {};
 
             getConvertedRadio(fxRadioValue).toLowerCase() === "osc1" && getOsc1FX?.map((fx: any) => {
                 const type = fx.Type;
@@ -1677,6 +1983,18 @@ export default function InitializationComponent() {
                 })
             });
 
+            getConvertedRadio(fxRadioValue).toLowerCase() === "audioin" && getAudioInFX?.map((fx: any) => {
+                const type = fx.Type;
+                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
+                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
+                signalChainAudioIn.indexOf(addedEffect) === -1 && signalChainAudioIn.push(addedEffect);
+
+                Object.values(fx.presets).map((preset: any) => {
+                    const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
+                    if (!fx.Code) valuesReadoutAudioIn[preset.name] = latestValue;
+                })
+            });
+
             // console.log("HEYO CHECK MASTER PATTERNS BEFORE CHUCK START: ", masterPatternsRef.current);
             // console.log("heyo rate update sanity (mfr): ", masterFastestRate);
             // console.log("bpm sanity: ", 60000/bpm);
@@ -1688,7 +2006,7 @@ export default function InitializationComponent() {
             // console.log("Shred Count: ", shredCount);
             console.log("WHAT ARE PATTERNS? ", masterPatternsRef.current)
             console.log("what is alloctavemidifreqs? ", allOctaveMidiFreqs.current);
-            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999 ) ) );
+            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999.0 ) ) );
 
 
             activeSTKDeclarations.current = '';
@@ -1705,6 +2023,8 @@ export default function InitializationComponent() {
                 })
             });
 
+
+            console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1])))
 
             const newChuckCode = `
                 "" => global string currentSrc;
@@ -1755,56 +2075,30 @@ export default function InitializationComponent() {
                 class Osc1_EffectsChain extends Chugraph
                 { 
                     inlet => ${signalChain.join(' ')} outlet;
-
-
                     ${Object.values(valuesReadout).map((value: any) => value).join(' ')}
-
-                    ////////////////////////////////////////////
-                    // THIS WORKS BUT CAUSES ISSUES WHEN ADSR IS !!LONGER!! THAN MASTER TIMER... ALSO, CLEARLY WE NEED NON-HARDCODED OPTION
-                    // should we do this for each source? should we have selected sources more clearly marked in UI? 
-                    // should we call once for all sources (& handle selected stuff in helper? seems cleanest...)
                     ${getSourceFX('osc1')}
-  
-                    ////////////////////////////////////////////
                 }
-
 
                 class Sampler_EffectsChain extends Chugraph
                 {
                     inlet => ${signalChainSampler.join(' ')} outlet;
-
-
                     ${Object.values(valuesReadoutSampler).map((value: any) => value).join(' ')}
-
-                    ////////////////////////////////////////////
-                    // THIS WORKS BUT CAUSES ISSUES WHEN ADSR IS !!LONGER!! THAN MASTER TIMER... ALSO, CLEARLY WE NEED NON-HARDCODED OPTION
-                    // should we do this for each source? should we have selected sources more clearly marked in UI? 
-                    // should we call once for all sources (& handle selected stuff in helper? seems cleanest...)
                     ${getSourceFX('sampler')}
-
-                    ////////////////////////////////////////////
                 }
-
-
-
-
-
-
 
                 class STK_EffectsChain extends Chugraph {
                     inlet => ${signalChainSTK.join(' ')} outlet;
-
                     ${Object.values(valuesReadoutSTK).map((value: any) => value).join(' ')}
-
                     ${getSourceFX('stk')}
                 }
 
+                class AudioIn_EffectsChain extends Chugraph {
+                    inlet => ${signalChainAudioIn.join(' ')} outlet;
+                    ${Object.values(valuesReadoutAudioIn).map((value: any) => value).join(' ')}
+                    ${getSourceFX('audioin')}
+                }
 
  
-
-
-                // SinOsc testSin => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
-
                 SndBuf buffers[5] => Sampler_EffectsChain sampler_FxChain => Dyno audInDynoSampler => dac;
                   
                 fun void SilenceAllBuffers()
@@ -2005,19 +2299,13 @@ export default function InitializationComponent() {
                         filterCutoff => float startFreq;
                         while((adsr[id].state() != 0 && adsr[id].value() == 0) == false)
                         {
+                            1 => adsr[id].keyOn;
                             Std.fabs((filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last()) => lpf[id].freq;                     
                             adsr[id].releaseTime() => now;
-                            // 1 => adsr[id].keyOff;
+                            1 => adsr[id].keyOff;
                             me.yield();
                         }
                         // me.exit();
-
-                        // filterCutoff => float startFreq;
-                        // while((adsr[id].state() != 0 && adsr[id].value() == 0) == false)
-                        // {
-                        //     (filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last() => lpf[id].freq;            
-                        //     10::ms => now;
-                        // }
                     }
                     fun void cutoff(float amount)
                     {
@@ -2133,10 +2421,525 @@ export default function InitializationComponent() {
                     ${moogGrandmotherEffects.current.noise.value} => voice.noise;
                 }
 
-
-
                 voice => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
                 0.6 => voice.gain;
+
+
+
+
+
+
+
+
+
+
+
+
+                LisaTrigger lisaTrigger; 
+                GrainStretch grain;
+                Tape t;
+                RandomReverse rr; 
+                Reich rei;
+                AsymptopicChopper achop;
+                NRev rev_audioin;
+                NRev rev_sampler;
+
+
+                class AudioIn_SpecialEffectsChain extends Chugraph
+                {
+                    inlet => achop => LPF lpf_audioin => outlet;
+                    0.8 => rev_audioin.mix;
+
+                    t.gain(1.0);
+                    t.delayLength(whole / (numeratorSignature / denominatorSignature));
+                    t.loop(1);
+
+                    grain.stretch(1);
+                    grain.rate(0.1);
+                    grain.length(whole/(numeratorSignature * denominatorSignature));
+                    grain.grains(8);
+
+                    rr.setInfluence(1.0);
+                    rr.listen(1);
+
+                    achop.listen(1);
+                    achop.length(whole);
+                    achop.minimumLength(whole/(numeratorSignature * denominatorSignature));
+
+                    lisaTrigger.listen(1);
+                    lisaTrigger.length(whole);
+                    lisaTrigger.minimumLength(whole/(numeratorSignature * denominatorSignature));
+
+
+                }
+                AudioIn_SpecialEffectsChain audioin_SpecialFxChain;
+
+
+
+
+                class GrainStretch extends Chugraph {
+
+                    LiSa mic[2];
+                    ADSR env;
+
+                    inlet => mic[0] => env => outlet;
+                    inlet => mic[1] => env => outlet;
+
+                    0 => int m_stretching;
+                    32 => int m_grains;
+                    1.0 => float m_rate;
+
+                    1.0::second => dur m_bufferLength;
+                    maxLength(8::second);
+
+                    fun void stretch(int s) {
+                        if (s == 1) {
+                            1 => m_stretching;
+                            spork ~ stretching();
+                        }
+                        else {
+                            0 => m_stretching;
+                        }
+                    }
+
+                    fun void maxLength(dur m) {
+                        mic[0].duration(m);
+                        mic[1].duration(m);
+                    }
+
+                    fun void length(dur l) {
+                        l => m_bufferLength;
+                    }
+
+                    fun void rate(float r) {
+                        r => m_rate;
+                    }
+
+                    fun void grains(int g) {
+                        g => m_grains;
+                    }
+
+                    fun void stretching() {
+                        0 => int idx;
+
+                        recordVoice(mic[idx], m_bufferLength);
+
+                        // switches between audio buffers, ensuring a constant processed signal
+                        while (m_stretching) {
+                            spork ~ recordVoice(mic[(idx + 1) % 2], m_bufferLength);
+                            (idx + 1) % 2 => idx;
+                            stretchVoice(mic[idx], m_bufferLength, m_rate, m_grains);
+                        }
+                    }
+
+                    fun void recordVoice(LiSa mic, dur bufferLength) {
+                        mic.clear();
+                        mic.recPos(0::samp);
+                        mic.record(1);
+                        bufferLength => now;
+                        mic.record(0);
+                    }
+
+                    // all the sound stuff we're doing
+                    fun void stretchVoice(LiSa mic, dur duration, float rate, int grains) {
+                        (duration * 1.0/rate)/grains => dur grain;
+                        grain/32.0 => dur grainEnv;
+                        grain * 0.5 => dur halfGrain;
+
+                        // for some reason if you try to put a sample
+                        // at a fraction of samp, it will silence ChucK
+                        // but not crash it?
+                        if (halfGrain < samp) {
+             
+                            return;
+                        }
+
+                        // envelope parameters
+                        env.attackTime(grainEnv);
+                        env.releaseTime(grainEnv);
+
+                        halfGrain/samp => float halfGrainSamples;
+                        ((duration/samp)$int)/grains=> int sampleIncrement;
+
+                        mic.play(1);
+
+                        // bulk of the time stretching
+                        for (0 => int i; i < grains; i++) {
+                            mic.playPos((i * sampleIncrement)::samp);
+                            (i * sampleIncrement)::samp + grain => dur end;
+
+                            // only fade if there will be no discontinuity errors
+                            if (duration > end) {
+                                env.keyOn();
+                                halfGrain => now;
+                                env.keyOff();
+                                halfGrain - grainEnv => now;
+                            }
+                            else {
+                                (grain - (end - duration)) => dur endGrain;
+                                env.keyOn();
+                                endGrain * 0.5 => now;
+                                env.keyOff();
+                                endGrain * 0.5 - grainEnv => now;
+                            }
+                        }
+                        mic.play(0);
+                    }
+                }
+
+                class Tape extends Chugraph {
+                    inlet => NRev nRA => Delay del => ADSR env => Gain g => outlet;
+                    g => del;
+
+                    nRA.mix(0.1);
+
+                    env.set(0::ms, 100::ms, 0.75, 10::ms);
+                    delayLength(whole);
+
+                    0 => int m_loop;
+
+                    fun void delayLength(dur d) {
+                        del.max(d);
+                        del.delay(d);
+                    }
+
+                    fun void loop(int l) {
+                        if (l) {
+                            1 => m_loop;
+                            spork ~ looping();
+                        }
+                        if (l == 0) {
+                            0 => m_loop;
+                        }
+                    }
+
+                    fun void looping() {
+                        env.keyOn();
+                        while (m_loop) {
+                            1::samp => now;
+                        }
+                        env.keyOff();
+                    }
+                }
+
+                class RandomReverse extends Chugraph {
+
+                    inlet => LiSa mic => Gain r => outlet;
+                    inlet => Gain g => ADSR env => outlet;
+
+                    0 => int m_listen;
+                    2::second => dur m_maxBufferLength;
+                    2::second => dur m_bufferLength;
+                    0.5 => float m_influence;
+                    100::ms => dur m_envDuration;
+                    5::second => dur m_maxTimeBetween;
+
+                    // envelope
+                    env.attackTime(m_envDuration);
+                    env.releaseTime(m_envDuration);
+                    env.keyOn();
+
+                    fun void listen(int l) {
+                        if (l == 1) {
+                            1 => m_listen;
+                            spork ~ listening();
+                        }
+                        if (l == 0) {
+                            0 => m_listen;
+                        }
+                    }
+
+                    fun void setInfluence(float i) {
+                        i => m_influence;
+                    }
+
+                    fun void setReverseGain(float g) {
+                        r.gain(g);
+                    }
+
+                    fun void setMaxBufferLength(dur l) {
+                        l => m_maxBufferLength;
+                    }
+
+                    fun void listening() {
+                        mic.duration(m_maxBufferLength);
+                        while (m_listen) {
+                            if (m_influence >= 0.01) {
+                                Math.random2f(0.1, m_influence * 0.75) => float scale;
+                                scale * m_bufferLength => dur bufferLength;
+                                record(bufferLength);
+                                playInReverse(bufferLength);
+                                m_maxTimeBetween * Math.fabs(1.0 - m_influence) => now;
+                            }
+                            1::samp => now;
+                        }
+                    }
+
+                    fun void record(dur bufferLength) {
+                        mic.playPos(0::samp);
+                        mic.record(1);
+                        bufferLength => now;
+                        mic.record(0);
+                    }
+
+                    fun void playInReverse(dur bufferLength) {
+                        if (bufferLength < m_envDuration) {
+                            m_envDuration * 2 => bufferLength;
+                        }
+                        env.keyOff();
+                        mic.play(1);
+                        mic.playPos(bufferLength);
+                        mic.rate(-1.0);
+                        mic.rampUp(m_envDuration);
+                        bufferLength - m_envDuration => now;
+                        mic.rampDown(m_envDuration);
+                        env.keyOn();
+                        m_envDuration => now;
+                        mic.play(0);
+                    }
+                }
+
+                class Reich extends Chugraph {
+
+                    inlet => LiSa mic => outlet;
+
+                    0 => int m_record;
+                    0 => int m_play;
+
+                    0::ms => dur m_length;
+                    4     => int m_voices;
+                    1.001 => float m_speed;
+
+                    false => int m_bi;
+                    false => int m_random;
+                    false => int m_spread;
+
+                    maxBufferLength(8::second);
+
+                    fun void maxBufferLength(dur l) {
+                        mic.duration(l);
+                    }
+
+                    fun void record(int r) {
+                        if (r == 1) {
+                            1 => m_record;
+                            spork ~ recording();
+                        }
+                        if (r == 0) {
+                            0 => m_record;
+                        }
+                    }
+
+                    fun void recording() {
+                        mic.clear();
+
+                        mic.recPos(0::samp);
+                        mic.record(1);
+
+                        while (m_record == 1) {
+                            1::samp => now;
+                        }
+
+                        mic.record(0);
+                        mic.recPos() => m_length;
+                    }
+
+                    fun void play(int p) {
+                        if (p == 1) {
+                            1 => m_play;
+                            spork ~ playing();
+                        }
+                        if (p == 0) {
+                            0 => m_play;
+                        }
+
+                    }
+
+                    fun void playing() {
+                        m_voices => int numVoices;
+                        for (int i; i < numVoices; i++) {
+                            0::ms => dur pos;
+                            if (m_random) {
+                                Math.random2f(0.5,1.0) * m_length => pos;
+                            } else if (m_spread) {
+                                i/(numVoices$float) * m_length => pos;
+                            }
+                            mic.playPos(i, pos);
+
+                            // set parameters
+                            mic.bi(i, m_bi);
+                            mic.rate(i, (m_speed - 1.0) * i + 1);
+                            mic.loop(i, 1);
+                            mic.loopEnd(i, m_length);
+
+                            mic.play(i, 1);
+                        }
+                        while (m_play == 1) {
+                            samp => now;
+                        }
+                        for (int i; i < numVoices; i++) {
+                            mic.play(i, 0);
+                        }
+                    }
+
+                    // spreads the initial voices randomly
+                    // throughout the record buffer
+                    fun void random(int r) {
+                        r => m_random;
+                    }
+
+                    // spreads the initial voices equally
+                    // throughout the record buffer
+                    fun void spread(int r) {
+                        r => m_spread;
+                    }
+
+                    // plays a voice backwards when reaching
+                    // the end of the buffer, otherwise
+                    // it will loop from the beginning
+                    fun void bi(int b) {
+                        b => m_bi;
+                    }
+
+                    // the number of voices to be played back
+                    fun void voices(int n) {
+                        n => m_voices;
+                    }
+
+                    // speed offset for the voices
+                    fun void speed(float s) {
+                        s => m_speed;
+                    }
+                }
+
+                class LisaTrigger extends Chugraph {
+                    inlet => LiSa mic => outlet;
+                    mic.bi(1);
+
+                    0 => int m_listen;
+                    whole => dur m_bufferLength;
+                    whole => dur m_maxBufferLength;
+                    whole / (numeratorSignature) => dur m_minimumLength;
+                    m_minimumLength * 4 => dur m_envLength;
+
+                    fun void listen(int lstn) {
+                        if (lstn == 1) {
+                            1 => m_listen;
+                            spork ~ listening();
+                        }
+                        if (lstn == 0) {
+                            0 => m_listen;
+                        }
+                    }
+
+                    fun void length(dur l) {
+                        l => m_bufferLength;
+                    }
+
+                    fun void maxLength(dur l) {
+                        l => m_maxBufferLength;
+                    }
+
+                    fun void minimumLength(dur l) {
+                        m_minimumLength;
+                        l => m_envLength;
+                    }
+
+                    fun void listening() {
+                        mic.duration(m_maxBufferLength);
+                        while (m_listen) {
+                            mic.clear();
+                            mic.recPos(0::samp);
+                            mic.record(1);
+                            m_bufferLength => now;
+                            mic.record(0);
+                            lisaTrig(m_bufferLength);
+                        }
+                    }
+
+                    fun void lisaTrig(dur bufferLength) {
+                        dur bufferStart;
+                        m_bufferLength => dur bufferLength;
+                        mic.play(1);
+                        while (bufferLength > m_minimumLength) {
+                            bufferLength * 0.5 => bufferLength;
+                            0::ms => bufferStart;
+                            mic.playPos(bufferLength);
+                            mic.rampUp(m_envLength * 2);
+                            mic.rate(-1.25);
+                            bufferLength - m_envLength => now;
+                            mic.rampDown(m_envLength * 2);
+                            m_envLength * 2 => now;
+                        }
+                        mic.play(0);
+                    }
+                }
+
+                class AsymptopicChopper extends Chugraph {
+                    inlet => LiSa mic => outlet;
+                    0 => int m_listen;
+                    3::second => dur m_bufferLength;
+                    10::second => dur m_maxBufferLength;
+                    100::ms => dur m_minimumLength;
+                    m_minimumLength * 0.5 => dur m_envLength;
+                    fun void listen(int lstn) {
+                        if (lstn == 1) {
+                            1 => m_listen;
+                            spork ~ listening();
+                        }
+                        if (lstn == 0) {
+                            0 => m_listen;
+                        }
+                    }
+                    fun void length(dur l) {
+                        l => m_bufferLength;
+                    }
+                    fun void maxLength(dur l) {
+                        l => m_maxBufferLength;
+                    }
+                    fun void minimumLength(dur l) {
+                        m_minimumLength;
+                        l * 0.5 => m_envLength;
+                    }
+                    fun void listening() {
+                        mic.duration(m_maxBufferLength);
+                        while (m_listen) {
+                            mic.clear();
+                            mic.recPos(0::samp);
+                            mic.record(1);
+                            m_bufferLength => now;
+                            mic.record(0);
+                            asymptopChop(m_bufferLength);
+                        }
+                    }
+                    fun void asymptopChop(dur bufferLength) {
+                        dur bufferStart;
+                        m_bufferLength => dur bufferLength;
+                        mic.play(1);
+                        while (bufferLength > m_minimumLength) {
+                            Math.random2(0, 1) => int which;
+                            bufferLength * 0.5 => bufferLength;
+                            bufferLength * which => bufferStart;
+                            mic.playPos(bufferStart);
+                            mic.rampUp(m_envLength);
+                            bufferLength - m_envLength => now;
+                            mic.rampDown(m_envLength);
+                            m_envLength => now;
+                        }
+                        mic.play(0);
+                    }
+                }
+
+                AudioIn_EffectsChain audioin_FxChain;
+
+
+                adc => audioin_SpecialFxChain => audioin_FxChain => Dyno audInDyno => dac;
+
+
+            
+
+
+
 
                 // // SAMPLER
                 // ////////////////////////////////////////////////////////////////
@@ -2151,13 +2954,13 @@ export default function InitializationComponent() {
                     (fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1 % fastestRateUpdate => int masterTick;
 
 
-                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `[${999}]` ) )}] @=> int testArr2[][]; 
+                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['999.0']` ) )}] @=> int testArr2[][]; 
 
-                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999 ) )}] @=> float testNotesArr2[]; 
+                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => parseFloat(i.note) > 0 ?  parseFloat(i.note) : `999.0` ) )}] @=> float testNotesArr2[]; 
 
 
-                    [${mTFreqs}] @=> float allFreqs[];
-                    [${mTFreqs}] @=> float newTestFreqs[];
+                    [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
+
 
                     int recurringTickCount;
 
@@ -2175,6 +2978,8 @@ export default function InitializationComponent() {
 
                     STK_EffectsChain stk_FxChain;
 
+
+
                     ${activeSTKDeclarations.current}
 
                     ${activeSTKSettings.current}
@@ -2182,11 +2987,12 @@ export default function InitializationComponent() {
 
                     if (recurringTickCount >= testArr2.size()) return; // Prevent out-of-bounds access
                     
-                    if (testArr2[recurringTickCount][0] != 999) {
+                    
                         for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
                             0 => buffers[x].pos;
-                            files[testArr2[recurringTickCount][x]] => buffers[x].read;
-
+                            if (testArr2[recurringTickCount][0] != 999.0 && (testArr2[recurringTickCount][x] < files.size())) {
+                                files[testArr2[recurringTickCount][x]] => buffers[x].read;
+                            }
 
                             // Calculate the exact time for this note within the measure
                             (recurringTickCount * (whole / ${masterFastestRate})) => dur noteTimeOffset;
@@ -2198,23 +3004,51 @@ export default function InitializationComponent() {
                             // Play the note
                             tickCount % testNotesArr2.size() => int notesCount;
 
-                            allFreqs[recurringTickCount] => voice.keyOn;
+                            if (recurringTickCount < allFreqs.size()) {
+                                allFreqs[recurringTickCount] => voice.keyOn;
+                            }
 
                             
 
                             ${activeSTKPlayOn.current} 
 
                             buffers[x].samples() => buffers[x].pos;
-                            0 => buffers[x].pos;
+                            if (testArr2[recurringTickCount][0] != 999.0) {
+                                0 => buffers[x].pos;
+                            } 
                             buffers[x].length() => now;
-                             ${activeSTKPlayOff.current} 
+                            ${activeSTKPlayOff.current} 
                             me.yield();
                         }
-                    } 
+                    
                     me.yield();
                 }
 
+                string result[];
 
+                fun string[] splitString(string input, string delimiter ) {
+                    int startIndex, endIndex;
+                    
+                    [""] @=> string strArr[];
+
+                    while (true) {
+                        input.find(delimiter, startIndex);
+                        if (startIndex == -1) {
+                            // No more delimiters, add the remaining string
+                            result << input;
+                            break;
+                        }
+         
+                        input.substring(0, startIndex) => result[result.size()];
+            
+                        input.substring(startIndex + delimiter.length(), input.length()) => input;
+                        <<< "FR &*&*: ", input.toString() >>>;
+                        strArr << input; 
+                    }
+                    return strArr;
+                }
+
+                
                 // REALTIME NOTES (POLY)
                 ////////////////////////////////////////////////////////////////
                 fun void handlePlayNote(){
@@ -2234,37 +3068,49 @@ export default function InitializationComponent() {
                     me.yield();
                 }
               
-               
                 now => time startTimeMeasureLoop;
                 
-               
                 while(true)
                 {
                     if (now >= startTimeMeasureLoop + (beat / fastestRateUpdate) ) {
                         fastestTickCounter + 1 => fastestTickCounter;
                         <<< fastestTickCounter >>>;
+                        <<< "FR: !!!! ",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" >>>;
+
+                        
+                    "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
+
+
+
+ 
+
+
+
+                [""] @=> string parts[];
+                if (myString.length() > 0) {
+                    splitString(myString, ",") @=> parts;
+                } 
+
+                // Print results
+        
+                    <<< "FR: HEY FUCKERZ!: ", parts.toString() >>>;
+
+
+
+
+
+
+
+
+
+                        
                     }
                     if (now >= startTimeMeasureLoop + beat) {
                         tickCounter + 1 => tickCounter;
-
-
-// Handle STK instrument note on
-// spork ~ playSTKOn(60, 127); // Example note and velocity
-
-
-
                         spork ~ handlePlayMeasure(tickCounter);
                         now => startTimeMeasureLoop;
                     }
                     whole / ${masterFastestRate} => now;
-
-
-
-// // Handle STK instrument note off
-// spork ~ playSTKOff();                    
-
-
-
 
                 }
             `;
@@ -2286,7 +3132,10 @@ export default function InitializationComponent() {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const handleClickUploadedFiles = (e: any) => {
-        console.log("clicked uploaded file: ", e.target.innerText);
+        if (isInPatternEditMode) {
+            const cellObjToEdit = masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x];
+            cellObjToEdit.fileNums.push(e.target.innerText);
+        }
     }
 
     // This mic button should be able to save a file and pass it into ChucK as file and/or stream
@@ -2334,18 +3183,21 @@ export default function InitializationComponent() {
             // return 
             handleMingusKeyboardData(data);
         });
-        axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, { audioChord: chord, audioKey: key }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(({ data }) => {
-            console.log("TEST CHORDS 1# ", data);
-            // return 
-            handleMingusChordsData(data);
-            return data;
-        });
+        axios.post(
+            `${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, 
+            { audioChord: chord, audioKey: key }, 
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(({ data }) => {
+                console.log("TEST CHORDS 1# ", data);
+                // return 
+                handleMingusChordsData(data);
+                return data;
+            });
         // }
-    };
+        };
 
     // SLIDER CONTROL KNOB
     // ========================================================
@@ -2486,10 +3338,11 @@ export default function InitializationComponent() {
     };
 
     const resetCellSubdivisionsCounter = (x: number, y: number) => {
+        currentHeatmapXY.current = {x: Number(x), y: Number(y)};
+        console.log('master patterns ref: ', masterPatternsRef.current[`${y}`][`${x}`]);
         const subdivs: any = masterPatternsRef.current[`${y}`][`${x}`].subdivisions;
-        setPatternsHashUpdated(true)
+        setPatternsHashUpdated(true);
         setCellSubdivisions(subdivs || 1);
-
     }
 
     const editPattern = (x: any, y: any, group: any) => {
@@ -2505,11 +3358,8 @@ export default function InitializationComponent() {
         // 5. CHANGE BLOCK TO A REST
         // 6. DO NOTHING (DO NOT EDIT & LEAVE BLOCK AS IS...)
 
-        const existingSubdivisions = masterPatternsRef.current[`${y}`][`${parseInt(x) + 1}`];
 
-        console.log('what are existing subdivisions? ', existingSubdivisions);
-        console.log("PATTERNS HASH GENERAL", masterPatternsRef.current);
-        // setCellSubdivisions(1);
+        console.log("PATTERNS HASH GENERAL", masterPatternsRef.current)
         setPatternsHashHook(masterPatternsRef.current);
         setPatternsHashUpdated(true);
     }
@@ -3022,9 +3872,9 @@ export default function InitializationComponent() {
     //     return Object.values(allSTKs);
     // }
 
-    useEffect(() => {
-        console.log("******************************* BAM ----> ", mingusChordsData, "//** ", mingusKeyboardData);
-    }, [mingusChordsData, mingusKeyboardData]);
+    // useEffect(() => {
+    //     console.log("******************************* BAM ----> ", mingusChordsData, "//** ", mingusKeyboardData);
+    // }, [mingusChordsData, mingusKeyboardData]);
 
     // TODO: CONVERT THIS TO A HELPER!!!
     const playSTKOff = () => {
@@ -3148,6 +3998,10 @@ export default function InitializationComponent() {
         setOctave(octave);
     };
 
+    const exitEditMode = () => {
+        isInPatternEditMode.current = false;
+    }
+
     const newInitChuck = async () => {
         // await initChuck();
         setClickedBegin(true);
@@ -3189,7 +4043,7 @@ export default function InitializationComponent() {
             chuckRef.current && setChuckHook(chuckRef.current);
 
             chuckRef.current.chuckPrint = (message) => { 
-                if (message.includes("LOG")) {
+                if (message.includes("LOG") || message.includes("FR:")) {
                     console.log("here is log... ", message);
                 } else {
                     setChuckMsg(message); 
@@ -3218,6 +4072,7 @@ export default function InitializationComponent() {
         <Box 
             id={'frontendOuterWrapper'}
         >
+            
             <Box id={'relativeFrontendWrapper'}>
                 {/* RESPONSIVE APP BAR */}
                 {chuckHook &&
@@ -3267,6 +4122,48 @@ export default function InitializationComponent() {
                             stopChuckInstance={stopChuckInstance}
                             chuckMicButton={chuckMicButton}
                         />
+                                    {
+                                        uploadedBlob.current && 
+                                        <Box
+                                            id="waveSurferContainer"
+                                            sx={{
+                                                display: "block",
+                                                zIndex: 9999,
+                                                position: "relative",
+                                                top: "0px",
+                                                left: "0px",
+                                                width: "calc(100% - 524px)",
+                                                justifyContent: "stretch",
+                                                background: "rgba(0,0,0,0.98)",
+                                                
+                                                // flexDirection: "column",
+                                                // justifyContent: "center",
+                                                // alignItems: "center",
+                                                // width: "100%",
+                                                // height: "100%",
+                                            }}
+                                        >
+                                            <Button style={{zIndex: 9999}} onClick={onPlayPause}>
+                                                {isPlaying ? 'Pause' : 'Play'}
+                                            </Button>
+                                            <Button style={{zIndex: 9999}} onClick={() => clipAudio()}>
+                                                Clip
+                                            </Button>
+                                            <WaveSurferPlayer
+                                                height={100}
+                                                waveColor="#4d91ff"
+                                                progressColor="#4d91ff"
+                                                // url="/my-server/audio.wav"
+                                                url={URL.createObjectURL(uploadedBlob.current)}
+                                                onReady={onReady}
+                                                onPlay={() => setIsPlaying(true)}
+                                                onPause={() => setIsPlaying(false)}
+                                                onPlayPause={onPlayPause}
+                                                plugins={[RegionsPlugin.create()]}
+                                            />
+
+                                        </Box>
+                                    }
                     </Box>
                 }
 
@@ -3274,42 +4171,63 @@ export default function InitializationComponent() {
                     <Box
                         sx={{
                             width: "100%",
-                            height: "calc(100vh - 12.5rem)",
+                            height: "calc(100vh)",
                             textAlign: "center",
+                            color: "rgba(255,255,255,0.78)",
+                            // padding: "0 1rem",
+                            display: "flex",
+                            justifyContent: "stretch",
+                            flexDirection: "column",
+                            fontFamily: "monospace",
+                            fontSize: "1.5em",
+                            padding: clickedBegin ? "0%" : "10%",
                         }}
                     >
+
+
                         {
                             clickedBegin ? 
                             (
-                                <></>
+                                <>
+                                </>
                             ) :
                             (
-                                <Button
-                                    sx={{
-                                        width: '160px',
-                                        height: '90px',
-                                        top: "200px",
-                                        fontFamily: 'monospace',
-                                        fontSize: '2em !important',
-                                        paddingLeft: '24px',
-                                        color: 'rgba(255,255,255,0.78)',
-                                        background: 'rgba(0,0,0,0.78)',
-                                        backgroundColor: 'rgba(0,0,0,0.78)',
-                                        border: 'rgba(255,255,255,0.78)',
-                                        '&:hover': {
-                                            color: '#f5f5f5 !important',
-                                            border: '1px solid #1976d2',
-                                            background: PALE_BLUE,
-                                        }
-                                    }}
-                                    variant="contained"
-                                    id="initChuckButton"
-                                    onClick={newInitChuck}
-                                    endIcon={<PlayArrowIcon
-                                        style={{ height: '100%', pointerEvents: "none" }} />}
+                                <Box sx={{width: "100%", height: "100%"}}>
+                                    <h1 style={{ fontSize: "5rem", top: "24px"}}>Tuneform</h1>
+                                    <Button
+                                        sx={{
+                                            width: '160px',
+                                            height: '90px',
+                                            // top: "200px",
+                                            fontFamily: 'monospace',
+                                            fontSize: '1em !important',
+                                            paddingLeft: '24px',
+                                            margin: '16px',
+                                            color: 'rgba(255,255,255,0.78)',
+                                            // background: 'rgba(0,0,0,0.78)',
+                                            // backgroundColor: 'rgba(0,0,0,0.78)',
+                                            border: 'rgba(255,255,255,0.78)',
+                                            '&:hover': {
+                                                color: '#f5f5f5 !important',
+                                                border: '1px solid #1976d2',
+                                                background: PALE_BLUE,
+                                            }
+                                        }}
+                                        variant="contained"
+                                        id="initChuckButton"
+                                        onClick={newInitChuck}
+                                        endIcon={<PlayArrowIcon
+                                        style={{ 
+                                            height: '100%', 
+                                            pointerEvents: "none" 
+                                        }} 
+                                    />}
                                 >
-                                    Begin!
+                                     Launch Studio
                                 </Button>
+                                <h2 style={{margin: '4px', marginRight: '20%', marginLeft: '20%'}}>🎶 Break Audio. Bend MIDI. Build Your Own Soundworld.</h2>
+                                <p style={{lineHeight: '1.5rem', margin: '16px'}}>The modular micro-DAW for creators who don't wait. Small pieces, fast feedback, infinite possibilities.</p>
+                                </Box>
                             )
                         }
 
@@ -3324,7 +4242,22 @@ export default function InitializationComponent() {
                             {chuckHook &&
                                 <>
                                     <Box id="rightPanelWrapper">
+
+                                        <Box sx={{ 
+                                            // width: 'calc(100vw - 560px)', 
+                                            display: 'flex', 
+                                            flexDirection: 'column',
+                                            borderRight: '0.5px solid rgba(255,255,255,0.78)', 
+                                         
+                                            // marginLeft: '-6px',
+                                            // position: 'absolute',
+                                            // left: '400px'
+                                        }}><MingusPopup 
+                                            updateKeyScaleChord={updateKeyScaleChord}
+                                        /> </Box>
+
                                         <Box
+                                        
                                             ref={parentDivRef}
                                         >
                                             <Box id="rightPanelHeader">
@@ -3398,7 +4331,9 @@ export default function InitializationComponent() {
                                                     masterPatternsHashHookUpdated={masterPatternsHashUpdated}
                                                     inPatternEditMode={inPatternEditMode}
                                                     selectFileForAssignment={selectFileForAssignment}
-                                                    handleChangeCellSubdivisions={(() => { })}
+                                                    handleChangeCellSubdivisions={((num: number) => { 
+                                                        setCellSubdivisions(cellSubdivisions + 1);
+                                                    })}
                                                     cellSubdivisions={cellSubdivisions}
                                                     resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
                                                     handleClickUploadedFiles={handleClickUploadedFiles}
@@ -3410,6 +4345,12 @@ export default function InitializationComponent() {
                                                     currentNumerCountColToDisplay={currentNumerCountColToDisplay}
                                                     currentDenomCount={currentDenomCount} 
                                                     currentPatternCount={currentPatternCount}
+
+                                                    exitEditMode={exitEditMode}
+
+                                                    clickHeatmapCell={clickHeatmapCell}
+
+                                                    isInPatternEditMode={isInPatternEditMode.current}
                                                 />
                                             </Box>
                                         </Box>
@@ -3454,6 +4395,7 @@ export default function InitializationComponent() {
                                                     justifyContent: "center",
                                                     alignItems: "center",
                                                     paddingBottom: "32px",
+                                                    
                                                 }}>
                                                     <BPMModule
                                                         bpm={bpm}
@@ -3541,7 +4483,11 @@ export default function InitializationComponent() {
                                                             sx={{
                                                                 // left: '24px'
                                                                 border: '1px solid rgba(0,0,0,0.78)',
-                                                                width: '100%'
+                                                                width: '100%',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap',
+                                                                display: 'block',
+                                                                overflow: 'hidden',
                                                             }}
                                                             key={`handleClickUploadedFilesBtn_${file.filename}`}
                                                             onClick={handleClickUploadedFiles}>{

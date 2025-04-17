@@ -12,14 +12,16 @@ interface MicrotoneOption {
 }
 
 interface Props {
-  selectRef: any;
+  // selectRef: any;
   tune: any;
   currentMicroTonalScale: any;
 }
 
 const BATCH_SIZE = 30;
 
-export default function CustomDropdown({ selectRef, tune, currentMicroTonalScale }: Props) {
+export default function CustomDropdown({ 
+  // selectRef, 
+  tune, currentMicroTonalScale }: Props) {
   const theme = useTheme();
   const [page, setPage] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
@@ -60,7 +62,7 @@ export default function CustomDropdown({ selectRef, tune, currentMicroTonalScale
     <Box sx={{ flexDirection: 'row', outline: 'none', position: 'relative' }}>
       <FormControl sx={{ width: '180px', color: 'rgba(255,255,255,0.78)' }}>
         <div
-          ref={selectRef}
+          // ref={selectRef}
           style={{
             background: 'rgba(0,0,0,0.3)',
             border: '1px solid #9e9e9e',
