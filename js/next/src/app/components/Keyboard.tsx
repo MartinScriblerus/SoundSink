@@ -122,9 +122,16 @@ const Keyboard = ({
                 <Box
                     id="keyboardBox"
                 >
-                    <Box sx={{ width: 'calc(100vw - 560px)', display: 'flex', flexDirection: 'row', marginLeft: '-6px'}}><MingusPopup 
+                    {/* <Box sx={{ 
+                        // width: 'calc(100vw - 560px)', 
+                        display: 'flex', 
+                        flexDirection: 'row', 
+                        marginLeft: '-6px',
+                        // position: 'absolute',
+                        // left: '400px'
+                    }}><MingusPopup 
                         updateKeyScaleChord={updateKeyScaleChord}
-                    /> </Box>
+                    /> </Box> */}
                     <ul id="keyboard" key={'keyboard'}>
                         {keysToDisplay &&
                             keysToDisplay.length > 0 &&

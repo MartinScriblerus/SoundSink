@@ -186,11 +186,12 @@ const MingusPopup = ({
     return (
         <Box 
             sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(5, 1fr)',
-                width: '100%',
+                display: 'flex',
+                height: '100%',
                 outline: 'none',
-                flexDirection: 'column',
+                flexDirection: 'column-reverse',
+                minWidth: '128px',
+                justifyContent: 'flex-end',
             }}
         >    
     
@@ -199,25 +200,28 @@ const MingusPopup = ({
                 ref={selectOctaveMinRef}
                 style={{
                     background: 'rgba(0,0,0,0.6)',
-                    border: '0.5px solid rgba(255,255,255,0.38',
-                    padding: '8px',
+                    // border: '0.5px solid rgba(255,255,255,0.38',
+                    // padding: '8px',
+                    height: '60px',
+                    // borderRadius: "50%",
                     color: 'rgba(255,255,255,0.78)',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
-                    fontSize: '12px',
-                    width: '100%',
-                    minWidth: '60px',
+                    fontSize: '10px',
+                    // width: '100%',
+                    // minWidth: '60px',
                     justifyContent: 'center',
                     alignItems: 'center',
                     textAlign: 'center',
                     overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    display: 'block',
-                    textOverflow: 'ellipsis',
+                    // whiteSpace: 'nowrap',
+                    // display: 'block',
+                    // textOverflow: 'ellipsis',
+                    // borderRadius: '50%',
                 }}
                 onClick={() => setIsOctaveMinSelectOpen(!isOctaveMinSelectOpen)}
                 >
-                Octave Min: {selectedOctaveMin}
+                Oct Min: {selectedOctaveMin}
                 </div>
                 {isOctaveMinSelectOpen && (
                 <div
@@ -240,9 +244,10 @@ const MingusPopup = ({
                         onChange={(e) => setSearchOctaveMinTerm(e.target.value)}
                         style={{
                             width: '100%',
-                            padding: '8px',
+                            // padding: '8px',
+                            // borderRadius: "50%",
                             fontFamily: 'monospace',
-                            fontSize: '12px',
+                            fontSize: '10px',
                             marginBottom: '8px',
                             background: 'rgba(0,0,0,0.6)',
                             color: 'rgba(255,255,255,0.78)',
@@ -280,25 +285,27 @@ const MingusPopup = ({
                 ref={selectOctaveMaxRef}
                 style={{
                     background: 'rgba(0,0,0,0.6)',
-                    border: '0.5px solid rgba(255,255,255,0.38',
-                    padding: '8px',
+                    // border: '0.5px solid rgba(255,255,255,0.38',
+                    // padding: '8px',
+                    // borderRadius: "50%",
+                    height: '60px',
                     color: 'rgba(255,255,255,0.78)',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
-                    fontSize: '12px',
+                    fontSize: '10px',
                     width: '100%',
                     minWidth: '60px',
                     justifyContent: 'center',
                     alignItems: 'center',
                     textAlign: 'center',
                     overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    display: 'block',
-                    textOverflow: 'ellipsis',
+                    // whiteSpace: 'nowrap',
+                    // display: 'block',
+                    // textOverflow: 'ellipsis',
                 }}
                 onClick={() => setIsOctaveMaxSelectOpen(!isOctaveMaxSelectOpen)}
                 >
-                Octave Max: {selectedOctaveMax}
+                Oct Max: {selectedOctaveMax}
                 </div>
                 {isOctaveMaxSelectOpen && (
                 <div
@@ -321,9 +328,10 @@ const MingusPopup = ({
                         onChange={(e) => setSearchOctaveMaxTerm(e.target.value)}
                         style={{
                             width: '100%',
-                            padding: '8px',
+                            // padding: '8px',
+                            // borderRadius: "50%",
                             fontFamily: 'monospace',
-                            fontSize: '12px',
+                            fontSize: '10px',
                             marginBottom: '8px',
                             background: 'rgba(0,0,0,0.6)',
                             color: 'rgba(255,255,255,0.78)',
@@ -360,21 +368,23 @@ const MingusPopup = ({
                 ref={selectKeyRef}
                 style={{
                     background: 'rgba(0,0,0,0.6)',
-                    border: '0.5px solid rgba(255,255,255,0.38',
-                    padding: '8px',
+                    // border: '0.5px solid rgba(255,255,255,0.38',
+                    // padding: '8px',
+                    // borderRadius: "50%",
                     color: 'rgba(255,255,255,0.78)',
+                    height: '60px',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
-                    fontSize: '12px',
+                    fontSize: '10px',
                     width: '100%',
                     minWidth: '60px',
                     justifyContent: 'center',
                     alignItems: 'center',
                     textAlign: 'center',
                     overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    display: 'block',
-                    textOverflow: 'ellipsis',
+                    // whiteSpace: 'nowrap',
+                    // display: 'block',
+                    // textOverflow: 'ellipsis',
                 }}
                 onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
                 >
@@ -402,9 +412,10 @@ const MingusPopup = ({
                         onChange={(e) => setSearchKeyTerm(e.target.value)}
                         style={{
                             width: '100%',
-                            padding: '8px',
+                            // padding: '8px',
+                            // borderRadius: "50%",
                             fontFamily: 'monospace',
-                            fontSize: '12px',
+                            fontSize: '10px',
                             marginBottom: '8px',
                             background: 'rgba(0,0,0,0.6)',
                             color: 'rgba(255,255,255,0.78)',
@@ -436,21 +447,23 @@ const MingusPopup = ({
                     ref={selectScaleRef}
                     style={{
                         background: 'rgba(0,0,0,0.6)',
-                        border: '0.5px solid rgba(255,255,255,0.38',
-                        padding: '8px',
+                        // border: '0.5px solid rgba(255,255,255,0.38',
+                        // padding: '8px',
+                        // borderRadius: "50%",
                         color: 'rgba(255,255,255,0.78)',
+                        height: '60px',
                         cursor: 'pointer',
                         fontFamily: 'monospace',
-                        fontSize: '12px',
+                        fontSize: '10px',
                         width: '100%',
                         minWidth: '60px',
                         justifyContent: 'center',
                         alignItems: 'center',
                         textAlign: 'center',
                         overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        display: 'block',
-                        textOverflow: 'ellipsis',
+                        // whiteSpace: 'nowrap',
+                        // display: 'block',
+                        // textOverflow: 'ellipsis',
                         }}
                         onClick={() => setIsScaleSelectOpen(!isScaleSelectOpen)}
                     >
@@ -477,10 +490,11 @@ const MingusPopup = ({
                             onChange={(e) => setSearchScaleTerm(e.target.value)}
                             style={{
                                 width: '100%',
-                                padding: '8px',
+                                // padding: '8px',
+                                // borderRadius: "50%",
                                 fontFamily: 'monospace',
-                                fontSize: '12px',
-                                marginBottom: '8px',
+                                fontSize: '10px',
+                                // marginBottom: '8px',
                                 background: 'rgba(0,0,0,0.6)',
                                 color: 'rgba(255,255,255,0.78)',
                             }}
@@ -515,21 +529,23 @@ const MingusPopup = ({
                     ref={selectChordRef}
                     style={{
                         background: 'rgba(0,0,0,0.6)',
-                        border: '0.5px solid rgba(255,255,255,0.38',
-                        padding: '8px',
+                        // border: '0.5px solid rgba(255,255,255,0.38',
+                        // borderRadius: "50%",
+                        // padding: '8px',
                         color: 'rgba(255,255,255,0.78)',
+                        height: '60px',
                         cursor: 'pointer',
                         fontFamily: 'monospace',
-                        fontSize: '12px',
+                        fontSize: '10px',
                         width: '100%',
                         minWidth: '60px',
                         justifyContent: 'center',
                         alignItems: 'center',
                         textAlign: 'center',
                         overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        display: 'block',
-                        textOverflow: 'ellipsis',
+                        // whiteSpace: 'nowrap',
+                        // display: 'block',
+                        // textOverflow: 'ellipsis',
                     }}
                     onClick={() => setIsChordSelectOpen(!isChordSelectOpen)}
                 >   
@@ -558,9 +574,9 @@ const MingusPopup = ({
                                 onChange={(e) => setSearchChordTerm(e.target.value)}
                                 style={{
                                     width: '100%',
-                                    padding: '8px',
+                                    // padding: '8px',
                                     fontFamily: 'monospace',
-                                    fontSize: '12px',
+                                    fontSize: '10px',
                                     marginBottom: '8px',
                                     background: 'rgba(0,0,0,0.6)',
                                     color: 'rgba(255,255,255,0.78)',

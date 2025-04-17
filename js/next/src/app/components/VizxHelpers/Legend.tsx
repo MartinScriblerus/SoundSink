@@ -304,7 +304,6 @@ export default function LegendVizx({
             .legends {
               font-family: arial;
               font-weight: 900;
-              background-color: black;
               border-radius: 14px;
               padding: 24px 24px 24px 32px;
               overflow-y: auto;

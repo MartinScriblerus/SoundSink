@@ -1999,18 +1999,18 @@ export const defaultSources: Sources = {
         active: false,
         isEditing: false,
     },
-    audioIn: {
+    audioin: {
         masterVolume: 0.5,
         detune: 0,
         effects: {
             WinFuncEnv: {
                 VarName: '',
                 On: false,
-                Declaration: ' WinFuncEnv winfuncenv_audioIn =>',
+                Declaration: ' WinFuncEnv winfuncenv_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => winFuncString('audioIn', helper.audioIn.attackTime, helper.audioIn.releaseTime, helper.audioIn.envSetting),
+                Code: (helper:any) => winFuncString('audioin', helper.audioin.attackTime, helper.audioin.releaseTime, helper.audioin.envSetting),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2018,11 +2018,11 @@ export const defaultSources: Sources = {
             PowerADSR: {
                 VarName: '',
                 On: false,
-                Declaration: ' PowerADSR poweradsr_audioIn =>',
+                Declaration: ' PowerADSR poweradsr_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => powerADSRString('audioIn', helper.audioIn.attackTime, helper.audioIn.attackCurve, helper.audioIn.decayTime, helper.audioIn.decayCurve, helper.audioIn.sustainLevel, helper.audioIn.releaseTime, helper.audioIn.releaseCurve),
+                Code: (helper:any) => powerADSRString('audioin', helper.audioin.attackTime, helper.audioin.attackCurve, helper.audioin.decayTime, helper.audioin.decayCurve, helper.audioin.sustainLevel, helper.audioin.releaseTime, helper.audioin.releaseCurve),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2030,11 +2030,11 @@ export const defaultSources: Sources = {
             ExpEnv: {
                 VarName: '',
                 On: false,
-                Declaration: ' ExpEnv expenv_audioIn =>',
+                Declaration: ' ExpEnv expenv_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => expEnvString('audioIn', helper.audioIn.T60, helper.audioIn.radius, helper.audioIn.value),
+                Code: (helper:any) => expEnvString('audioin', helper.audioin.T60, helper.audioin.radius, helper.audioin.value),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2042,11 +2042,11 @@ export const defaultSources: Sources = {
             WPDiodeLadder: {
                 VarName: '',
                 On: false,
-                Declaration: ' WPDiodeLadder wpdiodeladder_audioIn =>',
+                Declaration: ' WPDiodeLadder wpdiodeladder_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => wpDiodeLadderString('audioIn', helper.audioIn.cutoff, helper.audioIn.resonance, helper.audioIn.nlp_type, helper.audioIn.nonlinear, helper.audioIn.saturation),
+                Code: (helper:any) => wpDiodeLadderString('audioin', helper.audioin.cutoff, helper.audioin.resonance, helper.audioin.nlp_type, helper.audioin.nonlinear, helper.audioin.saturation),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2054,11 +2054,11 @@ export const defaultSources: Sources = {
             WPKorg35: {
                 VarName: '',
                 On: false,
-                Declaration: 'limiter_audioIn => WPKorg35 wpkorg35_audioIn => dac;',
+                Declaration: 'limiter_audioin => WPKorg35 wpkorg35_audioin => dac;',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => wpKorg35String('audioIn', helper.audioIn.cutoff, helper.audioIn.resonance, helper.audioIn.nonlinear, helper.audioIn.saturation) ,
+                Code: (helper:any) => wpKorg35String('audioin', helper.audioin.cutoff, helper.audioin.resonance, helper.audioin.nonlinear, helper.audioin.saturation) ,
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2066,11 +2066,11 @@ export const defaultSources: Sources = {
             Modulate: {
                 VarName: '',
                 On: false,
-                Declaration: ' Modulate mod_audioIn =>',
+                Declaration: ' Modulate mod_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals:any) => modulateString('audioIn', helper.audioIn.vibratoRate, helper.audioIn.vibratoGain, helper.audioIn.randomGain, currentNoteVals),
+                Code: (helper:any, currentNoteVals:any) => modulateString('audioin', helper.audioin.vibratoRate, helper.audioin.vibratoGain, helper.audioin.randomGain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2078,11 +2078,11 @@ export const defaultSources: Sources = {
             Delay: {
                 VarName: '',
                 On: false,
-                Declaration: (helper: any) => `Delay delay_audioIn[${helper.audioIn.lines}];`,
+                Declaration: (helper: any) => `Delay delay_audioin[${helper.audioin.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals: any) => delayString('audioIn', helper.audioIn.delay, helper.audioIn.lines, helper.audioIn.syncDelay, helper.audioIn.zero, helper.audioIn.b0, helper.audioIn.b1, currentNoteVals),
+                Code: (helper:any, currentNoteVals: any) => delayString('audioin', helper.audioin.delay, helper.audioin.lines, helper.audioin.syncDelay, helper.audioin.zero, helper.audioin.b0, helper.audioin.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2090,11 +2090,11 @@ export const defaultSources: Sources = {
             DelayA: {
                 VarName: '',
                 On: false,
-                Declaration: (helper:any) => `DelayA delayA_audioIn[${helper.audioIn.lines}];`,
+                Declaration: (helper:any) => `DelayA delayA_audioin[${helper.audioin.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals: any) => delayAString('audioIn', helper.audioIn.delay, helper.audioIn.lines, helper.audioIn.syncDelay, helper.audioIn.zero, helper.audioIn.b0, helper.audioIn.b1, currentNoteVals) ,
+                Code: (helper:any, currentNoteVals: any) => delayAString('audioin', helper.audioin.delay, helper.audioin.lines, helper.audioin.syncDelay, helper.audioin.zero, helper.audioin.b0, helper.audioin.b1, currentNoteVals) ,
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2102,11 +2102,11 @@ export const defaultSources: Sources = {
             DelayL: {
                 VarName: '',
                 On: false,
-                Declaration: (helper:any) => `DelayL delayL_audioIn[${helper.audioIn.lines}];`,
+                Declaration: (helper:any) => `DelayL delayL_audioin[${helper.audioin.lines}];`,
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals: any, numeratorSignature: number) => delayLString('audioIn', helper.audioIn.delay, helper.audioIn.lines, helper.audioIn.syncDelay, helper.audioIn.zero, helper.audioIn.b0, helper.audioIn.b1, currentNoteVals),
+                Code: (helper:any, currentNoteVals: any, numeratorSignature: number) => delayLString('audioin', helper.audioin.delay, helper.audioin.lines, helper.audioin.syncDelay, helper.audioin.zero, helper.audioin.b0, helper.audioin.b1, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2114,11 +2114,11 @@ export const defaultSources: Sources = {
             ExpDelay: {
                 VarName: '',
                 On: false,
-                Declaration: ' ExpDelay expDelay_audioIn =>',
+                Declaration: ' ExpDelay expDelay_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals:any) => expDelayString('audioIn', helper.audioIn.ampcurve, helper.audioIn.durcurve, helper.audioIn.delay, helper.audioIn.mix, helper.audioIn.reps, helper.audioIn.gain, currentNoteVals),
+                Code: (helper:any, currentNoteVals:any) => expDelayString('audioin', helper.audioin.ampcurve, helper.audioin.durcurve, helper.audioin.delay, helper.audioin.mix, helper.audioin.reps, helper.audioin.gain, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2126,11 +2126,11 @@ export const defaultSources: Sources = {
             Elliptic: {
                 VarName: '',
                 On: false,
-                Declaration: ' Elliptic elliptic_audioIn =>',
+                Declaration: ' Elliptic elliptic_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any, currentNoteVals:any) => ellipticString('audioIn', helper.audioIn.filterLow, helper.audioIn.filterMid, helper.audioIn.filterHigh, helper.audioIn.atten, helper.audioIn.ripple, helper.audioIn.filterMode, currentNoteVals),
+                Code: (helper:any, currentNoteVals:any) => ellipticString('audioin', helper.audioin.filterLow, helper.audioin.filterMid, helper.audioin.filterHigh, helper.audioin.atten, helper.audioin.ripple, helper.audioin.filterMode, currentNoteVals),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []
@@ -2138,11 +2138,11 @@ export const defaultSources: Sources = {
             Spectacle: {
                 VarName: '',
                 On: false,
-                Declaration: 'Spectacle spectacle_audioIn =>',
+                Declaration: 'Spectacle spectacle_audioin =>',
                 presets: [],
                 Type: '',
                 Visible: false,
-                Code: (helper:any) => spectacleString('audioIn', helper.audioIn.bands, helper.audioIn.delay, helper.audioIn.eq, helper.audioIn.feedback, helper.audioIn.fftlen, helper.audioIn.freqMax, helper.audioIn.freqMin, helper.audioIn.mix, helper.audioIn.overlap, helper.audioIn.table),
+                Code: (helper:any) => spectacleString('audioin', helper.audioin.bands, helper.audioin.delay, helper.audioin.eq, helper.audioin.feedback, helper.audioin.fftlen, helper.audioin.freqMax, helper.audioin.freqMin, helper.audioin.mix, helper.audioin.overlap, helper.audioin.table),
                 EnvSetting: '',
                 ConnectionIn: [],
                 ConnectionOut: []

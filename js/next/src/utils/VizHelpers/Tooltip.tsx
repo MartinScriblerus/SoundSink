@@ -6,37 +6,43 @@ type TooltipProps = {
   width: number;
   height: number;
   masterPatternsHashHook: any;
+  isInPatternEditMode: boolean;
 };
 
-export const Tooltip = ({ interactionData, width, height, masterPatternsHashHook }: TooltipProps) => {
+export const Tooltip = ({ 
+  interactionData, 
+  width, 
+  height, 
+  masterPatternsHashHook, 
+  isInPatternEditMode
+}: TooltipProps) => {
   if (!interactionData) {
     return null;
   }
 
   return (
-    // Wrapper div: a rect on top of the viz area
     <div
       style={{
         width,
         height,
         position: "absolute",
-        top: 100,
+        top: 140,
+        fontFamily: "monospace",
         left: -80,
+        zIndex: !isInPatternEditMode ? 9999 : 1,
         pointerEvents: "none",
       }}
     >
-      {/* The actual box with dark background */}
       <div
-        className={styles.tooltip}
         style={{
           position: "absolute",
-          left: interactionData.xPos,
-          top: interactionData.yPos,
+          left: parseInt(interactionData.xLabel) > 5 ? interactionData.xPos * 1.5 : 200 + (parseInt(interactionData.xLabel) * 5),
+          top: interactionData.yPos * 1,
+          background: "rgba(0, 0, 0, 0.78)",
         }}
       >
         <TooltipRow label={"x"} value={interactionData.xLabel} />
         <TooltipRow label={"y"} value={interactionData.yLabel} />
-        {/* <TooltipRow label={"value"} value={String(interactionData.value)} /> */}
         <TooltipRow label={"subdivisions"} value={String(masterPatternsHashHook[interactionData.yLabel][interactionData.xLabel].subdivisions)} />
       </div>
     </div>

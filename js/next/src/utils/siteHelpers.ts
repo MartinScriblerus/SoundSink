@@ -41,7 +41,7 @@ export const analysisObjectDefaults = {
         freq: [],
         kurtosis: [],
     },
-    audioIn: {
+    audioin: {
         centroid: [],
         flux: [],
         rms: [],

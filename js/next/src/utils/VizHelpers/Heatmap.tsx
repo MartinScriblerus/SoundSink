@@ -38,6 +38,11 @@ type HeatmapProps = {
   currentPatternCount: number;
 
   masterFastestRate: number;
+
+  clickHeatmapCell: any;
+
+  exitEditMode: () => void;
+  isInPatternEditMode: boolean;
 };
 
 export type InteractionData = {
@@ -82,8 +87,9 @@ export const Heatmap = ({
   currentPatternCount,
 
   masterFastestRate,
-
-
+  exitEditMode,
+  clickHeatmapCell,
+  isInPatternEditMode,
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -101,7 +107,9 @@ export const Heatmap = ({
     
 useEffect(() => {
   setDoRebuildHeatmap(true);
+  exitEditMode();
 }, [doRebuildHeatmap])
+
 
   // useEffect(() => {
   //   console.log("patterns hash updated: ", masterPatternsHashHookUpdated);
@@ -140,7 +148,7 @@ useEffect(() => {
   return (
     <Box sx={{ 
       background: 'rgba(0,0,0,0.78)',
-      position: "relative", 
+      // position: "relative", 
       left: '0',
       right: '0',
       zIndex: '40',
@@ -193,7 +201,7 @@ useEffect(() => {
               currentNumerCountColToDisplay={currentNumerCountColToDisplay}
               currentDenomCount={currentDenomCount}
               currentPatternCount={currentPatternCount}
-              
+              clickHeatmapCell={clickHeatmapCell}
             />
           }
           <Tooltip 
@@ -201,6 +209,7 @@ useEffect(() => {
             width={width || 0} 
             height={height || 0}
             masterPatternsHashHook={masterPatternsHashHook}
+            isInPatternEditMode={isInPatternEditMode}
           />
         </Box>
       </Box>

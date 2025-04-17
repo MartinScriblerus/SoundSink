@@ -88,7 +88,7 @@ const BabylonOverlay = (props: {
             hex.position = new BABYLON.Vector3(xPos, yPos, 0);
             let hexMat = new BABYLON.StandardMaterial(`mat-${i}`, scene);
             
-            hexMat.diffuseColor = new BABYLON.Color3(0/255, 0/255, 0/255);
+            hexMat.diffuseColor = new BABYLON.Color3(200/255, 0/255, 0/255);
             hex.material = hexMat;
             // Add a click action to each hex
             hex.actionManager = new BABYLON.ActionManager(scene);

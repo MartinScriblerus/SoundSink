@@ -37,8 +37,6 @@ interface FXRoutingProps {
   fxData: any;
   width: number;
   height: number;
-  // fxChainNeedsUpdate: (msg: any) => void;
-  // fxValsRef: any;
   handleFXGroupChange: (e: any) => void;
   updateCheckedFXList: (e: any) => void;
   fxGroupsArrayList: Array<any>;
@@ -96,55 +94,49 @@ export default function FXRouting(props: FXRoutingProps) {
 
   
   return (
-    // <Box sx={{
-    //   maxHeight: "27rem",
-    // }}>
-      <Box sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        maxHeight: "calc(100vh - 204px)",
-        paddingBottom: "160px",
-        width: "180px",
-        // paddingBottom: '60px',
-        overflowY: "auto",
-        background: 'rgba(0,0,0,0.78)',
-        zIndex: 1
-      }}>             
-          <FXCheckboxLabels
-            fxValsRef={fxFX}
-            handleFXGroupChange={handleFXGroupChange}
-            updateCheckedFXList={updateCheckedFXList}
-            fxGroupsArrayList={fxGroupsArrayList}
-            checkedFXList={checkedFXList}
-            handleCheckedFXToShow={handleCheckedFXToShow} 
-            checkedEffectsListHook={checkedEffectsListHook}
-          />
-        <Box
-          key={`arcDiagramOuterWrapper_${Object.values(linksRef.current).map((l: any) => l.source + "_")}`}
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: 2,
-            zIndex: 0,
-            background: 'rgba(0,0,0,0.78)',
-            overflow: 'hidden',
-            boxSizing: 'border-box',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            width: '100%',
-            height: '100%',
-            color: 'rgba(147, 206, 214, 1)'
-          }}>
-          </Box>
+    <Box sx={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "stretch",
+      maxHeight: "calc(100vh - 204px)",
+      paddingBottom: "160px",
+      width: "180px",
+      overflowY: "auto",
+      zIndex: 1
+    }}>             
+        <FXCheckboxLabels
+          fxValsRef={fxFX}
+          handleFXGroupChange={handleFXGroupChange}
+          updateCheckedFXList={updateCheckedFXList}
+          fxGroupsArrayList={fxGroupsArrayList}
+          checkedFXList={checkedFXList}
+          handleCheckedFXToShow={handleCheckedFXToShow} 
+          checkedEffectsListHook={checkedEffectsListHook}
+        />
+      <Box
+        key={`arcDiagramOuterWrapper_${Object.values(linksRef.current).map((l: any) => l.source + "_")}`}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          zIndex: 0,
+          // background: 'rgba(0,0,0,0.78)',
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          width: '100%',
+          height: '100%',
+          color: 'rgba(147, 206, 214, 1)'
+        }}>
         </Box>
       </Box>
-    // {/* </Box> */}
+    </Box>
   );
 }
 

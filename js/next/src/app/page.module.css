@@ -130,7 +130,7 @@
   justify-content: center;
   flex-direction: row;
   z-index: -1;
-  background: #000000;
+  /* background: #000000; */
   /* background: conic-gradient(from 0deg, 
   #99D2A4,
   #9979D2,
@@ -370,7 +370,7 @@
 } */
 
 .basic-multi-select {
-  background-color: black;
+  /* background-color: black; */
   color: rgba(228,225,209,1);
 }
 

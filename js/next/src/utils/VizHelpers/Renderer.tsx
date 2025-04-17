@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { InteractionData } from "./Heatmap";
-import { Box, Button, CardHeader, useTheme } from "@mui/material";
+import { Box, Button, CardHeader, Grid, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
 import FileWrapper from "@/app/components/FileWrapper";
@@ -15,14 +15,14 @@ import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from "../constants
 const MARGIN = { top: 10, right: 50, bottom: 30, left: 50 };
 
 interface CellData {
-  note: string[],
-  velocity: number,
+  note: number[] | any,
+  notesHz: number[] | any,
+  velocity: number[] | any,
   subdivisions: number;
   on: boolean;
-  xVal?: number;
-  yVal?: number;
-  zVal?: number;
-  
+  xVal?: number | null;
+  yVal?: number | null;
+  zVal?: number | null;
 }
 
 type RendererProps = {
@@ -33,7 +33,7 @@ type RendererProps = {
   editPattern: (x: any, y: any, group: any) => void;
   masterPatternsHashHook: any;
   masterPatternsHashHookUpdated: boolean;
-  updateCellColor: (msg: boolean, xVal: number, yVal: number, zVal: number, elToChange: Element) => void;
+  updateCellColor: (msg: boolean, xVal: number | null, yVal: number | null, zVal: number | null, elToChange: Element) => void;
   updateCellColorBool: boolean;
   inPatternEditMode: (state: boolean) => void;
   filesToProcess: any;
@@ -49,7 +49,7 @@ type RendererProps = {
   currentNumerCountColToDisplay: number;
   currentDenomCount: number;
   currentPatternCount: number;
-
+  clickHeatmapCell: any;
 };
 
 export const Renderer = ({
@@ -75,9 +75,10 @@ export const Renderer = ({
   currentNumerCountColToDisplay,
   currentDenomCount,
   currentPatternCount,
+  clickHeatmapCell,
 }: RendererProps) => {
 
-  const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
+  // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [showPatternEditorPopup, setShowPatternEditorPopup] = useState<boolean>(false);
   const [wavesurfer, setWavesurfer] = useState<any>(null)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
@@ -91,12 +92,7 @@ export const Renderer = ({
 
   const surferBlob = useRef<any>();
 
-  const cellData = useRef<CellData>({
-    note: [""],
-    velocity: 0,
-    subdivisions: 1,
-    on: true,
-  });
+  const cellData = useRef<CellData[]>();
   const [instrument, setInstrument] = useState<string>('');
   // The bounds (=area inside the axis) is calculated by substracting the margins
   const [boundsWidth, setBoundsWidth] = useState<number>(width - MARGIN.right - MARGIN.left || 0);
@@ -165,16 +161,23 @@ export const Renderer = ({
 
     const triggerEditPattern = async (e: any, num: any) => {
       const el: any = Object.values(e.target)[1];
+      console.log('WTF EL??? ', el);
+
+      inPatternEditMode(true);
+
       const isFill = el.id.includes("fill");
       const vals = !isFill ? el.id.split("_") : el.id.replace("fill_", "").split("_");
-      const xVal = num;
-      const yVal = vals[1];
-      const zVal = vals[2];
-      resetCellSubdivisionsCounter(xVal, yVal);
-      currentXVal.current = xVal;
-      currentYVal.current = yVal;
-      cellData.current = { 'xVal': xVal, 'yVal': yVal, 'zVal': zVal, ...masterPatternsHashHook[`${yVal}`][`${parseInt(xVal)}`] }
-      getInstrumentName(yVal);
+      const xVal = Number(num) || null;
+      const yVal = Number(vals[1]) || null;
+
+      clickHeatmapCell(xVal, yVal);
+      const zVal = vals[2] || null;
+      xVal && yVal && resetCellSubdivisionsCounter(xVal, yVal);
+      currentXVal.current = Number(xVal);
+      currentYVal.current = Number(yVal);
+      cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
+      yVal && getInstrumentName(yVal);
+      console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", masterPatternsHashHook, Number(yVal),Number(xVal));
       console.log("%cCELL DATA!!!!!: ", isFill, xVal, yVal, "color: magenta;", cellData.current);
       setShowPatternEditorPopup(true);
       document.getElementById(`fill_${xVal}_${yVal}`);
@@ -200,43 +203,30 @@ export const Renderer = ({
             }
           ).map(
             (i, idx) => {
-              const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
+              // const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
               return (
                 <rect
                   key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
                   r={4}
                   id={`fill_${d.x}_${d.y}`}
-          x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
+                  x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
                   y={yScale(d.y)}
                   width={
-                    cellData.current && 
-                    Object.values(cellData.current)[0].length > 5 
-                    ? 
-                      (xScale.bandwidth() / Object.values(cellData.current)[8]) 
-                    : 
-              (xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions)
-                  }
-                  height={yScale.bandwidth()}
-                  opacity={1}
-          // fill={colorScale(d.value)}
-
-          // currentBeatCountToDisplay,
-          // currentNumerCountColToDisplay,
-          // currentDenomCount,
-          // currentPatternCount,
-
-          fill={
-            currentBeatCountToDisplay === Number(d.x)
-            ?
-              FOREST_GREEN
-            :
-              (Number(d.y) > 0) 
-              ? 
-                PALE_BLUE 
-              : 
-                RUSTY_ORANGE}
-                  // rx={5}
-          stroke={'rgba(255,255,255,0.78)'}
+                    (xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions)
+                        }
+                        height={yScale.bandwidth()}
+                        opacity={1}
+                        fill={
+                          currentBeatCountToDisplay === Number(d.x)
+                          ?
+                            FOREST_GREEN
+                          :
+                            (Number(d.y) > 0) 
+                            ? 
+                              PALE_BLUE 
+                            : 
+                              RUSTY_ORANGE}
+                  stroke={'rgba(255,255,255,0.78)'}
                   onClick={(e: any) => triggerEditPattern(e, d.x)}
                   onMouseEnter={(e) => {
                     setHoveredCell({
@@ -250,7 +240,7 @@ export const Renderer = ({
                   }}
                   onMouseLeave={() => setHoveredCell(null)}
                   cursor="pointer"
-          style={{ zIndex: 100, pointerEvents: "auto" }}
+                  style={{ zIndex: 100, pointerEvents: "auto" }}
                 />
               )
             }
@@ -259,7 +249,7 @@ export const Renderer = ({
       </React.Fragment>
       );
   });
-
+  
   const xLabels = allXGroups.map((name, i) => {
     const x = xScale(name);
 
@@ -304,9 +294,9 @@ export const Renderer = ({
     );
   });
 
-  const handleEditMode = () => {
-    setIsInEditMode(!isInEditMode);
-  };
+  // const handleEditMode = () => {
+  //   setIsInEditMode(!isInEditMode);
+  // };
 
   const handleCloseEditorPopup = () => {
     setShowPatternEditorPopup(false);
@@ -317,13 +307,10 @@ export const Renderer = ({
     console.log("FILL: ", e);
   }
 
-  const handlePatternEditMode = () => {
-    inPatternEditMode(true)
-  }
-
   const removeExistingNote = (e: any) => {
     console.log("WHAT IS E TARGET FOR NOTE TO REMOVE? ", e.target.id.split('_'));
   }
+
 
   const onPlayPause = () => {
     if (wavesurfer) {
@@ -331,148 +318,129 @@ export const Renderer = ({
       }
   }
 
-  const subdivisionCount = cellData.current.subdivisions;
+  const subdivisionCount = cellSubdivisions;
 
-  const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
-    <Button key={`fillBtn_${i}_${i}`} id={`${i}`} onClick={handleFillEdit} />
-  ));
+  // // const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
+  // const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
+  //   <Button key={`fillBtn_${i}_${i}`} id={`${i}`} onClick={handleFillEdit} />
+  // ));
   
   return (
     <Box
-      key={`outerbox__${Object.values(cellData.current)[1]}`}
+      key={`outerbox__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
       style={{
         display: "flex",
         width: '100%',
         flexDirection: "row",
         textAlign: "center",
+        justifyContent: "center",
+        alignItems: "center",
+
       }}>
       {showPatternEditorPopup && (
         <Box
-          key={`patternEditorPopupCloseButtonWrapper_${Object.values(cellData.current)[1]}`}
+          key={`patternEditorPopupCloseButtonWrapper__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
           sx={{
             position: "absolute",
             display: "flex",
-            flexDirection: "row",
+            flexDirection: "column",
             textAlign: "left",
             background: 'rgba(0,0,0,0.78)',
             zIndex: "1001",
-            width: "inherit",
           }}>
           <Box 
-            key={`wrapCloseBtn__${Object.values(cellData.current)[1]}`}
+            key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
             sx={{
-            textAlign: 'right',
-              width: "100vw",
+              textAlign: 'right',
+              justifyContent: "stretch",
+              alignItems: "stretch",
+              display: "flex",
+              flexDirection: "row",
             }}
           >
             <CloseIcon
               sx={{
-                right: "0px",
-                position: "absolute",
-                top: "0px",
-                zIndex: '1002'
+                zIndex: '9999'
               }}
-              key={`patternEditorPopupCloseButton_${Object.values(cellData.current)[1]}`}
+              key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
               onClick={handleCloseEditorPopup}
             />
           </Box>
 
-          <Box key={`wrap_edit_popup_${Object.values(cellData.current)[1]}`}>
-            <Box 
-              key={`inner_wrap_edit_${Object.values(cellData.current)[1]}`}
-              sx={{ 
-                width: "inherit", 
-                display: 'flex', 
-                flexDirection: "row" 
-              }}
-            >
+          <Box 
+            key={`wrap_edit_popup__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}_${currentYVal.current}_${currentXVal.current}`}>
+
+
             <Box
-              key={`content_wrap_${Object.values(cellData.current)[1]}`}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                fontFamily: 'monospace',
-                fontWeight: '100',
-                marginLeft: '10px',
-                textAlign: 'left',
-                minWidth: '4px',
-                // width: '25%',
-                border: 'solid 0.5px rgb(175, 240, 91)',
-                borderRadius: '5px',
-                // overflow: 'auto',
-                padding: '4px',
-                margin: '4px',
-              }}
-            >
-              <span><b>Original Values</b></span>
-                <Box 
-                  key={`wrap_inst_name_${Object.values(cellData.current)[1]}`}
-                  sx={{ 
-                  padding: '4px', 
-                  background: 'rgba(255,255,255,0.78)'
-                }}>
-                  {instrument}
-                </Box>
-                <Box 
-                  key={`wrapcelldetails_${Object.values(cellData.current)[1]}`}
-                  sx={{ 
-                    padding: '4px', background: FOREST_GREEN
-                  }}
-                >
-                  Cell {parseInt(Object.values(cellData.current)[0])}                
-                    Velocity:{cellData.current.velocity}
-                    Notes: {cellData.current.note}
-                    Subdivisions: {cellData.current.subdivisions}
-                </Box>
-            </Box>
-            <Box
-              key={`wrapnewvals__${Object.values(cellData.current)[1]}`}
+              key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
               sx={{
                 display: "flex",
                 flexDirection: "column",
                 fontFamily: 'monospace',
                 fontWeight: '100',
-                marginLeft: '10px',
+                marginRight: '100px',
                 textAlign: 'left',
                 minWidth: '144px',
-                // width: '25%',
                 border: 'solid 0.5px rgb(175, 240, 91)',
                 borderRadius: '5px',
-                // overflow: 'auto',
                 padding: '4px',
                 margin: '4px',
               }}
             >
-                New Values
                 <Box 
-                  key={`wrap_new_inst__${Object.values(cellData.current)[1]}`}
+                  key={`wrap_new_inst__${Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)}__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
                   sx={{ 
                     padding: '4px', 
-                    background: 'rgba(255,255,255,0.78)'
                   }}>
                   {instrument}
                 </Box>
                 <Box 
-                  key={`wrap_new_details_${Object.values(cellData.current)[1]}`}
+                  key={`wrap_new_details_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
                   sx={{ 
-                  padding: '4px', 
-                  background: FOREST_GREEN
+                    padding: '4px', 
+                    background: FOREST_GREEN,
                   }}>
-                  Cell {parseInt(Object.values(cellData.current)[0])}                
-                  Velocity: {cellData.current.velocity}
-                  Notes: {cellData.current.note}
-              </Box>
+                    <Box>
+                      Cell: {
+                        `${currentYVal.current} / ${currentXVal.current}`
+                      }  
+                    </Box>
+                    <Box>
+                      Samples: {
+                        new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
+                      }
+                    </Box>
+                    <Box>              
+                      Velocity: {
+                        masterPatternsHashHook && 
+                        masterPatternsHashHook.length > 0 &&
+                        masterPatternsHashHook[`${currentYVal.current}`] &&
+                        masterPatternsHashHook[`${currentYVal.current}`].length &&
+                        Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.velocity) || "No notes"
+                      }
+                    </Box>
+                    <Box>
+                      Notes: {
+                        masterPatternsHashHook && 
+                        masterPatternsHashHook.length > 0 &&
+                        masterPatternsHashHook[`${currentYVal.current}`] &&
+                        masterPatternsHashHook[`${currentYVal.current}`].length &&
+                        Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.note) || "No notes"
+                      }
+                    </Box>
+                </Box>
               <span
 
                   style={{ 
                     display: "flex", 
-                    flexDirection: "row" 
+                    flexDirection: "row",
+                    justifyContent: "stretch", 
                   }}
-                    key={`noteEditDisplaySpanWrapper_${Object.values(cellData.current)[1]}`}>
+                    key={`noteEditDisplaySpanWrapper_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}>
 
                   Subdivisions:
                   <SubdivisionsPicker
-                    xVal={parseInt(Object.values(cellData.current)[0])}
+                    xVal={currentXVal.current}
                     yVal={currentYVal.current}
                       masterPatternsHashHook={masterPatternsHashHook}
                     handleChangeCellSubdivisions={handleChangeCellSubdivisions}
@@ -480,99 +448,20 @@ export const Renderer = ({
                   />
                 </span>
               </Box>
-            </Box>
             <Box 
-              key={`testanotherwrapperkey_${Object.values(cellData.current)[1]}`}
+              key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
               sx={{
                 display: "flex", 
                 flexDirection: "row",
                 width: "calc(100% - 200px)",
+                height: "100%",
                 position: "relative",
                 boxSizing: "border-box"
               }}
             >
-              {cellData.current && cellData.current.note.length > 0 && (cellData.current.note).map((n: any, idx: number) => {
-                return (
-                  <Box 
-                    key={`testanotherwrapperkey_${Object.values(cellData.current)[1]}_wrapper_${idx}`}
-                    sx={{
-                    position: 'relative',
-                    display: 'flex',
-                    boxSizing: 'border-box'
-                  }}>
-                <Button 
-                  id={`noteEditDisp${idx}`} 
-                  key={`noteEditDisp${idx}`} 
-                  sx={{
-                    fontSize: '20px',
-                    border: 'solid 1px black',
-                    background: MUTED_OLIVE,
-                        color: FOREST_GREEN,
-                    borderRadius: '40%',
-                        pointerEvents: 'auto',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    zIndex: '9999',
-                    display: 'flex',
-                    flexDirection: 'row-reverse',
-                  }}
-                >
-                 TESSSST {n}
-                </Button>
-                <CloseIcon
-                  sx={{
-                    fontSize: '16px',
-                    color: 'rgba(255,255,255,0.78)',
-                    right: '2px',
-                    top: '2px',
-                    pointerEvents: 'auto',
-                    cursor: 'pointer',
-                    zIndex: '9999',
-                    position: 'absolute',
-                  }}
-                  key={`noteEditDisplayCloseIcon_${Object.values(cellData.current)[1]}`}
-                  id={`${Object.values(cellData.current)[1]}_noteToRemove`}
-                  onClick={(removeExistingNote)}
-                />
-              </Box>
-              )})}
             </Box>
           </Box>
-          <Box 
-            sx={{ 
-              width: "100%", 
-              background: RUSTY_ORANGE, 
-            }} 
-            ref={containerRef} 
-            key={`wavesurfer_${Object.values(cellData.current)[1]}_wrapper`}
-            id={"wavesurfer-wrapper"}
-          >
-
-          </Box>
-          <Box
-            key={`testanotherfilewrapperkey_${Object.values(cellData.current)[1]}_wrapper2`}
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              fontFamily: ' "Roboto", "Helvetica", "Arial", sans-serif',
-              fontWeight: '100',
-              marginLeft: '10px',
-              textAlign: 'left',
-              width: '100vw',
-              fontSize: '12px',
-
-            }}
-          >
-            {
-              cellData.current.subdivisions > 1
-                ?
-                  <>{buttons}</>
-                  :
-                <></>
-            }
-          </Box>
-
-        </Box>
+      </Box>
       )}
 
       {width && height && boundsWidth && boundsHeight && <svg

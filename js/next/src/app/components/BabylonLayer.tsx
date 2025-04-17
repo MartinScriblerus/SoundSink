@@ -622,7 +622,7 @@ function BabylonScene(props: {
         <Box 
             sx={{
                 visibility: "visible", 
-                background: "rgba(0,0,0,0.78)",
+                // background: "rgba(0,0,0,0.78)",
                 alignItems: "left",
             }}
         >

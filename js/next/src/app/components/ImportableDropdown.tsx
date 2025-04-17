@@ -10,7 +10,7 @@ interface DropdownOption {
 }
 
 interface Props {
-    selectRef: any; // possibly not needed???  
+    // selectRef: any; // possibly not needed???  
     currentData: DropdownOption[]; // options to pass in (could likely refactor hardcoded opts in MingusTable)
     dropLabel: string;
     onChangeTrigger: () => void; // <<<< callback to update shared value
@@ -24,7 +24,7 @@ const ImportableDropdown = (
     const [page, setPage] = useState(1);
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState(''); 
-    const selectRef = useRef(null);
+    // const selectRef = useRef(null);
     const dropdownRef = useRef(null);
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -62,7 +62,7 @@ const ImportableDropdown = (
         <Box sx={{ flexDirection: 'row', outline: 'none', position: 'relative' }}>
         <FormControl sx={{ width: '180px', color: 'rgba(255,255,255,0.78)' }}>
           <div
-            ref={selectRef}
+            // ref={selectRef}
             style={{
               background: 'rgba(0,0,0,0.3)',
               border: '1px solid #9e9e9e',

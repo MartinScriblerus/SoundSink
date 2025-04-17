@@ -33,7 +33,7 @@ export const winFuncEnvDefault = {
         releaseTime: 16,
         envSetting: 0,
     },
-    audioIn: {
+    audioin: {
         attackTime: 16,
         releaseTime: 16,
         envSetting: 0,
@@ -77,7 +77,7 @@ export const powerADSRDefault = {
         releaseTime: 1000,
         releaseCurve: 1.5,
     },
-    audioIn: {
+    audioin: {
         attackTime: 1000,
         attackCurve: 0.5,
         decayTime: 1000,
@@ -109,7 +109,7 @@ export const expEnvDefault = {
         radius: 0.995,
         value: 0,
     },
-    audioIn: {
+    audioin: {
         T60: 3,
         radius: 0.995,
         value: 0,
@@ -145,7 +145,7 @@ export const wpDiodeDefault = {
         nonlinear: 0,
         saturation: 0.1
     },
-    audioIn: {
+    audioin: {
         cutoff: 1,
         resonance: 17,
         nlp_type: 1,
@@ -179,7 +179,7 @@ export const korg35Default = {
         nonlinear: 0,
         saturation: 0.1
     },
-    audioIn: {
+    audioin: {
         cutoff: 1,
         resonance: 2,
         nonlinear: 0,
@@ -208,7 +208,7 @@ export const modulateDefault = {
         vibratoGain: 0.2,
         randomGain: 0.2,
     },
-    audioIn: {
+    audioin: {
         vibratoRate: 6.0,
         vibratoGain: 0.2,
         randomGain: 0.2,
@@ -248,7 +248,7 @@ export const delayDefault = {
         b0: 0.5,
         b1: 0.2,
     },
-    audioIn: {
+    audioin: {
         delay: 500,
         syncDelay: 1,
         lines: 3,
@@ -291,7 +291,7 @@ export const delayADefault = {
         b0: 0.5,
         b1: 0.2,
     },
-    audioIn: {
+    audioin: {
         delay: 500,
         syncDelay: 1,
         lines: 3,
@@ -334,7 +334,7 @@ export const delayLDefault = {
         b0: 0.5,
         b1: 0.2,
     },
-    audioIn: {
+    audioin: {
         delay: 500,
         syncDelay: 1,
         lines: 3,
@@ -377,7 +377,7 @@ export const expDelayDefault = {
         reps: 4,
         gain: 1.0,
     },
-    audioIn: {
+    audioin: {
         ampcurve: 2.0,
         durcurve: 2.0,
         delay: 0,
@@ -420,7 +420,7 @@ export const ellipticDefault = {
         ripple: 10.0,
         filterMode: 0
     },
-    audioIn: {
+    audioin: {
         filterLow: 500,
         filterMid: 600,
         filterHigh: 650,
@@ -479,7 +479,7 @@ export const spectacleDefault = {
         overlap: 3,
         table: 2,
     },
-    audioIn: {
+    audioin: {
         bands: 5,
         delay: 3,
         eq: 0,
