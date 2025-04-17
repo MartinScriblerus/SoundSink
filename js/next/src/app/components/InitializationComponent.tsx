@@ -4193,7 +4193,7 @@ export default function InitializationComponent() {
                             ) :
                             (
                                 <Box sx={{width: "100%", height: "100%"}}>
-                                    <h1 style={{ fontSize: "5rem", top: "24px"}}>Tuneform</h1>
+                                    <h1 style={{ fontSize: "5rem", top: "24px"}}>SoundSink</h1>
                                     <Button
                                         sx={{
                                             width: '160px',
@@ -4224,9 +4224,9 @@ export default function InitializationComponent() {
                                     />}
                                 >
                                      Launch Studio
-                                </Button>
-                                <h2 style={{margin: '4px', marginRight: '20%', marginLeft: '20%'}}>🎶 Break Audio. Bend MIDI. Build Your Own Soundworld.</h2>
-                                <p style={{lineHeight: '1.5rem', margin: '16px'}}>The modular micro-DAW for creators who don't wait. Small pieces, fast feedback, infinite possibilities.</p>
+                                    </Button>
+                                    <h2 style={{margin: '4px', marginRight: '20%', marginLeft: '20%'}}>🎶 MIDI. Morph. Mastery.</h2>
+                                    <p style={{lineHeight: '1.5rem', margin: '32px'}}> Build, bend, and break audio and MIDI with our revolutionary micro-DAW, featuring AI-driven audio separation, DSP sound generation, and MIDI and Hardware Control.</p>
                                 </Box>
                             )
                         }
