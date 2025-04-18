@@ -187,15 +187,119 @@ const MingusPopup = ({
         <Box 
             sx={{
                 display: 'flex',
-                height: '100%',
+                height: 'fit-content',
                 outline: 'none',
                 flexDirection: 'column-reverse',
                 minWidth: '128px',
-                justifyContent: 'flex-end',
+                // justifyContent: 'flex-start',
+                padding: '0px !important',
+                margin: '0px !important',
             }}
         >    
     
-            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+            <FormControl sx={{ 
+                width: '60px', 
+                color: 'rgba(255,255,255,0.78)', 
+                position: 'relative',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center', 
+            }}>
+                <div
+                ref={selectOctaveMaxRef}
+                style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    // border: '0.5px solid rgba(255,255,255,0.38',
+                    // padding: '8px',
+                    // borderRadius: "50%",
+                    height: '60px',
+                    color: 'rgba(255,255,255,0.78)',
+                    cursor: 'pointer',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    // width: '100%',
+                    // minWidth: '60px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    // whiteSpace: 'nowrap',
+                    // display: 'block',
+                    // textOverflow: 'ellipsis',
+                }}
+                onClick={() => setIsOctaveMaxSelectOpen(!isOctaveMaxSelectOpen)}
+                >
+                - {selectedOctaveMax}
+                </div>
+                {isOctaveMaxSelectOpen && (
+                <div
+                    ref={dropdownOctaveMaxSelectRef}
+                    // onScroll={handleScroll}
+                    style={{
+                    position: 'absolute',
+                    top: '100%',
+                    width: '100%',
+                    maxHeight: '12rem',
+                    overflowY: 'auto',
+                    backgroundColor: ROYALBLUE,
+                    color: 'rgba(255,255,255,0.78)',
+                    zIndex: 9999,
+                    }}
+                >
+                    <Input
+                        placeholder="Search..."
+                        value={searchOctaveMaxTerm}
+                        onChange={(e) => setSearchOctaveMaxTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            // padding: '8px',
+                            // borderRadius: "50%",
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            marginBottom: '8px',
+                            background: 'rgba(0,0,0,0.6)',
+                            color: 'rgba(255,255,255,0.78)',
+                        }}
+                    />
+                    {( 
+                        searchOctaveMaxTerm.length > 0 
+                        ? 
+                            octaveMaxOptions.filter((x: any) => x.label.includes(searchOctaveMaxTerm)) 
+                        : 
+                            octaveMaxOptions).map((option) => (
+                                <div
+                                    key={option.value}
+                                    onClick={() => handleOctaveMaxSelect(option)}
+                                    style={{
+                                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                                    padding: '5px',
+                                    cursor: 'pointer',
+                                    fontFamily: 'monospace',
+                                    background: ROYALBLUE,
+                                    }}
+                                >
+                                    {option.label}
+                                </div>
+                            )
+                        )
+                    }
+                </div>
+                )}
+            </FormControl>
+
+<Box sx={{width: '100%', height: '0px'}}>
+            <FormControl sx={{ 
+                width: '60px', 
+                color: 'rgba(255,255,255,0.78)', 
+                position: 'relative', 
+                flexDirection: 'row',
+                justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',     
+            }}>
                 <div
                 ref={selectOctaveMinRef}
                 style={{
@@ -207,13 +311,15 @@ const MingusPopup = ({
                     color: 'rgba(255,255,255,0.78)',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
-                    fontSize: '10px',
+                    fontSize: '12px',
                     // width: '100%',
                     // minWidth: '60px',
                     justifyContent: 'center',
                     alignItems: 'center',
                     textAlign: 'center',
                     overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
                     // whiteSpace: 'nowrap',
                     // display: 'block',
                     // textOverflow: 'ellipsis',
@@ -221,7 +327,7 @@ const MingusPopup = ({
                 }}
                 onClick={() => setIsOctaveMinSelectOpen(!isOctaveMinSelectOpen)}
                 >
-                Oct Min: {selectedOctaveMin}
+                {selectedOctaveMin}
                 </div>
                 {isOctaveMinSelectOpen && (
                 <div
@@ -247,7 +353,10 @@ const MingusPopup = ({
                             // padding: '8px',
                             // borderRadius: "50%",
                             fontFamily: 'monospace',
-                            fontSize: '10px',
+                            fontSize: '12px',
+                            textAlign: 'center',
+                            display: 'flex',
+                            flexDirection: 'column',
                             marginBottom: '8px',
                             background: 'rgba(0,0,0,0.6)',
                             color: 'rgba(255,255,255,0.78)',
@@ -280,90 +389,15 @@ const MingusPopup = ({
                 )}
             </FormControl>
 
-            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
-                <div
-                ref={selectOctaveMaxRef}
-                style={{
-                    background: 'rgba(0,0,0,0.6)',
-                    // border: '0.5px solid rgba(255,255,255,0.38',
-                    // padding: '8px',
-                    // borderRadius: "50%",
-                    height: '60px',
-                    color: 'rgba(255,255,255,0.78)',
-                    cursor: 'pointer',
-                    fontFamily: 'monospace',
-                    fontSize: '10px',
-                    width: '100%',
-                    minWidth: '60px',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    overflow: 'hidden',
-                    // whiteSpace: 'nowrap',
-                    // display: 'block',
-                    // textOverflow: 'ellipsis',
-                }}
-                onClick={() => setIsOctaveMaxSelectOpen(!isOctaveMaxSelectOpen)}
-                >
-                Oct Max: {selectedOctaveMax}
-                </div>
-                {isOctaveMaxSelectOpen && (
-                <div
-                    ref={dropdownOctaveMaxSelectRef}
-                    // onScroll={handleScroll}
-                    style={{
-                    position: 'absolute',
-                    top: '100%',
-                    width: '100%',
-                    maxHeight: '12rem',
-                    overflowY: 'auto',
-                    backgroundColor: ROYALBLUE,
-                    color: 'rgba(255,255,255,0.78)',
-                    zIndex: 9999,
-                    }}
-                >
-                    <Input
-                        placeholder="Search..."
-                        value={searchOctaveMaxTerm}
-                        onChange={(e) => setSearchOctaveMaxTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            // padding: '8px',
-                            // borderRadius: "50%",
-                            fontFamily: 'monospace',
-                            fontSize: '10px',
-                            marginBottom: '8px',
-                            background: 'rgba(0,0,0,0.6)',
-                            color: 'rgba(255,255,255,0.78)',
-                        }}
-                    />
-                    {( 
-                        searchOctaveMaxTerm.length > 0 
-                        ? 
-                            octaveMaxOptions.filter((x: any) => x.label.includes(searchOctaveMaxTerm)) 
-                        : 
-                            octaveMaxOptions).map((option) => (
-                                <div
-                                    key={option.value}
-                                    onClick={() => handleOctaveMaxSelect(option)}
-                                    style={{
-                                    borderTop: '1px solid rgba(255,255,255,0.4)',
-                                    padding: '5px',
-                                    cursor: 'pointer',
-                                    fontFamily: 'monospace',
-                                    background: ROYALBLUE,
-                                    }}
-                                >
-                                    {option.label}
-                                </div>
-                            )
-                        )
-                    }
-                </div>
-                )}
-            </FormControl>
-
-            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+            <FormControl sx={{ 
+                width: '60px', 
+                color: 'rgba(255,255,255,0.78)', 
+                position: 'relative',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',  
+            }}>
                 <div
                 ref={selectKeyRef}
                 style={{
@@ -375,20 +409,22 @@ const MingusPopup = ({
                     height: '60px',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
-                    fontSize: '10px',
+                    fontSize: '12px',
                     width: '100%',
                     minWidth: '60px',
                     justifyContent: 'center',
                     alignItems: 'center',
                     textAlign: 'center',
                     overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
                     // whiteSpace: 'nowrap',
                     // display: 'block',
                     // textOverflow: 'ellipsis',
                 }}
                 onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
                 >
-                Key: {selectedKey}
+                {selectedKey}
                 </div>
                 {isKeySelectOpen && (
                 <div
@@ -415,7 +451,7 @@ const MingusPopup = ({
                             // padding: '8px',
                             // borderRadius: "50%",
                             fontFamily: 'monospace',
-                            fontSize: '10px',
+                            fontSize: '12px',
                             marginBottom: '8px',
                             background: 'rgba(0,0,0,0.6)',
                             color: 'rgba(255,255,255,0.78)',
@@ -441,8 +477,17 @@ const MingusPopup = ({
                 </div>
                 )}
             </FormControl>
+</Box>
 
-            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+            <FormControl sx={{ 
+                width: '60px', 
+                color: 'rgba(255,255,255,0.78)', 
+                position: 'relative',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',  
+            }}>
                 <div
                     ref={selectScaleRef}
                     style={{
@@ -454,20 +499,22 @@ const MingusPopup = ({
                         height: '60px',
                         cursor: 'pointer',
                         fontFamily: 'monospace',
-                        fontSize: '10px',
+                        fontSize: '12px',
                         width: '100%',
                         minWidth: '60px',
                         justifyContent: 'center',
                         alignItems: 'center',
                         textAlign: 'center',
                         overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
                         // whiteSpace: 'nowrap',
                         // display: 'block',
                         // textOverflow: 'ellipsis',
                         }}
                         onClick={() => setIsScaleSelectOpen(!isScaleSelectOpen)}
                     >
-                    Scale: {selectedScale}
+                    {selectedScale}
                 </div>
                 {isScaleSelectOpen && (
                     <div
@@ -493,7 +540,7 @@ const MingusPopup = ({
                                 // padding: '8px',
                                 // borderRadius: "50%",
                                 fontFamily: 'monospace',
-                                fontSize: '10px',
+                                fontSize: '12px',
                                 // marginBottom: '8px',
                                 background: 'rgba(0,0,0,0.6)',
                                 color: 'rgba(255,255,255,0.78)',
@@ -524,7 +571,15 @@ const MingusPopup = ({
                 )}
             </FormControl>
             
-            <FormControl sx={{ width: '60px', color: 'rgba(255,255,255,0.78)', position: 'relative' }}>
+            <FormControl sx={{ 
+                width: '60px', 
+                color: 'rgba(255,255,255,0.78)', 
+                position: 'relative',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                display: 'flex',
+                alignItems: 'center',  
+            }}>
                 <div
                     ref={selectChordRef}
                     style={{
@@ -536,20 +591,22 @@ const MingusPopup = ({
                         height: '60px',
                         cursor: 'pointer',
                         fontFamily: 'monospace',
-                        fontSize: '10px',
+                        fontSize: '12px',
                         width: '100%',
                         minWidth: '60px',
                         justifyContent: 'center',
                         alignItems: 'center',
                         textAlign: 'center',
                         overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
                         // whiteSpace: 'nowrap',
                         // display: 'block',
                         // textOverflow: 'ellipsis',
                     }}
                     onClick={() => setIsChordSelectOpen(!isChordSelectOpen)}
                 >   
-                    Chord: {selectedChord}
+                    {selectedChord}
                 </div>
                 {
                     isChordSelectOpen && (
@@ -576,7 +633,7 @@ const MingusPopup = ({
                                     width: '100%',
                                     // padding: '8px',
                                     fontFamily: 'monospace',
-                                    fontSize: '10px',
+                                    fontSize: '12px',
                                     marginBottom: '8px',
                                     background: 'rgba(0,0,0,0.6)',
                                     color: 'rgba(255,255,255,0.78)',
