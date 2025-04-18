@@ -4227,7 +4227,7 @@ export default function InitializationComponent() {
                                      Launch Studio
                                     </Button>
                                     <h2 style={{background: 'rgba(20,80,160,0.5)', margin: '4px', marginRight: '20%', marginLeft: '20%'}}>🎶 Sample. Synthesis. Sync.</h2>
-                                    <p style={{lineHeight: '1.5rem', margin: '32px'}}> Build, bend, and break audio and MIDI with our revolutionary micro-DAW, featuring AI-driven audio separation, DSP sound generation, and MIDI and Hardware Control.</p>
+                                    <p style={{lineHeight: '1.5rem', margin: '32px'}}> Build sounds, bend samples, and break new ground with our revolutionary micro-DAW, which features AI-driven track separation, in-browser synthesis and sampling, MIDI controls, audio analysis tools, 3D embed capabilities, and external hardware connectivity.</p>
                                 </Box>
                             )
                         }
