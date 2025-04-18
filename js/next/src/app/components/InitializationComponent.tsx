@@ -4181,6 +4181,7 @@ export default function InitializationComponent() {
                             fontFamily: "monospace",
                             fontSize: "1.5em",
                             padding: clickedBegin ? "0%" : "10%",
+                            //background: "linear-gradient(45deg, rgba(0,224,205,0.08) 0%, rgba(17,110,224,0.08) 40%)", 
                         }}
                     >
 
@@ -4193,7 +4194,7 @@ export default function InitializationComponent() {
                             ) :
                             (
                                 <Box sx={{width: "100%", height: "100%"}}>
-                                    <h1 style={{ fontSize: "5rem", top: "24px"}}>SoundSink</h1>
+                                    <h1 style={{fontSize: "5rem", top: "24px"}}>SoundSink</h1>
                                     <Button
                                         sx={{
                                             width: '160px',
@@ -4225,7 +4226,7 @@ export default function InitializationComponent() {
                                 >
                                      Launch Studio
                                     </Button>
-                                    <h2 style={{margin: '4px', marginRight: '20%', marginLeft: '20%'}}>🎶 MIDI. Morph. Mastery.</h2>
+                                    <h2 style={{background: 'rgba(20,80,160,0.5)', margin: '4px', marginRight: '20%', marginLeft: '20%'}}>🎶 Sample. Synthesis. Sync.</h2>
                                     <p style={{lineHeight: '1.5rem', margin: '32px'}}> Build, bend, and break audio and MIDI with our revolutionary micro-DAW, featuring AI-driven audio separation, DSP sound generation, and MIDI and Hardware Control.</p>
                                 </Box>
                             )
