@@ -43,6 +43,20 @@ type HeatmapProps = {
 
   exitEditMode: () => void;
   isInPatternEditMode: boolean;
+
+  handleLatestSamples: (    
+    fileNames: string[],
+    xVal: number,
+    yVal: number
+  ) => void;
+  handleLatestNotes: (  
+    notes: string[],
+    xVal: number,
+    yVal: number,
+) => void;
+
+  mTFreqs:number[];
+  mTMidiNums:number[];
 };
 
 export type InteractionData = {
@@ -90,6 +104,12 @@ export const Heatmap = ({
   exitEditMode,
   clickHeatmapCell,
   isInPatternEditMode,
+
+  handleLatestSamples,
+  handleLatestNotes,
+
+  mTFreqs,
+  mTMidiNums,
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -158,6 +178,7 @@ useEffect(() => {
       height: '100%',
       width: '100%',
     }}>
+
       <Box sx={{
         width:'100%',
         justifyContent: 'center',
@@ -202,6 +223,10 @@ useEffect(() => {
               currentDenomCount={currentDenomCount}
               currentPatternCount={currentPatternCount}
               clickHeatmapCell={clickHeatmapCell}
+              handleLatestSamples={handleLatestSamples}
+              handleLatestNotes={handleLatestNotes}
+              mTFreqs={mTFreqs}
+              mTMidiNums={mTMidiNums}
             />
           }
           <Tooltip 

@@ -92,14 +92,12 @@ export default function FXRouting(props: FXRoutingProps) {
 
   const theme = useTheme();
 
-  
   return (
     <Box sx={{
       display: "flex",
       flexDirection: "column",
       alignItems: "stretch",
       maxHeight: "calc(100vh - 204px)",
-      paddingBottom: "160px",
       width: "180px",
       overflowY: "auto",
       zIndex: 1
@@ -120,7 +118,6 @@ export default function FXRouting(props: FXRoutingProps) {
           flexDirection: { xs: 'column', sm: 'row' },
           gap: 2,
           zIndex: 0,
-          // background: 'rgba(0,0,0,0.78)',
           overflow: 'hidden',
           boxSizing: 'border-box',
           alignItems: 'center',

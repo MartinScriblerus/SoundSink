@@ -12,10 +12,12 @@ import { Box } from "@mui/material";
 import { getHexKeyboard } from "./hexKeyboard";
 import { Chuck } from "webchuck";
 import { BabylonGame } from "@/interfaces/gameInterfaces";
+import HydraInit from "./HydraInit";
 
 
 function BabylonScene(props: {
-
+    bpm: number,
+    currentBeatCountToDisplay: number | any,
     handleUpdateSliderVal: (x:string, index: number, value: any) => void,
     fxKnobsCount: number,
     needsUpdate: boolean,
@@ -34,6 +36,8 @@ function BabylonScene(props: {
     // windowListenerRef: any;
 }) {
     const {
+        bpm,
+        currentBeatCountToDisplay,
         handleUpdateSliderVal, 
         fxKnobsCount,
         needsUpdate, 
@@ -444,7 +448,7 @@ function BabylonScene(props: {
                                         // IF THERE ARE
                                         newMeshes[0].alwaysSelectAsActiveMesh = false;  // Reduce processing overhead
                                         newMeshes[0].doNotSyncBoundingInfo = true;  // Disable bounding box sync if unnecessary
-                                        newMeshes[0].position.y = 6.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
+                                        newMeshes[0].position.y = 5.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
                                         newMeshes[0].position.x = 15 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
                                         // newMeshes[0].position.y = 7  + (i % 2) * -4;          
                                         // newMeshes[0].position.x = ((-((i) * -10)) + (j * -4)) + ((i + 1) % 2) * (10) + -16; // Add offset for alternate rows
@@ -622,38 +626,28 @@ function BabylonScene(props: {
         <Box 
             sx={{
                 visibility: "visible", 
-                // background: "rgba(0,0,0,0.78)",
                 alignItems: "left",
             }}
         >
+            <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
             <canvas
                 style={{
                     minWidth: "1200px", 
                     minHeight: "800px", 
                     display: "visible",
-                    // background: 'transparent', 
                     position: 'relative', 
                 }} 
                 id={`babylonCanvas`} 
-                // ref={(elem:any) => {
-                //     if (game && !game.canvas) game.canvas = elem;
-                // }
                 ref={canvasRef}
             // }
             />
-            {/* 
-                <canvas 
-                    ref={(elem: any) => game.canvas2 = elem}
-                    id="visualizer" 
-                    style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: 0, 
-                        zIndex: 2,
-                        display: 'none' 
-                    }}>
-                </canvas> 
-            */}
+            </div>
+            <HydraInit 
+                bpm={bpm}
+                currentBeatCountToDisplay={
+                    currentBeatCountToDisplay}
+                fxRadioValue={fxRadioValue}
+            />
         </Box>
 
     )

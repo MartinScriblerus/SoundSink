@@ -1,16 +1,10 @@
 "use client"
 
-// import Image from 'next/image'
-// import styles from './page.module.css'
 import React, { useMemo } from 'react';
-
-
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import { Box } from '@mui/material';
 import dynamic from 'next/dynamic';
-import { CREAM_WHITE, FOREST_GREEN, MATTE_BLACK, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE, STEEL_GRAY } from '@/utils/constants';
- 
+
 const DynamicComponentWithNoSSR = dynamic(
   () => import('./InitializationComponent'),
   { ssr: false }
@@ -43,11 +37,8 @@ declare module '@mui/material/styles' {
             text: string;
         };
     }
-    // allow configuration using `createTheme`
     interface ThemeOptions {
         colors?: {
-            // danger?: string;
-            // text?: string;
         };
     }
 }
@@ -59,25 +50,7 @@ interface AudioNode {
     destinationParam?: AudioParam;
 }
 
-
-
-
 export default function InitializationStyle() {
-
-    // const headerDict = {
-    //     'Content-Type': 'application/json',
-    //     'Accept': 'application/json',
-    //     'Access-Control-Allow-Headers': 'Content-Type',
-    //     "Access-Control-Allow-Origin": "*",
-    //     "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS"
-    // }
-    // const requestOptions = {                                                                                                                                                                                 
-    //     headers: headerDict,
-    //     params: {
-    //         key: 'A'
-    //     }
-    // };
-
     return (
         <Box 
             sx={{ 
@@ -87,6 +60,7 @@ export default function InitializationStyle() {
                 flexDirection: "column", 
             }}
         >
+            <div id="modal-root"></div>
             <DynamicComponentWithNoSSR 
             />
         </Box>

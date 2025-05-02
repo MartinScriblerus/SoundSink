@@ -182,7 +182,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             position: 'absolute',
             top: '112px',
             left: '52px',
-            width: '524px',
+            width: '396px',
           }}>
 
           </Box>

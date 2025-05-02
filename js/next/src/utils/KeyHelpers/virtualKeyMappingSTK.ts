@@ -3,7 +3,7 @@ export const virtualKeyMappingSTK = (rootNote: number, msgDownOrUp: number) => {
     return `
     ${msgDownOrUp} => int msgDownOrUp;
 
-    <<< "VIRTUALKEYUPDATE_", msgDownOrUp, msg.key >>>;
+    // <<< "VIRTUALKEYUPDATE_", msgDownOrUp, msg.key >>>;
 
     if ( msg.which == 9 ) {
         if (msgDownOrUp == 0) {
@@ -248,9 +248,9 @@ export const virtualKeyMappingSTK = (rootNote: number, msgDownOrUp: number) => {
    
     if ( msg.which == 186 ) {
         if (msgDownOrUp == 0) {
-            <<< "GOT L UP! ", ${33} >>>;
+            // <<< "GOT L UP! ", ${33} >>>;
         } else if (msgDownOrUp == 1) {
-            <<< "GOT L DOWN! ", ${33} >>>;
+            // <<< "GOT L DOWN! ", ${33} >>>;
         }
     }
 

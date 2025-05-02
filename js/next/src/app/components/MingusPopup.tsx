@@ -191,203 +191,204 @@ const MingusPopup = ({
                 outline: 'none',
                 flexDirection: 'column-reverse',
                 minWidth: '128px',
-                // justifyContent: 'flex-start',
+                width: '100%',
+                fontSize: '12px',
                 padding: '0px !important',
                 margin: '0px !important',
+                border: '1px solid rgba(255,255,255,0.3)',
             }}
         >    
-    
-            <FormControl sx={{ 
-                width: '60px', 
-                color: 'rgba(255,255,255,0.78)', 
-                position: 'relative',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                display: 'flex',
-                alignItems: 'center', 
+            <Box sx={{
+                width: '100%', 
+                padding: '0px !important', 
+                margin: '0px !important', 
+                display: 'flex', 
+                flexDirection: 'row-reverse', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                height: '32px !important',
+                maxHeight: '32px !important',
+                boxSizing: 'border-box',
+                background: 'rgba(0,0,0,0.3)',              
             }}>
-                <div
-                ref={selectOctaveMaxRef}
-                style={{
-                    background: 'rgba(0,0,0,0.6)',
-                    // border: '0.5px solid rgba(255,255,255,0.38',
-                    // padding: '8px',
-                    // borderRadius: "50%",
-                    height: '60px',
-                    color: 'rgba(255,255,255,0.78)',
-                    cursor: 'pointer',
-                    fontFamily: 'monospace',
-                    fontSize: '12px',
-                    // width: '100%',
-                    // minWidth: '60px',
+                <FormControl sx={{ 
+                    width: '50% !important', 
+                    position: 'relative',
+                    flexDirection: 'row',
                     justifyContent: 'center',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    overflow: 'hidden',
                     display: 'flex',
-                    flexDirection: 'column',
-                    // whiteSpace: 'nowrap',
-                    // display: 'block',
-                    // textOverflow: 'ellipsis',
-                }}
-                onClick={() => setIsOctaveMaxSelectOpen(!isOctaveMaxSelectOpen)}
-                >
-                - {selectedOctaveMax}
-                </div>
-                {isOctaveMaxSelectOpen && (
-                <div
-                    ref={dropdownOctaveMaxSelectRef}
-                    // onScroll={handleScroll}
+                    alignItems: 'right', 
+                    
+                }}>
+                    <div
+                    ref={selectOctaveMaxRef}
                     style={{
-                    position: 'absolute',
-                    top: '100%',
-                    width: '100%',
-                    maxHeight: '12rem',
-                    overflowY: 'auto',
-                    backgroundColor: ROYALBLUE,
-                    color: 'rgba(255,255,255,0.78)',
-                    zIndex: 9999,
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        width: '50%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        marginLeft: '50% !important', 
+                        position: 'relative',
+                        padding: '0px',
+                        margin: '0px',
                     }}
-                >
-                    <Input
-                        placeholder="Search..."
-                        value={searchOctaveMaxTerm}
-                        onChange={(e) => setSearchOctaveMaxTerm(e.target.value)}
+                    onClick={() => setIsOctaveMaxSelectOpen(!isOctaveMaxSelectOpen)}
+                    >
+                    {selectedOctaveMax} 
+                    </div>
+                    {isOctaveMaxSelectOpen && (
+                    <div
+                        ref={dropdownOctaveMaxSelectRef}
                         style={{
-                            width: '100%',
-                            // padding: '8px',
-                            // borderRadius: "50%",
-                            fontFamily: 'monospace',
-                            fontSize: '12px',
-                            marginBottom: '8px',
-                            background: 'rgba(0,0,0,0.6)',
-                            color: 'rgba(255,255,255,0.78)',
+                        position: 'absolute',
+                        top: '100%',
+                        width: '100%',
+                        fontSize: '12px',
+                        maxHeight: '12rem',
+                        overflowY: 'auto',
+                        backgroundColor: ROYALBLUE,
+                        color: 'rgba(255,255,255,0.78)',
+                        zIndex: 9999,
                         }}
-                    />
-                    {( 
-                        searchOctaveMaxTerm.length > 0 
-                        ? 
-                            octaveMaxOptions.filter((x: any) => x.label.includes(searchOctaveMaxTerm)) 
-                        : 
-                            octaveMaxOptions).map((option) => (
-                                <div
-                                    key={option.value}
-                                    onClick={() => handleOctaveMaxSelect(option)}
-                                    style={{
-                                    borderTop: '1px solid rgba(255,255,255,0.4)',
-                                    padding: '5px',
-                                    cursor: 'pointer',
-                                    fontFamily: 'monospace',
-                                    background: ROYALBLUE,
-                                    }}
-                                >
-                                    {option.label}
-                                </div>
+                    >
+                        <Input
+                            placeholder="Search..."
+                            value={searchOctaveMaxTerm}
+                            onChange={(e) => setSearchOctaveMaxTerm(e.target.value)}
+                            style={{
+                                width: '50%',
+                                fontFamily: 'monospace',
+                                fontSize: '12px',
+                                marginBottom: '8px',
+                                background: 'rgba(0,0,0,0.6)',
+                                color: 'rgba(255,255,255,0.78)',
+                            }}
+                        />
+                        {( 
+                            searchOctaveMaxTerm.length > 0 
+                            ? 
+                                octaveMaxOptions.filter((x: any) => x.label.includes(searchOctaveMaxTerm)) 
+                            : 
+                                octaveMaxOptions).map((option) => (
+                                    <div
+                                        key={option.value}
+                                        onClick={() => handleOctaveMaxSelect(option)}
+                                        style={{
+                                        borderTop: '1px solid rgba(255,255,255,0.4)',
+                                        padding: '5px',
+                                        cursor: 'pointer',
+                                        fontFamily: 'monospace',
+                                        background: ROYALBLUE,
+                                        }}
+                                    >
+                                        {option.label}
+                                    </div>
+                                )
                             )
-                        )
-                    }
-                </div>
-                )}
-            </FormControl>
+                        }
+                    </div>
+                    )}
+                </FormControl>
 
-<Box sx={{width: '100%', height: '0px'}}>
-            <FormControl sx={{ 
-                width: '60px', 
-                color: 'rgba(255,255,255,0.78)', 
-                position: 'relative', 
-                flexDirection: 'row',
-                justifyContent: 'center',
-                display: 'flex',
-                alignItems: 'center',     
-            }}>
-                <div
-                ref={selectOctaveMinRef}
-                style={{
-                    background: 'rgba(0,0,0,0.6)',
-                    // border: '0.5px solid rgba(255,255,255,0.38',
-                    // padding: '8px',
-                    height: '60px',
-                    // borderRadius: "50%",
-                    color: 'rgba(255,255,255,0.78)',
-                    cursor: 'pointer',
-                    fontFamily: 'monospace',
-                    fontSize: '12px',
-                    // width: '100%',
-                    // minWidth: '60px',
+
+                <FormControl sx={{ 
+                    color: 'rgba(255,255,255,0.78)', 
+                    position: 'relative', 
+                    flexDirection: 'row',
                     justifyContent: 'center',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    overflow: 'hidden',
                     display: 'flex',
-                    flexDirection: 'column',
-                    // whiteSpace: 'nowrap',
-                    // display: 'block',
-                    // textOverflow: 'ellipsis',
-                    // borderRadius: '50%',
-                }}
-                onClick={() => setIsOctaveMinSelectOpen(!isOctaveMinSelectOpen)}
-                >
-                {selectedOctaveMin}
-                </div>
-                {isOctaveMinSelectOpen && (
-                <div
-                    ref={dropdownOctaveMinSelectRef}
-                    // onScroll={handleScroll}
+                    alignItems: 'center',  
+                    width: '50% !important',
+                    
+                }}>
+                    <div
+                    ref={selectOctaveMinRef}
                     style={{
-                    position: 'absolute',
-                    top: '100%',
-                    width: '100%',
-                    maxHeight: '12rem',
-                    overflowY: 'auto',
-                    backgroundColor: ROYALBLUE,
-                    color: 'rgba(255,255,255,0.78)',
-                    zIndex: 9999,
+                        // background: 'rgba(0,0,0,0.6)',
+                        height: '32px !important',
+                        color: 'rgba(255,255,255,0.78)',
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        width: '50%',
+                        minWidth: '60px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        margin: '0px',
+
                     }}
-                >
-                    <Input
-                        placeholder="Search..."
-                        value={searchOctaveMinTerm}
-                        onChange={(e) => setSearchOctaveMinTerm(e.target.value)}
+                    onClick={() => setIsOctaveMinSelectOpen(!isOctaveMinSelectOpen)}
+                    >
+                    {selectedOctaveMin}
+                    </div>
+                    {isOctaveMinSelectOpen && (
+                    <div
+                        ref={dropdownOctaveMinSelectRef}
                         style={{
-                            width: '100%',
-                            // padding: '8px',
-                            // borderRadius: "50%",
-                            fontFamily: 'monospace',
-                            fontSize: '12px',
-                            textAlign: 'center',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            marginBottom: '8px',
-                            background: 'rgba(0,0,0,0.6)',
-                            color: 'rgba(255,255,255,0.78)',
+                        position: 'absolute',
+                        top: '100%',
+                        width: '100%',
+                        maxHeight: '12rem',
+                        overflowY: 'auto',
+                        backgroundColor: ROYALBLUE,
+                        color: 'rgba(255,255,255,0.78)',
+                        zIndex: 9999,
                         }}
-                    />
-                    {
-                        ( 
-                        searchOctaveMinTerm.length > 0 
-                        ? 
-                            octaveMinOptions.filter((x: any) => x.label.includes(searchOctaveMinTerm)) 
-                        : 
-                            octaveMinOptions).map((option) => (
-                                <div
-                                    key={option.value}
-                                    onClick={() => handleOctaveMinSelect(option)}
-                                    style={{
-                                    borderTop: '1px solid rgba(255,255,255,0.4)',
-                                    padding: '5px',
-                                    cursor: 'pointer',
-                                    fontFamily: 'monospace',
-                                    background: ROYALBLUE,
-                                    }}
-                                >
-                                    {option.label}
-                                </div>
+                    >
+                        <Input
+                            placeholder="Search..."
+                            value={searchOctaveMinTerm}
+                            onChange={(e) => setSearchOctaveMinTerm(e.target.value)}
+                            style={{
+                                width: '50%',
+                                fontFamily: 'monospace',
+                                fontSize: '12px',
+                                textAlign: 'center',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                marginBottom: '8px',
+                                // background: 'rgba(0,0,0,0.6)',
+                                color: 'rgba(255,255,255,0.78)',
+                            }}
+                        />
+                        {
+                            ( 
+                            searchOctaveMinTerm.length > 0 
+                            ? 
+                                octaveMinOptions.filter((x: any) => x.label.includes(searchOctaveMinTerm)) 
+                            : 
+                                octaveMinOptions).map((option) => (
+                                    <div
+                                        key={option.value}
+                                        onClick={() => handleOctaveMinSelect(option)}
+                                        style={{
+                                        borderTop: '1px solid rgba(255,255,255,0.4)',
+                                        padding: '5px',
+                                        cursor: 'pointer',
+                                        fontFamily: 'monospace',
+                                        background: ROYALBLUE,
+                                        }}
+                                    >
+                                        {option.label}
+                                    </div>
+                                )
                             )
-                        )
-                    }
-                </div>
-                )}
-            </FormControl>
+                        }
+                    </div>
+                    )}
+                </FormControl>
+            </Box>
+
 
             <FormControl sx={{ 
                 width: '60px', 
@@ -397,46 +398,42 @@ const MingusPopup = ({
                 justifyContent: 'center',
                 display: 'flex',
                 alignItems: 'center',  
+                height: '32px !important',
+                border: '1px solid rgba(255,255,255,0.8)',
+                background: 'rgba(0,0,0,0.3)', 
             }}>
                 <div
-                ref={selectKeyRef}
-                style={{
-                    background: 'rgba(0,0,0,0.6)',
-                    // border: '0.5px solid rgba(255,255,255,0.38',
-                    // padding: '8px',
-                    // borderRadius: "50%",
-                    color: 'rgba(255,255,255,0.78)',
-                    height: '60px',
-                    cursor: 'pointer',
-                    fontFamily: 'monospace',
-                    fontSize: '12px',
-                    width: '100%',
-                    minWidth: '60px',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    // whiteSpace: 'nowrap',
-                    // display: 'block',
-                    // textOverflow: 'ellipsis',
-                }}
-                onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
-                >
-                {selectedKey}
+                    ref={selectKeyRef}
+                    style={{
+                        // background: 'rgba(0,0,0,0.6)',
+                        color: 'rgba(255,255,255,0.78)',
+                        // height: '60px',
+                        cursor: 'pointer',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        width: '100%',
+                        minWidth: '60px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '32px !important',
+                    }}
+                    onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
+                    >
+                    {selectedKey}
                 </div>
                 {isKeySelectOpen && (
                 <div
                     ref={dropdownKeySelectRef}
-                    // onScroll={handleScroll}
                     style={{
                     position: 'absolute',
                     top: '100%',
                     width: '100%',
                     maxHeight: '12rem',
                     overflowY: 'auto',
-                    backgroundColor: ROYALBLUE,
                     color: 'rgba(255,255,255,0.78)',
                     zIndex: 9999,
                     }}
@@ -448,8 +445,6 @@ const MingusPopup = ({
                         onChange={(e) => setSearchKeyTerm(e.target.value)}
                         style={{
                             width: '100%',
-                            // padding: '8px',
-                            // borderRadius: "50%",
                             fontFamily: 'monospace',
                             fontSize: '12px',
                             marginBottom: '8px',
@@ -477,7 +472,6 @@ const MingusPopup = ({
                 </div>
                 )}
             </FormControl>
-</Box>
 
             <FormControl sx={{ 
                 width: '60px', 
@@ -487,16 +481,15 @@ const MingusPopup = ({
                 justifyContent: 'center',
                 display: 'flex',
                 alignItems: 'center',  
+                height: '32px !important',
+                border: '1px solid rgba(255,255,255,0.8)',
+                background: 'rgba(0,0,0,0.3)', 
             }}>
                 <div
                     ref={selectScaleRef}
                     style={{
-                        background: 'rgba(0,0,0,0.6)',
-                        // border: '0.5px solid rgba(255,255,255,0.38',
-                        // padding: '8px',
-                        // borderRadius: "50%",
+                        // background: 'rgba(0,0,0,0.6)',
                         color: 'rgba(255,255,255,0.78)',
-                        height: '60px',
                         cursor: 'pointer',
                         fontFamily: 'monospace',
                         fontSize: '12px',
@@ -508,9 +501,7 @@ const MingusPopup = ({
                         overflow: 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
-                        // whiteSpace: 'nowrap',
-                        // display: 'block',
-                        // textOverflow: 'ellipsis',
+
                         }}
                         onClick={() => setIsScaleSelectOpen(!isScaleSelectOpen)}
                     >
@@ -519,7 +510,6 @@ const MingusPopup = ({
                 {isScaleSelectOpen && (
                     <div
                         ref={dropdownScaleSelectRef}
-                        // onScroll={handleScroll}
                         style={{
                             position: 'absolute',
                             top: '100%',
@@ -537,11 +527,8 @@ const MingusPopup = ({
                             onChange={(e) => setSearchScaleTerm(e.target.value)}
                             style={{
                                 width: '100%',
-                                // padding: '8px',
-                                // borderRadius: "50%",
                                 fontFamily: 'monospace',
                                 fontSize: '12px',
-                                // marginBottom: '8px',
                                 background: 'rgba(0,0,0,0.6)',
                                 color: 'rgba(255,255,255,0.78)',
                             }}
@@ -579,16 +566,14 @@ const MingusPopup = ({
                 justifyContent: 'center',
                 display: 'flex',
                 alignItems: 'center',  
+                height: '32px !important',
+                border: '1px solid rgba(255,255,255,0.8)',
+                background: 'rgba(0,0,0,0.3)', 
             }}>
                 <div
                     ref={selectChordRef}
                     style={{
-                        background: 'rgba(0,0,0,0.6)',
-                        // border: '0.5px solid rgba(255,255,255,0.38',
-                        // borderRadius: "50%",
-                        // padding: '8px',
                         color: 'rgba(255,255,255,0.78)',
-                        height: '60px',
                         cursor: 'pointer',
                         fontFamily: 'monospace',
                         fontSize: '12px',
@@ -600,9 +585,7 @@ const MingusPopup = ({
                         overflow: 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
-                        // whiteSpace: 'nowrap',
-                        // display: 'block',
-                        // textOverflow: 'ellipsis',
+                        height: '100% !important',
                     }}
                     onClick={() => setIsChordSelectOpen(!isChordSelectOpen)}
                 >   
@@ -612,7 +595,6 @@ const MingusPopup = ({
                     isChordSelectOpen && (
                         <div
                             ref={dropdownChordSelectRef}
-                            // onScroll={handleScroll}
                             style={{
                                 position: 'absolute',
                                 top: '100%',
@@ -624,14 +606,12 @@ const MingusPopup = ({
                                 zIndex: 9999,
                             }}
                         >
-                            {/* Search Input */}
                             <Input
                                 placeholder="Search..."
                                 value={searchChordTerm}
                                 onChange={(e) => setSearchChordTerm(e.target.value)}
                                 style={{
                                     width: '100%',
-                                    // padding: '8px',
                                     fontFamily: 'monospace',
                                     fontSize: '12px',
                                     marginBottom: '8px',
@@ -639,27 +619,26 @@ const MingusPopup = ({
                                     color: 'rgba(255,255,255,0.78)',
                                 }}
                             />
-                            {/* Dropdown Options */}
                             {
                                 ( searchChordTerm.length > 0 
-                                    ? 
-                                        chordOptions.filter((x: any) => x.label.includes(searchChordTerm)) 
-                                    : 
-                                        chordOptions).map((option) => (
-                                            <div
-                                                key={option.value}
-                                                onClick={() => handleChordSelect(option)}
-                                                style={{
-                                                    borderTop: '1px solid rgba(255,255,255,0.4)',
-                                                    padding: '5px',
-                                                    cursor: 'pointer',
-                                                    fontFamily: 'monospace',
-                                                    background: ROYALBLUE,
-                                                }}
-                                            >
-                                                {option.label}
-                                            </div>
-                                        )
+                                ? 
+                                    chordOptions.filter((x: any) => x.label.includes(searchChordTerm)) 
+                                : 
+                                    chordOptions).map((option) => (
+                                        <div
+                                            key={option.value}
+                                            onClick={() => handleChordSelect(option)}
+                                            style={{
+                                                borderTop: '1px solid rgba(255,255,255,0.4)',
+                                                padding: '5px',
+                                                cursor: 'pointer',
+                                                fontFamily: 'monospace',
+                                                background: ROYALBLUE,
+                                            }}
+                                        >
+                                            {option.label}
+                                        </div>
+                                    )
                                 )
                             }
                         </div>

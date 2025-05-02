@@ -1,10 +1,12 @@
 import subprocess
 from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 import aiofiles
 import demucs
 import librosa
 import os
+import shutil
+import zipfile
 app = FastAPI()
 
 
@@ -14,6 +16,7 @@ async def root():
 
 @app.post("/analyze_audio")
 async def analyze_audio(file: UploadFile = File(...)):
+    print("fuck shit hell")
     # Check if the file is a WAV file
     if not file.filename.endswith('.wav'):
         return JSONResponse({"error": "Only WAV files are supported"}, status_code=400)
@@ -28,7 +31,7 @@ async def analyze_audio(file: UploadFile = File(...)):
         content = await file.read()
         await out_file.write(content)
 
-    try:
+    # try:
         try:
             subprocess.check_output(["ffmpeg", "-version"])
         except FileNotFoundError:
@@ -43,6 +46,18 @@ async def analyze_audio(file: UploadFile = File(...)):
         # Demucs will save the separated sources as files in the same directory
         # You can then load these files and perform your analysis
         # For now, just return a success message
-        return JSONResponse({"message": "File received and processed!", "filename": file.filename})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        print(JSONResponse({"message": "File received and processed!", "filename": file.filename}))
+    
+        stem_path = f"{temp_file_path}/{file.filename}"
+        zip_path = f"{stem_path}.zip"
+
+    with zipfile.ZipFile(zip_path, "w") as zipf:
+        for root, _, files in os.walk(stem_path):
+            for f in files:
+                full_path = os.path.join(root, f)
+                arcname = f  # Just file name in zip
+                zipf.write(full_path, arcname)
+
+    return FileResponse(zip_path, media_type='application/zip', filename=f"{file.filename}_stems.zip")
+    # except Exception as e:
+    #     return JSONResponse({"error": str(e)}, status_code=500)

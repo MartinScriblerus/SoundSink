@@ -3,7 +3,6 @@ export const config = {
   presets: ['next/babel'],
   plugins: ['styled-components'],
 };
-// import Image from 'next/image'
 import styles from './page.module.css'
 import InitializationStyle from './components/InitializationStyle'
 
@@ -11,18 +10,7 @@ import InitializationStyle from './components/InitializationStyle'
 export default function Home() {
 
   return (
-    <main className={styles.main}>
-      <div 
-        id={'centerRoot'} 
-        style={{
-          // width: 'inherit',
-          display: 'flex',
-          alignSelf: 'flex-start'
-        }} 
-        className={styles.center}
-      >
-      </div>
-      <div  
+      <main  
         style={{
           boxSizing: 'border-box',
           flexDirection: 'column',
@@ -31,8 +19,7 @@ export default function Home() {
         }}
       >
         <InitializationStyle />
-      </div>
-    </main>
+      </main>
   )
 }
 

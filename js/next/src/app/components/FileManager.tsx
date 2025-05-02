@@ -27,11 +27,11 @@ const FileManager = (props: Props) => {
     // }, [handleSubmit, watch, register]);
 
     return (
-        // <Box sx={{
-        //     display: "flex",
-        //     flexDirection: "row",
-        //     width: "100%",
-        // }}>
+        <Box sx={{
+            display: "flex",
+            flexDirection: "row",
+            width: "100%",
+        }}>
          <form
             style={{
                 display: "flex",
@@ -70,7 +70,7 @@ const FileManager = (props: Props) => {
                     />
                 </Button>
             </form>
-        // {/* </Box> */}
+        </Box>
     )
 }
 

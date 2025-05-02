@@ -8,6 +8,10 @@ import FileWrapper from "@/app/components/FileWrapper";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
 import WaveSurfer from 'wavesurfer.js'
 import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from "../constants";
+import InsetCheckboxDropdown from "@/app/components/InsetCheckboxDropdowns";
+import { PortalCenterModal } from "@/app/components/PortalCenterModal";
+import { background } from "@/app/components/VizxHelpers/BrushChart";
+import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
 // import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
 // import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
 
@@ -38,8 +42,6 @@ type RendererProps = {
   inPatternEditMode: (state: boolean) => void;
   filesToProcess: any;
   selectFileForAssignment: (e: Event) => void;
-  // sortFileItemUp: (e: Event) => void;
-  // sortFileItemDown: (e: Event) => void;
   handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
   cellSubdivisions: number;
   resetCellSubdivisionsCounter: (x: number, y: number) => void;
@@ -50,6 +52,18 @@ type RendererProps = {
   currentDenomCount: number;
   currentPatternCount: number;
   clickHeatmapCell: any;
+  handleLatestSamples: (
+    fileNames: string[],
+    xVal: number,
+    yVal: number
+  ) => void;
+  handleLatestNotes: (
+    notes: any[],
+    xVal: number,
+    yVal: number
+  ) => void;
+  mTFreqs:number[];
+  mTMidiNums:number[];
 };
 
 export const Renderer = ({
@@ -65,8 +79,6 @@ export const Renderer = ({
   inPatternEditMode,
   filesToProcess,
   selectFileForAssignment,
-  // sortFileItemUp,
-  // sortFileItemDown,
   handleChangeCellSubdivisions,
   cellSubdivisions,
   resetCellSubdivisionsCounter,
@@ -76,6 +88,10 @@ export const Renderer = ({
   currentDenomCount,
   currentPatternCount,
   clickHeatmapCell,
+  handleLatestSamples,
+  handleLatestNotes,
+  mTFreqs,
+  mTMidiNums,
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -156,7 +172,9 @@ export const Renderer = ({
           return setInstrument("Osc 1");
         case 6:
           return setInstrument("Osc 2");
-        }
+        case 7:
+          return setInstrument("STK");
+      }
     }
 
     const triggerEditPattern = async (e: any, num: any) => {
@@ -177,7 +195,7 @@ export const Renderer = ({
       currentYVal.current = Number(yVal);
       cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
       yVal && getInstrumentName(yVal);
-      console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", masterPatternsHashHook, Number(yVal),Number(xVal));
+      console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", Number(yVal),Number(xVal), masterPatternsHashHook );
       console.log("%cCELL DATA!!!!!: ", isFill, xVal, yVal, "color: magenta;", cellData.current);
       setShowPatternEditorPopup(true);
       document.getElementById(`fill_${xVal}_${yVal}`);
@@ -189,6 +207,10 @@ export const Renderer = ({
           return elToChange.style.fill = FOREST_GREEN;
       }
     }
+
+    // useEffect(() => {
+    //   console.log("OYOYOYOY ", filesToProcess.map((f: any) => f.filename));
+    // }, []);
 
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
@@ -320,10 +342,15 @@ export const Renderer = ({
 
   const subdivisionCount = cellSubdivisions;
 
-  // // const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
-  // const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
-  //   <Button key={`fillBtn_${i}_${i}`} id={`${i}`} onClick={handleFillEdit} />
-  // ));
+  function handleLatestSamplesFinal(selected: any) {
+    console.log("WHAT IS THE FILE NAME? ", selected);
+    handleLatestSamples(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
+  }
+
+  function handleLatestNotesFinal (selected: any) {
+    console.log("WHAT ARE THE NOTES? ", selected);
+    handleLatestNotes(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
+  };
   
   return (
     <Box
@@ -338,130 +365,149 @@ export const Renderer = ({
 
       }}>
       {showPatternEditorPopup && (
-        <Box
-          key={`patternEditorPopupCloseButtonWrapper__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-          sx={{
-            position: "absolute",
-            display: "flex",
-            flexDirection: "column",
-            textAlign: "left",
-            background: 'rgba(0,0,0,0.78)',
-            zIndex: "1001",
-          }}>
-          <Box 
-            key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+
+        <PortalCenterModal onClose={()=>handleCloseEditorPopup}>
+          <Box
+            key={`patternEditorPopupCloseButtonWrapper__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
             sx={{
-              textAlign: 'right',
-              justifyContent: "stretch",
-              alignItems: "stretch",
               display: "flex",
-              flexDirection: "row",
-            }}
-          >
-            <CloseIcon
-              sx={{
-                zIndex: '9999'
-              }}
-              key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-              onClick={handleCloseEditorPopup}
-            />
-          </Box>
-
-          <Box 
-            key={`wrap_edit_popup__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}_${currentYVal.current}_${currentXVal.current}`}>
-
-
-            <Box
-              key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                fontFamily: 'monospace',
-                fontWeight: '100',
-                marginRight: '100px',
-                textAlign: 'left',
-                minWidth: '144px',
-                border: 'solid 0.5px rgb(175, 240, 91)',
-                borderRadius: '5px',
-                padding: '4px',
-                margin: '4px',
-              }}
-            >
-                <Box 
-                  key={`wrap_new_inst__${Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)}__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                  sx={{ 
-                    padding: '4px', 
-                  }}>
-                  {instrument}
-                </Box>
-                <Box 
-                  key={`wrap_new_details_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                  sx={{ 
-                    padding: '4px', 
-                    background: FOREST_GREEN,
-                  }}>
-                    <Box>
-                      Cell: {
-                        `${currentYVal.current} / ${currentXVal.current}`
-                      }  
-                    </Box>
-                    <Box>
-                      Samples: {
-                        new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
-                      }
-                    </Box>
-                    <Box>              
-                      Velocity: {
-                        masterPatternsHashHook && 
-                        masterPatternsHashHook.length > 0 &&
-                        masterPatternsHashHook[`${currentYVal.current}`] &&
-                        masterPatternsHashHook[`${currentYVal.current}`].length &&
-                        Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.velocity) || "No notes"
-                      }
-                    </Box>
-                    <Box>
-                      Notes: {
-                        masterPatternsHashHook && 
-                        masterPatternsHashHook.length > 0 &&
-                        masterPatternsHashHook[`${currentYVal.current}`] &&
-                        masterPatternsHashHook[`${currentYVal.current}`].length &&
-                        Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.note) || "No notes"
-                      }
-                    </Box>
-                </Box>
-              <span
-
-                  style={{ 
-                    display: "flex", 
-                    flexDirection: "row",
-                    justifyContent: "stretch", 
-                  }}
-                    key={`noteEditDisplaySpanWrapper_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}>
-
-                  Subdivisions:
-                  <SubdivisionsPicker
-                    xVal={currentXVal.current}
-                    yVal={currentYVal.current}
-                      masterPatternsHashHook={masterPatternsHashHook}
-                    handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-                    cellSubdivisions={cellSubdivisions}
-                  />
-                </span>
-              </Box>
+              flexDirection: "column",
+              background: 'rgba(0,0,0,0.78)',
+              borderRadius: '8px',
+            }}>
             <Box 
-              key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+              key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
               sx={{
-                display: "flex", 
-                flexDirection: "row",
-                width: "calc(100% - 200px)",
-                height: "100%",
-                position: "relative",
-                boxSizing: "border-box"
+                textAlign: 'right',
+                justifyContent: "stretch",
+                alignItems: "stretch",
+                display: "flex",
+                flexDirection: "row-reverse",
+                width: "50vw",
+                padding: "0",
+                margin: "0",
+                cursor: "pointer",
               }}
             >
+              <CloseIcon
+                sx={{
+                  zIndex: '9999',
+                  display: "flex",
+                  color: 'rgba(255,255,255,0.78)',
+                  textAlign: 'right',
+                  // width: '100%',
+                }}
+                key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                onClick={handleCloseEditorPopup}
+              />
+            </Box>
+
+            <Box 
+              key={`wrap_edit_popup__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}_${currentYVal.current}_${currentXVal.current}`}>
+
+
+              <Box
+                key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  fontFamily: 'monospace',
+                  fontWeight: '100',
+                  // marginRight: '100px',
+                  textAlign: 'left',
+                  minWidth: '144px',
+                  minHeight: "320px",
+                  border: 'solid 0.5px rgb(175, 240, 91)',
+                  borderRadius: '5px',
+                  padding: '4px',
+                  margin: '4px',
+                  color: 'rgba(255,255,255,0.78)',
+                }}
+              >
+                  <Box 
+                    key={`wrap_new_details_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                    sx={{ 
+                      padding: '4px', 
+                    }}>
+                      <Box>
+                        Cell: {
+                          `${currentXVal.current} | ${currentYVal.current}`
+                        }  
+                      </Box>
+                      <Box>
+                        {/* Samples: {
+                          new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
+                        } */}
+
+
+                        Samples:
+                        <InsetCheckboxDropdown 
+                          files={new Set(filesToProcess.map((f: any) => f.filename))} 
+                          handleLatestSamplesFinal={handleLatestSamplesFinal} 
+                          fileNumsPreselected={new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) } />
+                      </Box>
+                      <Box>              
+                        Velocity: {
+                          masterPatternsHashHook && 
+                          masterPatternsHashHook.length > 0 &&
+                          masterPatternsHashHook[`${currentYVal.current}`] &&
+                          masterPatternsHashHook[`${currentYVal.current}`].length &&
+                          Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.velocity) || "No notes"
+                        }
+                      </Box>
+                      <Box>
+                        Notes: 
+                        {/* {
+                          masterPatternsHashHook && 
+                          masterPatternsHashHook.length > 0 &&
+                          masterPatternsHashHook[`${currentYVal.current}`] &&
+                          masterPatternsHashHook[`${currentYVal.current}`].length &&
+                          Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.note) || "No notes"
+                        } */}
+                        
+                        {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
+                        (<InsetNotesDropdown 
+                          notes={mTMidiNums} 
+                          handleLatestNotesFinal={handleLatestNotesFinal} 
+                          notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
+                        />)}
+
+                      </Box>
+                  </Box>
+                <span
+
+                    style={{ 
+                      display: "flex", 
+                      flexDirection: "row",
+                      justifyContent: "stretch", 
+                    }}
+                      key={`noteEditDisplaySpanWrapper_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}>
+
+                    Subdivisions:
+                    <SubdivisionsPicker
+                      xVal={currentXVal.current}
+                      yVal={currentYVal.current}
+                        masterPatternsHashHook={masterPatternsHashHook}
+                      handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                      cellSubdivisions={cellSubdivisions}
+                    />
+                  </span>
+                </Box>
+              <Box 
+                key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                sx={{
+                  display: "flex", 
+                  flexDirection: "row",
+                  width: "calc(100% - 200px)",
+                  height: "100%",
+                  position: "relative",
+                  boxSizing: "border-box"
+                }}
+              >
+              </Box>
             </Box>
           </Box>
-      </Box>
+        </PortalCenterModal>
       )}
 
       {width && height && boundsWidth && boundsHeight && <svg

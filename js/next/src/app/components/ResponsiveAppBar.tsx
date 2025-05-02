@@ -18,6 +18,7 @@ import { Sources } from '@/types/audioTypes';
 import STKManagerDropdown from './STKManagerDropdown';
 import CustomAriaLive from './MicrotonesSearch';
 import { FOREST_GREEN, PALE_BLUE, RUSTY_ORANGE } from '@/utils/constants';
+import InstrumentsAndMicrotones from './InstrumentsAndMicrotones';
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
@@ -127,9 +128,11 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           >
             {/* COUNT WRAPPER */}
             <Box sx={{
-                display: "flex",
-                left: '0px',
+                display: "block",
+                left: '24px',
                 top: '0px',
+                // backgroundColor: 'pink',
+                width: '240px',
                 position: 'relative',
             }}>
                 {chuckHook && (
@@ -176,46 +179,47 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                     </Box>
                 )}
             </Box>
-                {/* RECORD */}
+<Box sx={{display: "flex", flexDirection: "row", position: "absolute", right: "96px", marginRight: "8px"}}>
+            {/* RECORD */}
+            <Box sx={{ 
+                display: "flex", 
+                flexDirection: "column",
+                padding: '4px !important',
+              }}>
                 <Box sx={{ 
-                    display: "flex", 
-                    flexDirection: "column",
-                    padding: '4px !important', 
-                  }}>
-                    <Box sx={{ 
-                      display: "flex", 
-                      flexDirection: "row" 
-                    }}>
-                    {chuckHook && (
-                        <Button
-                        sx={{
-                          border:'rgba(255,255,255,0.78)',
-                          backgroundColor: chuckHook && 'rgba(0,0,0,0.78)',
-                          color: 'rgba(255,255,255,0.78)',
-                          height: '48px',
-                      
-                          width: '100px',
-                          marginBottom: '4px',
-                          minHeight: '48px',
-                          display: "flex",
-                          zIndex: '99',
-                          pointerEvents: "auto",
-                          cursor: "pointer",
-                          '&:hover': {
-                            color: 'rgba(255,255,255,0.78)',
-                            background: RUSTY_ORANGE,
-                          }
-                        }}
-                        className="ui_SynthLayerButton"
-                            id="micStartRecordButton"
-                            onClick={chuckMicButton}
-                            endIcon={<KeyboardVoiceIcon />}>
-                            Rec
-                        </Button>
-                        )
+                  display: "flex", 
+                  flexDirection: "row" 
+                }}>
+                {chuckHook && (
+                    <Button
+                    sx={{
+                      border:'rgba(255,255,255,0.78)',
+                      backgroundColor: chuckHook && 'rgba(0,0,0,0.78)',
+                      color: 'rgba(255,255,255,0.78)',
+                      height: '48px',
+                  
+                      width: '100px',
+                      marginBottom: '4px',
+                      minHeight: '48px',
+                      display: "flex",
+                      zIndex: '99',
+                      pointerEvents: "auto",
+                      cursor: "pointer",
+                      '&:hover': {
+                        color: 'rgba(255,255,255,0.78)',
+                        background: RUSTY_ORANGE,
                       }
-                    </Box>
-                  </Box>
+                    }}
+                    className="ui_SynthLayerButton"
+                        id="micStartRecordButton"
+                        onClick={chuckMicButton}
+                        endIcon={<KeyboardVoiceIcon />}>
+                        Rec
+                    </Button>
+                    )
+                  }
+                </Box>
+            </Box>
             {/* PLAY CHUCK */}
             <Box 
               sx={{ 
@@ -255,7 +259,6 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               </Button>
             )}
             </Box>
-
             {/* STOP CHUCK */}
             <Box sx={{ 
               display: "flex", 
@@ -290,7 +293,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 </Button>
               )}
             </Box>
-
+</Box>
           </Box>
           <GenericToggle 
             handleSwitchToggle={handleSwitchToggle}
@@ -305,24 +308,9 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            width: "75%",
+            width: "100%",
           }}>
-            <div style={{
-              display: "flex",
-              flexDirection: "row",
-              minWidth: "70%",
-            }}>
-              <STKManagerDropdown
-                  updateStkKnobs={updateStkKnobs}
-                  stkValues={stkValues}
-                  setStkValues={setStkValues}
-              ></STKManagerDropdown>
-              <CustomAriaLive 
-                  // selectRef={selectRef} 
-                  tune={tune} 
-                  currentMicroTonalScale={currentMicroTonalScale} 
-              />
-            </div>
+
             {chuckHook && (
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ 

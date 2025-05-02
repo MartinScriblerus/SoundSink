@@ -52,6 +52,7 @@ import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { InferenceClient } from '@huggingface/inference';
+import InstrumentsAndMicrotones from './InstrumentsAndMicrotones';
 
 
 
@@ -123,7 +124,7 @@ export default function InitializationComponent() {
     const [bpm, setBpm] = useState<number>(120.00);
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
-    const { register, handleSubmit, watch } = useForm();
+    const { register, handleSubmit, watch, setValue } = useForm();
     const currentHeatmapXY = useRef<any>();
     // currentHeatmapXY.current = { };
     const [clickedBegin, setClickedBegin] = useState<any>(false);
@@ -241,6 +242,27 @@ export default function InitializationComponent() {
                 data: [],
             }
         ]
+    )
+    const filesToProcessArrayRef = useRef<any>();
+    filesToProcessArrayRef.current = (
+        [
+            {
+                filename: "DR-55Kick.wav",
+                data: [],
+            },
+            {
+                filename: "DR-55Snare.wav",
+                data: [],
+            },
+            {
+                filename: "DR-55Hat.wav",
+                data: [],
+            },
+            {
+                filename: "Conga.wav",
+                data: [],
+            }
+        ]
     );
 
     const load = async () => {
@@ -308,6 +330,8 @@ export default function InitializationComponent() {
             return;
           }
         
+          
+
           const formData = new FormData();
           formData.append('file', blob, name);
       
@@ -316,8 +340,12 @@ export default function InitializationComponent() {
           body: formData,
         });
       
-        const result = await response.json();
-        console.log(result);
+        try {
+            const result = await response.json();
+            console.log(result);
+        } catch (e) {
+            console.error('Error parsing JSON response:', e);
+        }
     }
 
       
@@ -615,6 +643,10 @@ export default function InitializationComponent() {
         let isMounted = true;
         // const bC: number = parseInt(chuckMsg.match(/\d+/)?.[0] || "0", 10);
         const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
+        
+        // console.log("Parsed numbers: ", parsedNumbers);
+        // console.log("beat count: ", currentBeatCountToDisplay);
+        
         const bC = parsedNumbers.length > 0  
             ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
             : currentBeatCountToDisplay;  // Keep previous value if no valid number found
@@ -724,35 +756,50 @@ export default function InitializationComponent() {
             col = "blue"
         }
 
+        console.log("WHAT HAVE WE GOT? ", masterPatternsRef.current[`${z}`][`${x}`]);
+
         // masterPatternsRef.current[`${z}`][`${x}`] = {};
-        masterPatternsRef.current[`${z}`][`${x}`] = masterPatternsRef.current[`${z}`][`${x}`] 
-            ?  masterPatternsRef.current[`${z}`][`${x}`] 
-            // : (x % masterFastestRate < 1) ? {
-            : (x === 0 ) ? {
-            on: true,
-            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-            velocity: 0.9,
-            color: col,
-            fileNums: [2],
-            subdivisions: cellSubdivisions
-        } : (x === 2) ? {
-            on: false,
-            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-            velocity: 0.9,
-            color: col,
-            fileNums: [0],
-            subdivisions: cellSubdivisions
-        } : {
-            on: false,
-            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-            velocity: 0.9,
-            color: col,
-            fileNums: [9999],
-            subdivisions: cellSubdivisions
-        };    
+        // masterPatternsRef.current[`${z}`][`${x}`] = masterPatternsRef.current[`${z}`][`${x}`] 
+        masterPatternsRef.current[`${z}`][`${x}`] = 
+        // (x === 200)
+        //     ?  masterPatternsRef.current[`${z}`][`${x}`] 
+        //     // : (y % 4 === 0) ? {
+        //     : (z === 1) ? {
+        //         on: true,
+        //         note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+        //         noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
+        //         velocity: 0.9,
+        //         color: col,
+        //         fileNums: [3],
+        //         subdivisions: cellSubdivisions
+        //     }
+        //     : (y === 3) ? 
+        // currentBeatCount % 2 === 0 &&
+            {
+                on: true,
+                note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+                noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
+                velocity: 0.9,
+                color: col,
+                // fileNums: x % 2 === 0 ? [0, 1, 3, 2] : x % 5 === 0 ? [0] : [9999],
+                fileNums: !isInPatternEditMode ? [0, 1, 3, 2] : masterPatternsRef.current[`${z}`][`${x}`] && Object.keys(masterPatternsRef.current[`${z}`][`${x}`]).length > 0 && masterPatternsRef.current[`${z}`][`${x}`].fileNums ? masterPatternsRef.current[`${z}`][`${x}`].fileNums : x % 4 === 0 ? [0, 1, 3] : [2], // 9999
+                subdivisions: cellSubdivisions
+            }
+
+        
+
+
+        // :
+        // {
+        //     on: true,
+        //     note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+        //     noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
+        //     velocity: 0.9,
+        //     color: col,
+        //     fileNums: [0],
+        //     subdivisions: cellSubdivisions
+        // }
+     
     }
 
     useEffect(() => {
@@ -866,9 +913,7 @@ export default function InitializationComponent() {
 
     const handleMasterRateUpdate = async () => {
         const fastestRate = Math.max(...Object.values(currentNoteVals).map((i) => i[0]));
-        
-        console.log("WHAT IS FASTEST RATE??? ", masterFastestRate);
-        
+                
         setMasterFastestRate(fastestRate);
     }
 
@@ -968,32 +1013,69 @@ export default function InitializationComponent() {
             });
     }
 
+
+    const isSubmitting = useRef(false);
+
     const onSubmit = async (files: any) => {
         if (files.length === 0) return;
+        if (isSubmitting.current) {
+            console.log("Already submitting, aborting...");
+            return;
+        }
+
+        if (!files.file || files.file.length === 0) {
+            console.log('No file uploaded.');
+            return;
+        }
+
+        
+        console.log("FILE??? : ", files);
         const file = files.file[0];
+
+        isSubmitting.current = true; // LOCK!!!
+
         const fileDataBuffer: any = await file.arrayBuffer();
+        console.log("GOT FILEDATABUFFER?  ", fileDataBuffer);
         const fileData: any = new Uint8Array(fileDataBuffer);
         const blob = new Blob([fileDataBuffer], { type: "audio/wav" });
+        console.log("GETTING BLOB?? ", blob, "HAVE UP CURR??? ", uploadedBlob.current);
         if (blob && !uploadedBlob.current) {
             uploadedBlob.current = blob;
+        } else {
+            return;
         }
+        console.log("FILE DATA: ", fileData);
         testArrBuffFile.current = fileData;
 
         const fileBlob = new File([blob], `${file.name.replace(' ', '_')}`, { type: "audio/wav" });
         let arrayBuffer;
         const fileReader = new FileReader();
         fileReader.onload = async function (event: any) {
+            console.log("@@@@ check the event ", event);
             arrayBuffer = event.target.result;
             const formattedName = file.name.replaceAll(' ', '_').replaceAll('-', '');
-            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1) {
-                filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false })
+            console.log("@@@ check the formatted name: ", formattedName);
+            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1 &&
+                filesToProcess.current.map(i => i.name).indexOf(formattedName) === -1
+            ) {
+                alert('blam');
+                filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false });
+
+                filesToProcessArrayRef.current.push({ 'filename': formattedName, 'data': fileData, 'processed': false }); 
+                
                 // tk look here
-                setFilesToProcessArrayHook((x: any) => [...x, { 'filename': formattedName, 'data': fileData, 'processed': false }])
-            }
+                setFilesToProcessArrayHook(
+                    filesToProcessArrayRef.current
+                )
+                console.log("FILES TO PROCESS: ", filesToProcess.current);
+            } 
+     
+            
             await getMeydaData(arrayBuffer);
             if (chuckHook) {
                 setChuckUpdateNeeded(true);
             }
+            isSubmitting.current = false; // UNLOCK
         }
         fileReader.readAsArrayBuffer(fileBlob);
     }
@@ -1815,13 +1897,14 @@ export default function InitializationComponent() {
     const NOTES_SET_REF = useRef<any>();
 
 
-    useEffect(() => {
-        const subscription = watch(() => handleSubmit(onSubmit)())
-        console.log('SUBSCRIPTION: ', subscription); // what is this for???qw2e3
-        return () => {
-            subscription.unsubscribe();
-        }
-    }, [handleSubmit, watch, register]);
+    // useEffect(() => {
+    //     console.log("motherfuckingshit")
+    //     const subscription = watch(() => handleSubmit(onSubmit)())
+    //     console.log('SUBSCRIPTION: ', subscription); // what is this for???qw2e3
+    //     return () => {
+    //         subscription.unsubscribe();
+    //     }
+    // }, [handleSubmit, watch, register]);
 
     const stopChuckInstance = () => {
         chuckRef.current && chuckRef.current.clearChuckInstance();
@@ -2006,7 +2089,7 @@ export default function InitializationComponent() {
             // console.log("Shred Count: ", shredCount);
             console.log("WHAT ARE PATTERNS? ", masterPatternsRef.current)
             console.log("what is alloctavemidifreqs? ", allOctaveMidiFreqs.current);
-            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999.0 ) ) );
+            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 9999.0 ) ) );
 
 
             activeSTKDeclarations.current = '';
@@ -2026,8 +2109,14 @@ export default function InitializationComponent() {
 
             console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1])))
 
+            const filesArray = filesToProcess.current.map(
+                (f: any) => `me.dir() + "${f.filename}"`
+              ).join(', ');
+
             const newChuckCode = `
                 "" => global string currentSrc;
+                // SAFER DYNAMIC FILES
+                [${filesArray}] @=> string files[];
 
                 // Global variables and events
                 global Event playNote;
@@ -2943,87 +3032,56 @@ export default function InitializationComponent() {
 
                 // // SAMPLER
                 // ////////////////////////////////////////////////////////////////
-                fun void handlePlayMeasure(int tickCount) {
-                    string files[4]; // Specify size
-
-                    me.dir() + "${filesToProcess.current[0].filename}" => files[0];
-                    me.dir() + "${filesToProcess.current[1].filename}" => files[1];
-                    me.dir() + "${filesToProcess.current[2].filename}" => files[2];
-                    me.dir() + "${filesToProcess.current[3].filename}" => files[3];
-
-                    (fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1 % fastestRateUpdate => int masterTick;
+fun void handlePlayMeasure(int tickCount) {
 
 
-                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['999.0']` ) )}] @=> int testArr2[][]; 
+    ((fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1) % fastestRateUpdate => int masterTick;
 
-                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => parseFloat(i.note) > 0 ?  parseFloat(i.note) : `999.0` ) )}] @=> float testNotesArr2[]; 
+    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['9999.0']` ) )}] @=> int testArr2[][]; 
 
+    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => parseFloat(i.note) > 0 ?  parseFloat(i.note) : `9999.0` ) )}] @=> float testNotesArr2[]; 
 
-                    [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
+    [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
 
+    int recurringTickCount;
+    if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
+        tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
+    } else {
+        tickCount => recurringTickCount;
+    }
 
-                    int recurringTickCount;
+    if (recurringTickCount >= testArr2.size()) return;
 
-                    if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
-                        tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
-                    } else {
-                        tickCount => recurringTickCount;
-                    }
+    STK_EffectsChain stk_FxChain;
+    ${activeSTKDeclarations.current}
+    ${activeSTKSettings.current}
 
 
 
+    // --- Play all buffers in parallel
+    for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
+        if (testArr2[recurringTickCount][x] != 9999.0 && (testArr2[recurringTickCount][x] < files.size())) {
+            files[testArr2[recurringTickCount][x]] => buffers[x].read;
+            0 => buffers[x].pos;
 
+            ${activeSTKPlayOn.current}
 
+            if (recurringTickCount < allFreqs.size()) {
+                allFreqs[recurringTickCount] => voice.keyOn;
+            }
 
+            // Start buffer immediately
+            0 => buffers[x].pos;
+        }
+    }
 
-                    STK_EffectsChain stk_FxChain;
+    // --- After triggering all buffers, wait for the length of 1 step
+    (whole / ${masterFastestRate}) => now;
 
+    ${activeSTKPlayOff.current}
 
-
-                    ${activeSTKDeclarations.current}
-
-                    ${activeSTKSettings.current}
-
-
-                    if (recurringTickCount >= testArr2.size()) return; // Prevent out-of-bounds access
-                    
-                    
-                        for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
-                            0 => buffers[x].pos;
-                            if (testArr2[recurringTickCount][0] != 999.0 && (testArr2[recurringTickCount][x] < files.size())) {
-                                files[testArr2[recurringTickCount][x]] => buffers[x].read;
-                            }
-
-                            // Calculate the exact time for this note within the measure
-                            (recurringTickCount * (whole / ${masterFastestRate})) => dur noteTimeOffset;
-
-                            // Wait until the correct time to play the note
-                            noteTimeOffset => now;
-
-
-                            // Play the note
-                            tickCount % testNotesArr2.size() => int notesCount;
-
-                            if (recurringTickCount < allFreqs.size()) {
-                                allFreqs[recurringTickCount] => voice.keyOn;
-                            }
-
-                            
-
-                            ${activeSTKPlayOn.current} 
-
-                            buffers[x].samples() => buffers[x].pos;
-                            if (testArr2[recurringTickCount][0] != 999.0) {
-                                0 => buffers[x].pos;
-                            } 
-                            buffers[x].length() => now;
-                            ${activeSTKPlayOff.current} 
-                            me.yield();
-                        }
-                    
-                    me.yield();
-                }
-
+    me.yield();
+}
                 string result[];
 
                 fun string[] splitString(string input, string delimiter ) {
@@ -3039,10 +3097,15 @@ export default function InitializationComponent() {
                             break;
                         }
          
-                        input.substring(0, startIndex) => result[result.size()];
+                        if (input.substring(0, startIndex).length() > 0) {
+
+                           input.substring(0, startIndex) => result[result.size()];
+                        } else {
+                            "MOCK" => result[result.size()];
+                        }
             
                         input.substring(startIndex + delimiter.length(), input.length()) => input;
-                        <<< "FR &*&*: ", input.toString() >>>;
+
                         strArr << input; 
                     }
                     return strArr;
@@ -3074,43 +3137,24 @@ export default function InitializationComponent() {
                 {
                     if (now >= startTimeMeasureLoop + (beat / fastestRateUpdate) ) {
                         fastestTickCounter + 1 => fastestTickCounter;
-                        <<< fastestTickCounter >>>;
-                        <<< "FR: !!!! ",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" >>>;
+                        <<< "TICK:", fastestTickCounter >>>;
+                
+                        "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
 
-                        
-                    "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
-
-
-
- 
-
-
-
-                [""] @=> string parts[];
-                if (myString.length() > 0) {
-                    splitString(myString, ",") @=> parts;
-                } 
-
-                // Print results
-        
-                    <<< "FR: HEY FUCKERZ!: ", parts.toString() >>>;
-
-
-
-
-
-
-
-
-
+                
                         
                     }
                     if (now >= startTimeMeasureLoop + beat) {
                         tickCounter + 1 => tickCounter;
                         spork ~ handlePlayMeasure(tickCounter);
+                        me.yield(); // optional safety to yield to spork
                         now => startTimeMeasureLoop;
-                    }
+                    } 
+                    // else {
+                    // now => startTimeMeasureLoop; 
+                    // }
                     whole / ${masterFastestRate} => now;
+                    
 
                 }
             `;
@@ -3132,6 +3176,7 @@ export default function InitializationComponent() {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const handleClickUploadedFiles = (e: any) => {
+        console.log("CLICKED FILES: ", e.target.innerText);
         if (isInPatternEditMode) {
             const cellObjToEdit = masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x];
             cellObjToEdit.fileNums.push(e.target.innerText);
@@ -4043,16 +4088,28 @@ export default function InitializationComponent() {
             chuckRef.current && setChuckHook(chuckRef.current);
 
             chuckRef.current.chuckPrint = (message) => { 
-                if (message.includes("LOG") || message.includes("FR:")) {
-                    console.log("here is log... ", message);
+                if (message.includes("TICK: ")) {
+                    const parsedMsg = message.split(":")[1].trim();
+
+                    setChuckMsg(parsedMsg); 
                 } else {
-                    setChuckMsg(message); 
+                    console.log("here is log... ", message);
+                    // setChuckMsg(message); 
                 }
             }
 
             setBabylonReady(true);
         })();
     }
+
+    const inputRef = useRef<any>();
+
+    const handleButtonClick = () => {
+        if (inputRef.current) {
+          inputRef.current.click();
+        }
+      };
+    
 
     const toggleSliderPanelChildren = (panel: string) => {
         const index = rightPanelOptions.indexOf(panel);
@@ -4067,6 +4124,42 @@ export default function InitializationComponent() {
         console.log("sanity...: ", [panel, ...rightPanelOptions.slice(0, index), ...rightPanelOptions.slice(index + 1)]);
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+          const fileList = e.target.files;
+          console.log('File selected:', fileList);
+    
+          // VERY IMPORTANT: Update file value manually
+          setValue("file", fileList);
+    
+          // Now trigger submit
+          handleSubmit(onSubmit)();
+        }
+      };
+
+    const handleLatestSamples = (   
+        fileNames: string[],
+        xVal: number,
+        yVal: number
+    ) => {
+        const indices = fileNames.map((fileName: string) => filesToProcess.current.map(i => i.filename).indexOf(fileName));
+        if (masterPatternsRef.current[yVal] && masterPatternsRef.current[yVal][xVal]) masterPatternsRef.current[yVal][xVal].fileNums = indices;
+        setPatternsHashHook(masterPatternsRef.current);
+    };
+
+    const handleLatestNotes = (
+        notes: any[],
+        xVal: number,
+        yVal: number
+    ) => {
+        console.log("WHAT IS HANDLE LATEST NOTES???  ", xVal, yVal, notes); 
+    };
+
+
+
+    useEffect(() => { 
+        console.log("WHAT IS THE PATTERNS HASH HOOK ", masterPatternsHashHook);
+     }, [masterPatternsHashHook])
 
     return (
         <Box 
@@ -4082,14 +4175,11 @@ export default function InitializationComponent() {
                             width: "calc(100% - 140px)",
                             left: '140px'
                         }} 
-                        // id="centerRoot"
                     >
                         <ResponsiveAppBar
                             selectRef={selectRef}
                             tune={tune}
                             currentMicroTonalScale={currentMicroTonalScale}
-                            // handleChangeChord={handleChangeChord}
-                            // handleChangeScale={handleChangeScale}
                             programIsOn={programIsOn}
                             formats={formats}
                             chuckHook={chuckHook}
@@ -4132,15 +4222,9 @@ export default function InitializationComponent() {
                                                 position: "relative",
                                                 top: "0px",
                                                 left: "0px",
-                                                width: "calc(100% - 524px)",
+                                                width: "calc(100% - 396px)",
                                                 justifyContent: "stretch",
                                                 background: "rgba(0,0,0,0.98)",
-                                                
-                                                // flexDirection: "column",
-                                                // justifyContent: "center",
-                                                // alignItems: "center",
-                                                // width: "100%",
-                                                // height: "100%",
                                             }}
                                         >
                                             <Button style={{zIndex: 9999}} onClick={onPlayPause}>
@@ -4243,27 +4327,30 @@ export default function InitializationComponent() {
                             {chuckHook &&
                                 <>
                                     <Box id="rightPanelWrapper">
-
-                                        <Box sx={{ 
-                                            // width: 'calc(100vw - 560px)', 
-                                            display: 'flex', 
-                                            flexDirection: 'column',
-                                            borderRight: '0.5px solid rgba(255,255,255,0.78)', 
-                                         
-                                            // marginLeft: '-6px',
-                                            // position: 'absolute',
-                                            // left: '400px'
-                                        }}><MingusPopup 
-                                            updateKeyScaleChord={updateKeyScaleChord}
-                                        /> </Box>
-
                                         <Box
-                                        
                                             ref={parentDivRef}
                                         >
                                             <Box id="rightPanelHeader">
+                                                <Box className="right-panel-header-wrapper">
+                                                    <Button 
+                                                        id='toggleSliderPanelChildren_Effects' 
+                                                        className='right-panel-header-button'
+                                                        sx={{ backgroundColor: rightPanelOptions[0] === 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
+                                                        onClick={(e: any) => toggleSliderPanelChildren('effects')}
+                                                    >
+                                                            Effects View
+                                                    </Button>
+                                                    <Button 
+                                                        id='toggleSliderPanelChildren_Pattern' 
+                                                        className='right-panel-header-button'
+                                                        sx={{ backgroundColor: rightPanelOptions[0] !== 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
+                                                        onClick={(e: any) => toggleSliderPanelChildren('pattern')}
+                                                    >
+                                                        Patterns View
+                                                    </Button>
+                                                </Box>
                                                 {
-                                                    universalSources.current && Object.keys(universalSources.current).length > 0 &&
+                                                    universalSources.current && Object.keys(universalSources.current).length > 0 && rightPanelOptions[0] === 'effects' &&
                                                     <GroupToggle
                                                         name={"test name"}
                                                         options={Object.keys(universalSources.current).map(i => i)}
@@ -4271,10 +4358,10 @@ export default function InitializationComponent() {
                                                     />
                                                 }
                                                 <br />
-                                                <Box className="right-panel-header-wrapper">
+                                                {/* <Box className="right-panel-header-wrapper">
                                                     <Button id='toggleSliderPanelChildren_Effects' className='right-panel-header-button' onClick={(e: any) => toggleSliderPanelChildren('effects')}>Effects View</Button>
                                                     <Button id='toggleSliderPanelChildren_Pattern' className='right-panel-header-button' onClick={(e: any) => toggleSliderPanelChildren('pattern')}>Patterns View</Button>
-                                                </Box>
+                                                </Box> */}
                                             </Box>
                                             <Box sx={{ maxHeight: 'calc(100% - 6rem)', display: rightPanelOptions[0] === 'effects' ? "flex" : "none" }}>
                                                 <FXRouting
@@ -4309,6 +4396,7 @@ export default function InitializationComponent() {
                                                     />
                                                 </Box>
                                             </Box>
+                                            {/* <div id="modal-root"></div> */}
                                             <Box sx={{display: rightPanelOptions[0] !== 'effects' ? "flex" : "none" }}>
                                                 <NotesQuickDash
                                                     featuresLegendData={[]}
@@ -4352,6 +4440,11 @@ export default function InitializationComponent() {
                                                     clickHeatmapCell={clickHeatmapCell}
 
                                                     isInPatternEditMode={isInPatternEditMode.current}
+                                                    handleLatestSamples={handleLatestSamples}
+                                                    handleLatestNotes={handleLatestNotes}
+
+                                                    mTFreqs={mTFreqs}
+                                                    mTMidiNums={mTMidiNums}
                                                 />
                                             </Box>
                                         </Box>
@@ -4367,6 +4460,8 @@ export default function InitializationComponent() {
                                         key={babylonKey}
                                     >
                                         {babylonReady && babylonReady && <BabylonLayer
+currentBeatCountToDisplay={{currentBeatCountToDisplay}}
+bpm={bpm}
                                             handleUpdateSliderVal={handleUpdateSliderVal}
                                             fxKnobsCount={fxKnobsCount}
                                             needsUpdate={needsUpdate}
@@ -4413,7 +4508,7 @@ export default function InitializationComponent() {
                                         {/* FILES */}
                                         <Box sx={{
                                             display: "flex",
-                                            flexDirection: "column"
+                                            flexDirection: "column",
                                         }}
                                         >
                                             <Box sx={{
@@ -4427,14 +4522,28 @@ export default function InitializationComponent() {
                                                         display: "flex",
                                                         flexDirection: "row",
                                                         width: "100%",
+                                                        paddingTop: '48px',
                                                     }}
                                                     onSubmit={handleSubmit(onSubmit)}>
+                                      
+                                                
+                                                        <input
+                                                            type="file"
+                                                            style={{ display: 'none' }}
+                                                            ref={(e) => {
+                                                                register("file");
+                                                                inputRef.current = e;
+                                                            }}
+                                                            onChange={handleFileChange}
+                                                        />              
+                                                        
                                                     <Button
                                                         component="label"
                                                         sx={{
                                                             display: "flex",
                                                             flexDirection: "row",
                                                             width: "100%",
+                                                            marginTop: '12px',
                                                             cursor: "pointer",
                                                             border: 'rgba(0,0,0,0.78)',
                                                             background: 'rgba(0,0,0,0.78)',
@@ -4450,15 +4559,10 @@ export default function InitializationComponent() {
                                                             }
                                                         }}
                                                         // className="ui_SynthLayerButton"
-
+                                                        onClick={handleButtonClick}
                                                         endIcon={<FileUploadIcon />}
                                                     >
-                                                        {<>File</>}
-                                                        <input
-                                                            type={"file"}
-                                                            {...register("file")}
-                                                            hidden={true}
-                                                        />
+                                                        <>UPLOAD FILE</>
                                                     </Button>
                                                 </form>
                                             </Box>
@@ -4479,7 +4583,7 @@ export default function InitializationComponent() {
                                                     minHeight: 'calc(100vh-13rem)',
                                                 }} key={'handleClickUploadedFilesWrapper'}>
 
-                                                    {filesToProcessArrayHook.length > 0 && filesToProcessArrayHook.map((file: any) => {
+                                                    {filesToProcessArrayHook && filesToProcessArrayHook.length > 0 && filesToProcessArrayHook.map((file: any) => {
                                                         return <Button
                                                             sx={{
                                                                 // left: '24px'
@@ -4498,6 +4602,27 @@ export default function InitializationComponent() {
                                                 </Box>
                                             </Box>
                                         </Box>
+
+                                        <Box>
+                                            <InstrumentsAndMicrotones
+                                                updateStkKnobs={updateStkKnobs}
+                                                stkValues={stkValues}
+                                                setStkValues={setStkValues}
+                                                tune={tune}
+                                                currentMicroTonalScale={currentMicroTonalScale}
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <Box sx={{ 
+                                                display: 'flex', 
+                                                flexDirection: 'column',
+                                                borderRight: '0.5px solid rgba(255,255,255,0.78)', 
+                                            
+                                            }}><MingusPopup 
+                                                updateKeyScaleChord={updateKeyScaleChord}
+                                            /> </Box>
+                                        </Box>
                                     </Box>
                                 </>
                             }
@@ -4506,10 +4631,11 @@ export default function InitializationComponent() {
                 )}
                 <Box
                     sx={{
-                        width: '100vw',
+                        width: 'calc(100vw - 140px)',
                         position: 'absolute',
                         zIndex: "9999",
                         bottom: '0px',
+                        left: '140px',
                     }}
                 >                                        
                     <KeyboardControls
