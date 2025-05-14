@@ -1,6 +1,7 @@
 # SoundSink
 ### Web-Based Sampling, Sequencing, and Synthesis
 #### To run locally, 
+  * clone this repo
   * open 2 terminals
   * navigate into the python code, activate virtual env, install requirements.txt, and `fastapi dev main.py`
   * navigate into the Next.ts source code, `npm i` and `npm run dev`
