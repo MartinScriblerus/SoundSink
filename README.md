@@ -1,5 +1,5 @@
 # SoundSink
-## A repository for audiophiles and experimenters (forthcoming)
+## Web-Based Sampler-Sequencer (and more)
 
 ### To run locally, 
   * open 2 terminals
