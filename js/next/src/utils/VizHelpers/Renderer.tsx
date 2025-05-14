@@ -12,6 +12,7 @@ import InsetCheckboxDropdown from "@/app/components/InsetCheckboxDropdowns";
 import { PortalCenterModal } from "@/app/components/PortalCenterModal";
 import { background } from "@/app/components/VizxHelpers/BrushChart";
 import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
+import MingusPopup from "@/app/components/MingusPopup";
 // import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
 // import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
 
@@ -64,6 +65,9 @@ type RendererProps = {
   ) => void;
   mTFreqs:number[];
   mTMidiNums:number[];
+  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
+  testChord: () => void;
+  testScale: () => void;
 };
 
 export const Renderer = ({
@@ -92,6 +96,9 @@ export const Renderer = ({
   handleLatestNotes,
   mTFreqs,
   mTMidiNums,
+  updateKeyScaleChord,
+  testChord,
+  testScale,
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -212,10 +219,12 @@ export const Renderer = ({
     //   console.log("OYOYOYOY ", filesToProcess.map((f: any) => f.filename));
     // }, []);
 
+
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
       <React.Fragment key={`rectFillsWrapper_${d.x}_${d.y}`}>
-        {Array.from(
+        {masterPatternsHashHook[`${d.y}`][`${d.x}`] &&
+          Array.from(
             {
               length: masterPatternsHashHook[`${d.y}`][`${d.x}`].subdivisions
             }
@@ -362,8 +371,8 @@ export const Renderer = ({
         textAlign: "center",
         justifyContent: "center",
         alignItems: "center",
-
-      }}>
+      }}
+    >
       {showPatternEditorPopup && (
 
         <PortalCenterModal onClose={()=>handleCloseEditorPopup}>
@@ -383,7 +392,7 @@ export const Renderer = ({
                 alignItems: "stretch",
                 display: "flex",
                 flexDirection: "row-reverse",
-                width: "50vw",
+                width: "100%",
                 padding: "0",
                 margin: "0",
                 cursor: "pointer",
@@ -429,11 +438,30 @@ export const Renderer = ({
                     sx={{ 
                       padding: '4px', 
                     }}>
-                      <Box>
+                      <Box
+                        sx={{
+                          display: 'inline-flex',
+                        }}
+                      >
                         Cell: {
                           `${currentXVal.current} | ${currentYVal.current}`
                         }  
+                        <br/>
+                        Subdivisions: <SubdivisionsPicker
+                          xVal={currentXVal.current}
+                          yVal={currentYVal.current}
+                          masterPatternsHashHook={masterPatternsHashHook}
+                          handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                          cellSubdivisions={cellSubdivisions}
+                        />
                       </Box>
+                      {/* <SubdivisionsPicker
+                        xVal={currentXVal.current}
+                        yVal={currentYVal.current}
+                          masterPatternsHashHook={masterPatternsHashHook}
+                        handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                        cellSubdivisions={cellSubdivisions}
+                      /> */}
                       <Box>
                         {/* Samples: {
                           new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
@@ -474,8 +502,18 @@ export const Renderer = ({
 
                       </Box>
                   </Box>
-                <span
-
+                  <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      borderRight: '0.5px solid rgba(255,255,255,0.78)',
+                  }}>                    
+                    <MingusPopup 
+                      updateKeyScaleChord={updateKeyScaleChord}
+                      testChord={testChord}
+                      testScale={testScale}
+                    /> 
+                  </Box>
+                  {/* <span
                     style={{ 
                       display: "flex", 
                       flexDirection: "row",
@@ -491,7 +529,7 @@ export const Renderer = ({
                       handleChangeCellSubdivisions={handleChangeCellSubdivisions}
                       cellSubdivisions={cellSubdivisions}
                     />
-                  </span>
+                  </span> */}
                 </Box>
               <Box 
                 key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
@@ -509,13 +547,13 @@ export const Renderer = ({
           </Box>
         </PortalCenterModal>
       )}
-
       {width && height && boundsWidth && boundsHeight && <svg
         key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
         width={width || 0}
         height={height}
         style={{ pointerEvents: "none" }}
       >
+        YAYAYA
         <g
           key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
           width={boundsWidth}
@@ -524,6 +562,7 @@ export const Renderer = ({
           style={{ pointerEvents: "none" }}
         >
           {allShapes}
+          YUYUYU
           {xLabels}
           {yLabels}
         </g>

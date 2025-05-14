@@ -56,6 +56,9 @@ type QuickDashProps = {
 
     mTFreqs:number[];
     mTMidiNums:number[];
+    updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
+    testChord: () => void;
+    testScale: () => void;
 }
 
 const NotesQuickDash = (props:QuickDashProps) => {
@@ -99,6 +102,9 @@ const NotesQuickDash = (props:QuickDashProps) => {
 
         mTFreqs,
         mTMidiNums,
+        updateKeyScaleChord,
+        testChord,
+        testScale,
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
@@ -212,11 +218,11 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             handleLatestNotes={handleLatestNotes}
                             mTFreqs={mTFreqs}
                             mTMidiNums={mTMidiNums}
+                            updateKeyScaleChord={updateKeyScaleChord}
+                            testChord={testChord}
+                            testScale={testScale}
                         />
-
                     }
-
-
                 </Box>
 
                 {Object.entries(featuresLegendData).map((f) => (

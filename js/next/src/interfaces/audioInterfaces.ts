@@ -30,11 +30,17 @@ export interface MediaStreamAudioDestinationNode extends AudioNode {
 
 export interface BPMModule {
     bpm: number;
-    handleChangeBPM: (bpm: number) => void;
+    setBpm: React.Dispatch<React.SetStateAction<number>>;
     beatsNumerator: number;
     beatsDenominator: number;
-    handleChangeBeatsNumerator: (beatspm: number) => void; 
-    handleChangeBeatsDenominator: (mpb: number) => void;
+    
+    // handleChangeBeatsNumerator: (beatspm: number) => void; 
+    // handleChangeBeatsDenominator: (mpb: number) => void;
+    setChuckUpdateNeeded: React.Dispatch<React.SetStateAction<boolean>>;
+    setBeatsNumerator: React.Dispatch<React.SetStateAction<number>>;
+    setBeatsDenominator: React.Dispatch<React.SetStateAction<number>>;
+    setNumeratorSignature: React.Dispatch<React.SetStateAction<number>>;
+    setDenominatorSignature: React.Dispatch<React.SetStateAction<number>>;
 };
 
 
@@ -84,10 +90,11 @@ export interface FixedSimpleLabel {
 
 export interface FXGroupsArray {
     fxGroupsArrayList: Array<FixedSimpleLabel>;
-    handleFXGroupChange: (e: any) => void;
-    updateCheckedFXList: (e: any) => void;
+    handleFXGroupChange: (e: any, f: any) => void;
+    updateCheckedFXList: any;
     fxValsRef: any;
     checkedFXList: Array<any>;
     handleCheckedFXToShow: (x:any) => void;
     checkedEffectsListHook: any;
+    setCheckedEffectsListHook: React.Dispatch<React.SetStateAction<any>>;
 }

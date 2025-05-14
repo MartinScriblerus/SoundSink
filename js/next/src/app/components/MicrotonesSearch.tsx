@@ -122,7 +122,8 @@ export default function CustomDropdown({
                 fontFamily: 'monospace',
                 fontSize: '12px',
                 marginBottom: '8px',
-                background: 'rgba(0,0,0,0.3)',
+                // background: 'rgba(0,0,0,0.3)',
+                background: 'rgba(0,0,0,1)',
                 color: 'rgba(255,255,255,0.78)',
               }}
             />

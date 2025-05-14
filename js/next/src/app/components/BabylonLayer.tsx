@@ -13,6 +13,7 @@ import { getHexKeyboard } from "./hexKeyboard";
 import { Chuck } from "webchuck";
 import { BabylonGame } from "@/interfaces/gameInterfaces";
 import HydraInit from "./HydraInit";
+import ArrowBack from "@mui/icons-material/ArrowBack";
 
 
 function BabylonScene(props: {
@@ -33,6 +34,7 @@ function BabylonScene(props: {
     updateHasHexKeys: (msg: boolean) => void;
     hasHexKeys: boolean;
     fxRadioValue: string;
+    
     // windowListenerRef: any;
 }) {
     const {
@@ -252,7 +254,8 @@ function BabylonScene(props: {
                 game.camera1 = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
                 // game.camera1.setTarget(new BABYLON.Vector3(-2.6,-1.8,0.0));
                 game.camera1.setTarget(new BABYLON.Vector3(-2.6,-1.8,0.0));
-                game.camera1.attachControl(game.scene, false);            
+                game.camera1.attachControl(game.scene, false);  
+                          
                 game.camera1.position = new BABYLON.Vector3(0, 0, 12);
                 game.camera1.inputs.attached.keyboard.detachControl();
                 game.camera1.inputs.attached.mousewheel.detachControl();
@@ -327,7 +330,7 @@ function BabylonScene(props: {
 
                     const effectsIndex = j + squareRoot * i;
                     // console.log('viz idx: ', effectsIndex, visibleFXKnobs[effectsIndex]);
-                        if (visibleFXKnobs[effectsIndex] && effectsIndex < fxKnobsCount) {
+                        if (visibleFXKnobs && visibleFXKnobs.length > 0 && visibleFXKnobs[effectsIndex] && effectsIndex < fxKnobsCount) {
                             if(Object.keys(prevKnobVals.current).indexOf(`${i}`) === -1) {
                                     prevKnobVals.current.i = prevKnobVals.current.i || {};
                                     prevKnobVals.current.i.j = prevKnobVals.current.i.j ? prevKnobVals.current.i.j : 0;
@@ -629,6 +632,10 @@ function BabylonScene(props: {
                 alignItems: "left",
             }}
         >
+            {/* {...Object(visibleFXKnobs).values().map((i: any)=>i).toString()} */}
+            {/* <ArrowBack sx={{left: "0px", marginTop: "0px"}}></ArrowBack> */}
+
+
             <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
             <canvas
                 style={{

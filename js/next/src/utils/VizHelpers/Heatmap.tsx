@@ -57,6 +57,9 @@ type HeatmapProps = {
 
   mTFreqs:number[];
   mTMidiNums:number[];
+  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
+  testChord: () => void;
+  testScale: () => void;
 };
 
 export type InteractionData = {
@@ -110,6 +113,9 @@ export const Heatmap = ({
 
   mTFreqs,
   mTMidiNums,
+  updateKeyScaleChord,
+  testChord,
+  testScale,
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -227,6 +233,9 @@ useEffect(() => {
               handleLatestNotes={handleLatestNotes}
               mTFreqs={mTFreqs}
               mTMidiNums={mTMidiNums}
+              updateKeyScaleChord={updateKeyScaleChord}
+              testChord={testChord}
+              testScale={testScale}
             />
           }
           <Tooltip 
