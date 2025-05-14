@@ -5,8 +5,8 @@
 #### To run locally, 
   * clone this repo
   * open 2 terminals
-  * navigate into the python code, activate virtual env, install requirements.txt, and `fastapi dev main.py`
-  * navigate into the Next.ts source code, `npm i` and `npm run dev`
+  * navigate into `SoundSink/fastapi`, activate virtual env, install requirements.txt, and `fastapi dev main.py`
+  * navigate into `SoundSink/js/next`, then run `npm i` and `npm run dev`
 
 #### Some features may not work until this is properly shared (targeting the summer of 2025)
 
