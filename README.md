@@ -1,5 +1,5 @@
 # SoundSink
-## A repository for audiophiles and experimenters (forthcoming).
+## A repository for audiophiles and experimenters (forthcoming)
 
 ### To run locally, 
   * open 2 terminals
