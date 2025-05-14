@@ -1,5 +1,7 @@
 # SoundSink
 ### Web-Based Sampling, Sequencing, and Synthesis
+
+#### More details coming soon... this project is in the works. 
 #### To run locally, 
   * clone this repo
   * open 2 terminals
