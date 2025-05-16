@@ -26,35 +26,26 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
     };
 
     return (
-        <div className="dropdown-container" style={{ minHeight: '100%', height: '100%', background: '', width: '180px', position: 'relative' }}>
+        <div className="dropdown-container" style={{ minHeight: '100%', height: '100%', background: '', width: '100%', position: 'relative' }}>
             <button id={"toggleDropdown"} className="dropdown-button" onClick={toggleDropdown} 
-            // style={{
-            //     width: '100%',
-            //     padding: '5px',
-            //     fontFamily: 'monospace',
-            //     fontSize: '12px',
-            //     background: 'rgba(0,0,0,0.3)',
-            //     color: 'rgba(255,255,255,0.78)',
-            //     border: '1px solid #9e9e9e',
-            //     minHeight: '32px',
-            //     height: '100%',
-            // }}
             >
                 Select Instrument
             </button>
             {isOpen && (
                 <ul className="dropdown-menu" style={{
-                    position: 'absolute',
                     width: '100%',
-                    maxHeight: '300px',
+                    maxHeight: '450px',
                     overflowY: 'auto',
                     background: 'rgba(0,0,0,0.78)',
                     color: 'rgba(255,255,255,0.78)',
                     fontFamily: 'monospace',
+                    fontSize: '12px',
                     listStyle: 'none',
                     padding: 0,
                     margin: 0,
-                    zIndex: 9999,
+                    zIndex: 99999,
+                    left: '120px',
+                    top: '-300px',
                 }}>
                     {stkOptions.map((option) => (
                         <li key={option.value} onClick={() => handleSelect(option)}

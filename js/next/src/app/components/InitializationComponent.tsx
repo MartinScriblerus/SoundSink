@@ -1,31 +1,29 @@
 "use client"
 
 import { Box, Button, SelectChangeEvent } from '@mui/material';
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, SetStateAction } from 'react'
 import BabylonLayer from './BabylonLayer';
 import { Chuck } from 'webchuck';
 import { Note } from "tonal";
 import moogGMPresets from '../../utils/moogGMPresets';
-import MoogGrandmotherEffects from '../../interfaces/audioInterfaces';
-import { useTheme } from '@mui/material/styles';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
 import { FXOption, STKOption, fxGroupOptions } from '../../utils/fixedOptionsDropdownData';
 import { getSTK1Preset, getFX1Preset } from '@/utils/presetsHelper';
 import FXRouting from './FXRouting';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { useForm } from "react-hook-form";
 import { convertEnvSetting } from '@/utils/FXHelpers/winFuncEnvHelper';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+
 import BPMModule from './BPMModule';
 import ResponsiveAppBar from './ResponsiveAppBar';
 import {Tune} from '../../tune';
 import Keyboard from './Keyboard'
 import { useMingusData } from '@/hooks/useMingusData';
-import { notefreqchart } from '../../utils//notefreqchart';
 import KeyboardControls from './KeyboardControls';
 import Meyda from 'meyda';
-import { AllSoundSourcesObject } from '@/utils/interfaces';
-import { convertFrequency } from '@/utils/siteHelpers';
-import { defaultNoteVals, delayADefault, delayLDefault, delayDefault, ellipticDefault, expDelayDefault, expEnvDefault, korg35Default, modulateDefault, powerADSRDefault, spectacleDefault, winFuncEnvDefault, wpDiodeDefault } from '@/utils/FXHelpers/helperDefaults';
+import { AllSoundSourcesObject, QueryResponse } from '@/utils/interfaces';
+import { defaultNoteVals } from '@/utils/FXHelpers/helperDefaults';
 import { defaultSources } from '@/utils/MIDIHelpers/sourceHelpers';
 import { Effects, EffectsSettings, Preset, Source, Sources, STKInstruments } from '@/types/audioTypes';
 import { getConvertedRadio } from '@/utils/utils';
@@ -39,19 +37,51 @@ import { initialEdgesDefaults, initialNodesDefaults } from '@/utils/FXHelpers/pe
 import setupAudioWorklet from '../../audio/setupAudioWorklet';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import setupAudioAnalysisWorklet from '../../audio/setupAudioAnalysisWorklet';
-import { NAVY, PALE_BLUE, ROYALBLUE } from '@/utils/constants';
+import { PALE_BLUE } from '@/utils/constants';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
 import axios from 'axios';
 import MingusPopup from './MingusPopup';
-
-import WaveSurferPlayer from '@wavesurfer/react';
-import Timeline from 'wavesurfer.js/dist/plugins/timeline.esm.js'
-import RegionsPlugin, { Region } from 'wavesurfer.js/dist/plugins/regions';
-import WaveSurfer from 'wavesurfer.js';
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
-
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { InferenceClient } from '@huggingface/inference';
+import InstrumentsAndMicrotones from './InstrumentsAndMicrotones';
+import { getChuckCode } from '@/utils/chuckHelper';
+import { 
+    activeSTKDeclarations, 
+    activeSTKPlayOff, 
+    activeSTKPlayOn, 
+    activeSTKSettings, 
+    allOctaveMidiFreqs, 
+    checkedFXList, 
+    chuckRef, 
+    clippedDuration, 
+    currentEffectType, 
+    currentFX, 
+    currentHeatmapXY, 
+    currentScreen, 
+    currentStkTypeVar, 
+    currNotes, 
+    currNotesHash, 
+    delayAFinalHelper, 
+    delayFinalHelper, 
+    delayLFinalHelper, 
+    doReturnToSynth, 
+    ellipticFinalHelper, 
+    expDelayFinalHelper, 
+    expEnvFinalHelper, 
+    ffmpegRef, 
+    filesToProcess, 
+    fxValsRef, 
+    initialEdges, 
+    initialNodes, 
+    initialRun, 
+    inputRef, 
+    isInPatternEditMode, 
+    isSubmitting, 
+    keysAndTuneDone, 
+    lastFileUploadMeydaData, 
+    masterPatternsRef, messageRef, midiAccess, modulateFinalHelper, moogGrandmotherEffects, NOTES_SET_REF, parentDivRef, powerADSRFinalHelper, regionEnd, regionStart, resetHeatmapCell, spectacleFinalHelper, stkKnobValsRef, testArrBuffFile, totalDuration, universalSources, uploadedBlob, visibleFXKnobs, wavesurferRef, winFuncEnvFinalHelper, workerRef, wpDiodeLadderFinalHelper, wpKorg35FinalHelper } from '../state/refs';
+import FileWindow from './FileWindow';
+import FileManager from './FileManager';
+import { handleFXGroupChange, handleReturnToSynth, updateCheckedFXList, updateCurrentFXScreen, updateStkKnobs } from '@/utils/knobsHelper';
+import ArrowBack from '@mui/icons-material/ArrowBack';
 
 
 
@@ -62,32 +92,20 @@ export default function InitializationComponent() {
     const [babylonReady, setBabylonReady] = useState(false);
     const [formats, setFormats] = React.useState<any>(() => []); // ** UNCLEAR VARNAME => WHAT ARE FORMATS?
     // const [currNotes, setCurrNotes] = useState<any>([]);
-    const currNotes = useRef<any>([0]);
-    const currNotesHash = useRef<any>({}); // ** MISSING TYPE (THIS ONE WOULD BE USEFUL)
-    const [notesNeedUpdate, setNotesNeedUpdate] = useState<boolean>(false);
-    const [midiAccessHook, setMidiAccessHook] = useState<any>({}); // do we do anything with this value?
-    const [wavesurfer, setWavesurfer] = useState<any>(null)
-    const [isPlaying, setIsPlaying] = useState(false);
+    // const [wavesurfer, setWavesurfer] = useState<any>(null)
 
-    const [loaded, setLoaded] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const ffmpegRef = useRef(new FFmpeg());
-    const messageRef = useRef<HTMLParagraphElement | null>(null);
+    const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
     
     // NEEDS WORK (after samples)...
     const [resetNotes, setResetNotes] = useState<any>([0]);
     
-    
-    const lastMidiNote: any = useRef('');
-    lastMidiNote.current = '';
-    const lastMidiCommand: any = useRef('');
-
-    // const stkOn = useRef<any>();
-    // const stkPolyKeyOff = useRef<any>(false);
-
     const [keysVisible, setKeysVisible] = useState(false);
     const [keysReady, setKeysReady] = useState(false);
     const [vizSource, setVizSource] = useState<string>('');
+
+    const [selectedChordScaleOctaveRange, setSelectedChordScaleOctaveRange] = useState<any>({
+
+    });
 
     const [midiData, setMidiData] = useState(null);
     const [meydaData, setMeydaData] = useState(null);
@@ -99,456 +117,79 @@ export default function InitializationComponent() {
         octaveMin: '3',
         key: 'C',
         scale: 'Diatonic',
-        chord: 'M',
+        chord: 'Major Triad',
     });
 
     const [rightPanelOptions, setRightPanelOptions] = useState<any>(['effects', 'pattern']);
 
-    const finalFxCode = useRef<any>({
-        osc1: "",
-        osc2: "",
-        stk1: "",
-        audioin: "",
-        sampler: ""
-    })
-
-    const moogGrandmotherEffects = useRef<MoogGrandmotherEffects | any>(moogGMPresets);
-
-
     const [fxKnobsCount, setFxKnobsCount] = useState<number>(0);
-    const [fxRoutingNeedsUpdate, setFxRoutingNeedsUpdate] = useState<number>(0);
+
     const [fXChainKey, setFXChainKey] = useState<string>('');
     const [needsUpdate, setNeedsUpdate] = useState<boolean>(false);
     const [chuckUpdateNeeded, setChuckUpdateNeeded] = useState(false);
     const [bpm, setBpm] = useState<number>(120.00);
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
-    const { register, handleSubmit, watch } = useForm();
-    const currentHeatmapXY = useRef<any>();
-    // currentHeatmapXY.current = { };
+    const { register, handleSubmit, watch, setValue } = useForm();
     const [clickedBegin, setClickedBegin] = useState<any>(false);
-
     const [stkValues, setStkValues] = useState<STKOption[]>([]);
-
     const [midiBPMClockIncoming, setMidiBPMClockIncoming] = useState<any>([]);
-
     const [fxRadioValue, setFxRadioValue] = React.useState<any>('Osc1'); // ** NEEDS UI RETHINKING
-    const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState<any>('Osc');
+    // const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState<any>('Osc');
     const [showBPM, setShowBPM] = useState<boolean>(true);
-    const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
-
+    // const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
     const [octave, setOctave] = useState('4'); // ** THESE SHOULD EXIST AS NEW OBJECT
     const [audioKey, setAudioKey] = useState('C'); // ** THESE SHOULD EXIST AS NEW OBJECT
-    
     const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
-    // const [recreateBabylon, setRecreateBabylon] = useState<boolean>(false)
     const [clickFXChain, setClickFXChain] = useState<boolean>(false);
-
-
     const [activeSTKs, setActiveSTKs] = useState<any[]>([]);
-
-    const currentNotesDownDisplay = useRef<Array<number | any>>([]);
-    const currentNotesKeyValDownDisplay = useRef<Array<number | any>>([]);
     const [arpeggiatorOn, setArpeggiatorOn] = useState<number>(0);
     const [stkArpeggiatorOn, setStkArpeggiatorOn] = useState<number>(0);
-
     const [cellSubdivisions, setCellSubdivisions] = useState<number>(1);
-
     const [hideCircularArpBtnsHook, setHideCircularArpBtnsHook] = useState<boolean>(false);
-
-    const doReturnToSynth = useRef<boolean>(false);
-    const virtualKeyMapDown = useRef<string>("");
-    const virtualKeyMapUp = useRef<string>("");
-
     const [hasHexKeys, setHasHexKeys] = useState<boolean>(false);
-
     const [tune, setTune] = useState<any>(null);
     const [mingusKeyboardData, setMingusKeyboardData] = useState<any>([]);
     const [mingusChordsData, setMingusChordsData] = useState<any>([]);
-    const [keyBoard, setKeyBoard] = useState<any>();
-
+    // const [keyBoard, setKeyBoard] = useState<any>();
     const [currentChain, setCurrentChain] = useState<any>();
-
-    // const [stk1Code, setStk1Code] = useState<string>('');
-    // const [osc1Code, setOsc1Code] = useState<string>('');
-
-    const [meydaNeedsUpdate, setMeydaNeedsUpdate] = useState<boolean>(false);
-
+    // const [meydaNeedsUpdate, setMeydaNeedsUpdate] = useState<boolean>(false);
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
-
-    const uploadedBlob = useRef<any>();
-
     const [numeratorSignature, setNumeratorSignature] = useState(4);
     const [denominatorSignature, setDenominatorSignature] = useState(4);
-
-    const [osc1NoteNum, setOsc1NoteNum] = useState<number>(0);
-
-    const [currentBeatCount, setCurrentBeatCount] = useState<number>(0);
+    // const [osc1NoteNum, setOsc1NoteNum] = useState<number>(0);
+    // const [currentBeatCount, setCurrentBeatCount] = useState<number>(0);
     const [currentBeatSynthCount, setCurrentBeatSynthCount] = useState<number>(0);
     const [currentBeatCountToDisplay, setCurrentBeatCountToDisplay] = useState<number>(0);
     const [currentNumerCount, setCurrentNumerCount] = useState<number>(0);
     const [currentNumerCountColToDisplay, setCurrentNumerCountColToDisplay] = useState<number>(0);
-
     const [currentDenomCount, setCurrentDenomCount] = useState<number>(1);
     const [currentPatternCount, setCurrentPatternCount] = useState<number>(0);
     const [patternsPerCycle, setPatternsPerCycle] = useState<number>(4);
-    const [patternCount, setPatternCount] = useState<number>(0);
-
+    // const [patternCount, setPatternCount] = useState<number>(0);
     const [masterFastestRate, setMasterFastestRate] = useState<number>(4);
-
-    const [estimatedMidiClockBpm, setEstimatedMidiClockBpm] = useState<any>();
-
-    const [keysFullscreen, setKeysFullscreen] = useState<boolean>(false);
-    const masterPatternsRef = useRef<any>({
-        // 1: {},
-        // 2: {},
-        // 3: {},
-        // 4: {},
-        // 5: {},
-        // 6: {},
-        // 7: {},
-    });
-    const parentDivRef = useRef<any>(null);
+    // const [estimatedMidiClockBpm, setEstimatedMidiClockBpm] = useState<any>();
+    // const [keysFullscreen, setKeysFullscreen] = useState<boolean>(false);
     const [masterPatternsHashHook, setPatternsHashHook] = useState<any>({});
     const [masterPatternsHashUpdated, setPatternsHashUpdated] = useState<boolean>(false);
-
-    // const [currentMidiMsg, setCurrentMidiMsg] = useState<any>({ data: [0, 0, 0] });
     const [mTFreqs, setMTFreqs] = useState<any>([]);
     const [mTMidiNums, setMTMidiNums] = useState<any>([]);
-    // const [inFileAnalysisMode, setInFileAnalysisMode] = useState<boolean>(false);
-
     const [chuckMsg, setChuckMsg] = useState<string>('');
 
-    const isInPatternEditMode = useRef<boolean>(false);
     isInPatternEditMode.current = isInPatternEditMode.current || false;
-
-    const [filesToProcessArrayHook, setFilesToProcessArrayHook] = useState<any>(
-        [
-            {
-                filename: "DR-55Kick.wav",
-                data: [],
-            },
-            {
-                filename: "DR-55Snare.wav",
-                data: [],
-            },
-            {
-                filename: "DR-55Hat.wav",
-                data: [],
-            },
-            {
-                filename: "Conga.wav",
-                data: [],
-            }
-        ]
-    );
-
-    const load = async () => {
-        setIsLoading(true);
-        const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd";
-        const ffmpeg = ffmpegRef.current;
-        ffmpeg.on("log", ({ message }) => {
-          if (messageRef.current) messageRef.current.innerHTML = message;
-        });
-        // toBlobURL is used to bypass CORS issue, urls with the same
-        // domain can be used directly.
-        await ffmpeg.load({
-          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-          wasmURL: await toBlobURL(
-            `${baseURL}/ffmpeg-core.wasm`,
-            "application/wasm"
-          ),
-        });
-        setLoaded(true);
-        setIsLoading(false);
-    };
-
-    // const [featuresLegendParam, setFeaturesLegendParam] = useState<string>('rms');
-    // const [featuresLegendData, setFeaturesLegendData] = useState<any>([]);
-    // const [centroid, setCentroid] = useState<any>([
-    //     { source: "", value: "" }
-    // ]);
-    // const [flux, setFlux] = useState<any>([{ source: "", value: "" }]);
-    // const [rMS, setRMS] = useState<any>({ source: "", value: "" });
-    // const [mFCCEnergy, setMFCCEnergy] = useState<any>({ source: "", value: "" });
-    // const [mFCCVals, setMFCCVals] = useState<any>({ source: "", value: [] });
-    // const [rollOff50, setRollOff50] = useState<any>({ source: "", value: "" });
-    // const [rollOff85, setRollOff85] = useState<any>({ source: "", value: "" });
-    // const [chroma, setChroma] = useState<any>({ source: "", value: [] });
-    // const [xCross, setXCross] = useState<any>({ source: "", value: "" });
-    // const [dct, setDCT] = useState<any>({ source: "", value: [] });
-    // const [featureFreq, setFeatureFreq] = useState<any>({ source: "", value: "" });
-    // const [featureGain, setFeatureGain] = useState<any>({ source: "", value: "" });
-    // const [kurtosis, setKurtosis] = useState<any>({ source: "", value: "" });
-    // const [sFM, setSFM] = useState<any>({ source: "", value: "" });
-    // const [sampleRate, setSampleRate] = useState<any>(0);
-    // const [amplitude, setAmplitude] = useState<any>({ source: "", value: "" });
-    // const [timeNow, setTimeNow] = useState<any>(0);
     const [hold, setHold] = useState<any>(0);
     const [showLoader, setShowLoader] = useState<boolean>(false);
-
-    const wavesurferRef: WaveSurfer = useRef(null);
-
-    const regionStart = useRef<any>();
-    const regionEnd = useRef<any>();
-    const totalDuration = useRef<any>();
-    const clippedDuration = useRef<any>();
-
-
-    function readArrayBufferAsFile(arrayBuffer: ArrayBuffer) {
-        const decoder = new TextDecoder('utf-8');
-        const fileContent = decoder.decode(arrayBuffer);
-        return fileContent;
-      }
-
-
-    async function uploadAudioFile(blob: Blob, name: string) {
-        if (!name.endsWith('.wav')) {
-            console.error('Only WAV files are supported ', name, "BBLLOOBB: ", blob);
-            return;
-          }
-        
-          const formData = new FormData();
-          formData.append('file', blob, name);
-      
-        const response = await fetch('http://localhost:8000/analyze_audio/', {
-          method: 'POST',
-          body: formData,
-        });
-      
-        const result = await response.json();
-        console.log(result);
-    }
-
-      
-    async function clipAudio() {
-        const start: number | any = regionStart.current; 
-        const end: number | any = regionEnd.current;
-                
-        if (!start ||!end ) return;
-        
-        const ffmpeg = ffmpegRef.current;
-        
-        const audioFile = filesToProcess.current[filesToProcess.current.length - 1];
-                
-        console.log("sanity audiofile: ", audioFile);
-
-        try {
-          // Write the audio file to the FFmpeg wasm file system
-          await ffmpeg.writeFile(
-            audioFile.name,
-            audioFile.data
-          );
-          
-          
-
-          // Run the FFmpeg command
-          await ffmpeg.exec([
-            '-i', audioFile.name,
-            '-ss', start.toString(), // Start time
-            '-t', (end - start).toString(), // Duration
-            '-c', 'copy',
-            '-f','wav',
-            // 'clipped_audio.mp3'
-            `clipped_${audioFile.name}`
-          ]);
-      
-          // Read the clipped audio file
-          const clippedAudio = (await ffmpeg.readFile(`clipped_${audioFile.name}`, 'binary')) as Uint8Array;
-          
-          console.log("CLIPPED AUDIO... ", clippedAudio);
-      
-          if (clippedAudio) {
-            // Create a blob from the clipped audio
-            const blob = new Blob([clippedAudio], { type: 'audio/wav' });
-            
-            // Create a URL for the clipped audio
-            const url = URL.createObjectURL(blob);
-
-            const response = await fetch(URL.createObjectURL(blob));
-            const arrayBuffer = await response.arrayBuffer();
-
-            const newClippedFile = readArrayBufferAsFile(arrayBuffer);
-            
-            uploadAudioFile(blob, `clipped_${audioFile.name}`);
-
-
-            
-
-
-//             const HF_API_TOKEN = process.env.NEXT_PUBLIC_HUGGING_INFERENCE_API_KEY
-
-//             console.log('sanity newly clipped file: ', newClippedFile);
-// //             const formData = new FormData();
-// //             formData.append("inputs", newClippedFile);
-          
-//             const apiToken: any = process.env.NEXT_PUBLIC_HUGGING_INFERENCE_API_KEY;
-
-// const client = new InferenceClient(apiToken);
-
-
-// const responseHf = client.audioToAudio({
-//     model: "ddPn08/onsets-and-frames", 
-//     inputs: blob,
-//   });
-
-
-                // console.log('Separated stems$$$$$$$$$$$$$$$$:', responseHf);
- 
-            
-//             if (!response.ok) {
-//               throw new Error(`Hugging Face API error: ${response.statusText}`);
-//             }
-
-
-
-
-
-
-
-
-
-
-
-            // filesToProcess.current.push({
-            //     data: newClippedFile,
-            //     name: `${audioFile.name}_clipped.mp3`
-            // });
-
-            const newMeydaData = getMeydaData(arrayBuffer);
-            console.log("NEW MEYDA DATA: ", lastFileUploadMeydaData.current);
-            
-            
-            // Save the clipped audio or play it
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `clipped_${audioFile.name}`;
-            a.click();
-          } else {
-            console.error('Error: clipped audio is null or undefined');
-          }
-        } catch (error) {
-          console.error('Error clipping audio:', error);
-        }
-    }
-  
-
-
-
-    const onReady = (ws: any) => {
-        console.log("WAVESURFER READY: ", ws);
-        if (ws) {        
-            const region = ws.plugins[0].addRegion({
-                start: 0,
-                end: 10,
-                color: 'rgba(0, 255, 0, 0.5)',
-            });
-    
-            region.on("update", (e: any) => {
-                console.log('Region clicked!', e);
-            });
-    
-            region.on("update-end", () => {
-                regionStart.current = region.start;
-                regionEnd.current = region.end;
-                totalDuration.current = region.totalDuration;
-                clippedDuration.current = region.end - region.start;
-                // clipAudio(region.start, region.end);
-                console.log('Finished dragging/resizing!', region);
-            });
-
-            region.on("play", function(this: Region) {
-                console.log('PLAY WORKS!!', this as any);
-                setIsPlaying(true);
-            });
-    
-            // console.log("Region listeners (for info):", region);
-        
-        }
-        wavesurferRef.current = ws;
-
-        if ((wavesurferRef.current !== wavesurfer) && wavesurferRef.current && !wavesurfer) {
-            setWavesurfer(wavesurferRef.current)
-        }
-        // setIsPlaying(false)
-    }
-    
-    const onPlayPause = () => {
-        console.log("YOOO!!! ", wavesurferRef.current);
-        wavesurferRef.current && wavesurferRef.current.playPause()
-    }
-
-    
-
-
-
     const [updated, markUpdated] = useUpdatedNeeded();
-    const universalSources = useRef<Sources | undefined>();
     const [isAudioView, setIsAudioView] = React.useState<boolean>(false);
     const [microtonalScale, setMicrotonalScale] = useState<string>('');
     const [isAnalysisPopupOpen, setIsAnalysisPopupOpen] = useState<boolean>(true);
-    const filesChuckToDac = useRef<string>('');
-    const filesGenericCodeString = useRef<any>('');
-    const currentScreen = useRef<string>('synth');
     const [checkedFXUpdating, setCheckedFXUpdating] = useState<boolean>(false);
     const [showFX, setShowFX] = useState<boolean>(false);
-    const stkKnobValsRef = useRef<STKOption[]>([]);
-    const currentStkTypeVar = useRef<string>('') // # sign separates type#var
-    const currentEffectType = useRef<string>('')
-    const filesToProcess = useRef<Array<any>>([
-        {
-            filename: "DR-55Kick.wav",
-            data: [],
-        },
-        {
-            filename: "DR-55Snare.wav",
-            data: [],
-        },
-        {
-            filename: "DR-55Hat.wav",
-            data: [],
-        },
-        {
-            filename: "Conga.wav",
-            data: [],
-        }
-    ]);
-    const fxValsRef = useRef<FXOption[]>([]);
-    const checkedFXList = useRef<FXOption[]>([]);
-    const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
-    const winFuncEnvFinalHelper = useRef<any>(winFuncEnvDefault);
-    const powerADSRFinalHelper = useRef<any>(powerADSRDefault);
-    const expEnvFinalHelper = useRef<any>(expEnvDefault);
-    const wpDiodeLadderFinalHelper = useRef<any>(wpDiodeDefault);
-    const wpKorg35FinalHelper = useRef<any>(korg35Default);
-    const modulateFinalHelper = useRef<any>(modulateDefault);
-    const delayFinalHelper = useRef<any>(delayDefault);
-    const delayAFinalHelper = useRef<any>(delayADefault);
-    const delayLFinalHelper = useRef<any>(delayLDefault);
-    const expDelayFinalHelper = useRef<any>(expDelayDefault);
-    const ellipticFinalHelper = useRef<any>(ellipticDefault);
-    const spectacleFinalHelper = useRef<any>(spectacleDefault);
-    const chuckRef = useRef<Chuck>();
-    const quarterLengthEstimate = useRef<number>(0);
-    const quarterLengthNumPriorEstimates = useRef<number>(0);
-    quarterLengthEstimate.current = 0;
-    quarterLengthNumPriorEstimates.current = 0;
-    const bpmSmoothingTooLarge = useRef(0);
-    const bpmSmoothingIsFine = useRef(0);
-    bpmSmoothingTooLarge.current = 0;
-    bpmSmoothingIsFine.current = 0;
-    const visibleFXKnobs = useRef<any>();
-    const testArrBuffFile = useRef<any>();
 
-    // currentFX are the ones we are actively editing
-    const currentFX = useRef<any>();
+    const [scaleHook, setScaleHook] = useState<any>(null);
+    const [invertedScaleHook, setInvertedScaleHook] = useState<any>(null);
+    const [chordHook, setChordHook] = useState<QueryResponse | null>(null);
 
-
-    // const headerDict = {
-    //     'Content-Type': 'application/json',
-    //     'Accept': 'application/json',
-    //     'Access-Control-Allow-Headers': 'Content-Type',
-    // }
     const headerDict = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -564,80 +205,41 @@ export default function InitializationComponent() {
         }
     };
 
-    interface NoteHzAndNum {
-        isRest: boolean,
-        midiHz?: number;
-        midiNum?: number;
-        fileItemNum?: any;
-        volume: number;
-    }
-
-    // NEEDS WORK!!!!
-    const notesToAssign = useRef<NoteHzAndNum[]>([
-        {
-            isRest: false,
-            midiHz: 0.0,
-            midiNum: 0,
-            fileItemNum: 1,
-            volume: 0.5,
-        },
-        {
-            isRest: true,
-            midiHz: 0.0,
-            midiNum: 0,
-            fileItemNum: 1,
-            volume: 0.5,
-        },
-        {
-            isRest: true,
-            midiHz: 0.0,
-            midiNum: 0,
-            fileItemNum: 1,
-            volume: 0.5,
-        },
-        {
-            isRest: true,
-            midiHz: 0.0,
-            midiNum: 0,
-            fileItemNum: 1,
-            volume: 0.5,
-        }
-    ]);
-
-    const midiAccess = useRef<WebMidi.MIDIAccess>();
-
-    const resetHeatmapCell = useRef<boolean>();
     resetHeatmapCell.current = false;
 
+    const beatDisplay = useRef<number>(0);
+    const numerCount = useRef<number>(0);
+    const denomCount = useRef<number>(0);
+    const patternCount = useRef<number>(0);
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        let isMounted = true;
-        // const bC: number = parseInt(chuckMsg.match(/\d+/)?.[0] || "0", 10);
-        const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
-        const bC = parsedNumbers.length > 0  
-            ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
-            : currentBeatCountToDisplay;  // Keep previous value if no valid number found
+    //     let isMounted = true;
+    //     const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
         
-        console.log("BC: ", bC);
-        console.log("chuckMsg: ", chuckMsg);
-
-        const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
-        const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
-        const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
-        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
+    //     const bC = parsedNumbers.length > 0  
+    //         ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
+    //         : currentBeatCountToDisplay;  // Keep previous value if no valid number found
         
-        console.log("Beat display: ", beatDisplay);
+    //     console.log("BC: ", bC);
+    //     console.log("chuckMsg: ", chuckMsg);
 
-        setCurrentBeatCountToDisplay(beatDisplay);
-        setCurrentNumerCountColToDisplay(numerCount);
-        setCurrentDenomCount(denomCount);
-        setCurrentPatternCount(patternCount);
+    //     beatDisplay.current = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
+    //     numerCount.current = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
+    //     denomCount.current = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
+    //     patternCount.current = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
         
-        return () => {
-            isMounted = false;
-        }
-    }, [chuckMsg]);
+    //     console.log("Beat display: ", beatDisplay);
+
+    //     // setCurrentBeatCountToDisplay(beatDisplay);
+    //     // setCurrentNumerCountColToDisplay(numerCount);
+    //     // setCurrentDenomCount(denomCount);
+    //     // setCurrentPatternCount(patternCount);
+        
+    //     return () => {
+    //         isMounted = false;
+    //     }
+    // }, [chuckMsg]);
 
     useEffect(() => {
         // Create a function for setting up MIDI access asynchronously
@@ -695,105 +297,138 @@ export default function InitializationComponent() {
     }, [midiBPMClockIncoming]);
 
 
-    const fillHashSlot = (x: number, y: number, z: number, inst: string) => {
-        // console.log("Boom")
-        if (!masterPatternsRef.current[`${z}`]) {
-            masterPatternsRef.current[`${z}`] = {};
-        }
 
-        let col;
-        if (z === 9) {
-            col = "white"
-        } else if (z === 8) {
-            col = "black"
-        } else if (z === 7) {
-            col = "yellow"
-        } else if (z === 6) {
-            col = "red"
-        } else if (z === 5) {
-            col = "pink"
-        } else if (z === 4) {
-            col = "brown"
-        } else if (z === 3) {
-            col = "limegreen"
-        } else if (z === 2) {
-            col = "aqua"
-        } else if (z === 1) {
-            col = "maroon"
-        } else {
-            col = "blue"
-        }
 
-        // masterPatternsRef.current[`${z}`][`${x}`] = {};
-        masterPatternsRef.current[`${z}`][`${x}`] = masterPatternsRef.current[`${z}`][`${x}`] 
-            ?  masterPatternsRef.current[`${z}`][`${x}`] 
-            // : (x % masterFastestRate < 1) ? {
-            : (x === 0 ) ? {
-            on: true,
-            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-            velocity: 0.9,
-            color: col,
-            fileNums: [2],
-            subdivisions: cellSubdivisions
-        } : (x === 2) ? {
-            on: false,
-            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-            velocity: 0.9,
-            color: col,
-            fileNums: [0],
-            subdivisions: cellSubdivisions
-        } : {
-            on: false,
-            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-            velocity: 0.9,
-            color: col,
-            fileNums: [9999],
-            subdivisions: cellSubdivisions
-        };    
-    }
+    const maxX = numeratorSignature * masterFastestRate;
+    const maxY = denominatorSignature;
+    const maxZ = 8;
 
-    useEffect(() => {
-        for (let x = 1; x < (numeratorSignature * masterFastestRate) + 1; x++) {
-            for (let y = 1; y < denominatorSignature + 1; y++) {
-                for (let z = 1; z < (9); z++) {
-                    if (z % 5 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `osc1`);
-                    }
-                    else if (z % 6 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `osc2`);
-                    }
-                    else if (z % 7 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `stk1`);
-                    }
-                    else if (z % 8 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `audioin`);
-                    }
-                    else {
-                        // console.log("Z LESS THAN 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign sample pattern values below
-                        fillHashSlot(x, y, z, `sample`);
-                    }
-                }
+    const instrumentMap = new Map<number, string>([
+        [5, 'osc1'],
+        [6, 'osc2'],
+        [7, 'stk1'],
+        [8, 'audioin'],
+    ]);
+    
+    const getInstrumentForZ = (z: number): string => {
+        return instrumentMap.get(z) || 'sample';
+    };
+
+
+
+
+    // const fillHashSlot = (x: number, y: number, z: number, inst: string) => {
+    //     if (!masterPatternsRef.current[`${z}`]) {
+    //         masterPatternsRef.current[`${z}`] = {};
+    //     }
+
+    //     let col;
+    //     if (z === 9) {
+    //         col = "white"
+    //     } else if (z === 8) {
+    //         col = "black"
+    //     } else if (z === 7) {
+    //         col = "yellow"
+    //     } else if (z === 6) {
+    //         col = "red"
+    //     } else if (z === 5) {
+    //         col = "pink"
+    //     } else if (z === 4) {
+    //         col = "brown"
+    //     } else if (z === 3) {
+    //         col = "limegreen"
+    //     } else if (z === 2) {
+    //         col = "aqua"
+    //     } else if (z === 1) {
+    //         col = "maroon"
+    //     } else {
+    //         col = "blue"
+    //     }
+
+    //     masterPatternsRef.current[`${z}`][`${x}`] = 
+    //     {
+    //         on: true,
+    //         note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+    //         noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
+    //         velocity: 0.9,
+    //         color: col,
+    //         // fileNums: x % 2 === 0 ? [0, 1, 3, 2] : x % 5 === 0 ? [0] : [9999],
+    //         fileNums: !isInPatternEditMode ? [0, 1, 3, 2] : masterPatternsRef.current[`${z}`][`${x}`] && Object.keys(masterPatternsRef.current[`${z}`][`${x}`]).length > 0 && masterPatternsRef.current[`${z}`][`${x}`].fileNums ? masterPatternsRef.current[`${z}`][`${x}`].fileNums : x % 4 === 0 ? [0, 1, 3] : [2], // 9999
+    //         subdivisions: cellSubdivisions
+    //     }
+    // }
+
+
+
+      
+
+      useEffect(() => {
+        const beatsPerMeasure = numeratorSignature;
+        const beatSubdivision = masterFastestRate; // e.g. 4 = 16th notes if quarter note base
+        const noteValue = denominatorSignature;
+      
+        const totalSteps = beatsPerMeasure * beatSubdivision;
+      
+        const instruments = [
+          'sample',   // z = 1
+          'sample',   // z = 2
+          'sample',   // z = 3
+          'sample',   // z = 4
+          'osc1',     // z = 5
+          'osc2',     // z = 6
+          'stk1',     // z = 7
+          'audioin'   // z = 8
+        ];
+      
+        const fillHashSlot = (x: number, y: number, z: number, inst: string) => {
+            const zKey = `${z}`;
+            if (!masterPatternsRef.current[zKey]) {
+              masterPatternsRef.current[zKey] = {};
             }
+
+            const zColors = [
+                '', 'maroon', 'aqua', 'limegreen', 'brown', 'pink',
+                'red', 'yellow', 'black', 'white' // index 1 to 9
+              ];
+              
+          
+            const color = zColors[z] || 'blue';
+          
+            const key = x + (x * y);
+          
+            const fileNums = !isInPatternEditMode
+              ? [0, 1, 3, 2]
+              : (
+                  masterPatternsRef.current[zKey][`${x}`]?.fileNums ??
+                  (x % 4 === 0 ? [0, 1, 3] : [2])
+                );
+          
+            masterPatternsRef.current[zKey][`${x}`] = {
+              on: true,
+              note: mTFreqs[key] || 0.0,
+              noteHz: mTMidiNums[key] || 0.0,
+              velocity: 0.9,
+              color,
+              fileNums,
+              subdivisions: cellSubdivisions
+            };
+        };
+
+        for (let step = 1; step <= totalSteps; step++) {
+          for (let beatDivision = 1; beatDivision <= noteValue; beatDivision++) {
+            for (let zIndex = 0; zIndex < instruments.length; zIndex++) {
+              const z = zIndex + 1; // because your `fillHashSlot` expects 1-based z
+              const instrument = instruments[zIndex];
+              fillHashSlot(step, beatDivision, z, instrument);
+            }
+          }
         }
+      
         setPatternsHashHook(masterPatternsRef.current);
         setPatternsHashUpdated(true);
-        return () => {
-        };
-    }, [numeratorSignature, denominatorSignature, mTMidiNums]);
-
-    const allOctaveMidiFreqs = useRef<any>({});
+      
+      }, [numeratorSignature, denominatorSignature, masterFastestRate, mTMidiNums, cellSubdivisions, mTFreqs]);
+    
     allOctaveMidiFreqs.current = {};
 
     const selectRef: any = React.useCallback((selectedMicrotone: string, i: any) => {
@@ -803,6 +438,7 @@ export default function InitializationComponent() {
         if (i) {
             console.log('&&&selected microtone::: what is i???? ', i);
         }
+        setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
     }, []);
 
     const [newMicroTonalArr, setNewMicroTonalArr] = useState<any>([])//
@@ -858,17 +494,12 @@ export default function InitializationComponent() {
 
 
     const inPatternEditMode = (state: boolean) => {
-        // console.log(
-        //     'HEYO CHECK STATE??? ', state
-        // );
         isInPatternEditMode.current = true;
     }
 
     const handleMasterRateUpdate = async () => {
         const fastestRate = Math.max(...Object.values(currentNoteVals).map((i) => i[0]));
-        
-        console.log("WHAT IS FASTEST RATE??? ", masterFastestRate);
-        
+                
         setMasterFastestRate(fastestRate);
     }
 
@@ -877,42 +508,43 @@ export default function InitializationComponent() {
         setCurrentNoteVals({ ...currentNoteVals, osc1: [valOscRate] });
         handleMasterRateUpdate();
     }
+
     const handleOsc2RateUpdate = async (val: any) => {
         const valOscRate = await val.target.value;
         setCurrentNoteVals({ ...currentNoteVals, osc2: [valOscRate] });
         handleMasterRateUpdate();
     }
+    
     const handleStkRateUpdate = async (val: any) => {
         const valStkRate = await val.target.value;
         setCurrentNoteVals({ ...currentNoteVals, stks: [valStkRate] });
         handleMasterRateUpdate();
     }
+    
     const handleSamplerRateUpdate = async (val: any) => {
         const valSamplerRate = await val.target.value;
         setCurrentNoteVals({ ...currentNoteVals, samples: [valSamplerRate] });
         handleMasterRateUpdate();
     }
+    
     const handleAudioInRateUpdate = async (val: any) => {
         const valAudioInRate = await val.target.value;
         console.log("YES AUDIN??? ", valAudioInRate, currentNoteVals);
         setCurrentNoteVals({ ...currentNoteVals, linesIn: [valAudioInRate] });
         handleMasterRateUpdate();
     }
+    
     const handleSwitchToggle = () => {
         setIsAudioView(!isAudioView);
     };
+    
     if (!currentFX.current && (!masterPatternsRef.current || masterPatternsRef.current.length < 1)) {
         currentFX.current = moogGrandmotherEffects.current;
     }
 
-    const lastFileUploadMeydaData = useRef<any>([])
-
-
-
-
     const getMeydaData = (fileData: ArrayBuffer) => {
         // WE DOOOO WANT TO USE OFFLINE CONTEXT FOR FILE ANALYSIS (not realtime)
-        Promise.resolve(fileData).then((arrayBuffer) => {
+        return Promise.resolve(fileData).then((arrayBuffer) => {
             const offlineAudioContext = chuckRef.current ? chuckRef.current.context : new OfflineAudioContext({
                 length: 1,
                 sampleRate: 44100
@@ -920,80 +552,103 @@ export default function InitializationComponent() {
 
             return offlineAudioContext.decodeAudioData(arrayBuffer);
         })
-            .then((audioBuffer) => {
-                const signal = new Float32Array(512);
+        .then((audioBuffer) => {
+            const signal = new Float32Array(512);
 
-                for (let i = 0; i < audioBuffer.sampleRate * 5; i += 512) {
-                    audioBuffer.copyFromChannel(signal, 0, i);
-                    lastFileUploadMeydaData.current = [];
-                    lastFileUploadMeydaData.current && lastFileUploadMeydaData.current.push(
-                        Meyda.extract(
-                            [
-                                // "pitch",
-                                // "onsets",
-                                "rms",
-                                "mfcc",
-                                "chroma",
-                                "zcr",
-                                "energy",
-                                "amplitudeSpectrum",
-                                "powerSpectrum",
-                                "spectralCentroid",
-                                "spectralFlatness",
-                                "spectralRolloff",
-                                // "spectralFlux",
-                                "spectralSlope",
-                                "spectralFlatness",
-                                "spectralSpread",
-                                "spectralSkewness",
-                                "spectralKurtosis",
-                                "spectralCrest",
-                                "loudness",
-                                "perceptualSpread",
-                                "perceptualSharpness",
-                                "complexSpectrum",
-                                "buffer"]
-                            , signal));
-                }
-                console.log("HEYA HOLY MOLY IT WORKED ", lastFileUploadMeydaData.current);
-
-                // const meydaFileArray = lastFileUploadMeydaData.current.map((i: any) => i[featuresLegendParam.toLowerCase()]);
-
-                // for (var i in meydaFileArray) {
-                //     indexedFileFeatureArray.current[i] = { 'date': ((parseFloat(i))), 'close': parseFloat(meydaFileArray[i]) };
-                // }
-                // console.log("BADABOOM! ", indexedFileFeatureArray.current);
-                // setMeydaNeedsUpdate(true)
-                // setFeaturesLegendData([]);
-            });
+            for (let i = 0; i < audioBuffer.sampleRate * 5; i += 512) {
+                audioBuffer.copyFromChannel(signal, 0, i);
+                lastFileUploadMeydaData.current = [];
+                lastFileUploadMeydaData.current && lastFileUploadMeydaData.current.push(
+                    Meyda.extract(
+                        [
+                            // "pitch",
+                            // "onsets",
+                            "rms",
+                            "mfcc",
+                            "chroma",
+                            "zcr",
+                            "energy",
+                            "amplitudeSpectrum",
+                            "powerSpectrum",
+                            "spectralCentroid",
+                            "spectralFlatness",
+                            "spectralRolloff",
+                            // "spectralFlux",
+                            "spectralSlope",
+                            "spectralFlatness",
+                            "spectralSpread",
+                            "spectralSkewness",
+                            "spectralKurtosis",
+                            "spectralCrest",
+                            "loudness",
+                            "perceptualSpread",
+                            "perceptualSharpness",
+                            "complexSpectrum",
+                            "buffer"]
+                        , signal));
+            }
+            console.log("HEYA HOLY MOLY IT WORKED ", lastFileUploadMeydaData.current);
+            const returnMeyda = lastFileUploadMeydaData.current;
+            console.log("RETURN MEYDA: ", returnMeyda);
+            return returnMeyda;
+        });
     }
+
 
     const onSubmit = async (files: any) => {
         if (files.length === 0) return;
+        if (isSubmitting.current) {
+            console.log("Already submitting, aborting...");
+            return;
+        }
+
+        if (!files.file || files.file.length === 0) {
+            console.log('No file uploaded.');
+            return;
+        }
+        
+        console.log("FILE??? : ", files);
         const file = files.file[0];
+
+        isSubmitting.current = true; // LOCK!!!
+
         const fileDataBuffer: any = await file.arrayBuffer();
+        console.log("GOT FILEDATABUFFER?  ", fileDataBuffer);
         const fileData: any = new Uint8Array(fileDataBuffer);
         const blob = new Blob([fileDataBuffer], { type: "audio/wav" });
+        console.log("GETTING BLOB?? ", blob, "HAVE UP CURR??? ", uploadedBlob.current);
         if (blob && !uploadedBlob.current) {
             uploadedBlob.current = blob;
+        } else {
+            return;
         }
+        console.log("FILE DATA: ", fileData);
         testArrBuffFile.current = fileData;
 
         const fileBlob = new File([blob], `${file.name.replace(' ', '_')}`, { type: "audio/wav" });
         let arrayBuffer;
         const fileReader = new FileReader();
         fileReader.onload = async function (event: any) {
+            console.log("@@@@ check the event ", event);
             arrayBuffer = event.target.result;
             const formattedName = file.name.replaceAll(' ', '_').replaceAll('-', '');
-            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1) {
-                filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false })
-                // tk look here
-                setFilesToProcessArrayHook((x: any) => [...x, { 'filename': formattedName, 'data': fileData, 'processed': false }])
-            }
+            console.log("@@@ check the formatted name: ", formattedName);
+            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1 &&
+                filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1
+            ) {
+                alert('blam');
+                filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false });
+
+                filesToProcess.current.push({ 'filename': formattedName, 'data': fileData, 'processed': false }); 
+                console.log("FILES TO PROCESS: ", filesToProcess.current);
+            } 
+     
+            
             await getMeydaData(arrayBuffer);
             if (chuckHook) {
                 setChuckUpdateNeeded(true);
             }
+            isSubmitting.current = false; // UNLOCK
         }
         fileReader.readAsArrayBuffer(fileBlob);
     }
@@ -1026,7 +681,7 @@ export default function InitializationComponent() {
         return () => {
             isMounted = false;
         };
-    }, [microtonalScale]);
+    }, [microtonalScale, tune]);
 
     const convertMicrotonalChord = () => {
         // DEFINITELY DO THIS!!! HERE IS A MICROTONAL TUNING MODE FOR REGULAR KEYBOARD
@@ -1049,105 +704,15 @@ export default function InitializationComponent() {
         console.log('MIDI NUM: ', theMidiNum);
     }
 
-    const initialNodes = useRef<any>();
-    const initialEdges = useRef<any>();
+
     initialNodes.current = initialNodesDefaults && initialNodesDefaults;
 
     initialEdges.current = initialEdgesDefaults && initialEdgesDefaults;
 
-    const keysAndTuneDone = useRef<boolean>();
-
     keysAndTuneDone.current = keysAndTuneDone.current || false;
 
-    useEffect(() => {
 
-        load();
-       // if (tune || keysAndTuneDone.current === true) return;
-        keysAndTuneDone.current = true;
-        let isMounted = true;
-
-        const allFx: any = [];
-
-        fxGroupOptions.map((i: any) => {
-            if (allFx.indexOf(i.effects) === -1) {
-                allFx.push(i.effects);
-            }
-        });
-
-        // console.log("DOES ALLFX DO WHAT WE WANT? ", allFx.flat().map((i:any)=>i));
-        // const indexADSRExtra = allFx.flat().filter((i: any) => i.effectLabel === "ADSR");
-        // console.log("WTF ALL FX??? ", allFx, "CHECKED: ", checkedFXList.current);
-        Object.keys(defaultSources).map((srcName: string) => {
-            allFx.flat().map((fx: any) => {
-
-                const isChecked = (x: any) => checkedFXList.current.length > 0 && checkedFXList.current.indexOf(x) !== -1;
-
-                const src: EffectsSettings = defaultSources[`${srcName as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)] || {};
-
-                if (!src) return;
-
-                if (
-                    getConvertedRadio(fxRadioValue).toLowerCase() === srcName.toLowerCase()
-                    ||
-                    !defaultSources[`${srcName as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)].presets
-                    ||
-                    (defaultSources[`${srcName as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)] &&
-                        Object.values(defaultSources[`${getConvertedRadio(fxRadioValue) as keyof Sources}`] && defaultSources[`${getConvertedRadio(fxRadioValue) as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)]).length > 0 &&
-                        defaultSources[`${getConvertedRadio(fxRadioValue) as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)].presets.length < 1)
-                ) {
-                    const pre_sets: any = (!src.presets || (src.presets && src.presets.length < 1)) && getFX1Preset(fx.effectVar);
-
-                    if ((!src.presets || (src.presets && src.presets.length < 1))) {
-                        src.presets = JSON.parse(JSON.stringify(pre_sets[0].presets));
-                        src.Type = fx.effectLabel;
-                        src.VarName = fx.effectVar;
-                        src.On = isChecked(fx.effectLabel) ? true : false;
-                        src.Visible = true;
-                    }
-                }
-
-                defaultSources.stk1.instruments && Object.values(defaultSources.stk1.instruments).filter(i => i.On).length > 0 && Object.entries(defaultSources.stk1.instruments).map((i: [string, EffectsSettings]) => {
-                    if (
-                        i.length === 2 &&
-                        getSTK1Preset(i[0].toLowerCase()) && getSTK1Preset(i[0].toLowerCase()) &&
-                        getSTK1Preset(i[0].toLowerCase()) && Object.values(getSTK1Preset(i[0].toLowerCase())) && Object.values(getSTK1Preset(i[0].toLowerCase())).length > 0
-                    ) {
-                        i[1].presets = getSTK1Preset(i[0].toLowerCase()) && Object.values(getSTK1Preset(i[0].toLowerCase()).presets)
-                        i[1].Type = getSTK1Preset(i[0].toLowerCase()) && getSTK1Preset(i[0].toLowerCase()).type || '';
-                        i[1].VarName = getSTK1Preset(i[0].toLowerCase()) && getSTK1Preset(i[0].toLowerCase()).var || '';
-                    }
-                })
-
-                // console.log("check inst here: ", defaultSources.stk1.instruments && Object.values(defaultSources.stk1.instruments).filter((i:any) => i.On));
-                if (!universalSources.current) {
-                    // console.log("HOW MANY TIMES ARE WE HERE>?? ", universalSources.current)
-                    universalSources.current = defaultSources;
-                }
-
-                markUpdated();
-
-            });
-        });
-
-        if (!tune && Tune) {
-            const getTune = new Tune();
-            setTune(getTune);
-        }
-        
-        return () => {
-            isMounted = false;
-        };
-
-    }, []);
-
-    // useEffect(() => {
-    //     console.log("CURRENT HEATMAP X AND Y HERE... ", currentHeatmapXY);
-    //     setIsInPatternEditMode(true);
-    // }, [currentHeatmapXY]);
-
-    // CHANGE THIS USEEFFECT TO A FUNCTION!
-    useEffect(() => {
-        let isMountd = true;
+    const initFX = (updateCurrentFXScreen: any) => {
         let visibleStkAndFX: Array<any>;
         if (universalSources.current) {
             console.log('curr screen / doReturnToSynth / checkedFXUpdating: ', currentScreen.current, doReturnToSynth.current, checkedFXUpdating);
@@ -1190,17 +755,91 @@ export default function InitializationComponent() {
                     Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
 
             setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
-            updateCurrentFXScreen();
+            updateCurrentFXScreen(setFxKnobsCount, setBabylonKey, babylonKey);
             setNeedsUpdate(true);
         }
         if (initialNodes.current && initialEdges.current) {
             setInitialNodesHook(initialNodes.current.filter((i: any) => i));
             setInitialEdgesHook(initialEdges.current.filter((i: any) => i));
+        }        
+    };
+
+    useEffect(() => {
+
+        keysAndTuneDone.current = true;
+        let isMounted = true;
+
+        initFX(updateCurrentFXScreen);
+
+        const allFx: any = [];
+
+        fxGroupOptions.map((i: any) => {
+            if (allFx.indexOf(i.effects) === -1) {
+                allFx.push(i.effects);
+            }
+        });
+
+        Object.keys(defaultSources).map((srcName: string) => {
+            allFx.flat().map((fx: any) => {
+
+                const isChecked = (x: any) => checkedFXList.current.length > 0 && checkedFXList.current.indexOf(x) !== -1;
+
+                const src: EffectsSettings = defaultSources[`${srcName as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)] || {};
+
+                if (!src) return;
+
+                if (
+                    getConvertedRadio(fxRadioValue).toLowerCase() === srcName.toLowerCase()
+                    ||
+                    !defaultSources[`${srcName as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)].presets
+                    ||
+                    (defaultSources[`${srcName as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)] &&
+                        Object.values(defaultSources[`${getConvertedRadio(fxRadioValue) as keyof Sources}`] && defaultSources[`${getConvertedRadio(fxRadioValue) as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)]).length > 0 &&
+                        defaultSources[`${getConvertedRadio(fxRadioValue) as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)].presets.length < 1)
+                ) {
+                    const pre_sets: any = (!src.presets || (src.presets && src.presets.length < 1)) && getFX1Preset(fx.effectVar);
+
+                    if ((!src.presets || (src.presets && src.presets.length < 1))) {
+                        src.presets = JSON.parse(JSON.stringify(pre_sets[0].presets));
+                        src.Type = fx.effectLabel;
+                        src.VarName = fx.effectVar;
+                        src.On = isChecked(fx.effectLabel) ? true : false;
+                        src.Visible = true;
+                    }
+                }
+
+                defaultSources.stk1.instruments && Object.values(defaultSources.stk1.instruments).filter(i => i.On).length > 0 && Object.entries(defaultSources.stk1.instruments).map((i: [string, EffectsSettings]) => {
+                    if (
+                        i.length === 2 &&
+                        getSTK1Preset(i[0].toLowerCase()) && getSTK1Preset(i[0].toLowerCase()) &&
+                        getSTK1Preset(i[0].toLowerCase()) && Object.values(getSTK1Preset(i[0].toLowerCase())) && Object.values(getSTK1Preset(i[0].toLowerCase())).length > 0
+                    ) {
+                        i[1].presets = getSTK1Preset(i[0].toLowerCase()) && Object.values(getSTK1Preset(i[0].toLowerCase()).presets)
+                        i[1].Type = getSTK1Preset(i[0].toLowerCase()) && getSTK1Preset(i[0].toLowerCase()).type || '';
+                        i[1].VarName = getSTK1Preset(i[0].toLowerCase()) && getSTK1Preset(i[0].toLowerCase()).var || '';
+                    }
+                })
+
+                if (!universalSources.current) {
+                    universalSources.current = defaultSources;
+                }
+                markUpdated();
+            });
+        });
+
+        if (!tune && Tune) {
+            const getTune = new Tune();
+            setTune(getTune);
         }
+        
         return () => {
-            isMountd = false;
-        }
-    }, [checkedFXUpdating]);
+            isMounted = false;
+        };
+    }, [
+        fxRadioValue,
+        markUpdated,
+        tune
+    ]);
 
     useEffect(() => {
         let isMounted = true;
@@ -1216,17 +855,27 @@ export default function InitializationComponent() {
         };
     }, [fxRadioValue]);
 
-    const handleFXGroupChange = (e: any) => {
-        console.log("E TARGET VALUE IN GROUP FX CHANGE ", e.target.value);
-        if (fxValsRef.current.indexOf(e.target.value) === -1 && fxValsRef.current.indexOf(e.target.value) === -1) {
-            fxValsRef.current.push(e.target.value);
-            checkedFXList.current.push(e.target.value);
-            setCheckedEffectsListHook((x: any) => [...x, e.target.value]);
+    const handleToggleArpeggiator = () => {
+        if (arpeggiatorOn === 0) {
+            setArpeggiatorOn(1);
         } else {
-            const index = fxValsRef.current.indexOf(e.target.value);
-            fxValsRef.current.splice(index, 1);
-            const indexChecked = checkedFXList.current.indexOf(e.target.value);
-            checkedFXList.current.slice(indexChecked, 1);
+            setArpeggiatorOn(0);
+        }
+    };
+
+    const toggleKeyboard = () => {
+        if (keysVisible === false) {
+            setKeysVisible(true);
+        } else {
+            setKeysVisible(false);
+        }
+    };
+
+    const handleToggleStkArpeggiator = () => {
+        if (stkArpeggiatorOn === 0) {
+            setStkArpeggiatorOn(1);
+        } else {
+            setStkArpeggiatorOn(0);
         }
     };
 
@@ -1237,150 +886,8 @@ export default function InitializationComponent() {
             setHold(0);
         }
         setChuckUpdateNeeded(true);
-    }
-
-    const updateStkKnobs = (knobVals: STKOption[]) => {
-        console.log("yup knobs: ", knobVals)
-        stkKnobValsRef.current = [];
-        stkKnobValsRef.current.push(...knobVals);
-        if (!stkKnobValsRef.current[stkKnobValsRef.current.length - 1]) {
-            
-            visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-            setFxKnobsCount(moogGrandmotherEffects.current.length);
-            updateCurrentFXScreen();
-            setNeedsUpdate(true);
-            return;
-        }
-        currentStkTypeVar.current = (`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}#${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).var}`)
-        if (universalSources.current) {
-            console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value));
-            const stk: any = universalSources.current.stk1
-            visibleFXKnobs.current = Object.values(getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).presets).map((i: any) => [i.label, i]);
-            const instType = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type
-            currentFX.current = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value);
-            if (universalSources.current.stk1.instruments) {
-                Object.entries(universalSources.current.stk1.instruments).map((i: [string, EffectsSettings]) => {
-                    if (i[0] === instType) {
-                        i[1].Visible = true;
-                        i[1].On = true;
-                        if (i[1].presets) i[1].presets = Object.values(getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).presets);
-                    } else {
-                        i[1].Visible = false
-                    }
-                })
-            }
-            setFxKnobsCount(visibleFXKnobs.current.length);
-            currentFX.current = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value);
-
-
-            currentScreen.current = `stk_${currentFX.current.type}`;
-
-            if (Object.values(stk.instruments).filter((inst: any) => inst.On).length > 0) {
-
-                stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].Type = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type; ///// LOOK HERE!!!!
-                stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].VarName = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).var;
-                stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].On = true;
-
-                currentFX.current = stkKnobValsRef.current;
-
-                const knobsCountTemp = Object.values(stk.instruments).filter((i: any) => i.Visible).map((i: any) => i.presets).length;
-
-                setFxKnobsCount(knobsCountTemp);
-                updateCurrentFXScreen();
-            }
-        }
-    }
-
-    const handleToggleArpeggiator = () => {
-        if (arpeggiatorOn === 0) {
-            setArpeggiatorOn(1);
-        } else {
-            setArpeggiatorOn(0);
-        }
-    }
-
-    const toggleKeyboard = () => {
-        if (keysVisible === false) {
-            setKeysVisible(true);
-        } else {
-            setKeysVisible(false);
-        }
-    }
-
-    const handleToggleStkArpeggiator = () => {
-        if (stkArpeggiatorOn === 0) {
-            setStkArpeggiatorOn(1);
-        } else {
-            setStkArpeggiatorOn(0);
-        }
-    }
-
-    const handleReturnToSynth = () => {
-        if (currentScreen.current === "stk") {
-        } else if (currentScreen.current !== "fx") {
-            doReturnToSynth.current = !doReturnToSynth.current;
-            currentScreen.current = "synth";
-        }
-    }
-
-    const updateCurrentFXScreen = () => {
-        if (visibleFXKnobs.current && currentScreen.current.includes('stk') || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
-            setFxKnobsCount(visibleFXKnobs.current.length);
-        } else if (currentScreen.current === 'synth') {
-            currentFX.current = [];
-            currentFX.current = moogGrandmotherEffects.current;
-            visibleFXKnobs.current = visibleFXKnobs.current || Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-            setFxKnobsCount(visibleFXKnobs.current.length);
-        }
-        setBabylonKey(`${babylonKey}1`);
     };
 
-    const updateCheckedFXList = async (e: any) => {
-
-        console.log("CHECK E ", e.target.id);
-
-        currentEffectType.current = e.target.id && e.target.id;
-
-        if (checkedFXList.current.indexOf(e.target.value) === -1) {
-            checkedFXList.current.push(e.target.value);
-            setCheckedEffectsListHook((x: any) => [...x, e.target.value]);
-        } else {
-            doReturnToSynth.current = true;
-            console.log("returning to synth in the else...");
-            const index = checkedFXList.current.indexOf(e.target.value);
-            checkedFXList.current.splice(index, 1);
-            setCheckedEffectsListHook((x: any) => x.filter((y: any) => y !== e.target.value && y));
-
-            currentFX.current = moogGrandmotherEffects.current;
-            visibleFXKnobs.current = visibleFXKnobs.current || Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-            setFxKnobsCount(visibleFXKnobs.current.length);
-
-
-            // // console.log("look good 2? ",  Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]))
-            // visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-            // currentFX.current = moogGrandmotherEffects.current;
-            // setFxKnobsCount(visibleFXKnobs.current.length);
-        }
-
-        universalSources.current &&
-            universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources] &&
-            Object.values(universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources]).length > 0 &&
-            Object.values(universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects).map((effect: any) => {
-                if (effect.VarName === e.target.value && effect.On !== true) effect.On = true;
-                else if (effect.VarName === e.target.value && effect.On === true) effect.On = false;
-            })
-
-
-        console.log("Checked List Current in Update: ", checkedFXList.current);
-
-        // tk
-        console.log("Nodes and edges updated successfully.");
-
-        setCheckedFXUpdating(!checkedFXUpdating);
-        updateFlowNodesAndEdges();
-        setFxKnobsCount(visibleFXKnobs.current.length);
-        return;
-    };
 
     const updateFlowNodesAndEdges = () => {
         const pedalChain: Source[][] | unknown = universalSources.current && Object.entries(universalSources.current).map((source: any) => {
@@ -1403,15 +910,8 @@ export default function InitializationComponent() {
         currentInst && setCurrentChain(currentInst);
 
 
-    }
+    };
 
-    useEffect(() => {
-        let isMounted = true;
-        setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
-        return () => {
-            isMounted = false;
-        };
-    }, [moogGrandmotherEffects])
 
 
     ////////////////////////////////////////////////////////////////
@@ -1615,7 +1115,7 @@ export default function InitializationComponent() {
 
     //////////////////////////////////////////////////////////////////
 
-    const [notesAddedDetails, setNotesAddedDetails] = useState<any>([])
+    const [notesAddedDetails, setNotesAddedDetails] = useState<any>([]);
 
     const organizeRows = async (rowNum: number, note: string) => {
 
@@ -1641,7 +1141,7 @@ export default function InitializationComponent() {
             return;
         }
 
-    }
+    };
 
     const organizeLocalStorageRows = async (note: any) => {
         const noteReady = {
@@ -1656,7 +1156,7 @@ export default function InitializationComponent() {
         noteReady.midiNote = getNote.midi;
         noteReady.midiHz = getNote.freq;
         noteReady.name = note;
-    }
+    };
 
     function compare(a: any, b: any) {
         if (a.midiNote < b.midiNote) {
@@ -1668,69 +1168,10 @@ export default function InitializationComponent() {
         return 0;
     };
 
-
-
-
-
-
-    const workerRef = useRef<Worker | null>(null);
-    /// >>> in useEffect(() => {
-
-
-
     useEffect(() => {
 
         let isMounted = true;
 
-
-        // let analyzer: Meyda.MeydaAnalyzer | null = null;
-
-        // if (!chuckRef.current?.context) return;
-
-        // const audioContext = chuckRef.current.context;
-
-        // // Initialize worker
-        // workerRef.current = new Worker("/workers/meydaWorker.ts");
-        // analyzer = Meyda.createMeydaAnalyzer({
-        //     audioContext,
-        //     source: chuckRef.current,
-        //     bufferSize: 512,
-        //     featureExtractors: [
-        //         "rms",
-        //         "mfcc",
-        //         "chroma",
-        //         "zcr",
-        //         "energy",
-        //         "amplitudeSpectrum",
-        //         "powerSpectrum",
-        //         "spectralCentroid",
-        //         "spectralFlatness",
-        //         "spectralRolloff",
-        //         // "spectralFlux",
-        //         "spectralSlope",
-        //         "spectralFlatness",
-        //         "spectralSpread",
-        //         "spectralSkewness",
-        //         "spectralKurtosis",
-        //         "spectralCrest",
-        //         "loudness",
-        //         "perceptualSpread",
-        //         "perceptualSharpness",
-        //         "complexSpectrum",
-        //         "buffer"
-        //     ],
-        //     callback: (features: any) => {
-        //         if (features && workerRef.current) {
-        //             workerRef.current.postMessage(features);
-        //         }
-        //     },
-        // });
-        // analyzer.start();
-
-        // // Receive processed features from the worker
-        // workerRef.current.onmessage = (e) => {
-        //     console.log("Processed Features from Worker:", e.data);
-        // };
         if (!chuckRef.current?.context) return;
 
         const audioContext = chuckRef.current.context;
@@ -1748,10 +1189,6 @@ export default function InitializationComponent() {
                 };
             }
 
-
-
-
-
             processor.port.onmessage = (event) => {
                 if (event.data.audioData) {
                     event.data.audioData && workerRef.current?.postMessage({
@@ -1761,26 +1198,16 @@ export default function InitializationComponent() {
                 }
             };
 
-
             const analyzer = audioContext.createAnalyser();
-            // audioContext.destination.connect(analyzer);
-            // processor.connect(audioContext.destination);
-
 
             //chuckRef.current && chuckRef.current.connect(analyzer);  // Connect the source to the analyzer
             analyzer.connect(audioContext.destination);  // Directly connect the analyzer to the destination
             return () => {
-                // if (isMounted) {
                 workerRef.current?.terminate();
                 processor.disconnect();
-                // isMounted = false;
-                // }
             };
 
         })
-        // .catch((err: any) => {
-        //     console.error("Failed to load AudioWorkletModule:", err);
-        // });
 
         return () => {
             if (isMounted) {
@@ -1808,20 +1235,7 @@ export default function InitializationComponent() {
         return () => {
             isMounted = false;
         };
-    }, [chuckUpdateNeeded]) // if there are problems, switch back to [${chuckUpdateNeeded}]
-
-
-    // NEEDS WORK...
-    const NOTES_SET_REF = useRef<any>();
-
-
-    useEffect(() => {
-        const subscription = watch(() => handleSubmit(onSubmit)())
-        console.log('SUBSCRIPTION: ', subscription); // what is this for???qw2e3
-        return () => {
-            subscription.unsubscribe();
-        }
-    }, [handleSubmit, watch, register]);
+    }, [chuckUpdateNeeded, fxRadioValue]) // if there are problems, switch back to [${chuckUpdateNeeded}]
 
     const stopChuckInstance = () => {
         chuckRef.current && chuckRef.current.clearChuckInstance();
@@ -1838,10 +1252,6 @@ export default function InitializationComponent() {
     const triggerNote = (note: any) => {
         console.log('note??? ', note);
         console.log('note sanity??? ', Object.values(currNotesHash.current).map((i: any) => i && i[0]).filter(i => parseFloat(i)) || []);
-        // Object.entries(currNotesHash.current).map((note: any) => {
-        //     chuckRef.current && chuckRef.current.setAssociativeFloatArrayValue(`na_${getConvertedRadio(fxRadioValue)}`, "innerNotes", parseFloat(note[1]));
-        // });
-
 
         NOTES_SET_REF.current = Object.values(currNotesHash.current)
         .map((i: any) => {
@@ -1855,17 +1265,10 @@ export default function InitializationComponent() {
         console.log("Notes set ref // curr notes hash :::: ", NOTES_SET_REF.current, currNotesHash.current)
 
         if (isInPatternEditMode.current === true) {
-            // if (resetHeatmapCell.current === true) {
-            //     masterPatternsRef.current[currentHeatmapXY.x][currentHeatmapXY.y].note = 0;
-            //     masterPatternsRef.current[currentHeatmapXY.x][currentHeatmapXY.y].noteHz = 0;
-            //     resetHeatmapCell.current = false;
-            // }
 
             console.log("WHAT IS CURR NOTES HASH? ", currNotesHash.current);
 
             const baseHashCurrNotes: any = Object.values(currNotesHash.current)[0];
-
-            console.log("dang shit and fuck: ", currentHeatmapXY.current);
 
             masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x].note = baseHashCurrNotes[0];
             masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x].noteHz = baseHashCurrNotes[1];
@@ -1892,21 +1295,9 @@ export default function InitializationComponent() {
         // setCheckedEffectToShow(msg);
     }
 
-    const initialRun = useRef<boolean>(true);
-
-    const lastNotesPlayed = useRef<number[]>([]);
-
-    
 
     const getSourceFX = (thisSource: string) => {
         if (thisSource === "stk") thisSource = "stk1";
-        console.log("AYYY ", thisSource);
-        console.log("OYYY ", getConvertedRadio(fxRadioValue));
-        console.log("UYYY ", universalSources.current);
-        console.log("DAFUQ? ", universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources])
-        console.log("SANITY??? ", universalSources.current && 
-            universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources] && 
-            universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects);
         return `
             ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.PowerADSR.Code(powerADSRFinalHelper.current) : ''}
             ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WinFuncEnv.Code(winFuncEnvFinalHelper.current) : ''}
@@ -1926,13 +1317,7 @@ export default function InitializationComponent() {
 
 
 
-    const activeSTKDeclarations = useRef<string>('');
-    const activeSTKSettings = useRef<string>('');
-    const activeSTKPlayOn = useRef<string>('');
-    const activeSTKPlayOff = useRef<string>('');
-
-
-    const runChuck = async () => {
+    const runChuck = async (isTestingChord?: number | undefined) => {
         if (typeof window === 'undefined') return;
 
         console.log("good so far w/ aChuck... ")
@@ -1943,12 +1328,15 @@ export default function InitializationComponent() {
         // setResetNotes(NOTES_SET_REF.current)
 
         if (chuckRef.current) {
-            // SHOULD WE PICK UP HERE & FOCUS ON REFACTORING AS A GENERAL (TO GET CURRENT RADIOFX SELECTED)?
             const getOsc1FX = universalSources.current && Object.values(universalSources.current.osc1.effects).filter(i => i.On);
+
+            const getOsc2FX = universalSources.current && Object.values(universalSources.current.osc2.effects).filter(i => i.On);
 
             const getSamplerFX = universalSources.current && Object.values(universalSources.current.sampler.effects).filter(i => i.On);
 
             const getAudioInFX = universalSources.current && Object.values(universalSources.current.audioin.effects).filter(i => i.On);
+
+            const getSTKFX = universalSources.current && Object.values(universalSources.current.stk1.effects).filter(i => i.On);
 
             const signalChain: any = [];
             const valuesReadout: any = {};
@@ -1960,6 +1348,18 @@ export default function InitializationComponent() {
             const valuesReadoutAudioIn: any = {};
 
             getConvertedRadio(fxRadioValue).toLowerCase() === "osc1" && getOsc1FX?.map((fx: any) => {
+                const type = fx.Type;
+                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
+                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
+                signalChain.indexOf(addedEffect) === -1 && signalChain.push(addedEffect);
+
+                Object.values(fx.presets).map((preset: any) => {
+                    const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
+                    if (!fx.Code) valuesReadout[preset.name] = latestValue;
+                })
+            });
+
+            getConvertedRadio(fxRadioValue).toLowerCase() === "osc2" && getOsc2FX?.map((fx: any) => {
                 const type = fx.Type;
                 const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
                 const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
@@ -1995,18 +1395,25 @@ export default function InitializationComponent() {
                 })
             });
 
-            // console.log("HEYO CHECK MASTER PATTERNS BEFORE CHUCK START: ", masterPatternsRef.current);
-            // console.log("heyo rate update sanity (mfr): ", masterFastestRate);
-            // console.log("bpm sanity: ", 60000/bpm);
-            // console.log('what is sig chain? ', signalChain);
+            getConvertedRadio(fxRadioValue).toLowerCase().includes("stk") && getSTKFX?.map((fx: any) => {
+                const type = fx.Type;
+                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
+                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
+                signalChainSTK.indexOf(addedEffect) === -1 && signalChainSTK.push(addedEffect);
 
-            console.log("what are stk instruments? ", universalSources.current && universalSources.current.stk1.instruments && universalSources.current.stk1.instruments)
+                Object.values(fx.presets).map((preset: any) => {
+                    const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
+                    if (!fx.Code) valuesReadoutSTK[preset.name] = latestValue;
+                })
+            });
+
+            console.log("###1 what are stk instruments? ", universalSources.current && universalSources.current.stk1.instruments && universalSources.current.stk1.instruments)
             // const shredCount = chuckHook && await chuckHook.runCode(`Machine.numShreds();`);
 
             // console.log("Shred Count: ", shredCount);
             console.log("WHAT ARE PATTERNS? ", masterPatternsRef.current)
             console.log("what is alloctavemidifreqs? ", allOctaveMidiFreqs.current);
-            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 999.0 ) ) );
+            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 9999.0 ) ) );
 
 
             activeSTKDeclarations.current = '';
@@ -2023,1101 +1430,46 @@ export default function InitializationComponent() {
                 })
             });
 
-
-            console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1])))
-
-            const newChuckCode = `
-                "" => global string currentSrc;
-
-                // Global variables and events
-                global Event playNote;
-                global Event startMeasure;
-                global Event playAudioIn;
-
-                0 => global int arpeggiatorOn;
-
-                ${(60000 / bpm) / masterFastestRate * 2} => float beatInt;
-
-                (beatInt)::ms => dur beat;
-                ${numeratorSignature} => global int numeratorSignature;
-                ${denominatorSignature} => global int denominatorSignature;
-
-                beat * numeratorSignature => dur whole;
-                whole * denominatorSignature => dur measure;
-
-
-
-                // Number of voices for polyphony
-                8 => global int numVoices;
-                global float NOTES_SET[0];
-                ${currentNoteVals.osc1[0]} => global int fastestRateUpdate;
-
-                SawOsc saw1[numVoices];
-                SawOsc saw2[numVoices];
-                LPF lpf[numVoices];
-                ADSR adsr[numVoices];
-                Dyno limiter[numVoices];
-                NRev rev[numVoices];
-                Noise noiseSource[numVoices];
-                Gain pitchLfo[numVoices];
-                Gain filterLfo[numVoices];
-                TriOsc tri1[numVoices], tri2[numVoices];
-                SqrOsc sqr1[numVoices], sqr2[numVoices];
-                SinOsc SinLfo[numVoices];
-                SawOsc SawLfo[numVoices];
-                SqrOsc SqrLfo[numVoices];
-
-                0 => global int tickCounter;
-                0 => global int fastestTickCounter;
-
-
-
-                class Osc1_EffectsChain extends Chugraph
-                { 
-                    inlet => ${signalChain.join(' ')} outlet;
-                    ${Object.values(valuesReadout).map((value: any) => value).join(' ')}
-                    ${getSourceFX('osc1')}
-                }
-
-                class Sampler_EffectsChain extends Chugraph
-                {
-                    inlet => ${signalChainSampler.join(' ')} outlet;
-                    ${Object.values(valuesReadoutSampler).map((value: any) => value).join(' ')}
-                    ${getSourceFX('sampler')}
-                }
-
-                class STK_EffectsChain extends Chugraph {
-                    inlet => ${signalChainSTK.join(' ')} outlet;
-                    ${Object.values(valuesReadoutSTK).map((value: any) => value).join(' ')}
-                    ${getSourceFX('stk')}
-                }
-
-                class AudioIn_EffectsChain extends Chugraph {
-                    inlet => ${signalChainAudioIn.join(' ')} outlet;
-                    ${Object.values(valuesReadoutAudioIn).map((value: any) => value).join(' ')}
-                    ${getSourceFX('audioin')}
-                }
-
- 
-                SndBuf buffers[5] => Sampler_EffectsChain sampler_FxChain => Dyno audInDynoSampler => dac;
-                  
-                fun void SilenceAllBuffers()
-                {
-                    buffers[0].samples() => buffers[0].pos;
-                    buffers[1].samples() => buffers[1].pos;
-                    buffers[2].samples() => buffers[2].pos;
-                    buffers[3].samples() => buffers[3].pos;
-                    buffers[4].samples() => buffers[4].pos;
-                }
-
-
-                // BEGIN SYNTH VOICE DEFAULTS
-                class SynthVoice extends Chugraph
-                {
-                    int id;
-                    // Constructor to initialize id
-                    fun void setId(int newId) {
-                        newId => id;
-                    }
-
-                    saw1[id] => lpf[id] => adsr[id] => limiter[id] => outlet;
-                    saw2[id] => lpf[id];
-                    noiseSource[id] => lpf[id];
-                    0 => noiseSource[id].gain;
-
-                    SinLfo[id] => pitchLfo[id] => blackhole;
-                    SinLfo[id] => filterLfo[id] => blackhole;
-
-                    fun void SetLfoFreq(float frequency) 
-                    {
-                        frequency => SinLfo[id].freq => SawLfo[id].freq => SqrLfo[id].freq;
-                    }
-                    6.0 => SetLfoFreq; // what is this???
-                    0.05 => filterLfo[id].gain;
-                    0.05 => pitchLfo[id].gain;            
-                    2 => saw1[id].sync => saw2[id].sync => tri1[id].sync => tri2[id].sync => sqr1[id].sync => sqr2[id].sync;
-
-                    pitchLfo[id] => saw1[id];
-                    pitchLfo[id] => saw2[id];
-                    pitchLfo[id] => tri1[id];
-                    pitchLfo[id] => tri2[id];
-                    pitchLfo[id] => sqr1[id];
-                    pitchLfo[id] => sqr2[id];
-
-                    ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter[id].attackTime; // can we hardcode these???
-                    ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter[id].thresh; // can we hardcode these???
-
-                    
-                    // rethink volume when creating a master panel....
-                    0.06/numVoices => saw1[id].gain => saw2[id].gain;
-                    0.28/numVoices => tri1[id].gain => tri2[id].gain;
-                    0.08/numVoices => sqr1[id].gain => sqr2[id].gain;
-
-                    ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
-                    filterCutoff => lpf[id].freq;
-
-                    // moogGrandmotherEffects["offset"] => float offset;
-                    ${moogGrandmotherEffects.current.offset.value} => float offset; // why are we hardcoding these???
-                    880 => float filterEnv;
-                    1.0 => float osc2Detune;
-                    ${moogGrandmotherEffects.current.oscOffset.value} => float oscOffset;
-
-                    fun void SetOsc1Freq(float frequency)
-                    {
-                        frequency => tri1[id].freq => sqr1[id].freq => saw1[id].freq; 
-                    }
-
-                    fun void SetOsc2Freq(float frequency)
-                    {
-                        frequency => tri2[id].freq => sqr2[id].freq => saw2[id].freq; 
-                    }
-
-                    fun void keyOn(float noteNumber)
-                    {
-                     
-                        Std.mtof(offset + noteNumber) => SetOsc1Freq;
-                        Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
-                        1 => adsr[id].keyOn;
-                        ${moogGrandmotherEffects.current.adsrAttack.value}::ms => adsr[id].attackTime; // FIX NUM HERE!!!
-                        ${moogGrandmotherEffects.current.adsrDecay.value}::ms => adsr[id].decayTime; // FIX NUM HERE!!!
-                        ${moogGrandmotherEffects.current.adsrSustain.value} => adsr[id].sustainLevel; // FIX NUM HERE!!!
-                        ${moogGrandmotherEffects.current.adsrRelease.value}::ms => adsr[id].releaseTime; // FIX NUM HERE!!!
-
-     
-                        spork ~ filterEnvelope();
-                        me.yield();
-                    }
-
-                    fun void ChooseOsc1(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            tri1[id] =< lpf[id];
-                            saw1[id] =< lpf[id];
-                            sqr1[id] =< lpf[id];
-                        }
-                        if(oscType == 1)
-                        {
-                            tri1[id] => lpf[id];
-                            saw1[id] =< lpf[id];
-                            sqr1[id] =< lpf[id];
-                        }
-                        if(oscType == 2)
-                        {
-                            tri1[id] =< lpf[id];
-                            saw1[id] => lpf[id];
-                            sqr1[id] =< lpf[id];
-                        }
-                        if(oscType == 3)
-                        {
-                            tri1[id] =< lpf[id];
-                            saw1[id] =< lpf[id];
-                            sqr1[id] => lpf[id];
-                        }
-                    }
-                    fun void ChooseOsc2(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                        if(oscType == 1)
-                        {
-                            tri2[id] => lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                        if(oscType == 2)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] => lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                        if(oscType == 3)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] => lpf[id];
-                        }
-                        if(oscType == 4)
-                        {
-                            tri2[id] =< lpf[id];
-                            saw2[id] =< lpf[id];
-                            sqr2[id] =< lpf[id];
-                        }
-                    }
-                    fun void ChooseLfo(int oscType)
-                    {
-                        if(oscType == 0)
-                        {
-                            SinLfo[id] =< filterLfo[id];
-                            SinLfo[id] =< pitchLfo[id];
-                            SawLfo[id] =< filterLfo[id];
-                            SawLfo[id] =< pitchLfo[id];
-                            SqrLfo[id] =< filterLfo[id];
-                            SqrLfo[id] =< pitchLfo[id];
-                        }
-                        if(oscType == 1)
-                        {
-                            SinLfo[id] => filterLfo[id];
-                            SinLfo[id] => pitchLfo[id];
-                            SawLfo[id] =< filterLfo[id];
-                            SawLfo[id] =< pitchLfo[id];
-                            SqrLfo[id] =< filterLfo[id];
-                            SqrLfo[id] =< pitchLfo[id];
-                        }
-                        if(oscType == 2)
-                        {
-                            SinLfo[id] =< filterLfo[id];
-                            SinLfo[id] =< pitchLfo[id];
-                            SawLfo[id] => filterLfo[id];
-                            SawLfo[id] => pitchLfo[id];
-                            SqrLfo[id] =< filterLfo[id];
-                            SqrLfo[id] =< pitchLfo[id];
-                        }
-                        if(oscType == 3)
-                        {
-                            SinLfo[id] =< filterLfo[id];
-                            SinLfo[id] =< pitchLfo[id];
-                            SawLfo[id] =< filterLfo[id];
-                            SawLfo[id] =< pitchLfo[id];
-                            SqrLfo[id] => filterLfo[id];
-                            SqrLfo[id] => pitchLfo[id];
-                        }
-                    }
-                    fun void keyOff(int noteNumber) {
-                        noteNumber => adsr[id].keyOff;
-                        // Wait for the envelope to fully release
-                        while (adsr[id].state() != 0) {
-                            adsr[id].releaseTime() => now;
-                        }
-                    }
-                    fun void filterEnvelope()
-                    {
-                        filterCutoff => float startFreq;
-                        while((adsr[id].state() != 0 && adsr[id].value() == 0) == false)
-                        {
-                            1 => adsr[id].keyOn;
-                            Std.fabs((filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last()) => lpf[id].freq;                     
-                            adsr[id].releaseTime() => now;
-                            1 => adsr[id].keyOff;
-                            me.yield();
-                        }
-                        // me.exit();
-                    }
-                    fun void cutoff(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        (amount / 100) * 5000 => filterCutoff;
-                        ////////////////////////////////////////////////////////
-                        // is this fix ok?
-                        // 10::ms => now;
-                        //   whole/4 => now;
-                        // if (arpeggiatorOn == 1) {
-                            (whole)/numVoices - (now % (whole)/numVoices) => now;
-                        // } else {
-                        //     (whole) - (now % (whole)) => now;
-                        // } 
-                        ////////////////////////////////////////////////////////
-                    }
-                    fun void rez(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        20 * (amount / 100) + 0.3 => lpf[id].Q;
-                    }
-                    fun void env(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        5000 * (amount / 100) => filterEnv;
-                    }
-                    fun void detune(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 0)
-                        {
-                            0 => amount;
-                        }
-                        5 * (amount / 100) => osc2Detune;
-                    }
-                    fun void pitchMod(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        84 * (amount / 100) => pitchLfo[id].gain;
-                    }               
-                    fun void cutoffMod(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        5000 * (amount / 100) => filterLfo[id].gain;
-                    }
-                    fun void noise(float amount)
-                    {
-                        if(amount > 100)
-                        {
-                            100 => amount;
-                        }
-                        if(amount < 1)
-                        {
-                            0 => amount;
-                        }
-                        1.0 * (amount / 100) => noiseSource[id].gain;
-                    }            
-                }
-                SynthVoice voice;
-
-                for (0 => int i; i < numVoices; i++) {
-                    ${moogGrandmotherEffects.current.cutoff.value} => voice.cutoff;
-                    ${moogGrandmotherEffects.current.rez.value} => voice.rez;
-                    ${moogGrandmotherEffects.current.env.value} => voice.env;
-                    Std.ftoi(${moogGrandmotherEffects.current.oscType1.value}) => voice.ChooseOsc1;
-                    Std.ftoi(${moogGrandmotherEffects.current.oscType2.value}) => voice.ChooseOsc2;
-                    ${moogGrandmotherEffects.current.detune.value} => voice.detune;
-                    Std.ftoi(${moogGrandmotherEffects.current.oscOffset.value}) => voice.oscOffset;
-                    ${moogGrandmotherEffects.current.cutoffMod.value} => voice.cutoffMod;
-                    ${moogGrandmotherEffects.current.pitchMod.value} => voice.pitchMod;
-                    Std.ftoi(${moogGrandmotherEffects.current.lfoVoice.value}) => voice.ChooseLfo; // Lfo Voc
-                    // 0.5 => voice.filterLfo.gain;
-                    ${moogGrandmotherEffects.current.offset.value} => voice.offset;
-                    ${moogGrandmotherEffects.current.lfoFreq.value} => voice.filterEnv;
-                    ${moogGrandmotherEffects.current.noise.value} => voice.noise;
-                }
-
-                voice => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
-                0.6 => voice.gain;
-
-
-
-
-
-
-
-
-
-
-
-
-                LisaTrigger lisaTrigger; 
-                GrainStretch grain;
-                Tape t;
-                RandomReverse rr; 
-                Reich rei;
-                AsymptopicChopper achop;
-                NRev rev_audioin;
-                NRev rev_sampler;
-
-
-                class AudioIn_SpecialEffectsChain extends Chugraph
-                {
-                    inlet => achop => LPF lpf_audioin => outlet;
-                    0.8 => rev_audioin.mix;
-
-                    t.gain(1.0);
-                    t.delayLength(whole / (numeratorSignature / denominatorSignature));
-                    t.loop(1);
-
-                    grain.stretch(1);
-                    grain.rate(0.1);
-                    grain.length(whole/(numeratorSignature * denominatorSignature));
-                    grain.grains(8);
-
-                    rr.setInfluence(1.0);
-                    rr.listen(1);
-
-                    achop.listen(1);
-                    achop.length(whole);
-                    achop.minimumLength(whole/(numeratorSignature * denominatorSignature));
-
-                    lisaTrigger.listen(1);
-                    lisaTrigger.length(whole);
-                    lisaTrigger.minimumLength(whole/(numeratorSignature * denominatorSignature));
-
-
-                }
-                AudioIn_SpecialEffectsChain audioin_SpecialFxChain;
-
-
-
-
-                class GrainStretch extends Chugraph {
-
-                    LiSa mic[2];
-                    ADSR env;
-
-                    inlet => mic[0] => env => outlet;
-                    inlet => mic[1] => env => outlet;
-
-                    0 => int m_stretching;
-                    32 => int m_grains;
-                    1.0 => float m_rate;
-
-                    1.0::second => dur m_bufferLength;
-                    maxLength(8::second);
-
-                    fun void stretch(int s) {
-                        if (s == 1) {
-                            1 => m_stretching;
-                            spork ~ stretching();
-                        }
-                        else {
-                            0 => m_stretching;
-                        }
-                    }
-
-                    fun void maxLength(dur m) {
-                        mic[0].duration(m);
-                        mic[1].duration(m);
-                    }
-
-                    fun void length(dur l) {
-                        l => m_bufferLength;
-                    }
-
-                    fun void rate(float r) {
-                        r => m_rate;
-                    }
-
-                    fun void grains(int g) {
-                        g => m_grains;
-                    }
-
-                    fun void stretching() {
-                        0 => int idx;
-
-                        recordVoice(mic[idx], m_bufferLength);
-
-                        // switches between audio buffers, ensuring a constant processed signal
-                        while (m_stretching) {
-                            spork ~ recordVoice(mic[(idx + 1) % 2], m_bufferLength);
-                            (idx + 1) % 2 => idx;
-                            stretchVoice(mic[idx], m_bufferLength, m_rate, m_grains);
-                        }
-                    }
-
-                    fun void recordVoice(LiSa mic, dur bufferLength) {
-                        mic.clear();
-                        mic.recPos(0::samp);
-                        mic.record(1);
-                        bufferLength => now;
-                        mic.record(0);
-                    }
-
-                    // all the sound stuff we're doing
-                    fun void stretchVoice(LiSa mic, dur duration, float rate, int grains) {
-                        (duration * 1.0/rate)/grains => dur grain;
-                        grain/32.0 => dur grainEnv;
-                        grain * 0.5 => dur halfGrain;
-
-                        // for some reason if you try to put a sample
-                        // at a fraction of samp, it will silence ChucK
-                        // but not crash it?
-                        if (halfGrain < samp) {
-             
-                            return;
-                        }
-
-                        // envelope parameters
-                        env.attackTime(grainEnv);
-                        env.releaseTime(grainEnv);
-
-                        halfGrain/samp => float halfGrainSamples;
-                        ((duration/samp)$int)/grains=> int sampleIncrement;
-
-                        mic.play(1);
-
-                        // bulk of the time stretching
-                        for (0 => int i; i < grains; i++) {
-                            mic.playPos((i * sampleIncrement)::samp);
-                            (i * sampleIncrement)::samp + grain => dur end;
-
-                            // only fade if there will be no discontinuity errors
-                            if (duration > end) {
-                                env.keyOn();
-                                halfGrain => now;
-                                env.keyOff();
-                                halfGrain - grainEnv => now;
-                            }
-                            else {
-                                (grain - (end - duration)) => dur endGrain;
-                                env.keyOn();
-                                endGrain * 0.5 => now;
-                                env.keyOff();
-                                endGrain * 0.5 - grainEnv => now;
-                            }
-                        }
-                        mic.play(0);
-                    }
-                }
-
-                class Tape extends Chugraph {
-                    inlet => NRev nRA => Delay del => ADSR env => Gain g => outlet;
-                    g => del;
-
-                    nRA.mix(0.1);
-
-                    env.set(0::ms, 100::ms, 0.75, 10::ms);
-                    delayLength(whole);
-
-                    0 => int m_loop;
-
-                    fun void delayLength(dur d) {
-                        del.max(d);
-                        del.delay(d);
-                    }
-
-                    fun void loop(int l) {
-                        if (l) {
-                            1 => m_loop;
-                            spork ~ looping();
-                        }
-                        if (l == 0) {
-                            0 => m_loop;
-                        }
-                    }
-
-                    fun void looping() {
-                        env.keyOn();
-                        while (m_loop) {
-                            1::samp => now;
-                        }
-                        env.keyOff();
-                    }
-                }
-
-                class RandomReverse extends Chugraph {
-
-                    inlet => LiSa mic => Gain r => outlet;
-                    inlet => Gain g => ADSR env => outlet;
-
-                    0 => int m_listen;
-                    2::second => dur m_maxBufferLength;
-                    2::second => dur m_bufferLength;
-                    0.5 => float m_influence;
-                    100::ms => dur m_envDuration;
-                    5::second => dur m_maxTimeBetween;
-
-                    // envelope
-                    env.attackTime(m_envDuration);
-                    env.releaseTime(m_envDuration);
-                    env.keyOn();
-
-                    fun void listen(int l) {
-                        if (l == 1) {
-                            1 => m_listen;
-                            spork ~ listening();
-                        }
-                        if (l == 0) {
-                            0 => m_listen;
-                        }
-                    }
-
-                    fun void setInfluence(float i) {
-                        i => m_influence;
-                    }
-
-                    fun void setReverseGain(float g) {
-                        r.gain(g);
-                    }
-
-                    fun void setMaxBufferLength(dur l) {
-                        l => m_maxBufferLength;
-                    }
-
-                    fun void listening() {
-                        mic.duration(m_maxBufferLength);
-                        while (m_listen) {
-                            if (m_influence >= 0.01) {
-                                Math.random2f(0.1, m_influence * 0.75) => float scale;
-                                scale * m_bufferLength => dur bufferLength;
-                                record(bufferLength);
-                                playInReverse(bufferLength);
-                                m_maxTimeBetween * Math.fabs(1.0 - m_influence) => now;
-                            }
-                            1::samp => now;
-                        }
-                    }
-
-                    fun void record(dur bufferLength) {
-                        mic.playPos(0::samp);
-                        mic.record(1);
-                        bufferLength => now;
-                        mic.record(0);
-                    }
-
-                    fun void playInReverse(dur bufferLength) {
-                        if (bufferLength < m_envDuration) {
-                            m_envDuration * 2 => bufferLength;
-                        }
-                        env.keyOff();
-                        mic.play(1);
-                        mic.playPos(bufferLength);
-                        mic.rate(-1.0);
-                        mic.rampUp(m_envDuration);
-                        bufferLength - m_envDuration => now;
-                        mic.rampDown(m_envDuration);
-                        env.keyOn();
-                        m_envDuration => now;
-                        mic.play(0);
-                    }
-                }
-
-                class Reich extends Chugraph {
-
-                    inlet => LiSa mic => outlet;
-
-                    0 => int m_record;
-                    0 => int m_play;
-
-                    0::ms => dur m_length;
-                    4     => int m_voices;
-                    1.001 => float m_speed;
-
-                    false => int m_bi;
-                    false => int m_random;
-                    false => int m_spread;
-
-                    maxBufferLength(8::second);
-
-                    fun void maxBufferLength(dur l) {
-                        mic.duration(l);
-                    }
-
-                    fun void record(int r) {
-                        if (r == 1) {
-                            1 => m_record;
-                            spork ~ recording();
-                        }
-                        if (r == 0) {
-                            0 => m_record;
-                        }
-                    }
-
-                    fun void recording() {
-                        mic.clear();
-
-                        mic.recPos(0::samp);
-                        mic.record(1);
-
-                        while (m_record == 1) {
-                            1::samp => now;
-                        }
-
-                        mic.record(0);
-                        mic.recPos() => m_length;
-                    }
-
-                    fun void play(int p) {
-                        if (p == 1) {
-                            1 => m_play;
-                            spork ~ playing();
-                        }
-                        if (p == 0) {
-                            0 => m_play;
-                        }
-
-                    }
-
-                    fun void playing() {
-                        m_voices => int numVoices;
-                        for (int i; i < numVoices; i++) {
-                            0::ms => dur pos;
-                            if (m_random) {
-                                Math.random2f(0.5,1.0) * m_length => pos;
-                            } else if (m_spread) {
-                                i/(numVoices$float) * m_length => pos;
-                            }
-                            mic.playPos(i, pos);
-
-                            // set parameters
-                            mic.bi(i, m_bi);
-                            mic.rate(i, (m_speed - 1.0) * i + 1);
-                            mic.loop(i, 1);
-                            mic.loopEnd(i, m_length);
-
-                            mic.play(i, 1);
-                        }
-                        while (m_play == 1) {
-                            samp => now;
-                        }
-                        for (int i; i < numVoices; i++) {
-                            mic.play(i, 0);
-                        }
-                    }
-
-                    // spreads the initial voices randomly
-                    // throughout the record buffer
-                    fun void random(int r) {
-                        r => m_random;
-                    }
-
-                    // spreads the initial voices equally
-                    // throughout the record buffer
-                    fun void spread(int r) {
-                        r => m_spread;
-                    }
-
-                    // plays a voice backwards when reaching
-                    // the end of the buffer, otherwise
-                    // it will loop from the beginning
-                    fun void bi(int b) {
-                        b => m_bi;
-                    }
-
-                    // the number of voices to be played back
-                    fun void voices(int n) {
-                        n => m_voices;
-                    }
-
-                    // speed offset for the voices
-                    fun void speed(float s) {
-                        s => m_speed;
-                    }
-                }
-
-                class LisaTrigger extends Chugraph {
-                    inlet => LiSa mic => outlet;
-                    mic.bi(1);
-
-                    0 => int m_listen;
-                    whole => dur m_bufferLength;
-                    whole => dur m_maxBufferLength;
-                    whole / (numeratorSignature) => dur m_minimumLength;
-                    m_minimumLength * 4 => dur m_envLength;
-
-                    fun void listen(int lstn) {
-                        if (lstn == 1) {
-                            1 => m_listen;
-                            spork ~ listening();
-                        }
-                        if (lstn == 0) {
-                            0 => m_listen;
-                        }
-                    }
-
-                    fun void length(dur l) {
-                        l => m_bufferLength;
-                    }
-
-                    fun void maxLength(dur l) {
-                        l => m_maxBufferLength;
-                    }
-
-                    fun void minimumLength(dur l) {
-                        m_minimumLength;
-                        l => m_envLength;
-                    }
-
-                    fun void listening() {
-                        mic.duration(m_maxBufferLength);
-                        while (m_listen) {
-                            mic.clear();
-                            mic.recPos(0::samp);
-                            mic.record(1);
-                            m_bufferLength => now;
-                            mic.record(0);
-                            lisaTrig(m_bufferLength);
-                        }
-                    }
-
-                    fun void lisaTrig(dur bufferLength) {
-                        dur bufferStart;
-                        m_bufferLength => dur bufferLength;
-                        mic.play(1);
-                        while (bufferLength > m_minimumLength) {
-                            bufferLength * 0.5 => bufferLength;
-                            0::ms => bufferStart;
-                            mic.playPos(bufferLength);
-                            mic.rampUp(m_envLength * 2);
-                            mic.rate(-1.25);
-                            bufferLength - m_envLength => now;
-                            mic.rampDown(m_envLength * 2);
-                            m_envLength * 2 => now;
-                        }
-                        mic.play(0);
-                    }
-                }
-
-                class AsymptopicChopper extends Chugraph {
-                    inlet => LiSa mic => outlet;
-                    0 => int m_listen;
-                    3::second => dur m_bufferLength;
-                    10::second => dur m_maxBufferLength;
-                    100::ms => dur m_minimumLength;
-                    m_minimumLength * 0.5 => dur m_envLength;
-                    fun void listen(int lstn) {
-                        if (lstn == 1) {
-                            1 => m_listen;
-                            spork ~ listening();
-                        }
-                        if (lstn == 0) {
-                            0 => m_listen;
-                        }
-                    }
-                    fun void length(dur l) {
-                        l => m_bufferLength;
-                    }
-                    fun void maxLength(dur l) {
-                        l => m_maxBufferLength;
-                    }
-                    fun void minimumLength(dur l) {
-                        m_minimumLength;
-                        l * 0.5 => m_envLength;
-                    }
-                    fun void listening() {
-                        mic.duration(m_maxBufferLength);
-                        while (m_listen) {
-                            mic.clear();
-                            mic.recPos(0::samp);
-                            mic.record(1);
-                            m_bufferLength => now;
-                            mic.record(0);
-                            asymptopChop(m_bufferLength);
-                        }
-                    }
-                    fun void asymptopChop(dur bufferLength) {
-                        dur bufferStart;
-                        m_bufferLength => dur bufferLength;
-                        mic.play(1);
-                        while (bufferLength > m_minimumLength) {
-                            Math.random2(0, 1) => int which;
-                            bufferLength * 0.5 => bufferLength;
-                            bufferLength * which => bufferStart;
-                            mic.playPos(bufferStart);
-                            mic.rampUp(m_envLength);
-                            bufferLength - m_envLength => now;
-                            mic.rampDown(m_envLength);
-                            m_envLength => now;
-                        }
-                        mic.play(0);
-                    }
-                }
-
-                AudioIn_EffectsChain audioin_FxChain;
-
-
-                adc => audioin_SpecialFxChain => audioin_FxChain => Dyno audInDyno => dac;
-
-
-            
-
-
-
-
-                // // SAMPLER
-                // ////////////////////////////////////////////////////////////////
-                fun void handlePlayMeasure(int tickCount) {
-                    string files[4]; // Specify size
-
-                    me.dir() + "${filesToProcess.current[0].filename}" => files[0];
-                    me.dir() + "${filesToProcess.current[1].filename}" => files[1];
-                    me.dir() + "${filesToProcess.current[2].filename}" => files[2];
-                    me.dir() + "${filesToProcess.current[3].filename}" => files[3];
-
-                    (fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1 % fastestRateUpdate => int masterTick;
-
-
-                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['999.0']` ) )}] @=> int testArr2[][]; 
-
-                    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => parseFloat(i.note) > 0 ?  parseFloat(i.note) : `999.0` ) )}] @=> float testNotesArr2[]; 
-
-
-                    [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
-
-
-                    int recurringTickCount;
-
-                    if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
-                        tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
-                    } else {
-                        tickCount => recurringTickCount;
-                    }
-
-
-
-
-
-
-
-                    STK_EffectsChain stk_FxChain;
-
-
-
-                    ${activeSTKDeclarations.current}
-
-                    ${activeSTKSettings.current}
-
-
-                    if (recurringTickCount >= testArr2.size()) return; // Prevent out-of-bounds access
-                    
-                    
-                        for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
-                            0 => buffers[x].pos;
-                            if (testArr2[recurringTickCount][0] != 999.0 && (testArr2[recurringTickCount][x] < files.size())) {
-                                files[testArr2[recurringTickCount][x]] => buffers[x].read;
-                            }
-
-                            // Calculate the exact time for this note within the measure
-                            (recurringTickCount * (whole / ${masterFastestRate})) => dur noteTimeOffset;
-
-                            // Wait until the correct time to play the note
-                            noteTimeOffset => now;
-
-
-                            // Play the note
-                            tickCount % testNotesArr2.size() => int notesCount;
-
-                            if (recurringTickCount < allFreqs.size()) {
-                                allFreqs[recurringTickCount] => voice.keyOn;
-                            }
-
-                            
-
-                            ${activeSTKPlayOn.current} 
-
-                            buffers[x].samples() => buffers[x].pos;
-                            if (testArr2[recurringTickCount][0] != 999.0) {
-                                0 => buffers[x].pos;
-                            } 
-                            buffers[x].length() => now;
-                            ${activeSTKPlayOff.current} 
-                            me.yield();
-                        }
-                    
-                    me.yield();
-                }
-
-                string result[];
-
-                fun string[] splitString(string input, string delimiter ) {
-                    int startIndex, endIndex;
-                    
-                    [""] @=> string strArr[];
-
-                    while (true) {
-                        input.find(delimiter, startIndex);
-                        if (startIndex == -1) {
-                            // No more delimiters, add the remaining string
-                            result << input;
-                            break;
-                        }
-         
-                        input.substring(0, startIndex) => result[result.size()];
-            
-                        input.substring(startIndex + delimiter.length(), input.length()) => input;
-                        <<< "FR &*&*: ", input.toString() >>>;
-                        strArr << input; 
-                    }
-                    return strArr;
-                }
-
-                
-                // REALTIME NOTES (POLY)
-                ////////////////////////////////////////////////////////////////
-                fun void handlePlayNote(){
-                    while (false) {
-                        playNote => now;
-                        [${resetNotes}] @=> int nts[];
-
-                        // 220 => testSin.freq;
-                
-                        
-                    }
-                }
-               
-                fun void playSTK1() {
-
-
-                    me.yield();
-                }
-              
-                now => time startTimeMeasureLoop;
-                
-                while(true)
-                {
-                    if (now >= startTimeMeasureLoop + (beat / fastestRateUpdate) ) {
-                        fastestTickCounter + 1 => fastestTickCounter;
-                        <<< fastestTickCounter >>>;
-                        <<< "FR: !!!! ",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" >>>;
-
-                        
-                    "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
-
-
-
- 
-
-
-
-                [""] @=> string parts[];
-                if (myString.length() > 0) {
-                    splitString(myString, ",") @=> parts;
-                } 
-
-                // Print results
-        
-                    <<< "FR: HEY FUCKERZ!: ", parts.toString() >>>;
-
-
-
-
-
-
-
-
-
-                        
-                    }
-                    if (now >= startTimeMeasureLoop + beat) {
-                        tickCounter + 1 => tickCounter;
-                        spork ~ handlePlayMeasure(tickCounter);
-                        now => startTimeMeasureLoop;
-                    }
-                    whole / ${masterFastestRate} => now;
-
-                }
-            `;
-
-     
-                chuckRef.current.runCode(newChuckCode);
-                console.log("ran chuck code!");
+            console.log("###2 what are active stks? ", activeSTKs);
+
+            console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.entries(i[1])))
+
+            console.log("wtf??? ", filesToProcess.current);
+
+            const filesArray = filesToProcess.current.map(
+                (f: any) => `me.dir() + "${f.filename}"`
+              ).join(', ');
+
+            const newChuckCode = getChuckCode(
+                isTestingChord,
+                filesArray,
+                currentNoteVals,
+                masterPatternsRef,
+                masterFastestRate,
+                numeratorSignature,
+                denominatorSignature,
+                bpm,
+                moogGrandmotherEffects,
+                signalChain,
+                signalChainSampler,
+                signalChainSTK,
+                signalChainAudioIn,
+                valuesReadout,
+                valuesReadoutSampler,
+                valuesReadoutSTK,
+                valuesReadoutAudioIn,
+                getSourceFX,
+                resetNotes,
+                mTFreqs,
+                activeSTKDeclarations,
+                activeSTKSettings,
+                activeSTKPlayOn,
+                activeSTKPlayOff,
+                selectedChordScaleOctaveRange,
+            );
+
+            chuckRef.current.runCode(newChuckCode);
+            console.log("ran chuck code!");
   
             console.log("HERE IS CHUCK CODE: ", newChuckCode);
         } else {
@@ -3132,9 +1484,10 @@ export default function InitializationComponent() {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     const handleClickUploadedFiles = (e: any) => {
+        console.log("CLICKED FILES: ", e.target.innerText);
         if (isInPatternEditMode) {
-            const cellObjToEdit = masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x];
-            cellObjToEdit.fileNums.push(e.target.innerText);
+            // const cellObjToEdit = masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x];
+            // cellObjToEdit.fileNums.push(e.target.innerText);
         }
     }
 
@@ -3172,6 +1525,13 @@ export default function InitializationComponent() {
 
 
     const updateKeyScaleChord = (key: string, scale: string, chord: string, octaveMax: string, octaveMin: string) => {
+        setSelectedChordScaleOctaveRange({
+            key: key,
+            scale: scale,
+            chord: chord,
+            octaveMax: octaveMax,
+            octaveMin: octaveMin
+        })
         setKeyScaleChord({key: key, scale: scale, chord: chord, octaveMax: octaveMax, octaveMin: octaveMin});
         // const submitMingus = async () => {
         axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, { audioKey: key, audioScale: scale, octave: octaveMax }, {
@@ -3180,9 +1540,12 @@ export default function InitializationComponent() {
             }
         }).then(({ data }) => {
             console.log("TEST SCALES HERE 1# ", data);
+            setScaleHook([Object.values(data)[0], Object.values(data)[2]]);
+            setInvertedScaleHook([Object.values(data)[1], Object.values(data)[3]]);
             // return 
             handleMingusKeyboardData(data);
         });
+        console.log("WHAT IS KEY / SCALE / CHORD? ", key, scale, chord);
         axios.post(
             `${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, 
             { audioChord: chord, audioKey: key }, 
@@ -3192,12 +1555,14 @@ export default function InitializationComponent() {
                 }
             }).then(({ data }) => {
                 console.log("TEST CHORDS 1# ", data);
+                console.log("TEST CHORDS 2# VALUES ", JSON.parse(data));
+                setChordHook( JSON.parse(data));
                 // return 
                 handleMingusChordsData(data);
                 return data;
             });
         // }
-        };
+    };
 
     // SLIDER CONTROL KNOB
     // ========================================================
@@ -3249,39 +1614,38 @@ export default function InitializationComponent() {
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
 
-    // TIMING (BPM / SIGNATURE)
-    // ========================================================
+    // // TIMING (BPM / SIGNATURE)
+    // // ========================================================
+    // // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // const handleChangeBPM = (newBpm: number) => {
+    //     if (newBpm) {
+    //         setBpm(Number(newBpm));
+    //     }
+    //     setChuckUpdateNeeded(true);
+    // }
+
+    // const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
+    //     if (newBeatsNumerator) {
+    //         setBeatsNumerator(Number(newBeatsNumerator));
+    //         setNumeratorSignature(Number(newBeatsNumerator));
+    //     }
+    //     setChuckUpdateNeeded(true);
+    // }
+
+    // const handleChangeBeatsDenominator = (newDenominator: number) => {
+    //     if (newDenominator) {
+    //         setBeatsDenominator(Number(newDenominator));
+    //         setDenominatorSignature(Number(newDenominator));
+    //     }
+    //     setChuckUpdateNeeded(true);
+    // }
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    const handleChangeBPM = (newBpm: number) => {
-        if (newBpm) {
-            setBpm(Number(newBpm));
-            chuckRef.current && chuckRef.current.setInt("beatInt", 500);
-        }
-        setChuckUpdateNeeded(true);
-    }
-
-    const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
-        if (newBeatsNumerator) {
-            setBeatsNumerator(Number(newBeatsNumerator));
-            setNumeratorSignature(Number(newBeatsNumerator));
-        }
-        setChuckUpdateNeeded(true);
-    }
-
-    const handleChangeBeatsDenominator = (newDenominator: number) => {
-        if (newDenominator) {
-            setBeatsDenominator(Number(newDenominator));
-            setDenominatorSignature(Number(newDenominator));
-        }
-        setChuckUpdateNeeded(true);
-    }
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
 
-    const handleShowFX = (closeOnly?: boolean) => {
-        currentScreen.current = "";
-        setShowFX(!showFX);
-    };
+    // const handleShowFX = (closeOnly?: boolean) => {
+    //     currentScreen.current = "";
+    //     setShowFX(!showFX);
+    // };
 
     const updateFXInputRadio = (value: any) => {
         if (value && value !== fxRadioValue) {
@@ -3370,507 +1734,507 @@ export default function InitializationComponent() {
         visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
 
         setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
-        updateCurrentFXScreen();
+        updateCurrentFXScreen(setFxKnobsCount, setBabylonKey, babylonKey);
         setNeedsUpdate(true);
     };
 
 
     // BE SURE TO ADD DURATION DIVISIONS (AND ALSO ELSEWHERE)
-    // const playSTKOn = () => {
-    //     let allSTKs: any = {}; // ALL STKs ARE STRINGS OF INSTs
-    //     // try {
-    //     const stkInstsHolder: [string, EffectsSettings][] | undefined = universalSources.current &&
-    //         universalSources.current.stk1.instruments &&
-    //         Object.entries(universalSources.current.stk1.instruments).filter((i: any) => i[1].On);
+    const playSTKOn = () => {
+        let allSTKs: any = {}; // ALL STKs ARE STRINGS OF INSTs
+        // try {
+        const stkInstsHolder: [string, EffectsSettings][] | undefined = universalSources.current &&
+            universalSources.current.stk1.instruments &&
+            Object.entries(universalSources.current.stk1.instruments).filter((i: any) => i[1].On);
 
-    //     console.log("insts holder??? ", stkInstsHolder);
+        console.log("insts holder??? ", stkInstsHolder);
 
-    //     stkInstsHolder && stkInstsHolder.map((stkInsts: [string, EffectsSettings]) => {
-    //         if (stkInsts[1].VarName) {
-    //             // console.log("getFXOnly_var: ", stkInst.VarName);
-    //             const presets: Preset[] | undefined | "" = universalSources.current &&
-    //                 universalSources.current.stk1.instruments &&
-    //                 universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments] &&
-    //                 universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments].presets;
+        stkInstsHolder && stkInstsHolder.map((stkInsts: [string, EffectsSettings]) => {
+            if (stkInsts[1].VarName) {
+                // console.log("getFXOnly_var: ", stkInst.VarName);
+                const presets: Preset[] | undefined | "" = universalSources.current &&
+                    universalSources.current.stk1.instruments &&
+                    universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments] &&
+                    universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments].presets;
 
 
-    //             if (presets && presets.length > 0 && stkInsts[1].VarName === "sit") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `                     
-    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-    //                     notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].noteOn;  
-    //                     0.01/notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                if (presets && presets.length > 0 && stkInsts[1].VarName === "sit") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `                     
+                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
+                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].noteOn;  
+                        0.01/notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         // duration * ${numeratorSignature} - (now % duration  * ${numeratorSignature} )  => now;
-    //                         duration - (now % duration)  => now;
-    //                         1 =>  ${stkInsts[1].VarName}[i-1].noteOff; 
-    //                     }
-    //                 `;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bow") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'bowPressure')[0].value} => ${stkInsts[1].VarName}[i-1].bowPressure;
-    //                     ${presets.filter(p => p.name === 'bowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].bowPosition;
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-    //                     ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
+                        if (${stkArpeggiatorOn} == 1) {
+                            // duration * ${numeratorSignature} - (now % duration  * ${numeratorSignature} )  => now;
+                            duration - (now % duration)  => now;
+                            1 =>  ${stkInsts[1].VarName}[i-1].noteOff; 
+                        }
+                    `;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bow") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'bowPressure')[0].value} => ${stkInsts[1].VarName}[i-1].bowPressure;
+                        ${presets.filter(p => p.name === 'bowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].bowPosition;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }
-    //                 `;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wg") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     // ${presets.filter(p => p.name === 'bowMotion')[0].value} => ${stkInsts[1].VarName}[i-1].bowMotion;
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-    //                     ${presets.filter(p => p.name === 'strikePosition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-    //                     ${presets.filter(p => p.name === 'bowRate')[0].value} => ${stkInsts[1].VarName}[i-1].bowRate;
-    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-    //                     ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }
+                    `;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wg") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        // ${presets.filter(p => p.name === 'bowMotion')[0].value} => ${stkInsts[1].VarName}[i-1].bowMotion;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        ${presets.filter(p => p.name === 'strikePosition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
+                        ${presets.filter(p => p.name === 'gain')[0].value} => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
+                        ${presets.filter(p => p.name === 'bowRate')[0].value} => ${stkInsts[1].VarName}[i-1].bowRate;
+                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+                        ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
                 
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }
-    //                 `;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwbtl") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }
+                    `;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwbtl") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
                         
-    //                     notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
+                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-    //                     }
-    //                 `;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "brs") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;    
-    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;    
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-    //                     ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
-    //                     ${presets.filter(p => p.name === 'lip')[0].value} => ${stkInsts[1].VarName}[i-1].lip;
-    //                     ${presets.filter(p => p.name === 'slide')[0].value} => ${stkInsts[1].VarName}[i-1].slide;
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+                        }
+                    `;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "brs") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;    
+                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;    
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+                        ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
+                        ${presets.filter(p => p.name === 'lip')[0].value} => ${stkInsts[1].VarName}[i-1].lip;
+                        ${presets.filter(p => p.name === 'slide')[0].value} => ${stkInsts[1].VarName}[i-1].slide;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
                         
-    //                     ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+                        ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
 
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
                             
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }
-    //                 `;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "shak") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'energy')[0].value} => ${stkInsts[1].VarName}[i-1].energy;
-    //                     ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-    //                     ${presets.filter(p => p.name === 'objects')[0].value} => ${stkInsts[1].VarName}[i-1].objects;
-    //                     ${presets.filter(p => p.name === 'decay')[0].value} => ${stkInsts[1].VarName}[i-1].decay;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }
+                    `;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "shak") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'energy')[0].value} => ${stkInsts[1].VarName}[i-1].energy;
+                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
+                        ${presets.filter(p => p.name === 'objects')[0].value} => ${stkInsts[1].VarName}[i-1].objects;
+                        ${presets.filter(p => p.name === 'decay')[0].value} => ${stkInsts[1].VarName}[i-1].decay;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }
-    //                 `;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mdlbr") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'stickHardness')[0].value} => ${stkInsts[1].VarName}[i-1].stickHardness;
-    //                     ${presets.filter(p => p.name === 'strikePOsition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-    //                     ${presets.filter(p => p.name === 'directGain')[0].value} => ${stkInsts[1].VarName}[i-1].directGain;
-    //                     ${presets.filter(p => p.name === 'masterGain')[0].value} => ${stkInsts[1].VarName}[i-1].masterGain;
-    //                     ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-    //                     ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
-    //                     ${presets.filter(p => p.name === 'strike')[0].value} => ${stkInsts[1].VarName}[i-1].strike;
-    //                     ${presets.filter(p => p.name === 'damp')[0].value} => ${stkInsts[1].VarName}[i-1].damp;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }
+                    `;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mdlbr") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'stickHardness')[0].value} => ${stkInsts[1].VarName}[i-1].stickHardness;
+                        ${presets.filter(p => p.name === 'strikePOsition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        ${presets.filter(p => p.name === 'directGain')[0].value} => ${stkInsts[1].VarName}[i-1].directGain;
+                        ${presets.filter(p => p.name === 'masterGain')[0].value} => ${stkInsts[1].VarName}[i-1].masterGain;
+                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
+                        ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
+                        ${presets.filter(p => p.name === 'strike')[0].value} => ${stkInsts[1].VarName}[i-1].strike;
+                        ${presets.filter(p => p.name === 'damp')[0].value} => ${stkInsts[1].VarName}[i-1].damp;
 
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }
-    //                 `;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "flut") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'jetDelay')[0].value} => ${stkInsts[1].VarName}[i-1].jetDelay;
-    //                     ${presets.filter(p => p.name === 'jetReflection')[0].value} => ${stkInsts[1].VarName}[i-1].jetReflection;
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }
+                    `;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "flut") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'jetDelay')[0].value} => ${stkInsts[1].VarName}[i-1].jetDelay;
+                        ${presets.filter(p => p.name === 'jetReflection')[0].value} => ${stkInsts[1].VarName}[i-1].jetReflection;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
 
 
-    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
-    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-    //                     ${presets.filter(p => p.name === 'endReflection')[0].value} => ${stkInsts[1].VarName}[i-1].endReflection;
+                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
+                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+                        ${presets.filter(p => p.name === 'endReflection')[0].value} => ${stkInsts[1].VarName}[i-1].endReflection;
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "clair") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
-    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "clair") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
+                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
 
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
 
 
-    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
-
-                        
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "f") {
-    //                 console.log("IN FRENCH HORN::: ", presets);
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "m") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'pickupPosition')[0].value} => ${stkInsts[1].VarName}[i-1].pickupPosition;
-    //                     ${presets.filter(p => p.name === 'sustain')[0].value} => ${stkInsts[1].VarName}[i-1].sustain;
-    //                     ${presets.filter(p => p.name === 'stretch')[0].value} => ${stkInsts[1].VarName}[i-1].stretch;
-    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-    //                     ${presets.filter(p => p.name === 'baseLoopGain')[0].value} => ${stkInsts[1].VarName}[i-1].baseLoopGain;
-
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
 
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "percFlut") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "f") {
+                    console.log("IN FRENCH HORN::: ", presets);
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-                        
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "man") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'bodySize')[0].value} => ${stkInsts[1].VarName}[i-1].bodySize;
-    //                     ${presets.filter(p => p.name === 'pluckPos')[0].value} => ${stkInsts[1].VarName}[i-1].pluckPos;
-    //                     ${presets.filter(p => p.name === 'stringDamping')[0].value} => ${stkInsts[1].VarName}[i-1].stringDamping;
-    //                     ${presets.filter(p => p.name === 'stringDetune')[0].value} => ${stkInsts[1].VarName}[i-1].stringDetune;
-    //                     ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "m") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'pickupPosition')[0].value} => ${stkInsts[1].VarName}[i-1].pickupPosition;
+                        ${presets.filter(p => p.name === 'sustain')[0].value} => ${stkInsts[1].VarName}[i-1].sustain;
+                        ${presets.filter(p => p.name === 'stretch')[0].value} => ${stkInsts[1].VarName}[i-1].stretch;
+                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
+                        ${presets.filter(p => p.name === 'baseLoopGain')[0].value} => ${stkInsts[1].VarName}[i-1].baseLoopGain;
 
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-
-    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "tubbl") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-    //                     notesToPlay[i] + 48 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwhl") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-    //                     ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
-    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-    //                     ${presets.filter(p => p.name === 'tonehole')[0].value} => ${stkInsts[1].VarName}[i-1].tonehole;
-    //                     ${presets.filter(p => p.name === 'vent')[0].value} => ${stkInsts[1].VarName}[i-1].vent;
-    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;                                
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "percFlut") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "man") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'bodySize')[0].value} => ${stkInsts[1].VarName}[i-1].bodySize;
+                        ${presets.filter(p => p.name === 'pluckPos')[0].value} => ${stkInsts[1].VarName}[i-1].pluckPos;
+                        ${presets.filter(p => p.name === 'stringDamping')[0].value} => ${stkInsts[1].VarName}[i-1].stringDamping;
+                        ${presets.filter(p => p.name === 'stringDetune')[0].value} => ${stkInsts[1].VarName}[i-1].stringDetune;
+                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
 
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-    //                     ${presets.filter(p => p.name === 'speak')[0].value} => ${stkInsts[1].VarName}[i-1].speak;
-    //                     ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
-    //                     duration - (now % duration)  => now;
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "sax") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-    //                     ${presets.filter(p => p.name === 'stiffness')[0].value} => ${stkInsts[1].VarName}[i-1].stiffness;
-    //                     ${presets.filter(p => p.name === 'aperture')[0].value} => ${stkInsts[1].VarName}[i-1].aperture;
-    //                     ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-    //                     ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;              
-    //                     ${presets.filter(p => p.name === 'blowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].blowPosition;
-    //                     ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;                  
-
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-    //                     ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;  
+                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;  
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bthree") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "tubbl") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+
+                        notesToPlay[i] + 48 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+
+                        
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwhl") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
+                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
+                        ${presets.filter(p => p.name === 'tonehole')[0].value} => ${stkInsts[1].VarName}[i-1].tonehole;
+                        ${presets.filter(p => p.name === 'vent')[0].value} => ${stkInsts[1].VarName}[i-1].vent;
+                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;                                
+
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+
+                        
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
+                        
+
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        ${presets.filter(p => p.name === 'speak')[0].value} => ${stkInsts[1].VarName}[i-1].speak;
+                        ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
+                        duration - (now % duration)  => now;
+                        if (${stkArpeggiatorOn} == 1) {
+                            ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "sax") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        
+                        ${presets.filter(p => p.name === 'stiffness')[0].value} => ${stkInsts[1].VarName}[i-1].stiffness;
+                        ${presets.filter(p => p.name === 'aperture')[0].value} => ${stkInsts[1].VarName}[i-1].aperture;
+                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;              
+                        ${presets.filter(p => p.name === 'blowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].blowPosition;
+                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;                  
+
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;  
+
+                        
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;  
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bthree") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-    //                     notesToPlay[i] + 12 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 12 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
 
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "fmVoic") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "fmVoic") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-    //                     ${presets.filter(p => p.name === 'vowel')[0].value} => ${stkInsts[1].VarName}[i-1].vowel;
-    //                     ${presets.filter(p => p.name === 'spectralTilt')[0].value} => ${stkInsts[1].VarName}[i-1].spectralTilt;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+                        ${presets.filter(p => p.name === 'vowel')[0].value} => ${stkInsts[1].VarName}[i-1].vowel;
+                        ${presets.filter(p => p.name === 'spectralTilt')[0].value} => ${stkInsts[1].VarName}[i-1].spectralTilt;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             }
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                }
 
-    //             else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") { // is this a dupe?? see above
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") { // is this a dupe?? see above
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                                 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-    //                     ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
                         
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                 }`;
-    //             }
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                    }`;
+                }
 
-    //             else if (presets && presets.length > 0 && stkInsts[1].VarName === "krstl") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                else if (presets && presets.length > 0 && stkInsts[1].VarName === "krstl") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
             
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
 
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "rod") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "rod") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wur") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wur") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
 
-    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mog") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mog") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-    //                     ${presets.filter(p => p.name === 'filterQ')[0].value} => ${stkInsts[1].VarName}[i-1].filterQ;
-    //                     ${presets.filter(p => p.name === 'filterSweepRate')[0].value} => ${stkInsts[1].VarName}[i-1].filterSweepRate;
-    //                     ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-    //                     ${presets.filter(p => p.name === 'afterTouch')[0].value} => ${stkInsts[1].VarName}[i-1].afterTouch;
-    //                     ${presets.filter(p => p.name === 'modDepth')[0].value} => ${stkInsts[1].VarName}[i-1].modDepth;
-    //                     ${presets.filter(p => p.name === 'modSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].modSpeed;
+                        ${presets.filter(p => p.name === 'filterQ')[0].value} => ${stkInsts[1].VarName}[i-1].filterQ;
+                        ${presets.filter(p => p.name === 'filterSweepRate')[0].value} => ${stkInsts[1].VarName}[i-1].filterSweepRate;
+                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
+                        ${presets.filter(p => p.name === 'afterTouch')[0].value} => ${stkInsts[1].VarName}[i-1].afterTouch;
+                        ${presets.filter(p => p.name === 'modDepth')[0].value} => ${stkInsts[1].VarName}[i-1].modDepth;
+                        ${presets.filter(p => p.name === 'modSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].modSpeed;
 
-    //                     notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hevyMetl") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hevyMetl") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
                             
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
 
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hnkytonk") {
-    //                 allSTKs[`${stkInsts[1].VarName}`] = `
-    //                     ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-    //                     ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-    //                     ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-    //                     ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-    //                     ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-    //                     notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-    //                     1 => ${stkInsts[1].VarName}[i-1].noteOn;
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
 
                         
-    //                     if (${stkArpeggiatorOn} == 1) {
-    //                         duration - (now % duration)  => now;
-    //                         1 => ${stkInsts[1].VarName}[i-1].noteOff;
-    //                     }`;
-    //             }
-    //             else {
-    //                 console.log("why in the else??? ", stkInsts);
-    //             }
-    //             console.log("WHATTTT IS GOING ON? ", allSTKs);
-    //             return Object.values(allSTKs);
-    //             // } else if (name === "voic") { // <-- buggy ... needs another look            
-    //         }
-    //     });
-    //     console.log("RETURNING STKS... ", Object.values(allSTKs));
-    //     return Object.values(allSTKs);
-    // }
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hnkytonk") {
+                    allSTKs[`${stkInsts[1].VarName}`] = `
+                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
+                            
+                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
+                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
+                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
+                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
+
+                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
+                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
+
+                        
+                        if (${stkArpeggiatorOn} == 1) {
+                            duration - (now % duration)  => now;
+                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
+                        }`;
+                }
+                else {
+                    console.log("why in the else??? ", stkInsts);
+                }
+                console.log("WHATTTT IS GOING ON? ", allSTKs);
+                return Object.values(allSTKs);
+                // } else if (name === "voic") { // <-- buggy ... needs another look            
+            }
+        });
+        console.log("RETURNING STKS... ", Object.values(allSTKs));
+        return Object.values(allSTKs);
+    }
 
     // useEffect(() => {
     //     console.log("******************************* BAM ----> ", mingusChordsData, "//** ", mingusKeyboardData);
@@ -3980,6 +2344,7 @@ export default function InitializationComponent() {
         })
     }
 
+
     const handleMingusKeyboardData = (data: any) => {
         setMingusKeyboardData(data);
     }
@@ -4000,6 +2365,34 @@ export default function InitializationComponent() {
 
     const exitEditMode = () => {
         isInPatternEditMode.current = false;
+    }
+
+    const handleChuckMsg = (chuckMsg: string) => {
+        let isMounted = true;
+        const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
+        
+        const bC = parsedNumbers.length > 0  
+            ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
+            : currentBeatCountToDisplay;  // Keep previous value if no valid number found
+        
+        // console.log("BC: ", bC);
+        // console.log("chuckMsg: ", chuckMsg);
+
+        const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
+        const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
+        const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
+        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
+        
+        // console.log("Beat display: ", beatDisplay);
+
+        setCurrentBeatCountToDisplay(beatDisplay);
+        setCurrentNumerCountColToDisplay(numerCount);
+        setCurrentDenomCount(denomCount);
+        setCurrentPatternCount(patternCount);
+        
+        return () => {
+            isMounted = false;
+        }
     }
 
     const newInitChuck = async () => {
@@ -4043,16 +2436,26 @@ export default function InitializationComponent() {
             chuckRef.current && setChuckHook(chuckRef.current);
 
             chuckRef.current.chuckPrint = (message) => { 
-                if (message.includes("LOG") || message.includes("FR:")) {
-                    console.log("here is log... ", message);
+                if (message.includes("TICK: ")) {
+                    const parsedMsg = message.split(":")[1].trim();
+
+                    // setChuckMsg(parsedMsg); 
+                    handleChuckMsg(parsedMsg)
                 } else {
-                    setChuckMsg(message); 
+                    console.log("here is log... ", message);
                 }
             }
 
             setBabylonReady(true);
         })();
     }
+
+    const handleButtonClick = () => {
+        if (inputRef.current) {
+          inputRef.current.click();
+        }
+      };
+    
 
     const toggleSliderPanelChildren = (panel: string) => {
         const index = rightPanelOptions.indexOf(panel);
@@ -4067,6 +2470,78 @@ export default function InitializationComponent() {
         console.log("sanity...: ", [panel, ...rightPanelOptions.slice(0, index), ...rightPanelOptions.slice(index + 1)]);
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+          const fileList = e.target.files;
+          console.log('File selected:', fileList);
+    
+          // VERY IMPORTANT: Update file value manually
+          setValue("file", fileList);
+    
+          // Now trigger submit
+          handleSubmit(onSubmit)();
+        }
+    };
+
+    const handleLatestSamples = (   
+        fileNames: string[],
+        xVal: number,
+        yVal: number
+    ) => {
+        const indices = fileNames.map((fileName: string) => filesToProcess.current.map((i: any) => i.filename).indexOf(fileName));
+        if (masterPatternsRef.current[yVal] && masterPatternsRef.current[yVal][xVal]) masterPatternsRef.current[yVal][xVal].fileNums = indices;
+        setPatternsHashHook(masterPatternsRef.current);
+    };
+
+    const handleLatestNotes = (
+        notes: any[],
+        xVal: number,
+        yVal: number
+    ) => {
+        console.log("WHAT IS HANDLE LATEST NOTES???  ", xVal, yVal, notes); 
+    };
+
+  
+
+    useEffect(() => { 
+        console.log("WHAT IS THE PATTERNS HASH HOOK ", masterPatternsHashHook);
+     }, [masterPatternsHashHook]);
+
+    const testChord = () => {
+        // console.log("CHORD PROGS", mingusChordsData[0].progs);
+        // console.log("CHORD PROGS NUMS", mingusChordsData[0].progs_nums);
+        console.log(
+            "CHORDA ", chordHook
+        )
+
+        if (chordHook) {
+            runChuck(1);
+        }
+
+        console.log("SELECTED CHORD: ", keyScaleChord.chord);
+        console.log("SELECTED KEY: ", keyScaleChord.key);
+        console.log("SELECTED SPEX: ", selectedChordScaleOctaveRange);
+    };
+
+    const testScale = () => {
+        console.log(
+            "SCALA ", scaleHook
+        );
+        console.log("SELECTED SPEX: ", selectedChordScaleOctaveRange); 
+    }
+
+    const handleUpdateCheckedFXList = (e: any) => {
+        updateCheckedFXList(
+                e,
+                setCheckedEffectsListHook,
+                doReturnToSynth,
+                setFxKnobsCount,
+                updateFlowNodesAndEdges,
+                initFX,
+                getConvertedRadio,
+                fxRadioValue,
+        );
+    }
 
     return (
         <Box 
@@ -4075,21 +2550,19 @@ export default function InitializationComponent() {
             
             <Box id={'relativeFrontendWrapper'}>
                 {/* RESPONSIVE APP BAR */}
-                {chuckHook &&
+                {/* {chuckHook && */}
+                {
                     <Box 
                         sx={{
                             position: "absolute",
                             width: "calc(100% - 140px)",
                             left: '140px'
                         }} 
-                        // id="centerRoot"
                     >
                         <ResponsiveAppBar
                             selectRef={selectRef}
                             tune={tune}
                             currentMicroTonalScale={currentMicroTonalScale}
-                            // handleChangeChord={handleChangeChord}
-                            // handleChangeScale={handleChangeScale}
                             programIsOn={programIsOn}
                             formats={formats}
                             chuckHook={chuckHook}
@@ -4098,7 +2571,6 @@ export default function InitializationComponent() {
                             checkedFXList={checkedFXList.current}
                             keysVisible={keysVisible}
                             isAnalysisPopupOpen={isAnalysisPopupOpen}
-                            hideCircularArpBtnsHook={hideCircularArpBtnsHook}
                             hasHexKeys={hasHexKeys}
                             value={fxRadioValue}
                             universalSources={universalSources.current}
@@ -4122,48 +2594,14 @@ export default function InitializationComponent() {
                             stopChuckInstance={stopChuckInstance}
                             chuckMicButton={chuckMicButton}
                         />
-                                    {
-                                        uploadedBlob.current && 
-                                        <Box
-                                            id="waveSurferContainer"
-                                            sx={{
-                                                display: "block",
-                                                zIndex: 9999,
-                                                position: "relative",
-                                                top: "0px",
-                                                left: "0px",
-                                                width: "calc(100% - 524px)",
-                                                justifyContent: "stretch",
-                                                background: "rgba(0,0,0,0.98)",
-                                                
-                                                // flexDirection: "column",
-                                                // justifyContent: "center",
-                                                // alignItems: "center",
-                                                // width: "100%",
-                                                // height: "100%",
-                                            }}
-                                        >
-                                            <Button style={{zIndex: 9999}} onClick={onPlayPause}>
-                                                {isPlaying ? 'Pause' : 'Play'}
-                                            </Button>
-                                            <Button style={{zIndex: 9999}} onClick={() => clipAudio()}>
-                                                Clip
-                                            </Button>
-                                            <WaveSurferPlayer
-                                                height={100}
-                                                waveColor="#4d91ff"
-                                                progressColor="#4d91ff"
-                                                // url="/my-server/audio.wav"
-                                                url={URL.createObjectURL(uploadedBlob.current)}
-                                                onReady={onReady}
-                                                onPlay={() => setIsPlaying(true)}
-                                                onPause={() => setIsPlaying(false)}
-                                                onPlayPause={onPlayPause}
-                                                plugins={[RegionsPlugin.create()]}
-                                            />
-
-                                        </Box>
-                                    }
+                        {
+                            uploadedBlob.current && 
+                            <FileWindow 
+                                uploadedBlob={uploadedBlob}
+                                // setWavesurfer={setWavesurfer}
+                                getMeydaData={getMeydaData}
+                            />
+                        }
                     </Box>
                 }
 
@@ -4184,8 +2622,6 @@ export default function InitializationComponent() {
                             //background: "linear-gradient(45deg, rgba(0,224,205,0.08) 0%, rgba(17,110,224,0.08) 40%)", 
                         }}
                     >
-
-
                         {
                             clickedBegin ? 
                             (
@@ -4243,27 +2679,30 @@ export default function InitializationComponent() {
                             {chuckHook &&
                                 <>
                                     <Box id="rightPanelWrapper">
-
-                                        <Box sx={{ 
-                                            // width: 'calc(100vw - 560px)', 
-                                            display: 'flex', 
-                                            flexDirection: 'column',
-                                            borderRight: '0.5px solid rgba(255,255,255,0.78)', 
-                                         
-                                            // marginLeft: '-6px',
-                                            // position: 'absolute',
-                                            // left: '400px'
-                                        }}><MingusPopup 
-                                            updateKeyScaleChord={updateKeyScaleChord}
-                                        /> </Box>
-
                                         <Box
-                                        
                                             ref={parentDivRef}
                                         >
                                             <Box id="rightPanelHeader">
+                                                <Box className="right-panel-header-wrapper">
+                                                    <Button 
+                                                        id='toggleSliderPanelChildren_Effects' 
+                                                        className='right-panel-header-button'
+                                                        sx={{ backgroundColor: rightPanelOptions[0] === 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
+                                                        onClick={(e: any) => toggleSliderPanelChildren('effects')}
+                                                    >
+                                                            Effects View
+                                                    </Button>
+                                                    <Button 
+                                                        id='toggleSliderPanelChildren_Pattern' 
+                                                        className='right-panel-header-button'
+                                                        sx={{ backgroundColor: rightPanelOptions[0] !== 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
+                                                        onClick={(e: any) => toggleSliderPanelChildren('pattern')}
+                                                    >
+                                                        Patterns View
+                                                    </Button>
+                                                </Box>
                                                 {
-                                                    universalSources.current && Object.keys(universalSources.current).length > 0 &&
+                                                    universalSources.current && Object.keys(universalSources.current).length > 0 && rightPanelOptions[0] === 'effects' &&
                                                     <GroupToggle
                                                         name={"test name"}
                                                         options={Object.keys(universalSources.current).map(i => i)}
@@ -4271,10 +2710,10 @@ export default function InitializationComponent() {
                                                     />
                                                 }
                                                 <br />
-                                                <Box className="right-panel-header-wrapper">
+                                                {/* <Box className="right-panel-header-wrapper">
                                                     <Button id='toggleSliderPanelChildren_Effects' className='right-panel-header-button' onClick={(e: any) => toggleSliderPanelChildren('effects')}>Effects View</Button>
                                                     <Button id='toggleSliderPanelChildren_Pattern' className='right-panel-header-button' onClick={(e: any) => toggleSliderPanelChildren('pattern')}>Patterns View</Button>
-                                                </Box>
+                                                </Box> */}
                                             </Box>
                                             <Box sx={{ maxHeight: 'calc(100% - 6rem)', display: rightPanelOptions[0] === 'effects' ? "flex" : "none" }}>
                                                 <FXRouting
@@ -4282,8 +2721,8 @@ export default function InitializationComponent() {
                                                     fxData={universalSources.current || defaultSources}
                                                     width={440}
                                                     height={440}
-                                                    handleFXGroupChange={handleFXGroupChange}
-                                                    updateCheckedFXList={updateCheckedFXList}
+                                                    // handleFXGroupChange={handleFXGroupChange}
+                                                    updateCheckedFXList={handleUpdateCheckedFXList}
                                                     fxGroupsArrayList={fxGroupOptions}
                                                     checkedFXList={checkedFXList.current}
                                                     fxFX={[]}
@@ -4292,7 +2731,7 @@ export default function InitializationComponent() {
                                                     clickFXChain={clickFXChain}
                                                     updateFXInputRadio={updateFXInputRadio}
                                                     fxRadioValue={fxRadioValue}
-                                                    updateStkKnobs={updateStkKnobs}
+                                                    // updateStkKnobs={updateStkKnobs}
                                                     setStkValues={setStkValues}
                                                     stkValues={stkValues}
                                                     currentScreen={currentScreen.current}
@@ -4301,6 +2740,7 @@ export default function InitializationComponent() {
                                                     updateFileUploads={updateFileUploads}
                                                     handleCheckedFXToShow={handleCheckedFXToShow}
                                                     checkedEffectsListHook={checkedEffectsListHook}
+                                                    setCheckedEffectsListHook={setCheckedEffectsListHook}
                                                 />
                                                 <Box id={'reactDiagramsPedalboardWrapper'}>
                                                     <ReactDiagramsPedalboard
@@ -4309,6 +2749,7 @@ export default function InitializationComponent() {
                                                     />
                                                 </Box>
                                             </Box>
+                                            {/* <div id="modal-root"></div> */}
                                             <Box sx={{display: rightPanelOptions[0] !== 'effects' ? "flex" : "none" }}>
                                                 <NotesQuickDash
                                                     featuresLegendData={[]}
@@ -4332,7 +2773,8 @@ export default function InitializationComponent() {
                                                     masterPatternsHashHookUpdated={masterPatternsHashUpdated}
                                                     inPatternEditMode={inPatternEditMode}
                                                     selectFileForAssignment={selectFileForAssignment}
-                                                    handleChangeCellSubdivisions={((num: number) => { 
+                                                    handleChangeCellSubdivisions={((num: number) => {
+                                                        console.log("NUMMMMM ", num) 
                                                         setCellSubdivisions(cellSubdivisions + 1);
                                                     })}
                                                     cellSubdivisions={cellSubdivisions}
@@ -4352,10 +2794,26 @@ export default function InitializationComponent() {
                                                     clickHeatmapCell={clickHeatmapCell}
 
                                                     isInPatternEditMode={isInPatternEditMode.current}
+                                                    handleLatestSamples={handleLatestSamples}
+                                                    handleLatestNotes={handleLatestNotes}
+
+                                                    mTFreqs={mTFreqs}
+                                                    mTMidiNums={mTMidiNums}
+                                                    updateKeyScaleChord={updateKeyScaleChord}
+                                                    testChord={testChord}
+                                                    testScale={testScale}
                                                 />
                                             </Box>
                                         </Box>
                                     </Box>
+
+
+
+
+            {/* WTF is current screen??? {currentScreen.current} */}
+            {/* {...Object(visibleFXKnobs).values().map((i: any)=>i).toString()} */}
+
+
 
                                     {/* BABYLON LAYER */}
                                     <Box 
@@ -4366,7 +2824,33 @@ export default function InitializationComponent() {
                                         }}
                                         key={babylonKey}
                                     >
+{currentScreen.current !== "synth" && <ArrowBack 
+    onClick={() => {
+        currentScreen.current = "synth";
+        visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
+        setFxKnobsCount(moogGrandmotherEffects.current.length);
+        updateCurrentFXScreen(
+            setFxKnobsCount,
+            setBabylonKey,
+            babylonKey,
+        );
+    }}
+    sx={{
+    display: "flex", 
+    flexDirection: "column", 
+    marginLeft: "140px", 
+    position: "absolute",
+    cursor: "pointer",
+    top: "96px",
+    zIndex: "9999",
+    background: "purple",
+}}></ArrowBack>}
+{/* <span style={{zIndex: "9999", color: 'white', position: "absolute", top: "68px", right: "148px"}}>
+    {currentScreen.current.includes("_") ? currentScreen.current.replace("stk_", "") : `${currentScreen.current.charAt(0).toUpperCase()}${currentScreen.current.slice(1)} `}
+</span> */}
                                         {babylonReady && babylonReady && <BabylonLayer
+                                            currentBeatCountToDisplay={{currentBeatCountToDisplay}}
+                                            bpm={bpm}
                                             handleUpdateSliderVal={handleUpdateSliderVal}
                                             fxKnobsCount={fxKnobsCount}
                                             needsUpdate={needsUpdate}
@@ -4400,69 +2884,29 @@ export default function InitializationComponent() {
                                                 }}>
                                                     <BPMModule
                                                         bpm={bpm}
-                                                        handleChangeBPM={handleChangeBPM}
+                                                        setBpm={setBpm}
                                                         beatsNumerator={beatsNumerator}
-                                                        beatsDenominator={beatsDenominator}
-                                                        handleChangeBeatsNumerator={handleChangeBeatsNumerator}
-                                                        handleChangeBeatsDenominator={handleChangeBeatsDenominator}
+                                                        beatsDenominator={beatsDenominator} 
+                                                        setChuckUpdateNeeded={setChuckUpdateNeeded}
+                                                        setBeatsNumerator={setBeatsNumerator} 
+                                                        setBeatsDenominator={setBeatsDenominator} 
+                                                        setNumeratorSignature={setNumeratorSignature} 
+                                                        setDenominatorSignature={setDenominatorSignature}                                                    
                                                     />
                                                 </Box>
                                             )
                                         }
 
-                                        {/* FILES */}
-                                        <Box sx={{
-                                            display: "flex",
-                                            flexDirection: "column"
-                                        }}
-                                        >
-                                            <Box sx={{
-                                                display: chuckHook ? "flex" : "none",
-                                                flexDirection: "row",
-                                                width: "100%",
-                                            }}
-                                            >
-                                                <form
-                                                    style={{
-                                                        display: "flex",
-                                                        flexDirection: "row",
-                                                        width: "100%",
-                                                    }}
-                                                    onSubmit={handleSubmit(onSubmit)}>
-                                                    <Button
-                                                        component="label"
-                                                        sx={{
-                                                            display: "flex",
-                                                            flexDirection: "row",
-                                                            width: "100%",
-                                                            cursor: "pointer",
-                                                            border: 'rgba(0,0,0,0.78)',
-                                                            background: 'rgba(0,0,0,0.78)',
-                                                            color: 'rgba(255,255,255,0.78)',
-                                                            position: 'relative',
-                                                            minWidth: '140px',
-                                                            marginLeft: '0px',
-                                                            zIndex: 15,
-                                                            maxHeight: '40px',
-                                                            '&:hover': {
-                                                                // color: theme.palette.primaryA,
-                                                                background: PALE_BLUE,
-                                                            }
-                                                        }}
-                                                        // className="ui_SynthLayerButton"
-
-                                                        endIcon={<FileUploadIcon />}
-                                                    >
-                                                        {<>File</>}
-                                                        <input
-                                                            type={"file"}
-                                                            {...register("file")}
-                                                            hidden={true}
-                                                        />
-                                                    </Button>
-                                                </form>
-                                            </Box>
-                                        </Box>
+                                        <FileManager 
+                                            handleSubmit={handleSubmit}
+                                            onSubmit={onSubmit}
+                                            chuckHook={chuckHook}
+                                            register={register}
+                                            handleFileChange={handleFileChange}
+                                            handleButtonClick={handleButtonClick}
+                                            FileUploadIcon={FileUploadIcon}
+                                            inputRef={inputRef}
+                                        />
 
 
                                         <Box sx={{ position: "relative" }}>
@@ -4479,7 +2923,7 @@ export default function InitializationComponent() {
                                                     minHeight: 'calc(100vh-13rem)',
                                                 }} key={'handleClickUploadedFilesWrapper'}>
 
-                                                    {filesToProcessArrayHook.length > 0 && filesToProcessArrayHook.map((file: any) => {
+                                                    {filesToProcess.current.map((file: any) => {
                                                         return <Button
                                                             sx={{
                                                                 // left: '24px'
@@ -4498,6 +2942,37 @@ export default function InitializationComponent() {
                                                 </Box>
                                             </Box>
                                         </Box>
+
+                                        <Box>
+                                            <InstrumentsAndMicrotones
+                                            // updateStkKnobs={updateStkKnobs}
+                                            stkValues={stkValues}
+                                            setStkValues={setStkValues}
+                                            tune={tune}
+                                            currentMicroTonalScale={currentMicroTonalScale}
+                                            setFxKnobsCount={setFxKnobsCount}
+                                            setBabylonKey={setBabylonKey}
+                                            babylonKey={babylonKey}
+                                            setNeedsUpdate={setNeedsUpdate}
+                                            currentScreen={currentScreen}
+                                            currentFX={currentFX}
+                                            currentStkTypeVar={currentStkTypeVar}
+                                            universalSources={universalSources}
+                                            updateCurrentFXScreen={updateCurrentFXScreen}
+                                            getSTK1Preset={getSTK1Preset} 
+                                            universalSourcesRef={universalSources}                                            />
+                                        </Box>
+
+                                        {/* <Box>
+                                            <Box sx={{ 
+                                                display: 'flex', 
+                                                flexDirection: 'column',
+                                                borderRight: '0.5px solid rgba(255,255,255,0.78)', 
+                                            
+                                            }}><MingusPopup 
+                                                updateKeyScaleChord={updateKeyScaleChord}
+                                            /> </Box>
+                                        </Box> */}
                                     </Box>
                                 </>
                             }
@@ -4506,10 +2981,11 @@ export default function InitializationComponent() {
                 )}
                 <Box
                     sx={{
-                        width: '100vw',
+                        width: 'calc(100vw - 140px)',
                         position: 'absolute',
                         zIndex: "9999",
                         bottom: '0px',
+                        left: '140px',
                     }}
                 >                                        
                     <KeyboardControls

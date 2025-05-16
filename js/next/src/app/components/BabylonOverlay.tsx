@@ -61,7 +61,7 @@ const BabylonOverlay = (props: {
         if (chuckHook) {
             getHexKeyboard(game, chuckHook, microTonalArr);
         }
-    }, [microTonalArr, microTonalArr.length])
+    }, [microTonalArr, microTonalArr.length, chuckHook, game, updateHasHexKeys]);
 
 
 

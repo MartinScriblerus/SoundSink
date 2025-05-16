@@ -12,7 +12,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 
 export default function FXCheckboxLabels(props: FXGroupsArray) {
-    const { fxGroupsArrayList, checkedFXList, handleFXGroupChange, updateCheckedFXList } = props;
+    const { fxGroupsArrayList, checkedFXList, handleFXGroupChange, updateCheckedFXList, setCheckedEffectsListHook } = props;
     
     const fxGroupsArrayListNoDupes = React.useMemo(() => {
         return fxGroupsArrayList.length > 8 
@@ -71,7 +71,7 @@ export default function FXCheckboxLabels(props: FXGroupsArray) {
                                 return (
                                     <FormControlLabel
                                         key={`${fxE.effectLabel.replace(' ', '_')}_fx_checkbox`}
-                                        onChange={(e) => handleFXGroupChange(e)}
+                                        onChange={(e) => handleFXGroupChange(e, setCheckedEffectsListHook)}
                                         control={
                                             <Checkbox
                                                 checked={isChecked}

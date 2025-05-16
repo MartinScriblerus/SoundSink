@@ -4,6 +4,8 @@ dotenvExpand.expand({ parsed: { ...process.env } });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: false, // Disables the development toast overlay
+
   webpack(config, options) {
     const { isServer } = options;
 
@@ -40,6 +42,7 @@ const nextConfig = {
             outputPath: `${isServer ? "../" : ""}static/images/`,
             name: "[name]-[hash].[ext]",
             esModule: config.esModule || false,
+            
           },
         },
       ],

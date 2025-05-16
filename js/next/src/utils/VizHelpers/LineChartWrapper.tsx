@@ -69,7 +69,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
         featureGain: analysisObject.current[analysisSourceRadioValue.toLowerCase()].featureGain,
         kurtosis: analysisObject.current[analysisSourceRadioValue.toLowerCase()].kurtosis,
     }]);
-  },[analysisObject.current, timeNow]); 
+  },[timeNow, analysisObject, analysisSourceRadioValue]); 
 
   const handleChange = (selectedViz: any) => {
     setCurrentVisualization(selectedViz.target.value);
@@ -95,13 +95,13 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
     console.log("CHECK FILE TIME!!! ", fileTime);
     console.log("FILES TO PROCESS: ", filesToProcess);
     console.log("Files Data! ",  filesToProcess[filesToProcess.length - 1] &&  filesToProcess[filesToProcess.length - 1].length && filesToProcess[filesToProcess.length - 1].data.map((i: any, idx: number) => {return {x: idx, y: i}}))
-  }, [filesToProcess.length, isInFileMode]);
+  }, [filesToProcess, filesToProcess.length, isInFileMode]);
 
   useEffect(() => {
     if (meydaFeatures) {
       console.log("WHAT ARE MEYDA FEATURES? ", meydaFeatures);
     }
-  }, [filesToProcess.length, meydaNeedsUpdate]);
+  }, [filesToProcess.length, meydaNeedsUpdate, meydaFeatures]);
   
 
   return (
@@ -182,7 +182,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             position: 'absolute',
             top: '112px',
             left: '52px',
-            width: '524px',
+            width: '396px',
           }}>
 
           </Box>

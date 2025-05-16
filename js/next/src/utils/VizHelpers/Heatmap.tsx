@@ -43,6 +43,23 @@ type HeatmapProps = {
 
   exitEditMode: () => void;
   isInPatternEditMode: boolean;
+
+  handleLatestSamples: (    
+    fileNames: string[],
+    xVal: number,
+    yVal: number
+  ) => void;
+  handleLatestNotes: (  
+    notes: string[],
+    xVal: number,
+    yVal: number,
+) => void;
+
+  mTFreqs:number[];
+  mTMidiNums:number[];
+  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
+  testChord: () => void;
+  testScale: () => void;
 };
 
 export type InteractionData = {
@@ -90,6 +107,15 @@ export const Heatmap = ({
   exitEditMode,
   clickHeatmapCell,
   isInPatternEditMode,
+
+  handleLatestSamples,
+  handleLatestNotes,
+
+  mTFreqs,
+  mTMidiNums,
+  updateKeyScaleChord,
+  testChord,
+  testScale,
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -107,8 +133,8 @@ export const Heatmap = ({
     
 useEffect(() => {
   setDoRebuildHeatmap(true);
-  exitEditMode();
-}, [doRebuildHeatmap])
+  // exitEditMode();
+}, [doRebuildHeatmap]);
 
 
   // useEffect(() => {
@@ -120,11 +146,11 @@ useEffect(() => {
   // }, [masterPatternsHashHook.length])
 
 
-  useEffect(() => {
-    if (updateCellColorBool) {
-      updateCellColor(false);
-    }
-  }, [updateCellColorBool])
+  // useEffect(() => {
+  //   if (updateCellColorBool) {
+  //     updateCellColor(false);
+  //   }
+  // }, [updateCellColorBool])
 
   
   type HeatmapData = { x: string; y: string; value: number }[];
@@ -158,6 +184,7 @@ useEffect(() => {
       height: '100%',
       width: '100%',
     }}>
+
       <Box sx={{
         width:'100%',
         justifyContent: 'center',
@@ -202,6 +229,13 @@ useEffect(() => {
               currentDenomCount={currentDenomCount}
               currentPatternCount={currentPatternCount}
               clickHeatmapCell={clickHeatmapCell}
+              handleLatestSamples={handleLatestSamples}
+              handleLatestNotes={handleLatestNotes}
+              mTFreqs={mTFreqs}
+              mTMidiNums={mTMidiNums}
+              updateKeyScaleChord={updateKeyScaleChord}
+              testChord={testChord}
+              testScale={testScale}
             />
           }
           <Tooltip 

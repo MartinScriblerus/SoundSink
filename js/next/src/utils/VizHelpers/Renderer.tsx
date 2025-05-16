@@ -8,6 +8,11 @@ import FileWrapper from "@/app/components/FileWrapper";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
 import WaveSurfer from 'wavesurfer.js'
 import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from "../constants";
+import InsetCheckboxDropdown from "@/app/components/InsetCheckboxDropdowns";
+import { PortalCenterModal } from "@/app/components/PortalCenterModal";
+import { background } from "@/app/components/VizxHelpers/BrushChart";
+import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
+import MingusPopup from "@/app/components/MingusPopup";
 // import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
 // import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
 
@@ -38,8 +43,6 @@ type RendererProps = {
   inPatternEditMode: (state: boolean) => void;
   filesToProcess: any;
   selectFileForAssignment: (e: Event) => void;
-  // sortFileItemUp: (e: Event) => void;
-  // sortFileItemDown: (e: Event) => void;
   handleChangeCellSubdivisions: (num: number, x: number, y: number) => void;
   cellSubdivisions: number;
   resetCellSubdivisionsCounter: (x: number, y: number) => void;
@@ -50,6 +53,21 @@ type RendererProps = {
   currentDenomCount: number;
   currentPatternCount: number;
   clickHeatmapCell: any;
+  handleLatestSamples: (
+    fileNames: string[],
+    xVal: number,
+    yVal: number
+  ) => void;
+  handleLatestNotes: (
+    notes: any[],
+    xVal: number,
+    yVal: number
+  ) => void;
+  mTFreqs:number[];
+  mTMidiNums:number[];
+  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
+  testChord: () => void;
+  testScale: () => void;
 };
 
 export const Renderer = ({
@@ -65,8 +83,6 @@ export const Renderer = ({
   inPatternEditMode,
   filesToProcess,
   selectFileForAssignment,
-  // sortFileItemUp,
-  // sortFileItemDown,
   handleChangeCellSubdivisions,
   cellSubdivisions,
   resetCellSubdivisionsCounter,
@@ -76,6 +92,13 @@ export const Renderer = ({
   currentDenomCount,
   currentPatternCount,
   clickHeatmapCell,
+  handleLatestSamples,
+  handleLatestNotes,
+  mTFreqs,
+  mTMidiNums,
+  updateKeyScaleChord,
+  testChord,
+  testScale,
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -110,7 +133,7 @@ export const Renderer = ({
     }
     return () => {
     };
-  }, [width, height]);
+  }, [width, height, boundsHeight, boundsWidth]);
 
   const xScale = useMemo(() => {
     return d3
@@ -118,7 +141,7 @@ export const Renderer = ({
       .range([0, boundsWidth + 1])
       .domain(allXGroups)
       .padding(0.01);
-  }, [data]);
+  }, [allXGroups, boundsWidth]);
 
   const yScale = useMemo(() => {
     return d3
@@ -126,7 +149,7 @@ export const Renderer = ({
       .range([boundsHeight, 0])
       .domain(allYGroups)
       .padding(0.01);
-  }, [data]);
+  }, [allYGroups, boundsHeight]);
 
   // var colorScale = d3
   //   .scaleSequential()
@@ -156,7 +179,9 @@ export const Renderer = ({
           return setInstrument("Osc 1");
         case 6:
           return setInstrument("Osc 2");
-        }
+        case 7:
+          return setInstrument("STK");
+      }
     }
 
     const triggerEditPattern = async (e: any, num: any) => {
@@ -177,7 +202,7 @@ export const Renderer = ({
       currentYVal.current = Number(yVal);
       cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
       yVal && getInstrumentName(yVal);
-      console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", masterPatternsHashHook, Number(yVal),Number(xVal));
+      console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", Number(yVal),Number(xVal), masterPatternsHashHook );
       console.log("%cCELL DATA!!!!!: ", isFill, xVal, yVal, "color: magenta;", cellData.current);
       setShowPatternEditorPopup(true);
       document.getElementById(`fill_${xVal}_${yVal}`);
@@ -190,10 +215,16 @@ export const Renderer = ({
       }
     }
 
+    // useEffect(() => {
+    //   console.log("OYOYOYOY ", filesToProcess.map((f: any) => f.filename));
+    // }, []);
+
+
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
       <React.Fragment key={`rectFillsWrapper_${d.x}_${d.y}`}>
-        {Array.from(
+        {masterPatternsHashHook[`${d.y}`][`${d.x}`] &&
+          Array.from(
             {
               length: masterPatternsHashHook[`${d.y}`][`${d.x}`].subdivisions
             }
@@ -320,10 +351,15 @@ export const Renderer = ({
 
   const subdivisionCount = cellSubdivisions;
 
-  // // const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
-  // const buttons = Array.from({ length: subdivisionCount }, (_, i) => (
-  //   <Button key={`fillBtn_${i}_${i}`} id={`${i}`} onClick={handleFillEdit} />
-  // ));
+  function handleLatestSamplesFinal(selected: any) {
+    console.log("WHAT IS THE FILE NAME? ", selected);
+    handleLatestSamples(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
+  }
+
+  function handleLatestNotesFinal (selected: any) {
+    console.log("WHAT ARE THE NOTES? ", selected);
+    handleLatestNotes(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
+  };
   
   return (
     <Box
@@ -335,141 +371,191 @@ export const Renderer = ({
         textAlign: "center",
         justifyContent: "center",
         alignItems: "center",
-
-      }}>
+      }}
+    >
       {showPatternEditorPopup && (
-        <Box
-          key={`patternEditorPopupCloseButtonWrapper__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-          sx={{
-            position: "absolute",
-            display: "flex",
-            flexDirection: "column",
-            textAlign: "left",
-            background: 'rgba(0,0,0,0.78)',
-            zIndex: "1001",
-          }}>
-          <Box 
-            key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+
+        <PortalCenterModal onClose={()=>handleCloseEditorPopup}>
+          <Box
+            key={`patternEditorPopupCloseButtonWrapper__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
             sx={{
-              textAlign: 'right',
-              justifyContent: "stretch",
-              alignItems: "stretch",
               display: "flex",
-              flexDirection: "row",
-            }}
-          >
-            <CloseIcon
-              sx={{
-                zIndex: '9999'
-              }}
-              key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-              onClick={handleCloseEditorPopup}
-            />
-          </Box>
-
-          <Box 
-            key={`wrap_edit_popup__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}_${currentYVal.current}_${currentXVal.current}`}>
-
-
-            <Box
-              key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                fontFamily: 'monospace',
-                fontWeight: '100',
-                marginRight: '100px',
-                textAlign: 'left',
-                minWidth: '144px',
-                border: 'solid 0.5px rgb(175, 240, 91)',
-                borderRadius: '5px',
-                padding: '4px',
-                margin: '4px',
-              }}
-            >
-                <Box 
-                  key={`wrap_new_inst__${Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)}__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                  sx={{ 
-                    padding: '4px', 
-                  }}>
-                  {instrument}
-                </Box>
-                <Box 
-                  key={`wrap_new_details_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                  sx={{ 
-                    padding: '4px', 
-                    background: FOREST_GREEN,
-                  }}>
-                    <Box>
-                      Cell: {
-                        `${currentYVal.current} / ${currentXVal.current}`
-                      }  
-                    </Box>
-                    <Box>
-                      Samples: {
-                        new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
-                      }
-                    </Box>
-                    <Box>              
-                      Velocity: {
-                        masterPatternsHashHook && 
-                        masterPatternsHashHook.length > 0 &&
-                        masterPatternsHashHook[`${currentYVal.current}`] &&
-                        masterPatternsHashHook[`${currentYVal.current}`].length &&
-                        Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.velocity) || "No notes"
-                      }
-                    </Box>
-                    <Box>
-                      Notes: {
-                        masterPatternsHashHook && 
-                        masterPatternsHashHook.length > 0 &&
-                        masterPatternsHashHook[`${currentYVal.current}`] &&
-                        masterPatternsHashHook[`${currentYVal.current}`].length &&
-                        Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.note) || "No notes"
-                      }
-                    </Box>
-                </Box>
-              <span
-
-                  style={{ 
-                    display: "flex", 
-                    flexDirection: "row",
-                    justifyContent: "stretch", 
-                  }}
-                    key={`noteEditDisplaySpanWrapper_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}>
-
-                  Subdivisions:
-                  <SubdivisionsPicker
-                    xVal={currentXVal.current}
-                    yVal={currentYVal.current}
-                      masterPatternsHashHook={masterPatternsHashHook}
-                    handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-                    cellSubdivisions={cellSubdivisions}
-                  />
-                </span>
-              </Box>
+              flexDirection: "column",
+              background: 'rgba(0,0,0,0.78)',
+              borderRadius: '8px',
+            }}>
             <Box 
-              key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+              key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
               sx={{
-                display: "flex", 
-                flexDirection: "row",
-                width: "calc(100% - 200px)",
-                height: "100%",
-                position: "relative",
-                boxSizing: "border-box"
+                textAlign: 'right',
+                justifyContent: "stretch",
+                alignItems: "stretch",
+                display: "flex",
+                flexDirection: "row-reverse",
+                width: "100%",
+                padding: "0",
+                margin: "0",
+                cursor: "pointer",
               }}
             >
+              <CloseIcon
+                sx={{
+                  zIndex: '9999',
+                  display: "flex",
+                  color: 'rgba(255,255,255,0.78)',
+                  textAlign: 'right',
+                  // width: '100%',
+                }}
+                key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                onClick={handleCloseEditorPopup}
+              />
+            </Box>
+
+            {/* <Box 
+              key={`wrap_edit_popup__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}_${currentYVal.current}_${currentXVal.current}`}>
+ */}
+
+              <Box
+                key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  fontFamily: 'monospace',
+                  fontWeight: '100',
+                  // marginRight: '100px',
+                  
+                  textAlign: 'left',
+                  minWidth: '256px',
+                  minHeight: "420px",
+                  // border: 'solid 0.5px rgb(175, 240, 91)',
+                  borderRadius: '5px',
+                  padding: '32px',
+                  margin: '8px',
+                  color: 'rgba(255,255,255,0.78)',
+                }}
+              >
+                  {/* <Box 
+                    key={`wrap_new_details_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                    // sx={{ 
+                    //   padding: '16px', 
+                    // }}
+                  > */}
+                      {/* <Box
+                        sx={{
+                          display: 'flex',
+                        }}
+                      > */}
+                        Cell: {
+                          `${currentXVal.current} | ${currentYVal.current}`
+                        }  
+                        <br/>
+                        Subdivisions: <SubdivisionsPicker
+                          xVal={currentXVal.current}
+                          yVal={currentYVal.current}
+                          masterPatternsHashHook={masterPatternsHashHook}
+                          handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                          cellSubdivisions={cellSubdivisions}
+                        />
+                      {/* </Box> */}
+                      {/* <SubdivisionsPicker
+                        xVal={currentXVal.current}
+                        yVal={currentYVal.current}
+                          masterPatternsHashHook={masterPatternsHashHook}
+                        handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                        cellSubdivisions={cellSubdivisions}
+                      /> */}
+                      <Box>
+                        {/* Samples: {
+                          new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
+                        } */}
+
+
+                        Samples:
+                        <InsetCheckboxDropdown 
+                          files={new Set(filesToProcess.map((f: any) => f.filename))} 
+                          handleLatestSamplesFinal={handleLatestSamplesFinal} 
+                          fileNumsPreselected={new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) } />
+                      </Box>
+                      {/* <Box>              
+                        Velocity: {
+                          masterPatternsHashHook && 
+                          masterPatternsHashHook.length > 0 &&
+                          masterPatternsHashHook[`${currentYVal.current}`] &&
+                          masterPatternsHashHook[`${currentYVal.current}`].length &&
+                          Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.velocity) || "No notes"
+                        }
+                      </Box> */}
+                      <Box>
+                        Notes: 
+                        {/* {
+                          masterPatternsHashHook && 
+                          masterPatternsHashHook.length > 0 &&
+                          masterPatternsHashHook[`${currentYVal.current}`] &&
+                          masterPatternsHashHook[`${currentYVal.current}`].length &&
+                          Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.note) || "No notes"
+                        } */}
+                        
+                        {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
+                        (<InsetNotesDropdown 
+                          notes={mTFreqs} 
+                          handleLatestNotesFinal={handleLatestNotesFinal} 
+                          notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
+                        />)}
+
+                      </Box>
+                  {/* </Box> */}
+                  <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      borderRight: '0.5px solid rgba(255,255,255,0.78)',
+                  }}>                    
+                    <MingusPopup 
+                      updateKeyScaleChord={updateKeyScaleChord}
+                      testChord={testChord}
+                      testScale={testScale}
+                    /> 
+                  </Box>
+                  {/* <span
+                    style={{ 
+                      display: "flex", 
+                      flexDirection: "row",
+                      justifyContent: "stretch", 
+                    }}
+                      key={`noteEditDisplaySpanWrapper_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}>
+
+                    Subdivisions:
+                    <SubdivisionsPicker
+                      xVal={currentXVal.current}
+                      yVal={currentYVal.current}
+                        masterPatternsHashHook={masterPatternsHashHook}
+                      handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                      cellSubdivisions={cellSubdivisions}
+                    />
+                  </span> */}
+                {/* </Box> */}
+              <Box 
+                key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                sx={{
+                  display: "flex", 
+                  flexDirection: "row",
+                  width: "calc(100% - 200px)",
+                  height: "100%",
+                  position: "relative",
+                  boxSizing: "border-box"
+                }}
+              >
+              </Box>
             </Box>
           </Box>
-      </Box>
+        </PortalCenterModal>
       )}
-
       {width && height && boundsWidth && boundsHeight && <svg
         key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
         width={width || 0}
         height={height}
         style={{ pointerEvents: "none" }}
       >
+        YAYAYA
         <g
           key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
           width={boundsWidth}
@@ -478,6 +564,7 @@ export const Renderer = ({
           style={{ pointerEvents: "none" }}
         >
           {allShapes}
+          YUYUYU
           {xLabels}
           {yLabels}
         </g>

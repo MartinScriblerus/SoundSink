@@ -24,73 +24,42 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
             }}
         >
             <FormControl
-                sx={{
-                    margin: '8px', 
-                    padding: '0px !important', 
-                    // maxWidth: '100px', 
-                    color:'rgba(228,225,209,1)',
-                    maxWidth: '76px',
-                    width: '50%',
-                    paddingTop: '0px',
-                    height: '0px',
-                }}
-                onSubmit={(e) => {
-                    e.preventDefault();
+            sx={{
+                margin: '8px',
+                padding: '0px',
+                color: 'rgba(228,225,209,1)',
+                maxWidth: '76px',
+                width: '50%',
+                height: 'auto', // ✅
+            }}
+            >
+            <TextField
+                type="number"
+                value={cellSubdivisions}
+                onChange={(event) => {
+                const val = Number(event.target.value);
+                if (val > 0) {
+                    handleChangeCellSubdivisions(val, xVal, yVal);
+                    masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = val;
                 }
-            }>
-                <TextField
-                    focused
-                    inputProps={{ 
-                        style: { 
-                            color: 'primary.contrastText',
-                            fontFamily: 'monospace',
-                            fontSize: '24px',
-                            width: '100%',
-                            minWidth: '48px',
-                            minHeight: '48px',
-                        } 
-                    }}
-                    sx={{
-                        input: { color: 'primary.contrastText' },
-                        minWidth: "2rem",
-                        backgroundColor: PALE_BLUE,
-                        color: 'status.text',
-                        paddingTop: 0,
-                        fontFamily: 'sans-serif',
-                        display: 'flex',
-                        fontSize: '32px',
-                        alignItems: 'center',
-                        paddingBottom: 0,
-                        margin: "1rem",
-                        maxWidth: "6rem",
-                        height: "100%",
-                        width: '72px',
-                    }}
-                    // label={"Subdivisions"}
-                    // placeholder="Subdivisions"
-                    // InputLabelProps={{
-                    //     shrink: true,
-                    //   }}
-                    type="number"
-                    id="standard-textarea-cellSubdivisions"
-                    className="inputSampleInfo"
-                    variant="outlined"
-                    value={cellSubdivisions}
-                    onInput={(event: React.ChangeEvent<HTMLInputElement>) => {
-                            event.preventDefault();
-                            console.log("what is the goddamn event: ", event.target.value);
-                            const inputCellDivisions: any = Number(event.target.value);
-                            console.log('x_y_subbbbb ', xVal, yVal, cellSubdivisions, inputCellDivisions)
-                            if (inputCellDivisions && inputCellDivisions > 0 ) {
-                                handleChangeCellSubdivisions(inputCellDivisions, xVal, yVal);
-                                    masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = inputCellDivisions;
-                            }
-                        }
-                    }
-                />
+                }}
+                inputProps={{
+                style: {
+                    color: 'primary.contrastText',
+                    fontFamily: 'monospace',
+                    fontSize: '16px',
+                    width: '100%',
+                },
+                }}
+                sx={{
+                input: { color: 'primary.contrastText' },
+                backgroundColor: PALE_BLUE,
+                maxWidth: "6rem",
+                width: '72px',
+                }}
+            />
             </FormControl>
-        {/* </Box> */}
-    </Box>
+        </Box>
     )
 }
 export default SubdivisionsPicker;

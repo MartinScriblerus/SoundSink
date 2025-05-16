@@ -42,6 +42,23 @@ type QuickDashProps = {
 
     exitEditMode: () => void;
     isInPatternEditMode: boolean;
+
+    handleLatestSamples: (  
+        fileNames: string[],
+        xVal: number,
+        yVal: number,
+    ) => void;
+    handleLatestNotes: (  
+        notes: string[],
+        xVal: number,
+        yVal: number,
+    ) => void;
+
+    mTFreqs:number[];
+    mTMidiNums:number[];
+    updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
+    testChord: () => void;
+    testScale: () => void;
 }
 
 const NotesQuickDash = (props:QuickDashProps) => {
@@ -79,6 +96,15 @@ const NotesQuickDash = (props:QuickDashProps) => {
         exitEditMode,
         isInPatternEditMode,
         clickHeatmapCell,
+
+        handleLatestSamples,
+        handleLatestNotes,
+
+        mTFreqs,
+        mTMidiNums,
+        updateKeyScaleChord,
+        testChord,
+        testScale,
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
@@ -188,11 +214,15 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             isInPatternEditMode={isInPatternEditMode}
 
                             clickHeatmapCell={clickHeatmapCell}
+                            handleLatestSamples={handleLatestSamples}
+                            handleLatestNotes={handleLatestNotes}
+                            mTFreqs={mTFreqs}
+                            mTMidiNums={mTMidiNums}
+                            updateKeyScaleChord={updateKeyScaleChord}
+                            testChord={testChord}
+                            testScale={testScale}
                         />
-
                     }
-
-
                 </Box>
 
                 {Object.entries(featuresLegendData).map((f) => (

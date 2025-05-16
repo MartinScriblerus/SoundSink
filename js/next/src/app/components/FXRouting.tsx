@@ -3,6 +3,7 @@ import { Box, useTheme } from '@mui/system';
 import FXCheckboxLabels from './FXCheckboxes';
 import { STKOption } from '@/utils/fixedOptionsDropdownData';
 import "../../app/page.module.css"
+import { handleFXGroupChange } from '@/utils/knobsHelper';
 interface PedalboardNode {
   id: string;
   name: string;
@@ -37,7 +38,7 @@ interface FXRoutingProps {
   fxData: any;
   width: number;
   height: number;
-  handleFXGroupChange: (e: any) => void;
+  // handleFXGroupChange: (e: any) => void;
   updateCheckedFXList: (e: any) => void;
   fxGroupsArrayList: Array<any>;
   checkedFXList: Array<any>;
@@ -48,7 +49,7 @@ interface FXRoutingProps {
   updateFXInputRadio: (value: any) => void;
   fxRadioValue: string;
   playUploadedFile: () => void;
-  updateStkKnobs: (knobVals: any) => void;
+  // updateStkKnobs: (knobVals: any) => void;
   setStkValues: React.Dispatch<SetStateAction<any>>;
   stkValues: STKOption[] | [];
   currentScreen: string;
@@ -56,17 +57,20 @@ interface FXRoutingProps {
   updateFileUploads: (e: any) => void;
   handleCheckedFXToShow: (x:any) => void;
   checkedEffectsListHook: any;
+  setCheckedEffectsListHook: React.Dispatch<SetStateAction<any>>;
 }
 
 export default function FXRouting(props: FXRoutingProps) {
   const {
-    handleFXGroupChange,
+    // handleFXGroupChange,
     updateCheckedFXList,
     fxGroupsArrayList,
     checkedFXList,
     fxFX,
     handleCheckedFXToShow,
     checkedEffectsListHook,
+    
+    setCheckedEffectsListHook,
   } = props;
 
   const data = useRef<PedalboardData | any>({
@@ -92,14 +96,12 @@ export default function FXRouting(props: FXRoutingProps) {
 
   const theme = useTheme();
 
-  
   return (
     <Box sx={{
       display: "flex",
       flexDirection: "column",
       alignItems: "stretch",
       maxHeight: "calc(100vh - 204px)",
-      paddingBottom: "160px",
       width: "180px",
       overflowY: "auto",
       zIndex: 1
@@ -112,6 +114,7 @@ export default function FXRouting(props: FXRoutingProps) {
           checkedFXList={checkedFXList}
           handleCheckedFXToShow={handleCheckedFXToShow} 
           checkedEffectsListHook={checkedEffectsListHook}
+          setCheckedEffectsListHook={setCheckedEffectsListHook}
         />
       <Box
         key={`arcDiagramOuterWrapper_${Object.values(linksRef.current).map((l: any) => l.source + "_")}`}
@@ -120,7 +123,6 @@ export default function FXRouting(props: FXRoutingProps) {
           flexDirection: { xs: 'column', sm: 'row' },
           gap: 2,
           zIndex: 0,
-          // background: 'rgba(0,0,0,0.78)',
           overflow: 'hidden',
           boxSizing: 'border-box',
           alignItems: 'center',

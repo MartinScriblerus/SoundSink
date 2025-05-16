@@ -9,13 +9,45 @@ import ToggleFXView from './ToggleFXView';
 const BPMModuleFun = (props: BPMModule) => {
     const {
         bpm,
-        handleChangeBPM,
-        handleChangeBeatsNumerator,
+        setBpm,
+        // handleChangeBPM,
+        // handleChangeBeatsNumerator,
         beatsNumerator,
-        handleChangeBeatsDenominator,
+        // handleChangeBeatsDenominator,
+        setChuckUpdateNeeded,
+        setBeatsNumerator,
+        setBeatsDenominator,
+        setNumeratorSignature,
+        setDenominatorSignature,
         beatsDenominator,
     } = props;
     const theme = useTheme();
+
+    // ========================================================
+    // HANDLE BPM
+    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    const handleChangeBPM = (newBpm: number) => {
+        if (newBpm) {
+            setBpm(Number(newBpm));
+        }
+        setChuckUpdateNeeded(true);
+    }
+
+    const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
+        if (newBeatsNumerator) {
+            setBeatsNumerator(Number(newBeatsNumerator));
+            setNumeratorSignature(Number(newBeatsNumerator));
+        }
+        setChuckUpdateNeeded(true);
+    }
+
+    const handleChangeBeatsDenominator = (newDenominator: number) => {
+        if (newDenominator) {
+            setBeatsDenominator(Number(newDenominator));
+            setDenominatorSignature(Number(newDenominator));
+        }
+        setChuckUpdateNeeded(true);
+    }
 
     return (
         <Box sx={{

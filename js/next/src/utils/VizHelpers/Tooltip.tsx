@@ -36,7 +36,7 @@ export const Tooltip = ({
       <div
         style={{
           position: "absolute",
-          left: parseInt(interactionData.xLabel) > 5 ? interactionData.xPos * 1.5 : 200 + (parseInt(interactionData.xLabel) * 5),
+          left: parseInt(interactionData.xLabel) > 5 ? interactionData.xPos * .7 : 200 + (parseInt(interactionData.xLabel) * 5),
           top: interactionData.yPos * 1,
           background: "rgba(0, 0, 0, 0.78)",
         }}

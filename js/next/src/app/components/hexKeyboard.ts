@@ -7,7 +7,7 @@ let snippets: any = [];
 
 export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTonalLetters: any[], key = "C") => {
     
-    const theme = useTheme();
+    // const theme = useTheme();
     
     (async() => {
         console.log("$$$ ARE WE GETTING MICRO LETTS IN HEXKEY? ", microTonalLetters)

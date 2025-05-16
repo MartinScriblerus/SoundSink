@@ -42,3 +42,23 @@ export interface FlowNode {
         output: Array<string>; 
     };
 }
+
+export type Chord = string[];
+export type ChordGroup = Chord[][] | Chord[];
+
+export interface Progs {
+  [degree: string]: string[];
+}
+
+export interface ProgsNumsEntry {
+  [chordType: string]: ChordGroup;
+}
+
+export interface ProgsNums {
+  [degree: string]: ProgsNumsEntry;
+}
+
+export interface QueryResponse {
+  progs: Progs;
+  progs_nums: ProgsNums;
+}

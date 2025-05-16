@@ -5,7 +5,6 @@ interface Props {
     updateStkKnobs: (e: any) => void;
     stkValues: any[];
     setStkValues: React.Dispatch<React.SetStateAction<any>>;
-
 }
 
 const STKManagerDropdown = (

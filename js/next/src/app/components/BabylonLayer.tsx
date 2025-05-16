@@ -12,10 +12,13 @@ import { Box } from "@mui/material";
 import { getHexKeyboard } from "./hexKeyboard";
 import { Chuck } from "webchuck";
 import { BabylonGame } from "@/interfaces/gameInterfaces";
+import HydraInit from "./HydraInit";
+import ArrowBack from "@mui/icons-material/ArrowBack";
 
 
 function BabylonScene(props: {
-
+    bpm: number,
+    currentBeatCountToDisplay: number | any,
     handleUpdateSliderVal: (x:string, index: number, value: any) => void,
     fxKnobsCount: number,
     needsUpdate: boolean,
@@ -31,9 +34,12 @@ function BabylonScene(props: {
     updateHasHexKeys: (msg: boolean) => void;
     hasHexKeys: boolean;
     fxRadioValue: string;
+    
     // windowListenerRef: any;
 }) {
     const {
+        bpm,
+        currentBeatCountToDisplay,
         handleUpdateSliderVal, 
         fxKnobsCount,
         needsUpdate, 
@@ -54,34 +60,13 @@ function BabylonScene(props: {
 
     const [babylonGameHook, setBabylonGameHook] = useState<any>('');
 
-
-
-    // const game = useRef<BabylonGame>();
-    // game = game || {
-    //     canvas:  document.querySelector(`#babylonCanvas`),
-    //     engine: undefined,
-    //     scene: undefined,
-    //     camera: [],
-    //     light: [],
-    //     gui: [],
-    //     advancedTexture: [],
-    //     panel: [], //GUI.StackPanel[] | undefined;
-    //     header: [], // GUI.TextBlock[];
-    //     slider: [], // GUI.Slider[] | undefined;
-    //     knob: [],
-    //     meshes: [],
-    //     camera1: {},
-    //     camera2: {},
-    //     // runRenderLoop: undefined,
-    // } as BabylonGame;
-
     useEffect(() => {
         if (needsUpdate) {
             //console.log("################################ WE CAN UPDATE")
             setBabylonGameHook('ready');
             handleResetNeedsUpdate();
         }
-    }, [needsUpdate])
+    }, [needsUpdate, handleResetNeedsUpdate])
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -248,7 +233,8 @@ function BabylonScene(props: {
                 game.camera1 = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
                 // game.camera1.setTarget(new BABYLON.Vector3(-2.6,-1.8,0.0));
                 game.camera1.setTarget(new BABYLON.Vector3(-2.6,-1.8,0.0));
-                game.camera1.attachControl(game.scene, false);            
+                game.camera1.attachControl(game.scene, false);  
+                          
                 game.camera1.position = new BABYLON.Vector3(0, 0, 12);
                 game.camera1.inputs.attached.keyboard.detachControl();
                 game.camera1.inputs.attached.mousewheel.detachControl();
@@ -323,7 +309,7 @@ function BabylonScene(props: {
 
                     const effectsIndex = j + squareRoot * i;
                     // console.log('viz idx: ', effectsIndex, visibleFXKnobs[effectsIndex]);
-                        if (visibleFXKnobs[effectsIndex] && effectsIndex < fxKnobsCount) {
+                        if (visibleFXKnobs && visibleFXKnobs.length > 0 && visibleFXKnobs[effectsIndex] && effectsIndex < fxKnobsCount) {
                             if(Object.keys(prevKnobVals.current).indexOf(`${i}`) === -1) {
                                     prevKnobVals.current.i = prevKnobVals.current.i || {};
                                     prevKnobVals.current.i.j = prevKnobVals.current.i.j ? prevKnobVals.current.i.j : 0;
@@ -430,7 +416,7 @@ function BabylonScene(props: {
         
                                     : 
                                         `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(2)}`;
-                                console.log("SANITY??? ", game.header[i][j].text)
+                                // console.log("SANITY??? ", game.header[i][j].text)
                                 // handleResetNeedsUpdate();
                                 if (game.scene && game.engine && game.engine !== undefined && game.engine.scenes.length > 0 && game.engine.scenes[0].meshes.length < 1) {
                                     game.scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000000001);
@@ -444,7 +430,7 @@ function BabylonScene(props: {
                                         // IF THERE ARE
                                         newMeshes[0].alwaysSelectAsActiveMesh = false;  // Reduce processing overhead
                                         newMeshes[0].doNotSyncBoundingInfo = true;  // Disable bounding box sync if unnecessary
-                                        newMeshes[0].position.y = 6.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
+                                        newMeshes[0].position.y = 5.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
                                         newMeshes[0].position.x = 15 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
                                         // newMeshes[0].position.y = 7  + (i % 2) * -4;          
                                         // newMeshes[0].position.x = ((-((i) * -10)) + (j * -4)) + ((i + 1) % 2) * (10) + -16; // Add offset for alternate rows
@@ -622,38 +608,32 @@ function BabylonScene(props: {
         <Box 
             sx={{
                 visibility: "visible", 
-                // background: "rgba(0,0,0,0.78)",
                 alignItems: "left",
             }}
         >
+            {/* {...Object(visibleFXKnobs).values().map((i: any)=>i).toString()} */}
+            {/* <ArrowBack sx={{left: "0px", marginTop: "0px"}}></ArrowBack> */}
+
+
+            <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
             <canvas
                 style={{
                     minWidth: "1200px", 
                     minHeight: "800px", 
                     display: "visible",
-                    // background: 'transparent', 
                     position: 'relative', 
                 }} 
                 id={`babylonCanvas`} 
-                // ref={(elem:any) => {
-                //     if (game && !game.canvas) game.canvas = elem;
-                // }
                 ref={canvasRef}
             // }
             />
-            {/* 
-                <canvas 
-                    ref={(elem: any) => game.canvas2 = elem}
-                    id="visualizer" 
-                    style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        left: 0, 
-                        zIndex: 2,
-                        display: 'none' 
-                    }}>
-                </canvas> 
-            */}
+            </div>
+            <HydraInit 
+                bpm={bpm}
+                currentBeatCountToDisplay={
+                    currentBeatCountToDisplay}
+                fxRadioValue={fxRadioValue}
+            />
         </Box>
 
     )
