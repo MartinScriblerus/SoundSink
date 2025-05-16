@@ -53,7 +53,7 @@ const InsetCheckboxDropdown = ({
 
     const preSelOpts = fileNumsPreselected && Array.from(fileNumsPreselected).length > 0 && Array.from(fileNumsPreselected).map((i: any) => options.options[i]);
     setSelectedOptions(preSelOpts);
-  }, [files, files.length])
+  }, [files, files.length, fileNumsPreselected])
 
   return (
     <>{optionsHook && <Select

@@ -133,8 +133,8 @@ export const Heatmap = ({
     
 useEffect(() => {
   setDoRebuildHeatmap(true);
-  exitEditMode();
-}, [doRebuildHeatmap])
+  // exitEditMode();
+}, [doRebuildHeatmap]);
 
 
   // useEffect(() => {
@@ -146,11 +146,11 @@ useEffect(() => {
   // }, [masterPatternsHashHook.length])
 
 
-  useEffect(() => {
-    if (updateCellColorBool) {
-      updateCellColor(false);
-    }
-  }, [updateCellColorBool])
+  // useEffect(() => {
+  //   if (updateCellColorBool) {
+  //     updateCellColor(false);
+  //   }
+  // }, [updateCellColorBool])
 
   
   type HeatmapData = { x: string; y: string; value: number }[];

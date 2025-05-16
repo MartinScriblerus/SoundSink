@@ -133,7 +133,7 @@ export const Renderer = ({
     }
     return () => {
     };
-  }, [width, height]);
+  }, [width, height, boundsHeight, boundsWidth]);
 
   const xScale = useMemo(() => {
     return d3
@@ -141,7 +141,7 @@ export const Renderer = ({
       .range([0, boundsWidth + 1])
       .domain(allXGroups)
       .padding(0.01);
-  }, [data]);
+  }, [allXGroups, boundsWidth]);
 
   const yScale = useMemo(() => {
     return d3
@@ -149,7 +149,7 @@ export const Renderer = ({
       .range([boundsHeight, 0])
       .domain(allYGroups)
       .padding(0.01);
-  }, [data]);
+  }, [allYGroups, boundsHeight]);
 
   // var colorScale = d3
   //   .scaleSequential()
@@ -411,9 +411,9 @@ export const Renderer = ({
               />
             </Box>
 
-            <Box 
+            {/* <Box 
               key={`wrap_edit_popup__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}_${currentYVal.current}_${currentXVal.current}`}>
-
+ */}
 
               <Box
                 key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
@@ -423,26 +423,28 @@ export const Renderer = ({
                   fontFamily: 'monospace',
                   fontWeight: '100',
                   // marginRight: '100px',
+                  
                   textAlign: 'left',
-                  minWidth: '144px',
-                  minHeight: "320px",
-                  border: 'solid 0.5px rgb(175, 240, 91)',
+                  minWidth: '256px',
+                  minHeight: "420px",
+                  // border: 'solid 0.5px rgb(175, 240, 91)',
                   borderRadius: '5px',
-                  padding: '4px',
-                  margin: '4px',
+                  padding: '32px',
+                  margin: '8px',
                   color: 'rgba(255,255,255,0.78)',
                 }}
               >
-                  <Box 
+                  {/* <Box 
                     key={`wrap_new_details_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                    sx={{ 
-                      padding: '4px', 
-                    }}>
-                      <Box
+                    // sx={{ 
+                    //   padding: '16px', 
+                    // }}
+                  > */}
+                      {/* <Box
                         sx={{
-                          display: 'inline-flex',
+                          display: 'flex',
                         }}
-                      >
+                      > */}
                         Cell: {
                           `${currentXVal.current} | ${currentYVal.current}`
                         }  
@@ -454,7 +456,7 @@ export const Renderer = ({
                           handleChangeCellSubdivisions={handleChangeCellSubdivisions}
                           cellSubdivisions={cellSubdivisions}
                         />
-                      </Box>
+                      {/* </Box> */}
                       {/* <SubdivisionsPicker
                         xVal={currentXVal.current}
                         yVal={currentYVal.current}
@@ -474,7 +476,7 @@ export const Renderer = ({
                           handleLatestSamplesFinal={handleLatestSamplesFinal} 
                           fileNumsPreselected={new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) } />
                       </Box>
-                      <Box>              
+                      {/* <Box>              
                         Velocity: {
                           masterPatternsHashHook && 
                           masterPatternsHashHook.length > 0 &&
@@ -482,7 +484,7 @@ export const Renderer = ({
                           masterPatternsHashHook[`${currentYVal.current}`].length &&
                           Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.velocity) || "No notes"
                         }
-                      </Box>
+                      </Box> */}
                       <Box>
                         Notes: 
                         {/* {
@@ -495,13 +497,13 @@ export const Renderer = ({
                         
                         {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
                         (<InsetNotesDropdown 
-                          notes={mTMidiNums} 
+                          notes={mTFreqs} 
                           handleLatestNotesFinal={handleLatestNotesFinal} 
                           notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
                         />)}
 
                       </Box>
-                  </Box>
+                  {/* </Box> */}
                   <Box sx={{ 
                       display: 'flex', 
                       flexDirection: 'column',
@@ -530,7 +532,7 @@ export const Renderer = ({
                       cellSubdivisions={cellSubdivisions}
                     />
                   </span> */}
-                </Box>
+                {/* </Box> */}
               <Box 
                 key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
                 sx={{

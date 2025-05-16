@@ -36,6 +36,66 @@ const Keyboard = ({
     }, [notesAddedDetails]);
 
     useEffect(() => {
+
+        const tryPlayChuckNote = (e: any) => {
+            e.preventDefault();
+    
+            const removeHyphen = e.target.id.replace('-', '');
+            const convertPoundTheNote = removeHyphen.replace('♯', '#');
+            console.log("A D D E D * D E T A I L S ! ", addedDetails);
+            addedDetails.current && addedDetails.current.length > 0 &&
+            addedDetails.current.forEach(async (d: any) => {
+                if (convertPoundTheNote === d.name) {
+                    noteOnPlay(d.midiNote, d.midiHz, d.midiNote);
+                }
+            });
+        };
+
+
+        const createKeys = async () => {
+            if (keysReady) {
+                return;
+            }
+
+            const storedNamesUnparsed = localStorage.getItem('keyboard');
+            const storedNames = storedNamesUnparsed ? JSON.parse(storedNamesUnparsed) : {};
+
+            const octaves: Array<any> = [];
+            for (let i = 0; i < 9; i++) {
+                if (storedNames && storedNames.length === 108) {
+                    storedNames.sort(compare);
+                    [`C${i}`, `C♯${i}`, `D${i}`, `D♯${i}`, `E${i}`, `F${i}`, `F♯${i}`, `G${i}`, `G♯${i}`, `A${i}`, `A♯${i}`, `B${i}`].forEach((note) => {
+                        organizeLocalStorageRows(storedNames.find((n: any) => n.note === note));
+                    });
+                } else {
+                    [`C${i}`, `C♯${i}`, `D${i}`, `D♯${i}`, `E${i}`, `F${i}`, `F♯${i}`, `G${i}`, `G♯${i}`, `A${i}`, `A♯${i}`, `B${i}`].forEach((note) => {
+                        organizeRows(i, note);
+                    });
+                }
+
+                const octave: any = i && (
+                    <span id={`octSpanWrapper-${i}`} key={`octSpanWrapper-${i}`}>
+                        <li id={`C-${i}`} key={`C-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white">{`C${i}`} </li>
+                        <li id={`C♯-${i}`} key={`C♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`C♯${i}`}</li>
+                        <li id={`D-${i}`} key={`D-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`D${i}`}</li>
+                        <li id={`D♯-${i}`} key={`D♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`D♯${i}`}</li>
+                        <li id={`E-${i}`} key={`E-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset half">{`E${i}`}</li>
+                        <li id={`F-${i}`} key={`F-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white">{`F${i}`}</li>
+                        <li id={`F♯-${i}`} key={`F♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`F♯${i}`}</li>
+                        <li id={`G-${i}`} key={`G-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`G${i}`}</li>
+                        <li id={`G♯-${i}`} key={`G♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`G♯${i}`}</li>
+                        <li id={`A-${i + 1}`} key={`A-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`A${i + 1}`}</li>
+                        <li id={`A♯-${i + 1}`} key={`A♯-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`A♯${i + 1}`}</li>
+                        <li id={`B-${i + 1}`} key={`B-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset half">{`B${i + 1}`}</li>
+                    </span>
+                );
+
+                if (!document.querySelector(`#octSpanWrapper-${i}`)) {
+                    octaves.push(octave);
+                }
+            }
+            return octaves;
+        };
         if (chuckHook && chuckHook.length > 0 && keysToDisplay.length > 0) return;
         (async () => {
             const theKeys = !keysReady && (await createKeys());
@@ -43,66 +103,22 @@ const Keyboard = ({
                 setKeysToDisplay(theKeys);
             }
         })();
-    }, [chuckHook]);
+    }, [chuckHook,keysToDisplay.length,keysReady,compare,noteOnPlay,organizeRows,organizeLocalStorageRows]);
 
-    const tryPlayChuckNote = (e: any) => {
-        e.preventDefault();
+    // const tryPlayChuckNote = (e: any) => {
+    //     e.preventDefault();
 
-        const removeHyphen = e.target.id.replace('-', '');
-        const convertPoundTheNote = removeHyphen.replace('♯', '#');
-        console.log("A D D E D * D E T A I L S ! ", addedDetails);
-        addedDetails.current && addedDetails.current.length > 0 &&
-        addedDetails.current.forEach(async (d: any) => {
-            if (convertPoundTheNote === d.name) {
-                noteOnPlay(d.midiNote, d.midiHz, d.midiNote);
-            }
-        });
-    };
+    //     const removeHyphen = e.target.id.replace('-', '');
+    //     const convertPoundTheNote = removeHyphen.replace('♯', '#');
+    //     console.log("A D D E D * D E T A I L S ! ", addedDetails);
+    //     addedDetails.current && addedDetails.current.length > 0 &&
+    //     addedDetails.current.forEach(async (d: any) => {
+    //         if (convertPoundTheNote === d.name) {
+    //             noteOnPlay(d.midiNote, d.midiHz, d.midiNote);
+    //         }
+    //     });
+    // };
 
-    const createKeys = async () => {
-        if (keysReady) {
-            return;
-        }
-
-        const storedNamesUnparsed = localStorage.getItem('keyboard');
-        const storedNames = storedNamesUnparsed ? JSON.parse(storedNamesUnparsed) : {};
-
-        const octaves: Array<any> = [];
-        for (let i = 0; i < 9; i++) {
-            if (storedNames && storedNames.length === 108) {
-                storedNames.sort(compare);
-                [`C${i}`, `C♯${i}`, `D${i}`, `D♯${i}`, `E${i}`, `F${i}`, `F♯${i}`, `G${i}`, `G♯${i}`, `A${i}`, `A♯${i}`, `B${i}`].forEach((note) => {
-                    organizeLocalStorageRows(storedNames.find((n: any) => n.note === note));
-                });
-            } else {
-                [`C${i}`, `C♯${i}`, `D${i}`, `D♯${i}`, `E${i}`, `F${i}`, `F♯${i}`, `G${i}`, `G♯${i}`, `A${i}`, `A♯${i}`, `B${i}`].forEach((note) => {
-                    organizeRows(i, note);
-                });
-            }
-
-            const octave: any = i && (
-                <span id={`octSpanWrapper-${i}`} key={`octSpanWrapper-${i}`}>
-                    <li id={`C-${i}`} key={`C-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white">{`C${i}`} </li>
-                    <li id={`C♯-${i}`} key={`C♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`C♯${i}`}</li>
-                    <li id={`D-${i}`} key={`D-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`D${i}`}</li>
-                    <li id={`D♯-${i}`} key={`D♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`D♯${i}`}</li>
-                    <li id={`E-${i}`} key={`E-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset half">{`E${i}`}</li>
-                    <li id={`F-${i}`} key={`F-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white">{`F${i}`}</li>
-                    <li id={`F♯-${i}`} key={`F♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`F♯${i}`}</li>
-                    <li id={`G-${i}`} key={`G-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`G${i}`}</li>
-                    <li id={`G♯-${i}`} key={`G♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`G♯${i}`}</li>
-                    <li id={`A-${i + 1}`} key={`A-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset">{`A${i + 1}`}</li>
-                    <li id={`A♯-${i + 1}`} key={`A♯-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="black">{`A♯${i + 1}`}</li>
-                    <li id={`B-${i + 1}`} key={`B-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="white offset half">{`B${i + 1}`}</li>
-                </span>
-            );
-
-            if (!document.querySelector(`#octSpanWrapper-${i}`)) {
-                octaves.push(octave);
-            }
-        }
-        return octaves;
-    };
 
     return (
         <div

@@ -75,7 +75,7 @@ import sndBufPresets, {stkIdentifierSndBuf, stkVariableSndBuf, stkIdentifierLisa
 
 
 export const getSTK1Preset = (stkVal: string) => {
-    console.log("STK VAL::: ", stkVal);
+    // console.log("STK VAL::: ", stkVal); // Holy moly this runs alot -- edit this....
     let theStk1Fx;
     if (stkVal === 'saxofony' || stkVal === 'Saxofony') {
         theStk1Fx = {
@@ -330,7 +330,7 @@ export const getSTK2Preset = (stkVal: string) => {
             type: stkIdentifierClarinet,
             var: stkVariableClarinet
         };
-    } else if (stkVal === 'm') {
+    } else if (stkVal === 'm' || stkVal === 'karplus' || stkVal === 'stifkarp') {
         theStk2Fx = {
             presets: stifKarpPresets,
             type: stkIdentifierStifKarp,
@@ -432,7 +432,7 @@ export const getSTK2Preset = (stkVal: string) => {
             type: stkIdentifierKrstlChr,
             var: stkVariableKrstlChr
         };
-    } else if (stkVal === 'percFlut') {
+    } else if (stkVal === 'percFlut' || stkVal === 'percflut') {
         theStk2Fx = {
             presets: percFlutPresets,
             type: stkIdentifierPercFlut,

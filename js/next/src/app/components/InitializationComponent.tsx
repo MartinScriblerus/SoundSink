@@ -207,34 +207,39 @@ export default function InitializationComponent() {
 
     resetHeatmapCell.current = false;
 
-    useEffect(() => {
+    const beatDisplay = useRef<number>(0);
+    const numerCount = useRef<number>(0);
+    const denomCount = useRef<number>(0);
+    const patternCount = useRef<number>(0);
 
-        let isMounted = true;
-        const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
-        
-        const bC = parsedNumbers.length > 0  
-            ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
-            : currentBeatCountToDisplay;  // Keep previous value if no valid number found
-        
-        console.log("BC: ", bC);
-        console.log("chuckMsg: ", chuckMsg);
+    // useEffect(() => {
 
-        const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
-        const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
-        const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
-        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
+    //     let isMounted = true;
+    //     const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
         
-        console.log("Beat display: ", beatDisplay);
+    //     const bC = parsedNumbers.length > 0  
+    //         ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
+    //         : currentBeatCountToDisplay;  // Keep previous value if no valid number found
+        
+    //     console.log("BC: ", bC);
+    //     console.log("chuckMsg: ", chuckMsg);
 
-        setCurrentBeatCountToDisplay(beatDisplay);
-        setCurrentNumerCountColToDisplay(numerCount);
-        setCurrentDenomCount(denomCount);
-        setCurrentPatternCount(patternCount);
+    //     beatDisplay.current = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
+    //     numerCount.current = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
+    //     denomCount.current = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
+    //     patternCount.current = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
         
-        return () => {
-            isMounted = false;
-        }
-    }, [chuckMsg]);
+    //     console.log("Beat display: ", beatDisplay);
+
+    //     // setCurrentBeatCountToDisplay(beatDisplay);
+    //     // setCurrentNumerCountColToDisplay(numerCount);
+    //     // setCurrentDenomCount(denomCount);
+    //     // setCurrentPatternCount(patternCount);
+        
+    //     return () => {
+    //         isMounted = false;
+    //     }
+    // }, [chuckMsg]);
 
     useEffect(() => {
         // Create a function for setting up MIDI access asynchronously
@@ -292,85 +297,137 @@ export default function InitializationComponent() {
     }, [midiBPMClockIncoming]);
 
 
-    const fillHashSlot = (x: number, y: number, z: number, inst: string) => {
-        if (!masterPatternsRef.current[`${z}`]) {
-            masterPatternsRef.current[`${z}`] = {};
-        }
 
-        let col;
-        if (z === 9) {
-            col = "white"
-        } else if (z === 8) {
-            col = "black"
-        } else if (z === 7) {
-            col = "yellow"
-        } else if (z === 6) {
-            col = "red"
-        } else if (z === 5) {
-            col = "pink"
-        } else if (z === 4) {
-            col = "brown"
-        } else if (z === 3) {
-            col = "limegreen"
-        } else if (z === 2) {
-            col = "aqua"
-        } else if (z === 1) {
-            col = "maroon"
-        } else {
-            col = "blue"
-        }
 
-        masterPatternsRef.current[`${z}`][`${x}`] = 
-        {
-            on: true,
-            note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-            noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-            velocity: 0.9,
-            color: col,
-            // fileNums: x % 2 === 0 ? [0, 1, 3, 2] : x % 5 === 0 ? [0] : [9999],
-            fileNums: !isInPatternEditMode ? [0, 1, 3, 2] : masterPatternsRef.current[`${z}`][`${x}`] && Object.keys(masterPatternsRef.current[`${z}`][`${x}`]).length > 0 && masterPatternsRef.current[`${z}`][`${x}`].fileNums ? masterPatternsRef.current[`${z}`][`${x}`].fileNums : x % 4 === 0 ? [0, 1, 3] : [2], // 9999
-            subdivisions: cellSubdivisions
-        }
-    }
+    const maxX = numeratorSignature * masterFastestRate;
+    const maxY = denominatorSignature;
+    const maxZ = 8;
 
-    useEffect(() => {
-        for (let x = 1; x < (numeratorSignature * masterFastestRate) + 1; x++) {
-            for (let y = 1; y < denominatorSignature + 1; y++) {
-                for (let z = 1; z < (9); z++) {
-                    if (z % 5 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `osc1`);
-                    }
-                    else if (z % 6 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `osc2`);
-                    }
-                    else if (z % 7 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `stk1`);
-                    }
-                    else if (z % 8 === 0) {
-                        // console.log("Z MORE THAN OR EQUAL TO 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign osc pattern values below
-                        fillHashSlot(x, y, z, `audioin`);
-                    }
-                    else {
-                        // console.log("Z LESS THAN 5 ... x: ", x, "y: ", y, "z: ", z);
-                        // assign sample pattern values below
-                        fillHashSlot(x, y, z, `sample`);
-                    }
-                }
+    const instrumentMap = new Map<number, string>([
+        [5, 'osc1'],
+        [6, 'osc2'],
+        [7, 'stk1'],
+        [8, 'audioin'],
+    ]);
+    
+    const getInstrumentForZ = (z: number): string => {
+        return instrumentMap.get(z) || 'sample';
+    };
+
+
+
+
+    // const fillHashSlot = (x: number, y: number, z: number, inst: string) => {
+    //     if (!masterPatternsRef.current[`${z}`]) {
+    //         masterPatternsRef.current[`${z}`] = {};
+    //     }
+
+    //     let col;
+    //     if (z === 9) {
+    //         col = "white"
+    //     } else if (z === 8) {
+    //         col = "black"
+    //     } else if (z === 7) {
+    //         col = "yellow"
+    //     } else if (z === 6) {
+    //         col = "red"
+    //     } else if (z === 5) {
+    //         col = "pink"
+    //     } else if (z === 4) {
+    //         col = "brown"
+    //     } else if (z === 3) {
+    //         col = "limegreen"
+    //     } else if (z === 2) {
+    //         col = "aqua"
+    //     } else if (z === 1) {
+    //         col = "maroon"
+    //     } else {
+    //         col = "blue"
+    //     }
+
+    //     masterPatternsRef.current[`${z}`][`${x}`] = 
+    //     {
+    //         on: true,
+    //         note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
+    //         noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
+    //         velocity: 0.9,
+    //         color: col,
+    //         // fileNums: x % 2 === 0 ? [0, 1, 3, 2] : x % 5 === 0 ? [0] : [9999],
+    //         fileNums: !isInPatternEditMode ? [0, 1, 3, 2] : masterPatternsRef.current[`${z}`][`${x}`] && Object.keys(masterPatternsRef.current[`${z}`][`${x}`]).length > 0 && masterPatternsRef.current[`${z}`][`${x}`].fileNums ? masterPatternsRef.current[`${z}`][`${x}`].fileNums : x % 4 === 0 ? [0, 1, 3] : [2], // 9999
+    //         subdivisions: cellSubdivisions
+    //     }
+    // }
+
+
+
+      
+
+      useEffect(() => {
+        const beatsPerMeasure = numeratorSignature;
+        const beatSubdivision = masterFastestRate; // e.g. 4 = 16th notes if quarter note base
+        const noteValue = denominatorSignature;
+      
+        const totalSteps = beatsPerMeasure * beatSubdivision;
+      
+        const instruments = [
+          'sample',   // z = 1
+          'sample',   // z = 2
+          'sample',   // z = 3
+          'sample',   // z = 4
+          'osc1',     // z = 5
+          'osc2',     // z = 6
+          'stk1',     // z = 7
+          'audioin'   // z = 8
+        ];
+      
+        const fillHashSlot = (x: number, y: number, z: number, inst: string) => {
+            const zKey = `${z}`;
+            if (!masterPatternsRef.current[zKey]) {
+              masterPatternsRef.current[zKey] = {};
             }
+
+            const zColors = [
+                '', 'maroon', 'aqua', 'limegreen', 'brown', 'pink',
+                'red', 'yellow', 'black', 'white' // index 1 to 9
+              ];
+              
+          
+            const color = zColors[z] || 'blue';
+          
+            const key = x + (x * y);
+          
+            const fileNums = !isInPatternEditMode
+              ? [0, 1, 3, 2]
+              : (
+                  masterPatternsRef.current[zKey][`${x}`]?.fileNums ??
+                  (x % 4 === 0 ? [0, 1, 3] : [2])
+                );
+          
+            masterPatternsRef.current[zKey][`${x}`] = {
+              on: true,
+              note: mTFreqs[key] || 0.0,
+              noteHz: mTMidiNums[key] || 0.0,
+              velocity: 0.9,
+              color,
+              fileNums,
+              subdivisions: cellSubdivisions
+            };
+        };
+
+        for (let step = 1; step <= totalSteps; step++) {
+          for (let beatDivision = 1; beatDivision <= noteValue; beatDivision++) {
+            for (let zIndex = 0; zIndex < instruments.length; zIndex++) {
+              const z = zIndex + 1; // because your `fillHashSlot` expects 1-based z
+              const instrument = instruments[zIndex];
+              fillHashSlot(step, beatDivision, z, instrument);
+            }
+          }
         }
+      
         setPatternsHashHook(masterPatternsRef.current);
         setPatternsHashUpdated(true);
-        return () => {
-        };
-    }, [numeratorSignature, denominatorSignature, mTMidiNums]);
-
+      
+      }, [numeratorSignature, denominatorSignature, masterFastestRate, mTMidiNums, cellSubdivisions, mTFreqs]);
     
     allOctaveMidiFreqs.current = {};
 
@@ -381,6 +438,7 @@ export default function InitializationComponent() {
         if (i) {
             console.log('&&&selected microtone::: what is i???? ', i);
         }
+        setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
     }, []);
 
     const [newMicroTonalArr, setNewMicroTonalArr] = useState<any>([])//
@@ -623,7 +681,7 @@ export default function InitializationComponent() {
         return () => {
             isMounted = false;
         };
-    }, [microtonalScale]);
+    }, [microtonalScale, tune]);
 
     const convertMicrotonalChord = () => {
         // DEFINITELY DO THIS!!! HERE IS A MICROTONAL TUNING MODE FOR REGULAR KEYBOARD
@@ -777,7 +835,11 @@ export default function InitializationComponent() {
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [
+        fxRadioValue,
+        markUpdated,
+        tune
+    ]);
 
     useEffect(() => {
         let isMounted = true;
@@ -850,13 +912,6 @@ export default function InitializationComponent() {
 
     };
 
-    useEffect(() => {
-        let isMounted = true;
-        setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
-        return () => {
-            isMounted = false;
-        };
-    }, [moogGrandmotherEffects]);
 
 
     ////////////////////////////////////////////////////////////////
@@ -1180,7 +1235,7 @@ export default function InitializationComponent() {
         return () => {
             isMounted = false;
         };
-    }, [chuckUpdateNeeded]) // if there are problems, switch back to [${chuckUpdateNeeded}]
+    }, [chuckUpdateNeeded, fxRadioValue]) // if there are problems, switch back to [${chuckUpdateNeeded}]
 
     const stopChuckInstance = () => {
         chuckRef.current && chuckRef.current.clearChuckInstance();
@@ -1377,7 +1432,7 @@ export default function InitializationComponent() {
 
             console.log("###2 what are active stks? ", activeSTKs);
 
-            console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1])))
+            console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.entries(i[1])))
 
             console.log("wtf??? ", filesToProcess.current);
 
@@ -1410,6 +1465,7 @@ export default function InitializationComponent() {
                 activeSTKSettings,
                 activeSTKPlayOn,
                 activeSTKPlayOff,
+                selectedChordScaleOctaveRange,
             );
 
             chuckRef.current.runCode(newChuckCode);
@@ -1430,8 +1486,8 @@ export default function InitializationComponent() {
     const handleClickUploadedFiles = (e: any) => {
         console.log("CLICKED FILES: ", e.target.innerText);
         if (isInPatternEditMode) {
-            const cellObjToEdit = masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x];
-            cellObjToEdit.fileNums.push(e.target.innerText);
+            // const cellObjToEdit = masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x];
+            // cellObjToEdit.fileNums.push(e.target.innerText);
         }
     }
 
@@ -1506,7 +1562,7 @@ export default function InitializationComponent() {
                 return data;
             });
         // }
-        };
+    };
 
     // SLIDER CONTROL KNOB
     // ========================================================
@@ -2311,6 +2367,34 @@ export default function InitializationComponent() {
         isInPatternEditMode.current = false;
     }
 
+    const handleChuckMsg = (chuckMsg: string) => {
+        let isMounted = true;
+        const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
+        
+        const bC = parsedNumbers.length > 0  
+            ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
+            : currentBeatCountToDisplay;  // Keep previous value if no valid number found
+        
+        // console.log("BC: ", bC);
+        // console.log("chuckMsg: ", chuckMsg);
+
+        const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
+        const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
+        const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
+        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
+        
+        // console.log("Beat display: ", beatDisplay);
+
+        setCurrentBeatCountToDisplay(beatDisplay);
+        setCurrentNumerCountColToDisplay(numerCount);
+        setCurrentDenomCount(denomCount);
+        setCurrentPatternCount(patternCount);
+        
+        return () => {
+            isMounted = false;
+        }
+    }
+
     const newInitChuck = async () => {
         // await initChuck();
         setClickedBegin(true);
@@ -2355,7 +2439,8 @@ export default function InitializationComponent() {
                 if (message.includes("TICK: ")) {
                     const parsedMsg = message.split(":")[1].trim();
 
-                    setChuckMsg(parsedMsg); 
+                    // setChuckMsg(parsedMsg); 
+                    handleChuckMsg(parsedMsg)
                 } else {
                     console.log("here is log... ", message);
                 }
@@ -2445,6 +2530,19 @@ export default function InitializationComponent() {
         console.log("SELECTED SPEX: ", selectedChordScaleOctaveRange); 
     }
 
+    const handleUpdateCheckedFXList = (e: any) => {
+        updateCheckedFXList(
+                e,
+                setCheckedEffectsListHook,
+                doReturnToSynth,
+                setFxKnobsCount,
+                updateFlowNodesAndEdges,
+                initFX,
+                getConvertedRadio,
+                fxRadioValue,
+        );
+    }
+
     return (
         <Box 
             id={'frontendOuterWrapper'}
@@ -2452,7 +2550,8 @@ export default function InitializationComponent() {
             
             <Box id={'relativeFrontendWrapper'}>
                 {/* RESPONSIVE APP BAR */}
-                {chuckHook &&
+                {/* {chuckHook && */}
+                {
                     <Box 
                         sx={{
                             position: "absolute",
@@ -2623,7 +2722,7 @@ export default function InitializationComponent() {
                                                     width={440}
                                                     height={440}
                                                     // handleFXGroupChange={handleFXGroupChange}
-                                                    // updateCheckedFXList={updateCheckedFXList}
+                                                    updateCheckedFXList={handleUpdateCheckedFXList}
                                                     fxGroupsArrayList={fxGroupOptions}
                                                     checkedFXList={checkedFXList.current}
                                                     fxFX={[]}
@@ -2746,9 +2845,9 @@ export default function InitializationComponent() {
     zIndex: "9999",
     background: "purple",
 }}></ArrowBack>}
-<span style={{zIndex: "9999", color: 'white', position: "absolute", top: "68px", left: "148px"}}>
+{/* <span style={{zIndex: "9999", color: 'white', position: "absolute", top: "68px", right: "148px"}}>
     {currentScreen.current.includes("_") ? currentScreen.current.replace("stk_", "") : `${currentScreen.current.charAt(0).toUpperCase()}${currentScreen.current.slice(1)} `}
-</span>
+</span> */}
                                         {babylonReady && babylonReady && <BabylonLayer
                                             currentBeatCountToDisplay={{currentBeatCountToDisplay}}
                                             bpm={bpm}

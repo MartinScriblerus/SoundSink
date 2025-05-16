@@ -3,7 +3,7 @@ import { Box, useTheme } from '@mui/system';
 import FXCheckboxLabels from './FXCheckboxes';
 import { STKOption } from '@/utils/fixedOptionsDropdownData';
 import "../../app/page.module.css"
-import { handleFXGroupChange, updateCheckedFXList } from '@/utils/knobsHelper';
+import { handleFXGroupChange } from '@/utils/knobsHelper';
 interface PedalboardNode {
   id: string;
   name: string;
@@ -39,7 +39,7 @@ interface FXRoutingProps {
   width: number;
   height: number;
   // handleFXGroupChange: (e: any) => void;
-  // updateCheckedFXList: (e: any) => void;
+  updateCheckedFXList: (e: any) => void;
   fxGroupsArrayList: Array<any>;
   checkedFXList: Array<any>;
   fxFX: any;
@@ -63,7 +63,7 @@ interface FXRoutingProps {
 export default function FXRouting(props: FXRoutingProps) {
   const {
     // handleFXGroupChange,
-    // updateCheckedFXList,
+    updateCheckedFXList,
     fxGroupsArrayList,
     checkedFXList,
     fxFX,

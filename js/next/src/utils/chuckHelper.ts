@@ -23,7 +23,14 @@ export const getChuckCode = (
     activeSTKSettings: any,
     activeSTKPlayOn: any,
     activeSTKPlayOff: any,
+    selectedChordScaleOctaveRange: any, // key: 'C', scale: 'Diatonic', chord: 'M', octaveMax: '4', octaveMin: '3'
 ) => {
+
+    console.log("JUST PRIOR TO CHUCK HERE IS selectedChordScaleOctaveRange: ", selectedChordScaleOctaveRange);
+    console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs,);
+    console.log("JUST PRIOR TO CHUCK HERE IS isTestingChord: ", isTestingChord);
+    console.log("JUST PRIOR TO CHUCK HERE IS resetNotes: ", resetNotes);
+
     const newChuckCode = `
     "" => global string currentSrc;
     // SAFER DYNAMIC FILES
@@ -175,8 +182,10 @@ export const getChuckCode = (
         fun void keyOn(float noteNumber)
         {
         
-            Std.mtof(offset + noteNumber) => SetOsc1Freq;
-            Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
+            Std.mtof(offset + Std.ftom(noteNumber)) => SetOsc1Freq;
+            Std.mtof(offset + Std.ftom(noteNumber) + oscOffset) - osc2Detune => SetOsc2Freq;
+            // Std.mtof(offset + noteNumber) => SetOsc1Freq;
+            // Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
             1 => adsr[id].keyOn;
             ${moogGrandmotherEffects.current.adsrAttack.value}::ms => adsr[id].attackTime; // FIX NUM HERE!!!
             ${moogGrandmotherEffects.current.adsrDecay.value}::ms => adsr[id].decayTime; // FIX NUM HERE!!!
@@ -402,27 +411,37 @@ export const getChuckCode = (
             1.0 * (amount / 100) => noiseSource[id].gain;
         }            
     }
-    SynthVoice voice;
+    SynthVoice voice[numVoices];
 
     for (0 => int i; i < numVoices; i++) {
-        ${moogGrandmotherEffects.current.cutoff.value} => voice.cutoff;
-        ${moogGrandmotherEffects.current.rez.value} => voice.rez;
-        ${moogGrandmotherEffects.current.env.value} => voice.env;
-        Std.ftoi(${moogGrandmotherEffects.current.oscType1.value}) => voice.ChooseOsc1;
-        Std.ftoi(${moogGrandmotherEffects.current.oscType2.value}) => voice.ChooseOsc2;
-        ${moogGrandmotherEffects.current.detune.value} => voice.detune;
-        Std.ftoi(${moogGrandmotherEffects.current.oscOffset.value}) => voice.oscOffset;
-        ${moogGrandmotherEffects.current.cutoffMod.value} => voice.cutoffMod;
-        ${moogGrandmotherEffects.current.pitchMod.value} => voice.pitchMod;
-        Std.ftoi(${moogGrandmotherEffects.current.lfoVoice.value}) => voice.ChooseLfo; // Lfo Voc
-        // 0.5 => voice.filterLfo.gain;
-        ${moogGrandmotherEffects.current.offset.value} => voice.offset;
-        ${moogGrandmotherEffects.current.lfoFreq.value} => voice.filterEnv;
-        ${moogGrandmotherEffects.current.noise.value} => voice.noise;
+        ${moogGrandmotherEffects.current.cutoff.value} => voice[i].cutoff;
+        ${moogGrandmotherEffects.current.rez.value} => voice[i].rez;
+        ${moogGrandmotherEffects.current.env.value} => voice[i].env;
+        Std.ftoi(${moogGrandmotherEffects.current.oscType1.value}) => voice[i].ChooseOsc1;
+        Std.ftoi(${moogGrandmotherEffects.current.oscType2.value}) => voice[i].ChooseOsc2;
+        ${moogGrandmotherEffects.current.detune.value} => voice[i].detune;
+        Std.ftoi(${moogGrandmotherEffects.current.oscOffset.value}) => voice[i].oscOffset;
+        ${moogGrandmotherEffects.current.cutoffMod.value} => voice[i].cutoffMod;
+        ${moogGrandmotherEffects.current.pitchMod.value} => voice[i].pitchMod;
+        Std.ftoi(${moogGrandmotherEffects.current.lfoVoice.value}) => voice[i].ChooseLfo; // Lfo Voc
+        // 0.5 => voice[i].filterLfo.gain;
+        ${moogGrandmotherEffects.current.offset.value} => voice[i].offset;
+        ${moogGrandmotherEffects.current.lfoFreq.value} => voice[i].filterEnv;
+        ${moogGrandmotherEffects.current.noise.value} => voice[i].noise;
+            0.6 => voice[i].gain;
     }
 
-    voice => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
-    0.6 => voice.gain;
+    voice[numVoices - 1] => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -978,7 +997,9 @@ export const getChuckCode = (
     ${activeSTKPlayOn.current}
 
     if (recurringTickCount < allFreqs.size()) {
-    allFreqs[recurringTickCount] => voice.keyOn;
+      for (0 => int i; i < numVoices; i++) {
+        allFreqs[recurringTickCount] => voice[i].keyOn;
+      }
     }
 
     // Start buffer immediately
@@ -1000,12 +1021,12 @@ export const getChuckCode = (
         
         [""] @=> string strArr[];
 
-        while (true) {
+        // while (true) {
             input.find(delimiter, startIndex);
             if (startIndex == -1) {
                 // No more delimiters, add the remaining string
                 result << input;
-                break;
+                // break;
             }
 
             if (input.substring(0, startIndex).length() > 0) {
@@ -1018,7 +1039,7 @@ export const getChuckCode = (
             input.substring(startIndex + delimiter.length(), input.length()) => input;
 
             strArr << input; 
-        }
+        // }
         return strArr;
     }
 
@@ -1052,14 +1073,14 @@ export const getChuckCode = (
 
             "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
 
-
+            beat / fastestRateUpdate => now;       
             
         }
         if (now >= startTimeMeasureLoop + beat) {
             tickCounter + 1 => tickCounter;
             spork ~ handlePlayMeasure(tickCounter);
-            me.yield(); // optional safety to yield to spork
-            now => startTimeMeasureLoop;
+            // now => startTimeMeasureLoop;
+           // me.yield(); // optional safety to yield to spork
         } 
         // else {
         // now => startTimeMeasureLoop; 
@@ -1074,18 +1095,17 @@ export const getChuckCode = (
 
 
 
-    // TESTING CHORDS
+    // TESTING CHORDS ONLY
     ////////////////////////////////////////////////////////////////
     if (${!isTestingChord}) {
     } else {
-        if (now >= startTimeMeasureLoop + beat) {
-            tickCounter + 1 => tickCounter;
-            spork ~ handlePlayMeasure(tickCounter);
-            me.yield(); // optional safety to yield to spork
-            now => startTimeMeasureLoop;
-        } 
-        whole / ${masterFastestRate} => now;
+
+    
+        spork ~ handlePlayMeasure(tickCounter);
+        me.yield();    
+        whole => now;
     }
+    ////////////////////////////////////////////////////////////////
     `;
     return newChuckCode;
 }

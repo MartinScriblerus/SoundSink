@@ -84,7 +84,7 @@ const theme = useTheme();
     
     }
     
-  }, [filesToProcess.length, graphNeedsUpdate])
+  }, [filesToProcess.length, graphNeedsUpdate, data, filesToProcess, staticLineGenerator]);
 
 
 
@@ -98,7 +98,7 @@ const theme = useTheme();
       .scaleLinear()
       .domain([handleMinVariation, handleMaxVariation])
       .range([boundsHeight, 0]);
-  }, [data, height, beatCount]);
+  }, [boundsHeight, handleMinVariation, handleMaxVariation]);
 
   // X axis
   const [xMin, xMax]: any = d3.extent(data, (d: any) => d.x);
@@ -110,22 +110,24 @@ const theme = useTheme();
 
   useEffect(() => {
     currTime.current += secLenBeat;
-  }, [beatCount]);
+  }, [beatCount, secLenBeat]);
 
   useEffect(() => {
     console.log("CHECK FILE TIME!!! ", fileTime);
     console.log("FILES TO PROCESS: ", filesToProcess);
     console.log("WTF IS DAT IN LINE CHART>?? ", data);
     
-  }, [filesToProcess.length, isInFileMode]);
+  }, [filesToProcess.length, isInFileMode, data, fileTime, filesToProcess]);
 
   // const getDomain: any = [0, Math.ceil(currTime.current)];
 
-  const getDomain: any = Math.ceil(currTime.current) > 10.0 ? [Math.ceil(currTime.current - 10.0), Math.ceil(currTime.current)]: [0, Math.ceil(currTime.current)];
-  const getStaticDomain: any = [0,Math.ceil(fileTime || 1)];
+  // const getDomain: any = Math.ceil(currTime.current) > 10.0 ? [Math.ceil(currTime.current - 10.0), Math.ceil(currTime.current)]: [0, Math.ceil(currTime.current)];
+  // const getStaticDomain: any = [0,Math.ceil(fileTime || 1)];
 
   // console.log("check get domain: ", getDomain);
   const xScale = useMemo(() => {
+    const getDomain: any = Math.ceil(currTime.current) > 10.0 ? [Math.ceil(currTime.current - 10.0), Math.ceil(currTime.current)]: [0, Math.ceil(currTime.current)];
+    const getStaticDomain: any = [0,Math.ceil(fileTime || 1)];
     if (isInFileMode ) {
     return d3
       .scaleTime()
@@ -139,7 +141,7 @@ const theme = useTheme();
       .domain(getStaticDomain)
       .range([0, boundsWidth]);
     }
-  }, [data, beatCount, fileTime]);
+  }, [boundsWidth, isInFileMode, fileTime]);
 
   // Render the X and Y axis using d3.js, not react
   useEffect(() => {
@@ -162,7 +164,7 @@ const theme = useTheme();
     svgElement.append("g")
       .attr("transform", "translate(" + boundsWidth + ", 0)") 
       .call(yAxisGenerator);
-  }, [xScale, yScale, boundsHeight, timeNow]);
+  }, [xScale, yScale, boundsHeight, timeNow, boundsWidth, height, width]);
 
   // Build the line
   const lineBuilder = d3

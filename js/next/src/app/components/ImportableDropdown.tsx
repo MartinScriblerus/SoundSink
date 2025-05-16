@@ -39,7 +39,7 @@ const ImportableDropdown = (
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-    }, [searchTerm]);
+    }, [searchTerm, currentData]);
     
     const BATCH_SIZE = 30;
     // Paginate the filtered options

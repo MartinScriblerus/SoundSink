@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
 import React, { useRef, useState, useMemo } from 'react';
 import { scaleUtc, scaleTime, scaleLinear, scaleLog, scaleBand, ScaleInput, coerceNumber } from '@visx/scale';
 import { Axis, Orientation, SharedAxisProps, AxisScale } from '@visx/axis';
@@ -107,7 +106,7 @@ function BrushChart({
         domain: [0, max(meydaData, getStockValue) || 0],
         nice: true,
       }),
-    [yMax, filteredStock],
+    [yMax, meydaData],
   );
   const brushDateScale = useMemo(
     () =>
@@ -116,7 +115,7 @@ function BrushChart({
         domain: extent(meydaData.map((i:any) => i), getDate) as [number, number],
         // domain: [0, (meydaData).length] as [number, number],
       }),
-    [xBrushMax],
+    [xBrushMax, meydaData],
   );
   const brushStockScale = useMemo(
     () =>
@@ -126,7 +125,7 @@ function BrushChart({
         // domain: extent(meydaData, getDate) as [number, number],
         nice: true,
       }),
-    [yBrushMax],
+    [yBrushMax, meydaData],
   );
 
 
@@ -138,7 +137,7 @@ function BrushChart({
       start: {x: brushDateScale(getDate(meydaData.map((i:any) => i[0])))},
       end: {x: brushDateScale(getDate(meydaData.map((i:any) => i[50])))}
     }),
-    [brushDateScale],
+    [brushDateScale, meydaData],
   );
 
   // event handlers

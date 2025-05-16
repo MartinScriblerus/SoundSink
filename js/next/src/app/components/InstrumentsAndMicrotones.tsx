@@ -66,35 +66,36 @@ const InstrumentsAndMicrotones = (
                 setNeedsUpdate(true);
                 return;
             }
-            currentStkTypeVar.current = (`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}#${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).var}`)
+            const getSTKVal = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value);
+            currentStkTypeVar.current = (`${getSTKVal.type}#${getSTKVal.var}`)
             if (universalSources.current) {
-                console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value));
+                console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', getSTKVal);
                 const stk: any = universalSources.current.stk1
                 visibleFXKnobs.current = Object.values(getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).presets).map((i: any) => [i.label, i]);
-                const instType = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type
-                currentFX.current = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value);
+                const instType = getSTKVal.type
+                currentFX.current = getSTKVal.value;
                 if (universalSources.current.stk1.instruments) {
                     Object.entries(universalSources.current.stk1.instruments).map((i: [string, EffectsSettings | any]) => {
                         if (i && i.length > 0 && i[0] === instType) {
                             i[1].Visible = true;
                             i[1].On = true;
-                            if (i[1].presets) i[1].presets = Object.values(getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).presets);
+                            if (i[1].presets) i[1].presets = Object.values(getSTKVal.presets);
                         } else {
                             i[1].Visible = false
                         }
                     })
                 }
                 setFxKnobsCount(visibleFXKnobs.current.length);
-                currentFX.current = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value);
+                currentFX.current = getSTKVal;
     
     
                 currentScreen.current = `stk_${currentFX.current.type}`;
     
                 if (Object.values(stk.instruments).filter((inst: any) => inst.On).length > 0) {
     
-                    stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].Type = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type; ///// LOOK HERE!!!!
-                    stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].VarName = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).var;
-                    stk.instruments[`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}`].On = true;
+                    stk.instruments[`${getSTKVal.type}`].Type = getSTKVal.type; ///// LOOK HERE!!!!
+                    stk.instruments[`${getSTKVal.type}`].VarName = getSTKVal.var;
+                    stk.instruments[`${getSTKVal.type}`].On = true;
     
                     currentFX.current = stkKnobValsRef.current;
     

@@ -55,7 +55,7 @@ const InsetNotesDropdown = ({
 
     const preSelOpts = notesPreselected && Array.from(notesPreselected).length > 0 && Array.from(notesPreselected).map((i: any) => options.options[i]);
     setSelectedOptions(preSelOpts);
-  }, [notes, notes.length])
+  }, [notes, notes.length, notesPreselected])
 
   return (
     <>{optionsHook && <Select

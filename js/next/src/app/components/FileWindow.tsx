@@ -4,7 +4,8 @@ import { toBlobURL } from "@ffmpeg/util";
 import RegionsPlugin, { Region } from "wavesurfer.js/dist/plugins/regions";
 import wavesurfer from "wavesurfer.js";
 import WaveSurferPlayer from '@wavesurfer/react';
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import React from "react";
 
 type FileWindowProps = {
     uploadedBlob: React.MutableRefObject<Blob | MediaSource >;
@@ -18,6 +19,16 @@ const FileWindow = (props: FileWindowProps) => {
     const [loaded, setLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [wavesurfer, setWavesurfer] = useState<any>(null);
+
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+    useMemo(() => {
+        if (uploadedBlob.current) {
+            const url = URL.createObjectURL(uploadedBlob.current);
+            url && setAudioUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+    }, [uploadedBlob]);
 
     const load = async () => {
         setIsLoading(true);
@@ -97,7 +108,7 @@ const FileWindow = (props: FileWindowProps) => {
         
             // Read the clipped audio file
             const clippedAudio = (await ffmpeg.readFile(`clipped_${audioFile.filename}`, 'binary')) as Uint8Array;
-                
+                console.log("CLIPPED AUDIO: ", clippedAudio);
             if (clippedAudio) {
             // Create a blob from the clipped audio
             const blob = new Blob([clippedAudio], { type: 'audio/wav' });
@@ -177,8 +188,10 @@ const FileWindow = (props: FileWindowProps) => {
         wavesurferRef.current && wavesurferRef.current.playPause()
     }
     
+    let regionsPlugin; 
     useEffect(() => {
         load();
+        // regionsPlugin = useMemo(() => [RegionsPlugin.create()], []);
     }, []);
 
     return (
@@ -192,8 +205,9 @@ const FileWindow = (props: FileWindowProps) => {
                     top: "0px",
                     left: "0px",
                     width: "calc(100% - 396px)",
-                    justifyContent: "stretch",
+                    // justifyContent: "stretch",
                     background: "rgba(0,0,0,0.98)",
+                    pointerEvents: "auto",
                 }}
             >
                 <Button style={{zIndex: 9999}} onClick={onPlayPause}>
@@ -207,15 +221,17 @@ const FileWindow = (props: FileWindowProps) => {
                     waveColor="#4d91ff"
                     progressColor="#4d91ff"
                     // url="/my-server/audio.wav"
-                    url={URL.createObjectURL(uploadedBlob.current)}
+                    // url={URL.createObjectURL(uploadedBlob.current)}
+                    url={audioUrl}
                     onReady={onReady}
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                     onPlayPause={onPlayPause}
-                    plugins={[RegionsPlugin.create()]}
+                    // plugins={[RegionsPlugin.create()]}
+                    plugins={useMemo(() => [RegionsPlugin.create()], [])}
                 />
 
             </Box>
     );
 }
-export default FileWindow;
+export default React.memo(FileWindow);;

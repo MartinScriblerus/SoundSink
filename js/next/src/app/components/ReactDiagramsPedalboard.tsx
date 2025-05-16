@@ -23,50 +23,86 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
 
     const theme = useTheme();
 
-    useEffect(() => {
-        console.log("currentChain in React pedals: ", currentChain);
-    }, [])
 
-    // intermediate connector nodes
-    const getNewNodes = ((source: string, nodeVarNames: string[]) => {
-        const userAddedNodeNames = nodeVarNames.filter(nodeName => !nodeName.includes('source') && !nodeName.includes('outlet'));
-        const nodesArr = [
-            {
-                id: `${sourceName}_source`,
-                target: [''],
-                source: ['']
-            },
-            {
-                id: `${sourceName}_outlet`,
-                target: [''],
-                source: [''],
-            }
-        ];
+    // // intermediate connector nodes
+    // const getNewNodes = ((source: string, nodeVarNames: string[]) => {
+    //     const userAddedNodeNames = nodeVarNames.filter(nodeName => !nodeName.includes('source') && !nodeName.includes('outlet'));
+    //     const nodesArr = [
+    //         {
+    //             id: `${sourceName}_source`,
+    //             target: [''],
+    //             source: ['']
+    //         },
+    //         {
+    //             id: `${sourceName}_outlet`,
+    //             target: [''],
+    //             source: [''],
+    //         }
+    //     ];
      
-        if (userAddedNodeNames.length > 0) {
-            userAddedNodeNames.map((nodeName: string, idx: number) => {  
-                if (userAddedNodeNames.length - 1 === idx ) {
-                    console.log("this will likely send to outlet: ", idx, nodeName)
-                } 
-                //add in an override here for editing the order of pedals in chain...
-                nodesArr.splice(nodesArr.length - 1, 0,
-                {
-                    id: `${nodeName}`,
-                    target: [userAddedNodeNames.length - 1 === idx ? `${sourceName}_outlet` : `${sourceName}_${userAddedNodeNames[idx + 1]}`],
-                    source: [idx < 1 ? `${sourceName}_source` : `${sourceName}_${userAddedNodeNames[idx - 1]}`] 
-                });
-            });
-        } else {
-            nodesArr[0].target = [`${sourceName}_outlet`];
-            nodesArr[1].source = [`${sourceName}_source`];
-        }
-        nodesArr[0].target = [...nodesArr[0].target, `${sourceName}_${userAddedNodeNames[0]}`]; 
-        nodesArr[nodesArr.length - 1].source = [...nodesArr[nodesArr.length - 1].source, `${sourceName}_${userAddedNodeNames[userAddedNodeNames.length - 1]}`];
-        return nodesArr;
-    });
+    //     if (userAddedNodeNames.length > 0) {
+    //         userAddedNodeNames.map((nodeName: string, idx: number) => {  
+    //             if (userAddedNodeNames.length - 1 === idx ) {
+    //                 console.log("this will likely send to outlet: ", idx, nodeName)
+    //             } 
+    //             //add in an override here for editing the order of pedals in chain...
+    //             nodesArr.splice(nodesArr.length - 1, 0,
+    //             {
+    //                 id: `${nodeName}`,
+    //                 target: [userAddedNodeNames.length - 1 === idx ? `${sourceName}_outlet` : `${sourceName}_${userAddedNodeNames[idx + 1]}`],
+    //                 source: [idx < 1 ? `${sourceName}_source` : `${sourceName}_${userAddedNodeNames[idx - 1]}`] 
+    //             });
+    //         });
+    //     } else {
+    //         nodesArr[0].target = [`${sourceName}_outlet`];
+    //         nodesArr[1].source = [`${sourceName}_source`];
+    //     }
+    //     nodesArr[0].target = [...nodesArr[0].target, `${sourceName}_${userAddedNodeNames[0]}`]; 
+    //     nodesArr[nodesArr.length - 1].source = [...nodesArr[nodesArr.length - 1].source, `${sourceName}_${userAddedNodeNames[userAddedNodeNames.length - 1]}`];
+    //     return nodesArr;
+    // });
 
     const engine = useMemo(() => {
         const engine = createEngine();
+
+        // intermediate connector nodes
+        
+        const getNewNodes = ((source: string, nodeVarNames: string[]) => {
+            const userAddedNodeNames = nodeVarNames.filter(nodeName => !nodeName.includes('source') && !nodeName.includes('outlet'));
+            const nodesArr = [
+                {
+                    id: `${sourceName}_source`,
+                    target: [''],
+                    source: ['']
+                },
+                {
+                    id: `${sourceName}_outlet`,
+                    target: [''],
+                    source: [''],
+                }
+            ];
+        
+            if (userAddedNodeNames.length > 0) {
+                userAddedNodeNames.map((nodeName: string, idx: number) => {  
+                    if (userAddedNodeNames.length - 1 === idx ) {
+                        console.log("this will likely send to outlet: ", idx, nodeName)
+                    } 
+                    //add in an override here for editing the order of pedals in chain...
+                    nodesArr.splice(nodesArr.length - 1, 0,
+                    {
+                        id: `${nodeName}`,
+                        target: [userAddedNodeNames.length - 1 === idx ? `${sourceName}_outlet` : `${sourceName}_${userAddedNodeNames[idx + 1]}`],
+                        source: [idx < 1 ? `${sourceName}_source` : `${sourceName}_${userAddedNodeNames[idx - 1]}`] 
+                    });
+                });
+            } else {
+                nodesArr[0].target = [`${sourceName}_outlet`];
+                nodesArr[1].source = [`${sourceName}_source`];
+            }
+            nodesArr[0].target = [...nodesArr[0].target, `${sourceName}_${userAddedNodeNames[0]}`]; 
+            nodesArr[nodesArr.length - 1].source = [...nodesArr[nodesArr.length - 1].source, `${sourceName}_${userAddedNodeNames[userAddedNodeNames.length - 1]}`];
+            return nodesArr;
+        });
 
         // Node Inlet
         const node1 = new DefaultNodeModel({
@@ -139,7 +175,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         model.addAll(node1, node2, ...newNodes, initialLink, ...newLinks);
         engine.setModel(model);
         return engine;
-    }, [currentChain]);
+    }, [currentChain, sourceName]);
 
     
     return(

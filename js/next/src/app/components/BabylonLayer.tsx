@@ -60,34 +60,13 @@ function BabylonScene(props: {
 
     const [babylonGameHook, setBabylonGameHook] = useState<any>('');
 
-
-
-    // const game = useRef<BabylonGame>();
-    // game = game || {
-    //     canvas:  document.querySelector(`#babylonCanvas`),
-    //     engine: undefined,
-    //     scene: undefined,
-    //     camera: [],
-    //     light: [],
-    //     gui: [],
-    //     advancedTexture: [],
-    //     panel: [], //GUI.StackPanel[] | undefined;
-    //     header: [], // GUI.TextBlock[];
-    //     slider: [], // GUI.Slider[] | undefined;
-    //     knob: [],
-    //     meshes: [],
-    //     camera1: {},
-    //     camera2: {},
-    //     // runRenderLoop: undefined,
-    // } as BabylonGame;
-
     useEffect(() => {
         if (needsUpdate) {
             //console.log("################################ WE CAN UPDATE")
             setBabylonGameHook('ready');
             handleResetNeedsUpdate();
         }
-    }, [needsUpdate])
+    }, [needsUpdate, handleResetNeedsUpdate])
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -437,7 +416,7 @@ function BabylonScene(props: {
         
                                     : 
                                         `${visibleFXKnobs[effectsIndex][0]}: ${game.slider[i][j].value.toFixed(2)}`;
-                                console.log("SANITY??? ", game.header[i][j].text)
+                                // console.log("SANITY??? ", game.header[i][j].text)
                                 // handleResetNeedsUpdate();
                                 if (game.scene && game.engine && game.engine !== undefined && game.engine.scenes.length > 0 && game.engine.scenes[0].meshes.length < 1) {
                                     game.scene.clearColor = new BABYLON.Color4(0,0,0,0.0000000000000001);
