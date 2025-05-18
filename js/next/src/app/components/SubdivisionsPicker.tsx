@@ -52,10 +52,10 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
                 },
                 }}
                 sx={{
-                input: { color: 'primary.contrastText' },
-                backgroundColor: PALE_BLUE,
-                maxWidth: "6rem",
-                width: '72px',
+                    input: { color: 'primary.contrastText' },
+                    backgroundColor: PALE_BLUE,
+                    maxWidth: "6rem",
+                    width: '72px',
                 }}
             />
             </FormControl>

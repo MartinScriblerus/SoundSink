@@ -186,6 +186,8 @@ export default function InitializationComponent() {
     const [checkedFXUpdating, setCheckedFXUpdating] = useState<boolean>(false);
     const [showFX, setShowFX] = useState<boolean>(false);
 
+    const [maxMinFreq, setMaxMinFreq] = useState<any>({});
+
     const [scaleHook, setScaleHook] = useState<any>(null);
     const [invertedScaleHook, setInvertedScaleHook] = useState<any>(null);
     const [chordHook, setChordHook] = useState<QueryResponse | null>(null);
@@ -364,10 +366,10 @@ export default function InitializationComponent() {
 
       useEffect(() => {
         const beatsPerMeasure = numeratorSignature;
-        const beatSubdivision = masterFastestRate; // e.g. 4 = 16th notes if quarter note base
+        const beatSubdivision = masterFastestRate; // e.g. 4 = 16th notes if quarter note base **COULD_DIVIDE_IN_HALF
         const noteValue = denominatorSignature;
       
-        const totalSteps = beatsPerMeasure * beatSubdivision;
+        const totalSteps = (beatsPerMeasure * beatSubdivision) / 1;
       
         const instruments = [
           'sample',   // z = 1
@@ -636,8 +638,8 @@ export default function InitializationComponent() {
             if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1 &&
                 filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1
             ) {
-                alert('blam');
-                filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false });
+                // alert('blam');
+                // filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false });
 
                 filesToProcess.current.push({ 'filename': formattedName, 'data': fileData, 'processed': false }); 
                 console.log("FILES TO PROCESS: ", filesToProcess.current);
@@ -1432,6 +1434,15 @@ export default function InitializationComponent() {
 
             console.log("###2 what are active stks? ", activeSTKs);
 
+
+
+            // currentBeatCountToDisplay={currentBeatCountToDisplay}
+            // currentNumerCountColToDisplay={currentNumerCountColToDisplay}
+            // currentDenomCount={currentDenomCount}
+            // currentPatternCount={currentPatternCount}
+
+
+
             console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.entries(i[1])))
 
             console.log("wtf??? ", filesToProcess.current);
@@ -1439,6 +1450,34 @@ export default function InitializationComponent() {
             const filesArray = filesToProcess.current.map(
                 (f: any) => `me.dir() + "${f.filename}"`
               ).join(', ');
+
+
+            const noteToMidi = (note: string, octave: number) => {
+                const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+                for (let i = 0; i < names.length; i++) {
+                    if (note == names[i]) {
+                        return (octave + 1) * 12 + i;
+                    }
+                }
+                // fallback
+                return 60; // default to middle C if not found
+            }
+
+            // const maxMidi = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMax);
+            // const minMidi = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMin);
+            // console.log("WHAT IS MAXMIN MIDI? ", maxMidi, minMidi);
+            // chuckRef.current && chuckRef.current.runCode(`
+            //     Std.mtof(${maxMidi}) => float freqMax;
+            //     <<< "MAX_MIN_MAX: ", freqMax >>>;    
+            // `);
+            // chuckRef.current && chuckRef.current.runCode(`
+            //     Std.mtof(${minMidi}) => float freqMin;
+            //     <<< "MAX_MIN_MIN:", freqMin >>>;    
+            // `);
+
+            const maxFreq = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMax);
+            const minFreq = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMin);
+            console.log("WHAT IS MAXMIN MIDI? ", maxFreq, minFreq);
 
             const newChuckCode = getChuckCode(
                 isTestingChord,
@@ -1466,9 +1505,13 @@ export default function InitializationComponent() {
                 activeSTKPlayOn,
                 activeSTKPlayOff,
                 selectedChordScaleOctaveRange,
+                {maxFreq, minFreq},
             );
 
             chuckRef.current.runCode(newChuckCode);
+
+
+   
             console.log("ran chuck code!");
   
             console.log("HERE IS CHUCK CODE: ", newChuckCode);
@@ -2368,6 +2411,20 @@ export default function InitializationComponent() {
     }
 
     const handleChuckMsg = (chuckMsg: string) => {
+        // console.log("CHUCK MSG: ", chuckMsg);
+        if (chuckMsg.includes("MAX_MIN:")) {
+            console.log("MAX MIN MSG!!! ", chuckMsg);
+            let maxFreq; 
+            let minFreq;
+            maxFreq = chuckMsg.split("::::")[0].trim();
+            minFreq = chuckMsg.split("::::")[1].trim();
+            console.log("MAX MIN FREQ????: ", maxFreq, minFreq);
+            setMaxMinFreq([Number(+maxFreq), Number(+minFreq)]);
+        }
+        if (chuckMsg.includes("ADSR")) {
+            console.log("ADSR MSG!!! ", chuckMsg);
+        }
+
         let isMounted = true;
         const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
         
@@ -2442,7 +2499,10 @@ export default function InitializationComponent() {
                     // setChuckMsg(parsedMsg); 
                     handleChuckMsg(parsedMsg)
                 } else {
-                    console.log("here is log... ", message);
+                    if (message.includes("MAX_MIN")) {
+                        console.log("MAX MIN MSG****!!! ", message);
+                    }
+                    // console.log("here is log... ", message);
                 }
             }
 

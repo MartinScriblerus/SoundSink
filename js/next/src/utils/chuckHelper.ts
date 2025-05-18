@@ -24,12 +24,17 @@ export const getChuckCode = (
     activeSTKPlayOn: any,
     activeSTKPlayOff: any,
     selectedChordScaleOctaveRange: any, // key: 'C', scale: 'Diatonic', chord: 'M', octaveMax: '4', octaveMin: '3'
+    maxMinFreq: any,
 ) => {
 
     console.log("JUST PRIOR TO CHUCK HERE IS selectedChordScaleOctaveRange: ", selectedChordScaleOctaveRange);
+
     console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs,);
+    console.log("MAX MINNING! ", maxMinFreq, mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) )
     console.log("JUST PRIOR TO CHUCK HERE IS isTestingChord: ", isTestingChord);
     console.log("JUST PRIOR TO CHUCK HERE IS resetNotes: ", resetNotes);
+
+    const beatInMilliseconds = (60000 / bpm) / masterFastestRate * 2;
 
     const newChuckCode = `
     "" => global string currentSrc;
@@ -43,7 +48,7 @@ export const getChuckCode = (
 
     0 => global int arpeggiatorOn;
 
-    ${(60000 / bpm) / masterFastestRate * 2} => float beatInt;
+    ${beatInMilliseconds} => float beatInt;
 
     (beatInt)::ms => dur beat;
     ${numeratorSignature} => global int numeratorSignature;
@@ -128,8 +133,41 @@ export const getChuckCode = (
         }
 
         saw1[id] => lpf[id] => adsr[id] => limiter[id] => outlet;
+
         saw2[id] => lpf[id];
         noiseSource[id] => lpf[id];
+
+
+
+        ${moogGrandmotherEffects.current.adsrAttack.value} => float atkKnob;
+        ${moogGrandmotherEffects.current.adsrDecay.value} => float decKnob;
+        ${moogGrandmotherEffects.current.adsrSustain.value} => float susKnob;
+        ${moogGrandmotherEffects.current.adsrRelease.value} => float relKnob;
+
+
+        // Normalize time knobs
+        atkKnob + decKnob + relKnob => float total;
+        if (total == 0.0) {
+            0.33 => atkKnob;
+            0.33 => decKnob;
+            0.34 => relKnob;
+        } else {
+            atkKnob / total => atkKnob;
+            decKnob / total => decKnob;
+            relKnob / total => relKnob;
+        }
+
+        // Apply scaled durations
+        beat * atkKnob => adsr[id].attackTime;
+        beat * decKnob => adsr[id].decayTime;
+        susKnob => adsr[id].sustainLevel;
+        beat * relKnob => adsr[id].releaseTime;
+
+
+        <<< "ADSR STATE KEYON ", adsr[id].state() >>>;
+        <<< "ADSR VALUE KEYON ", adsr[id].value() >>>;
+        <<< "ADSR LAST KEYON ", adsr[id].last() >>>;
+
         0 => noiseSource[id].gain;
 
         SinLfo[id] => pitchLfo[id] => blackhole;
@@ -139,7 +177,8 @@ export const getChuckCode = (
         {
             frequency => SinLfo[id].freq => SawLfo[id].freq => SqrLfo[id].freq;
         }
-        6.0 => SetLfoFreq; // what is this???
+        // 6.0 => SetLfoFreq; // what is this???
+        SetLfoFreq(6.0);
         0.05 => filterLfo[id].gain;
         0.05 => pitchLfo[id].gain;            
         2 => saw1[id].sync => saw2[id].sync => tri1[id].sync => tri2[id].sync => sqr1[id].sync => sqr2[id].sync;
@@ -151,6 +190,8 @@ export const getChuckCode = (
         pitchLfo[id] => sqr1[id];
         pitchLfo[id] => sqr2[id];
 
+
+
         ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter[id].attackTime; // can we hardcode these???
         ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter[id].thresh; // can we hardcode these???
 
@@ -160,12 +201,14 @@ export const getChuckCode = (
         0.28/numVoices => tri1[id].gain => tri2[id].gain;
         0.08/numVoices => sqr1[id].gain => sqr2[id].gain;
 
-        ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
+        // ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
+        // filterCutoff => lpf[id].freq;
+        10 => float filterCutoff;
         filterCutoff => lpf[id].freq;
 
         // moogGrandmotherEffects["offset"] => float offset;
         ${moogGrandmotherEffects.current.offset.value} => float offset; // why are we hardcoding these???
-        880 => float filterEnv;
+        500.00 => float filterEnv;
         1.0 => float osc2Detune;
         ${moogGrandmotherEffects.current.oscOffset.value} => float oscOffset;
 
@@ -179,22 +222,18 @@ export const getChuckCode = (
             frequency => tri2[id].freq => sqr2[id].freq => saw2[id].freq; 
         }
 
+        
         fun void keyOn(float noteNumber)
         {
-        
             Std.mtof(offset + Std.ftom(noteNumber)) => SetOsc1Freq;
             Std.mtof(offset + Std.ftom(noteNumber) + oscOffset) - osc2Detune => SetOsc2Freq;
             // Std.mtof(offset + noteNumber) => SetOsc1Freq;
             // Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
-            1 => adsr[id].keyOn;
-            ${moogGrandmotherEffects.current.adsrAttack.value}::ms => adsr[id].attackTime; // FIX NUM HERE!!!
-            ${moogGrandmotherEffects.current.adsrDecay.value}::ms => adsr[id].decayTime; // FIX NUM HERE!!!
-            ${moogGrandmotherEffects.current.adsrSustain.value} => adsr[id].sustainLevel; // FIX NUM HERE!!!
-            ${moogGrandmotherEffects.current.adsrRelease.value}::ms => adsr[id].releaseTime; // FIX NUM HERE!!!
 
-
+            <<< "FUUUUUUCK 1: ", SetOsc1Freq, "... 2: ", SetOsc2Freq >>>;
+            1 => adsr[id].keyOn;            
             spork ~ filterEnvelope();
-            me.yield();
+            // me.yield();
         }
 
         fun void ChooseOsc1(int oscType)
@@ -296,26 +335,32 @@ export const getChuckCode = (
                 SqrLfo[id] => pitchLfo[id];
             }
         }
-        fun void keyOff(int noteNumber) {
-            noteNumber => adsr[id].keyOff;
-            // Wait for the envelope to fully release
-            while (adsr[id].state() != 0) {
-                adsr[id].releaseTime() => now;
+
+
+
+        fun void monitorEnvelope() {
+            while (adsr[id].state() != 0 || adsr[id].value() > 0.001) {
+                whole / fastestRateUpdate => now;
             }
+            // Cleanup or disable this voice if needed
+            // Could add back to a voice pool here
         }
+        fun void keyOff(int noteNumber) {
+            adsr[id].keyOff();
+            spork ~ monitorEnvelope();
+        }
+
         fun void filterEnvelope()
         {
             filterCutoff => float startFreq;
-            while((adsr[id].state() != 0 && adsr[id].value() == 0) == false)
+
+            while (adsr[id].state() != 0 || adsr[id].value() > 0.001)
             {
-                1 => adsr[id].keyOn;
-                Std.fabs((filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last()) => lpf[id].freq;                     
-                adsr[id].releaseTime() => now;
-                1 => adsr[id].keyOff;
-                me.yield();
+                Std.fabs((filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last()) => lpf[id].freq;
+                10::ms => now;
             }
-            // me.exit();
         }
+
         fun void cutoff(float amount)
         {
             if(amount > 100)
@@ -338,6 +383,7 @@ export const getChuckCode = (
             // } 
             ////////////////////////////////////////////////////////
         }
+
         fun void rez(float amount)
         {
             if(amount > 100)
@@ -350,6 +396,7 @@ export const getChuckCode = (
             }
             20 * (amount / 100) + 0.3 => lpf[id].Q;
         }
+
         fun void env(float amount)
         {
             if(amount > 100)
@@ -360,8 +407,9 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            5000 * (amount / 100) => filterEnv;
+            Std.ftoi(5000 * (amount / 100)) => filterEnv;
         }
+
         fun void detune(float amount)
         {
             if(amount > 100)
@@ -374,6 +422,7 @@ export const getChuckCode = (
             }
             5 * (amount / 100) => osc2Detune;
         }
+
         fun void pitchMod(float amount)
         {
             if(amount > 100)
@@ -385,7 +434,8 @@ export const getChuckCode = (
                 0 => amount;
             }
             84 * (amount / 100) => pitchLfo[id].gain;
-        }               
+        }   
+
         fun void cutoffMod(float amount)
         {
             if(amount > 100)
@@ -398,6 +448,7 @@ export const getChuckCode = (
             }
             5000 * (amount / 100) => filterLfo[id].gain;
         }
+            
         fun void noise(float amount)
         {
             if(amount > 100)
@@ -408,7 +459,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            1.0 * (amount / 100) => noiseSource[id].gain;
+            ( 1.0 * (amount / 100) ) => noiseSource[id].gain;
         }            
     }
     SynthVoice voice[numVoices];
@@ -428,7 +479,7 @@ export const getChuckCode = (
         ${moogGrandmotherEffects.current.offset.value} => voice[i].offset;
         ${moogGrandmotherEffects.current.lfoFreq.value} => voice[i].filterEnv;
         ${moogGrandmotherEffects.current.noise.value} => voice[i].noise;
-            0.6 => voice[i].gain;
+            0.6 / numVoices => voice[i].gain;
     }
 
     voice[numVoices - 1] => Osc1_EffectsChain osc1_FxChain => Dyno osc1_Dyno => dac;
@@ -960,59 +1011,127 @@ export const getChuckCode = (
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+/////////////////// NOTE MEASURE
+    fun void handlePlayNoteMeasure(int tickCount) {
+
+        ((fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1) % fastestRateUpdate => int masterTick;
+
+        [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => parseFloat(i.note) > 0 ?  parseFloat(i.note) : `9999.0` ) )}] @=> float testNotesArr2[]; 
+
+        [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
+
+
+        <<< "MAX_MIN: ", ${maxMinFreq.minFreq} >>>;
+
+        // [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq).filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)).filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
+        // [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq)}] @=> float allFreqs[];
+
+        int recurringTickCount;
+        if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
+            tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
+        } else {
+            tickCount => recurringTickCount;
+        }
+
+        STK_EffectsChain stk_FxChain;
+        ${activeSTKDeclarations.current}
+        ${activeSTKSettings.current}
+    
+        ${activeSTKPlayOn.current}
+        if (recurringTickCount < allFreqs.size()) {
+            for (0 => int i; i < numVoices; i++) {
+                <<< "ADSR HELL IN NOTE", allFreqs[recurringTickCount] >>>;
+                allFreqs[recurringTickCount] => voice[i].keyOn;
+            }
+        }
+
+
+        // --- After triggering all buffers, wait for the length of 1 step
+        (whole / ${masterFastestRate}) => now;
+
+        ${activeSTKPlayOff.current}
+        for (0 => int i; i < numVoices; i++) {
+            <<< "ADSR HELL", allFreqs[recurringTickCount] >>>;
+            1 => voice[i].keyOff;
+        }
+
+        me.yield();
+    }
+///////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // // SAMPLER
     // ////////////////////////////////////////////////////////////////
-    fun void handlePlayMeasure(int tickCount) {
+    fun void handlePlayDrumMeasure(int tickCount) {
+
+        ((fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1) % fastestRateUpdate => int masterTick;
+
+        [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['9999.0']` ) )}] @=> int filesArr[][]; 
+
+       // [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
 
 
-    ((fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1) % fastestRateUpdate => int masterTick;
+        <<< "MAX_MIN: ", ${maxMinFreq.minFreq} >>>;
 
-    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['9999.0']` ) )}] @=> int testArr2[][]; 
+        int recurringTickCount;
+        if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
+        tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
+        } else {
+        tickCount => recurringTickCount;
+        }
 
-    [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => parseFloat(i.note) > 0 ?  parseFloat(i.note) : `9999.0` ) )}] @=> float testNotesArr2[]; 
+        if (recurringTickCount >= filesArr.size()) return;
 
-    [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
-
-    int recurringTickCount;
-    if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
-    tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
-    } else {
-    tickCount => recurringTickCount;
-    }
-
-    if (recurringTickCount >= testArr2.size()) return;
-
-    STK_EffectsChain stk_FxChain;
-    ${activeSTKDeclarations.current}
-    ${activeSTKSettings.current}
+        // --- Play all buffers in parallel
+        for (0 => int x; x < filesArr[recurringTickCount].size(); x++) {
+            if (filesArr[recurringTickCount][x] != 9999.0 && (filesArr[recurringTickCount][x] < files.size())) {
+                files[filesArr[recurringTickCount][x]] => buffers[x].read;
+                0 => buffers[x].pos;
 
 
+                // // Start buffer immediately
+                // 0 => buffers[x].pos;
+            }
+        }
 
-    // --- Play all buffers in parallel
-    for (0 => int x; x < testArr2[recurringTickCount].size(); x++) {
-    if (testArr2[recurringTickCount][x] != 9999.0 && (testArr2[recurringTickCount][x] < files.size())) {
-    files[testArr2[recurringTickCount][x]] => buffers[x].read;
-    0 => buffers[x].pos;
+        // --- After triggering all buffers, wait for the length of 1 step
+        (whole / ${masterFastestRate}) => now;
 
-    ${activeSTKPlayOn.current}
-
-    if (recurringTickCount < allFreqs.size()) {
-      for (0 => int i; i < numVoices; i++) {
-        allFreqs[recurringTickCount] => voice[i].keyOn;
-      }
-    }
-
-    // Start buffer immediately
-    0 => buffers[x].pos;
-    }
-    }
-
-    // --- After triggering all buffers, wait for the length of 1 step
-    (whole / ${masterFastestRate}) => now;
-
-    ${activeSTKPlayOff.current}
-
-    me.yield();
+        me.yield();
     }
     string result[];
 
@@ -1064,29 +1183,33 @@ export const getChuckCode = (
     }
 
     now => time startTimeMeasureLoop;
+    beat / fastestRateUpdate => dur step; 
 
     while(true && ${!isTestingChord})
     {
-        if (now >= startTimeMeasureLoop + (beat / fastestRateUpdate) ) {
+        if (now >= startTimeMeasureLoop + step) {
             fastestTickCounter + 1 => fastestTickCounter;
             <<< "TICK:", fastestTickCounter >>>;
-
-            "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
-
-            beat / fastestRateUpdate => now;       
+            // "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
+            
+            // beat / fastestRateUpdate => dur step;
+            // beat / fastestRateUpdate => dur step;
+            step => now;     
             
         }
         if (now >= startTimeMeasureLoop + beat) {
             tickCounter + 1 => tickCounter;
-            spork ~ handlePlayMeasure(tickCounter);
+            spork ~ handlePlayDrumMeasure(tickCounter);
+            spork ~ handlePlayNoteMeasure(tickCounter * numeratorSignature * denominatorSignature);
+            
             // now => startTimeMeasureLoop;
            // me.yield(); // optional safety to yield to spork
+           startTimeMeasureLoop + beat => startTimeMeasureLoop;
         } 
-        // else {
-        // now => startTimeMeasureLoop; 
-        // }
-        whole / ${masterFastestRate} => now;
-        
+        whole / fastestRateUpdate => now;
+        for (0 => int i; i < numVoices; i++) {
+            1 => voice[i].keyOff;
+        }
 
     }
 
@@ -1101,7 +1224,8 @@ export const getChuckCode = (
     } else {
 
     
-        spork ~ handlePlayMeasure(tickCounter);
+        spork ~ handlePlayDrumMeasure(tickCounter);
+        spork ~ handlePlayNoteMeasure(tickCounter * numeratorSignature * denominatorSignature);
         me.yield();    
         whole => now;
     }

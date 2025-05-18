@@ -100,36 +100,36 @@ const moogGMPresets = {
     adsrAttack: {
         name: "adsrAttack",
         label: "Attack",
-        value: 1,
-        min: 0,
-        max: 2000,
+        value: 0.1,
+        min: 0.0,
+        max: 1.0,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr attack (0-100) amount over time
     adsrDecay: {
         name: "adsrDecay",
         label: "Decay",
-        value: 500,
-        min: 0,
-        max: 4000,
+        value: 0.1,
+        min: 0.0,
+        max: 1.0,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr decay (0-100)
     adsrSustain: {
         name: "adsrSustain",
         label: "Sustain",
-        value: 0.01, // should this be a float?
-        min: 0,
-        max: 1,
+        value: 0.1, // should this be a float?
+        min: 0.0,
+        max: 1.0,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr sustain (0-100)
     adsrRelease: {
         name: "adsrRelease",
         label: "Release",
-        value: 200,
-        min: 0,
-        max: 4000,
+        value: 0.1,
+        min: 0.0,
+        max: 1.0,
         fxType: "default",
         screenInterface: "knob",
     }, // adsr release (0-100)
@@ -154,7 +154,7 @@ const moogGMPresets = {
     lfoFreq: {
         name: "lfoFreq",
         label: "Lfo Freq",
-        value: 320,
+        value: 0,
         min: 0,
         max: 1000,
         fxType: "default",
@@ -163,7 +163,7 @@ const moogGMPresets = {
     pitchMod: {
         name: "pitchMod",
         label: "Pitch Mod",
-        value: 0.01,
+        value: 0.00,
         min: 0,
         max: 2,
         fxType: "default",
@@ -172,7 +172,7 @@ const moogGMPresets = {
     cutoffMod: {
         name: "cutoffMod",
         label: "Cutoff Mod",
-        value: 5,
+        value: 0,
         min: 0,
         max: 100,
         fxType: "default",
