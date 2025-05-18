@@ -407,7 +407,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            Std.ftoi(5000 * (amount / 100)) => filterEnv;
+            5000 * (amount / 100) => filterEnv;
         }
 
         fun void detune(float amount)
