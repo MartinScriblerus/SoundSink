@@ -233,7 +233,7 @@ const MingusPopup = ({
                         <span style={{
                             width: "50%",
                             pointerEvents:"none"
-                        }}>Min:</span>
+                        }}>Max:</span>
                         <div
                         ref={selectOctaveMaxRef}
                         style={{
@@ -329,7 +329,7 @@ const MingusPopup = ({
                         pointerEvents: 'none',
                         width: '50%',
                     }}
-                    >Max: </span>
+                    >Min: </span>
                         <div
                         ref={selectOctaveMinRef}
                         style={{

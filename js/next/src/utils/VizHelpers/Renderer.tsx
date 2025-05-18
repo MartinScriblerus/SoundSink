@@ -151,6 +151,8 @@ export const Renderer = ({
       .padding(0.01);
   }, [allYGroups, boundsHeight]);
 
+  // ... avoid .value here. use x and y .... console.log("CHECK WHAT IS THE DATA HERE? ", data); 64 items fields of x, y, value ... z === value + 1 usually but value has weird stuff... y is 1-2-3-4
+
   // var colorScale = d3
   //   .scaleSequential()
   //   .interpolator(d3.interpolateCool)
@@ -283,7 +285,7 @@ export const Renderer = ({
   
   const xLabels = allXGroups.map((name, i) => {
     const x = xScale(name);
-
+    
     if (!x) {
       return null;
     }
@@ -469,6 +471,8 @@ export const Renderer = ({
                           new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
                         } */}
 
+                        Instrument: {instrument}
+                        <br/>
 
                         Samples:
                         <InsetCheckboxDropdown 
@@ -555,7 +559,7 @@ export const Renderer = ({
         height={height}
         style={{ pointerEvents: "none" }}
       >
-        YAYAYA
+
         <g
           key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
           width={boundsWidth}
@@ -564,7 +568,7 @@ export const Renderer = ({
           style={{ pointerEvents: "none" }}
         >
           {allShapes}
-          YUYUYU
+
           {xLabels}
           {yLabels}
         </g>
