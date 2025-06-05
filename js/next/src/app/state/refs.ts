@@ -93,3 +93,5 @@ export const NOTES_SET_REF = { current: undefined as any };
 export const initialRun = { current: true as any };
 
 export const isSubmitting = { current: false as any };
+
+export const masterVolumeVals = { current: 0.5 as number };

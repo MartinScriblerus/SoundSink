@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { STKOption, stkOptions } from '../../utils/fixedOptionsDropdownData';
 
 import { NAVY, PEACH, ROYALBLUE } from '@/utils/constants';
+import { Box } from '@mui/material';
 
 type Props = {
     stkValues: STKOption[] | undefined;
@@ -11,6 +12,7 @@ type Props = {
 
 const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, updateStkKnobs }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const modalRef = React.useRef<HTMLDivElement>(null);
 
     const toggleDropdown = () => setIsOpen(!isOpen);
 
@@ -25,6 +27,25 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
         updateStkKnobs(newValues);
     };
 
+    useEffect(() => {
+        // If modal is open, add event listener to detect outside clicks
+        if (isOpen) {
+          const handleClickOutside = (event: any) => {
+            if (modalRef.current && !modalRef.current.contains(event.target)) {
+              setIsOpen(false); // Close the modal if clicked outside
+            }
+          };
+    
+          // Add the event listener
+          document.addEventListener('mousedown', handleClickOutside);
+    
+          // Clean up the event listener when the component unmounts or when modal closes
+          return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+          };
+        }
+      }, [isOpen]);
+
     return (
         <div className="dropdown-container" style={{ minHeight: '100%', height: '100%', background: '', width: '100%', position: 'relative' }}>
             <button id={"toggleDropdown"} className="dropdown-button" onClick={toggleDropdown} 
@@ -32,33 +53,35 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
                 Select Instrument
             </button>
             {isOpen && (
-                <ul className="dropdown-menu" style={{
-                    width: '100%',
-                    maxHeight: '450px',
-                    overflowY: 'auto',
-                    background: 'rgba(0,0,0,0.78)',
-                    color: 'rgba(255,255,255,0.78)',
-                    fontFamily: 'monospace',
-                    fontSize: '12px',
-                    listStyle: 'none',
-                    padding: 0,
-                    margin: 0,
-                    zIndex: 99999,
-                    left: '120px',
-                    top: '-300px',
-                }}>
-                    {stkOptions.map((option) => (
-                        <li key={option.value} onClick={() => handleSelect(option)}
-                            style={{
-                                borderTop: '1px solid rgba(255,255,255,0.4)',
-                                padding: '5px',
-                                cursor: 'pointer',
-                                background: stkValues?.some((v) => v.value === option.value) ? PEACH : ROYALBLUE,
-                            }}>
-                            {option.label}
-                        </li>
-                    ))}
-                </ul>
+                <Box ref={modalRef}>
+                    <ul className="dropdown-menu" style={{
+                        width: '100%',
+                        maxHeight: '450px',
+                        overflowY: 'auto',
+                        background: 'rgba(0,0,0,0.78)',
+                        color: 'rgba(255,255,255,0.78)',
+                        fontFamily: 'monospace',
+                        fontSize: '12px',
+                        listStyle: 'none',
+                        padding: 0,
+                        margin: 0,
+                        zIndex: 99999,
+                        left: '140px',
+                        top: '-154px',
+                    }}>
+                        {stkOptions.map((option) => (
+                            <li key={option.value} onClick={() => handleSelect(option)}
+                                style={{
+                                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                                    padding: '5px',
+                                    cursor: 'pointer',
+                                    background: stkValues?.some((v) => v.value === option.value) ? PEACH : ROYALBLUE,
+                                }}>
+                                {option.label}
+                            </li>
+                        ))}
+                    </ul>
+                </Box>
             )}
         </div>
     );

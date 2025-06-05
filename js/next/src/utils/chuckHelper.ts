@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { HID } from "webchuck";
+
 export const getChuckCode = (
     isTestingChord: number | undefined,
     filesArray: string,
@@ -17,42 +20,75 @@ export const getChuckCode = (
     valuesReadoutSTK: any,
     valuesReadoutAudioIn: any,
     getSourceFX: any,
-    resetNotes: string,
     mTFreqs: number[],
     activeSTKDeclarations: any,
     activeSTKSettings: any,
     activeSTKPlayOn: any,
     activeSTKPlayOff: any,
-    selectedChordScaleOctaveRange: any, // key: 'C', scale: 'Diatonic', chord: 'M', octaveMax: '4', octaveMin: '3'
+    selectedChordScaleOctaveRange: any, // key: 'C', scale: 'Diatonic', chord: 'M', octaveMax: '4', octaveMin: '1'
     maxMinFreq: any,
+    hid: HID | null,
 ) => {
 
+    console.log("HID? ", hid);
     console.log("JUST PRIOR TO CHUCK HERE IS selectedChordScaleOctaveRange: ", selectedChordScaleOctaveRange);
-
-    console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs,);
+    console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs);
     console.log("MAX MINNING! ", maxMinFreq, mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) )
     console.log("JUST PRIOR TO CHUCK HERE IS isTestingChord: ", isTestingChord);
-    console.log("JUST PRIOR TO CHUCK HERE IS resetNotes: ", resetNotes);
+    console.log("HEY_YO! ", filesArray);
+ 
+    console.log("SANE CHECK IN CHUCK HELPER: ", Object.values(masterPatternsRef.current));
 
     const beatInMilliseconds = (60000 / bpm) / masterFastestRate * 2;
 
+    type NoteEvent = {
+        freq: number;
+        startTime: number; // in beats or seconds
+        duration: number; // in beats or seconds
+        velocity: number;
+      };
+      
+    console.log("*STK SANITY 1 -- declarations ", activeSTKDeclarations);
+    console.log("*STK SANITY 2 -- settings ", activeSTKSettings);
+    console.log("*STK SANITY 3 -- playOn ", activeSTKPlayOn);
+    console.log("*STK SANITY 4 -- playOff ", activeSTKPlayOff);
+
+
     const newChuckCode = `
+    
     "" => global string currentSrc;
     // SAFER DYNAMIC FILES
     [${filesArray}] @=> string files[];
 
+    
     // Global variables and events
     global Event playNote;
+    global Event playSTK;
     global Event startMeasure;
     global Event playAudioIn;
+    global float bpm; bpm => float bpmInit;
+
+    ${numeratorSignature} => global int numeratorSignature;
+    ${denominatorSignature} => global int denominatorSignature;
+
+    // Initial settings
+    120.0 => bpmInit;
+    4 => numeratorSignature;
+    4 => denominatorSignature;
 
     0 => global int arpeggiatorOn;
 
     ${beatInMilliseconds} => float beatInt;
 
-    (beatInt)::ms => dur beat;
-    ${numeratorSignature} => global int numeratorSignature;
-    ${denominatorSignature} => global int denominatorSignature;
+    beatInt / 1000 => float beatSeconds;
+    beatSeconds :: second => dur quarterNote;
+
+    ${numeratorSignature.toFixed(2)} / denominatorSignature => float beatFactor;
+    quarterNote * beatFactor => dur adjustedBeat;
+
+    // (beatInt)::ms => dur beat;
+    adjustedBeat => dur beat;
+
 
     beat * numeratorSignature => dur whole;
     whole * denominatorSignature => dur measure;
@@ -64,20 +100,20 @@ export const getChuckCode = (
     global float NOTES_SET[0];
     ${currentNoteVals.osc1[0]} => global int fastestRateUpdate;
 
-    SawOsc saw1[numVoices];
-    SawOsc saw2[numVoices];
-    LPF lpf[numVoices];
-    ADSR adsr[numVoices];
-    Dyno limiter[numVoices];
-    NRev rev[numVoices];
-    Noise noiseSource[numVoices];
-    Gain pitchLfo[numVoices];
-    Gain filterLfo[numVoices];
-    TriOsc tri1[numVoices], tri2[numVoices];
-    SqrOsc sqr1[numVoices], sqr2[numVoices];
-    SinOsc SinLfo[numVoices];
-    SawOsc SawLfo[numVoices];
-    SqrOsc SqrLfo[numVoices];
+    SawOsc saw1;
+    SawOsc saw2;
+    LPF lpf;
+    ADSR adsr;
+    Dyno limiter;
+    NRev rev;
+    Noise noiseSource;
+    Gain pitchLfo;
+    Gain filterLfo;
+    TriOsc tri1, tri2;
+    SqrOsc sqr1, sqr2;
+    SinOsc SinLfo;
+    SawOsc SawLfo;
+    SqrOsc SqrLfo;
 
     0 => global int tickCounter;
     0 => global int fastestTickCounter;
@@ -126,17 +162,12 @@ export const getChuckCode = (
     // BEGIN SYNTH VOICE DEFAULTS
     class SynthVoice extends Chugraph
     {
-        int id;
-        // Constructor to initialize id
-        fun void setId(int newId) {
-            newId => id;
-        }
 
-        saw1[id] => lpf[id] => adsr[id] => limiter[id] => outlet;
 
-        saw2[id] => lpf[id];
-        noiseSource[id] => lpf[id];
+        saw1 => lpf => adsr => limiter => outlet;
 
+        saw2 => lpf;
+        noiseSource => lpf;
 
 
         ${moogGrandmotherEffects.current.adsrAttack.value} => float atkKnob;
@@ -158,68 +189,84 @@ export const getChuckCode = (
         }
 
         // Apply scaled durations
-        beat * atkKnob => adsr[id].attackTime;
-        beat * decKnob => adsr[id].decayTime;
-        susKnob => adsr[id].sustainLevel;
-        beat * relKnob => adsr[id].releaseTime;
+        beat * atkKnob => adsr.attackTime;
+        beat * decKnob => adsr.decayTime;
+        // susKnob => adsr.sustainLevel;
+        Math.min(1.0, Math.max(0.0, susKnob)) => adsr.sustainLevel;
+        beat * relKnob => adsr.releaseTime;
 
+        // configureADSR(adsr, beat, atkKnob, decKnob, susKnob, relKnob);
 
-        <<< "ADSR STATE KEYON ", adsr[id].state() >>>;
-        <<< "ADSR VALUE KEYON ", adsr[id].value() >>>;
-        <<< "ADSR LAST KEYON ", adsr[id].last() >>>;
+        <<< "ADSR STATE KEYON ", adsr.state() >>>;
+        <<< "ADSR VALUE KEYON ", adsr.value() >>>;
+        <<< "ADSR LAST KEYON ", adsr.last() >>>;
 
-        0 => noiseSource[id].gain;
+        0 => noiseSource.gain;
 
-        SinLfo[id] => pitchLfo[id] => blackhole;
-        SinLfo[id] => filterLfo[id] => blackhole;
+        SinLfo => pitchLfo => blackhole;
+        SinLfo => filterLfo => blackhole;
 
         fun void SetLfoFreq(float frequency) 
         {
-            frequency => SinLfo[id].freq => SawLfo[id].freq => SqrLfo[id].freq;
+            frequency => SinLfo.freq => SawLfo.freq => SqrLfo.freq;
         }
         // 6.0 => SetLfoFreq; // what is this???
         SetLfoFreq(6.0);
-        0.05 => filterLfo[id].gain;
-        0.05 => pitchLfo[id].gain;            
-        2 => saw1[id].sync => saw2[id].sync => tri1[id].sync => tri2[id].sync => sqr1[id].sync => sqr2[id].sync;
+        0.05 => filterLfo.gain;
+        0.05 => pitchLfo.gain;            
+        2 => saw1.sync => saw2.sync => tri1.sync => tri2.sync => sqr1.sync => sqr2.sync;
 
-        pitchLfo[id] => saw1[id];
-        pitchLfo[id] => saw2[id];
-        pitchLfo[id] => tri1[id];
-        pitchLfo[id] => tri2[id];
-        pitchLfo[id] => sqr1[id];
-        pitchLfo[id] => sqr2[id];
+        pitchLfo => saw1;
+        pitchLfo => saw2;
+        pitchLfo => tri1;
+        pitchLfo => tri2;
+        pitchLfo => sqr1;
+        pitchLfo => sqr2;
 
 
 
-        ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter[id].attackTime; // can we hardcode these???
-        ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter[id].thresh; // can we hardcode these???
+        ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter.attackTime; // can we hardcode these???
+        ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter.thresh; // can we hardcode these???
 
+        0::ms => limiter.attackTime; // can we hardcode these???
+        0.8 => limiter.thresh; // can we hardcode these???
         
         // rethink volume when creating a master panel....
-        0.06/numVoices => saw1[id].gain => saw2[id].gain;
-        0.28/numVoices => tri1[id].gain => tri2[id].gain;
-        0.08/numVoices => sqr1[id].gain => sqr2[id].gain;
+        0.56 => saw1.gain => saw2.gain;
+        0.86 => tri1.gain => tri2.gain;
+        0.56 => sqr1.gain => sqr2.gain;
 
         // ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
-        // filterCutoff => lpf[id].freq;
+        // filterCutoff => lpf.freq;
         10 => float filterCutoff;
-        filterCutoff => lpf[id].freq;
+        filterCutoff => lpf.freq;
+
+        configureADSR(adsr, beat, atkKnob, decKnob, susKnob, relKnob);
+
 
         // moogGrandmotherEffects["offset"] => float offset;
         ${moogGrandmotherEffects.current.offset.value} => float offset; // why are we hardcoding these???
-        500.00 => float filterEnv;
+        500 => int filterEnv;
         1.0 => float osc2Detune;
         ${moogGrandmotherEffects.current.oscOffset.value} => float oscOffset;
 
+
+
+        fun void configureADSR(ADSR adsr, dur dur, float atkRatio, float decRatio, float sus, float relRatio) {
+            dur * atkRatio => adsr.attackTime;
+            dur * decRatio => adsr.decayTime;
+            sus => adsr.sustainLevel;
+            dur * relRatio => adsr.releaseTime;
+        }
+
         fun void SetOsc1Freq(float frequency)
         {
-            frequency => tri1[id].freq => sqr1[id].freq => saw1[id].freq; 
+            frequency => tri1.freq => sqr1.freq => saw1.freq; 
         }
 
         fun void SetOsc2Freq(float frequency)
         {
-            frequency => tri2[id].freq => sqr2[id].freq => saw2[id].freq; 
+            frequency => tri2.freq => sqr2.freq => saw2.freq; 
         }
 
         
@@ -230,8 +277,7 @@ export const getChuckCode = (
             // Std.mtof(offset + noteNumber) => SetOsc1Freq;
             // Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
 
-            <<< "FUUUUUUCK 1: ", SetOsc1Freq, "... 2: ", SetOsc2Freq >>>;
-            1 => adsr[id].keyOn;            
+            1 => adsr.keyOn;            
             spork ~ filterEnvelope();
             // me.yield();
         }
@@ -240,113 +286,113 @@ export const getChuckCode = (
         {
             if(oscType == 0)
             {
-                tri1[id] =< lpf[id];
-                saw1[id] =< lpf[id];
-                sqr1[id] =< lpf[id];
+                tri1 =< lpf;
+                saw1 =< lpf;
+                sqr1 =< lpf;
             }
             if(oscType == 1)
             {
-                tri1[id] => lpf[id];
-                saw1[id] =< lpf[id];
-                sqr1[id] =< lpf[id];
+                tri1 => lpf;
+                saw1 =< lpf;
+                sqr1 =< lpf;
             }
             if(oscType == 2)
             {
-                tri1[id] =< lpf[id];
-                saw1[id] => lpf[id];
-                sqr1[id] =< lpf[id];
+                tri1 =< lpf;
+                saw1 => lpf;
+                sqr1 =< lpf;
             }
             if(oscType == 3)
             {
-                tri1[id] =< lpf[id];
-                saw1[id] =< lpf[id];
-                sqr1[id] => lpf[id];
+                tri1 =< lpf;
+                saw1 =< lpf;
+                sqr1 => lpf;
             }
         }
         fun void ChooseOsc2(int oscType)
         {
             if(oscType == 0)
             {
-                tri2[id] =< lpf[id];
-                saw2[id] =< lpf[id];
-                sqr2[id] =< lpf[id];
+                tri2 =< lpf;
+                saw2 =< lpf;
+                sqr2 =< lpf;
             }
             if(oscType == 1)
             {
-                tri2[id] => lpf[id];
-                saw2[id] =< lpf[id];
-                sqr2[id] =< lpf[id];
+                tri2 => lpf;
+                saw2 =< lpf;
+                sqr2 =< lpf;
             }
             if(oscType == 2)
             {
-                tri2[id] =< lpf[id];
-                saw2[id] => lpf[id];
-                sqr2[id] =< lpf[id];
+                tri2 =< lpf;
+                saw2 => lpf;
+                sqr2 =< lpf;
             }
             if(oscType == 3)
             {
-                tri2[id] =< lpf[id];
-                saw2[id] =< lpf[id];
-                sqr2[id] => lpf[id];
+                tri2 =< lpf;
+                saw2 =< lpf;
+                sqr2 => lpf;
             }
             if(oscType == 4)
             {
-                tri2[id] =< lpf[id];
-                saw2[id] =< lpf[id];
-                sqr2[id] =< lpf[id];
+                tri2 =< lpf;
+                saw2 =< lpf;
+                sqr2 =< lpf;
             }
         }
         fun void ChooseLfo(int oscType)
         {
             if(oscType == 0)
             {
-                SinLfo[id] =< filterLfo[id];
-                SinLfo[id] =< pitchLfo[id];
-                SawLfo[id] =< filterLfo[id];
-                SawLfo[id] =< pitchLfo[id];
-                SqrLfo[id] =< filterLfo[id];
-                SqrLfo[id] =< pitchLfo[id];
+                SinLfo =< filterLfo;
+                SinLfo =< pitchLfo;
+                SawLfo =< filterLfo;
+                SawLfo =< pitchLfo;
+                SqrLfo =< filterLfo;
+                SqrLfo =< pitchLfo;
             }
             if(oscType == 1)
             {
-                SinLfo[id] => filterLfo[id];
-                SinLfo[id] => pitchLfo[id];
-                SawLfo[id] =< filterLfo[id];
-                SawLfo[id] =< pitchLfo[id];
-                SqrLfo[id] =< filterLfo[id];
-                SqrLfo[id] =< pitchLfo[id];
+                SinLfo => filterLfo;
+                SinLfo => pitchLfo;
+                SawLfo =< filterLfo;
+                SawLfo =< pitchLfo;
+                SqrLfo =< filterLfo;
+                SqrLfo =< pitchLfo;
             }
             if(oscType == 2)
             {
-                SinLfo[id] =< filterLfo[id];
-                SinLfo[id] =< pitchLfo[id];
-                SawLfo[id] => filterLfo[id];
-                SawLfo[id] => pitchLfo[id];
-                SqrLfo[id] =< filterLfo[id];
-                SqrLfo[id] =< pitchLfo[id];
+                SinLfo =< filterLfo;
+                SinLfo =< pitchLfo;
+                SawLfo => filterLfo;
+                SawLfo => pitchLfo;
+                SqrLfo =< filterLfo;
+                SqrLfo =< pitchLfo;
             }
             if(oscType == 3)
             {
-                SinLfo[id] =< filterLfo[id];
-                SinLfo[id] =< pitchLfo[id];
-                SawLfo[id] =< filterLfo[id];
-                SawLfo[id] =< pitchLfo[id];
-                SqrLfo[id] => filterLfo[id];
-                SqrLfo[id] => pitchLfo[id];
+                SinLfo =< filterLfo;
+                SinLfo =< pitchLfo;
+                SawLfo =< filterLfo;
+                SawLfo =< pitchLfo;
+                SqrLfo => filterLfo;
+                SqrLfo => pitchLfo;
             }
         }
 
 
 
         fun void monitorEnvelope() {
-            while (adsr[id].state() != 0 || adsr[id].value() > 0.001) {
+            while (adsr.state() != 0 || adsr.value() > 0.001) {
                 whole / fastestRateUpdate => now;
             }
             // Cleanup or disable this voice if needed
             // Could add back to a voice pool here
         }
         fun void keyOff(int noteNumber) {
-            adsr[id].keyOff();
+            adsr.keyOff();
             spork ~ monitorEnvelope();
         }
 
@@ -354,10 +400,11 @@ export const getChuckCode = (
         {
             filterCutoff => float startFreq;
 
-            while (adsr[id].state() != 0 || adsr[id].value() > 0.001)
+            while ((adsr.state() != 0 && adsr.value() == 0) == false)
             {
-                Std.fabs((filterEnv * adsr[id].value()) + startFreq + filterLfo[id].last()) => lpf[id].freq;
-                10::ms => now;
+                // Std.fabs((filterEnv * adsr.value()) + startFreq + filterLfo.last()) => lpf.freq;
+                 (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;   
+                beat => now;
             }
         }
 
@@ -394,7 +441,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            20 * (amount / 100) + 0.3 => lpf[id].Q;
+            20 * (amount / 100) + 0.3 => lpf.Q;
         }
 
         fun void env(float amount)
@@ -407,7 +454,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            5000 * (amount / 100) => filterEnv;
+            Std.ftoi(5000 * (amount / 100)) => filterEnv;
         }
 
         fun void detune(float amount)
@@ -433,7 +480,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            84 * (amount / 100) => pitchLfo[id].gain;
+            84 * (amount / 100) => pitchLfo.gain;
         }   
 
         fun void cutoffMod(float amount)
@@ -446,7 +493,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            5000 * (amount / 100) => filterLfo[id].gain;
+            5000 * (amount / 100) => filterLfo.gain;
         }
             
         fun void noise(float amount)
@@ -459,7 +506,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            ( 1.0 * (amount / 100) ) => noiseSource[id].gain;
+            ( 1.0 * (amount / 100) ) => noiseSource.gain;
         }            
     }
     SynthVoice voice[numVoices];
@@ -477,7 +524,7 @@ export const getChuckCode = (
         Std.ftoi(${moogGrandmotherEffects.current.lfoVoice.value}) => voice[i].ChooseLfo; // Lfo Voc
         // 0.5 => voice[i].filterLfo.gain;
         ${moogGrandmotherEffects.current.offset.value} => voice[i].offset;
-        ${moogGrandmotherEffects.current.lfoFreq.value} => voice[i].filterEnv;
+        Std.ftoi(${moogGrandmotherEffects.current.lfoFreq.value}) => voice[i].filterEnv;
         ${moogGrandmotherEffects.current.noise.value} => voice[i].noise;
             0.6 / numVoices => voice[i].gain;
     }
@@ -517,7 +564,7 @@ export const getChuckCode = (
 
     class AudioIn_SpecialEffectsChain extends Chugraph
     {
-        inlet => achop => LPF lpf_audioin => outlet;
+        inlet => rr => LPF lpf_audioin => outlet;
         0.8 => rev_audioin.mix;
 
         t.gain(1.0);
@@ -534,7 +581,7 @@ export const getChuckCode = (
 
         achop.listen(1);
         achop.length(whole);
-        achop.minimumLength(whole/(numeratorSignature * denominatorSignature));
+        achop.minimumLength(beat/16);
 
         lisaTrigger.listen(1);
         lisaTrigger.length(whole);
@@ -555,11 +602,11 @@ export const getChuckCode = (
         inlet => mic[0] => env => outlet;
         inlet => mic[1] => env => outlet;
 
-        0 => int m_stretching;
+        10 => int m_stretching;
         32 => int m_grains;
-        1.0 => float m_rate;
+        0.5 => float m_rate;
 
-        1.0::second => dur m_bufferLength;
+        whole / (numeratorSignature / denominatorSignature)=> dur m_bufferLength;
         maxLength(8::second);
 
         fun void stretch(int s) {
@@ -1000,97 +1047,48 @@ export const getChuckCode = (
         }
     }
 
-    AudioIn_EffectsChain audioin_FxChain;
-
-
-    adc => audioin_SpecialFxChain => audioin_FxChain => Dyno audInDyno => dac;
+    adc => audioin_SpecialFxChain =>  AudioIn_EffectsChain audioin_FxChain => Dyno audInDyno => dac;
 
 
 
 
+    fun void handlerPlayNote(Event playANote) {
+        while (true) {
+            playANote => now;
+            [${
+                mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) 
 
+            }] @=> float notesArr[]; 
+            [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq)}] @=> float allFreqs[];
+            for (0 => int j; j < notesArr.size() && j < numVoices; j++) {
+ 
+                if (notesArr[j] > 0.00 && notesArr[j] != 9999.0) {
+                    notesArr[j] => voice[j].keyOn;
+                    beat => now;
 
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////// NOTE MEASURE
-    fun void handlePlayNoteMeasure(int tickCount) {
-
-        ((fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1) % fastestRateUpdate => int masterTick;
-
-        [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => parseFloat(i.note) > 0 ?  parseFloat(i.note) : `9999.0` ) )}] @=> float testNotesArr2[]; 
-
-        [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
-
-
-        <<< "MAX_MIN: ", ${maxMinFreq.minFreq} >>>;
-
-        // [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq).filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)).filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
-        // [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq)}] @=> float allFreqs[];
-
-        int recurringTickCount;
-        if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
-            tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
-        } else {
-            tickCount => recurringTickCount;
-        }
-
-        STK_EffectsChain stk_FxChain;
-        ${activeSTKDeclarations.current}
-        ${activeSTKSettings.current}
-    
-        ${activeSTKPlayOn.current}
-        if (recurringTickCount < allFreqs.size()) {
-            for (0 => int i; i < numVoices; i++) {
-                <<< "ADSR HELL IN NOTE", allFreqs[recurringTickCount] >>>;
-                allFreqs[recurringTickCount] => voice[i].keyOn;
+                    voice[j].keyOff(1);
+                }
             }
-        }
-
-
-        // --- After triggering all buffers, wait for the length of 1 step
-        (whole / ${masterFastestRate}) => now;
-
-        ${activeSTKPlayOff.current}
-        for (0 => int i; i < numVoices; i++) {
-            <<< "ADSR HELL", allFreqs[recurringTickCount] >>>;
-            1 => voice[i].keyOff;
-        }
-
-        me.yield();
+        }         
     }
-///////////////////
 
+    voice[numVoices - 1] => STK_EffectsChain stk_FxChain => Dyno stk1_Dyno => dac;
+    ${activeSTKDeclarations}
 
+    fun void handlerPlaySTK1(Event playASTK) {
+        while (true) {
+            playASTK => now;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq)}] @=> float allFreqs[];
+            for (0 => int stk_f; stk_f < allFreqs.size() && stk_f < numVoices; stk_f++) {
+                ${activeSTKSettings}
+                ${activeSTKPlayOn}
+                beat => now;
+                ${activeSTKPlayOff}
+            }
+            me.yield();
+        }
+    }
 
 
 
@@ -1100,13 +1098,9 @@ export const getChuckCode = (
 
         ((fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1) % fastestRateUpdate => int masterTick;
 
-        [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['9999.0']` ) )}] @=> int filesArr[][]; 
+        [${Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.fileNums.length > 0 ? `[${i.fileNums}]` : `['9999']` ) )}] @=> int filesArr[][]; 
 
-       // [${mTFreqs.filter((f: any) => Math.round(f) < 880).length > 0 ? mTFreqs.filter((f: any) => Math.round(f) < 880) : `0.0`}] @=> float allFreqs[];
-
-
-        <<< "MAX_MIN: ", ${maxMinFreq.minFreq} >>>;
-
+  
         int recurringTickCount;
         if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
         tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
@@ -1117,92 +1111,49 @@ export const getChuckCode = (
         if (recurringTickCount >= filesArr.size()) return;
 
         // --- Play all buffers in parallel
-        for (0 => int x; x < filesArr[recurringTickCount].size(); x++) {
-            if (filesArr[recurringTickCount][x] != 9999.0 && (filesArr[recurringTickCount][x] < files.size())) {
-                files[filesArr[recurringTickCount][x]] => buffers[x].read;
-                0 => buffers[x].pos;
-
-
-                // // Start buffer immediately
-                // 0 => buffers[x].pos;
-            }
+        if (recurringTickCount < filesArr.size()) {
+            for (0 => int x; x <= filesArr[recurringTickCount].size() - 1; x++) {
+                filesArr[recurringTickCount][x] => int fileIndex;
+                if (fileIndex != 9999 && fileIndex < files.size() && x < buffers.size()) {
+                    files[fileIndex] => buffers[x].read;
+                    0 => buffers[x].pos;
+                }
+                    
+            } 
         }
 
         // --- After triggering all buffers, wait for the length of 1 step
-        (whole / ${masterFastestRate}) => now;
+        // (whole / ${masterFastestRate}) => now;
+        beat => now;
 
         me.yield();
     }
     string result[];
 
-    fun string[] splitString(string input, string delimiter ) {
-        int startIndex, endIndex;
-        
-        [""] @=> string strArr[];
 
-        // while (true) {
-            input.find(delimiter, startIndex);
-            if (startIndex == -1) {
-                // No more delimiters, add the remaining string
-                result << input;
-                // break;
-            }
-
-            if (input.substring(0, startIndex).length() > 0) {
-
-            input.substring(0, startIndex) => result[result.size()];
-            } else {
-                "MOCK" => result[result.size()];
-            }
-
-            input.substring(startIndex + delimiter.length(), input.length()) => input;
-
-            strArr << input; 
-        // }
-        return strArr;
-    }
-
-
-    // REALTIME NOTES (POLY)
-    ////////////////////////////////////////////////////////////////
-    fun void handlePlayNote(){
-        while (false) {
-            playNote => now;
-            [${resetNotes}] @=> int nts[];
-
-            // 220 => testSin.freq;
-
-            
-        }
-    }
-
-    fun void playSTK1() {
-
-
-        me.yield();
-    }
 
     now => time startTimeMeasureLoop;
     beat / fastestRateUpdate => dur step; 
 
+    spork ~ handlerPlayNote(playNote);
+    spork ~ handlerPlaySTK1(playSTK);
     while(true && ${!isTestingChord})
     {
         if (now >= startTimeMeasureLoop + step) {
             fastestTickCounter + 1 => fastestTickCounter;
             <<< "TICK:", fastestTickCounter >>>;
             // "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i[1]) ? Object.values(i[1]) : 'SKIP' ).toString()}" => string myString;
-            
-            // beat / fastestRateUpdate => dur step;
-            // beat / fastestRateUpdate => dur step;
+                        
             step => now;     
-            
+
         }
         if (now >= startTimeMeasureLoop + beat) {
             tickCounter + 1 => tickCounter;
-            spork ~ handlePlayDrumMeasure(tickCounter);
-            spork ~ handlePlayNoteMeasure(tickCounter * numeratorSignature * denominatorSignature);
+            spork ~ handlePlayDrumMeasure(fastestTickCounter);
+            playNote.signal();
+            playSTK.signal();
             
-            // now => startTimeMeasureLoop;
+           
            // me.yield(); // optional safety to yield to spork
            startTimeMeasureLoop + beat => startTimeMeasureLoop;
         } 
@@ -1225,7 +1176,7 @@ export const getChuckCode = (
 
     
         spork ~ handlePlayDrumMeasure(tickCounter);
-        spork ~ handlePlayNoteMeasure(tickCounter * numeratorSignature * denominatorSignature);
+   
         me.yield();    
         whole => now;
     }

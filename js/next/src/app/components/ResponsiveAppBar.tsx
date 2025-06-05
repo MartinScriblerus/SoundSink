@@ -51,6 +51,8 @@ interface KeysAppBarProps {
   currentDenomCount: number;
   currentPatternCount: number;
   chuckMicButton: () => void;
+  numeratorSignature: number;
+  denominatorSignature: number;
 }
 
 function ResponsiveAppBar(props: KeysAppBarProps) {
@@ -65,6 +67,8 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
     currentDenomCount,
     currentPatternCount,
     chuckMicButton,
+    numeratorSignature,
+    denominatorSignature,
   } = props;
 
   const theme = useTheme();
@@ -153,7 +157,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                         </Typography>
 
                         <Typography sx={{ marginLeft: "12px", marginRight: "12px", fontSize: "24px !important" }}>
-                            {currentBeatCountToDisplay}
+                            {currentBeatCountToDisplay }
                         </Typography>
                       </Box>
                   </Box>

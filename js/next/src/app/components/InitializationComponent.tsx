@@ -1,9 +1,9 @@
 "use client"
 
 import { Box, Button, SelectChangeEvent } from '@mui/material';
-import React, { useState, useEffect, useRef, useMemo, SetStateAction } from 'react'
+import React, { useState, useEffect, useRef, useMemo, SetStateAction, useCallback } from 'react'
 import BabylonLayer from './BabylonLayer';
-import { Chuck } from 'webchuck';
+import { Chuck, HID } from 'webchuck';
 import { Note } from "tonal";
 import moogGMPresets from '../../utils/moogGMPresets';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -77,11 +77,36 @@ import {
     isSubmitting, 
     keysAndTuneDone, 
     lastFileUploadMeydaData, 
-    masterPatternsRef, messageRef, midiAccess, modulateFinalHelper, moogGrandmotherEffects, NOTES_SET_REF, parentDivRef, powerADSRFinalHelper, regionEnd, regionStart, resetHeatmapCell, spectacleFinalHelper, stkKnobValsRef, testArrBuffFile, totalDuration, universalSources, uploadedBlob, visibleFXKnobs, wavesurferRef, winFuncEnvFinalHelper, workerRef, wpDiodeLadderFinalHelper, wpKorg35FinalHelper } from '../state/refs';
+    masterPatternsRef, 
+    messageRef, 
+    midiAccess, 
+    modulateFinalHelper, 
+    moogGrandmotherEffects, 
+    NOTES_SET_REF, 
+    parentDivRef, 
+    powerADSRFinalHelper, 
+    regionEnd, 
+    regionStart, 
+    resetHeatmapCell, 
+    spectacleFinalHelper, 
+    stkKnobValsRef, 
+    testArrBuffFile, 
+    totalDuration, 
+    universalSources, 
+    uploadedBlob, 
+    visibleFXKnobs, 
+    wavesurferRef, 
+    winFuncEnvFinalHelper, 
+    workerRef, 
+    wpDiodeLadderFinalHelper, 
+    wpKorg35FinalHelper 
+} from '../state/refs';
 import FileWindow from './FileWindow';
 import FileManager from './FileManager';
 import { handleFXGroupChange, handleReturnToSynth, updateCheckedFXList, updateCurrentFXScreen, updateStkKnobs } from '@/utils/knobsHelper';
 import ArrowBack from '@mui/icons-material/ArrowBack';
+import ControlValsView from './ControlValsView';
+import HydraInit from './HydraInit';
 
 
 
@@ -97,14 +122,16 @@ export default function InitializationComponent() {
     const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
     
     // NEEDS WORK (after samples)...
-    const [resetNotes, setResetNotes] = useState<any>([0]);
-    
+    const [masterVolumeValsUpdated, setMasterVolumeValsUpdated] = useState<any>(false);
     const [keysVisible, setKeysVisible] = useState(false);
     const [keysReady, setKeysReady] = useState(false);
     const [vizSource, setVizSource] = useState<string>('');
 
     const [selectedChordScaleOctaveRange, setSelectedChordScaleOctaveRange] = useState<any>({
-
+        key: 'C',
+        scale: 'Diatonic',
+        octaveMin: '1',
+        octaveMax: '4',
     });
 
     const [midiData, setMidiData] = useState(null);
@@ -114,7 +141,7 @@ export default function InitializationComponent() {
     const [initialEdgesHook, setInitialEdgesHook] = useState<any>();
     const [keyScaleChord, setKeyScaleChord] = useState<any>({
         octaveMax: '4',
-        octaveMin: '3',
+        octaveMin: '1',
         key: 'C',
         scale: 'Diatonic',
         chord: 'Major Triad',
@@ -140,8 +167,9 @@ export default function InitializationComponent() {
     // const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
     const [octave, setOctave] = useState('4'); // ** THESE SHOULD EXIST AS NEW OBJECT
     const [audioKey, setAudioKey] = useState('C'); // ** THESE SHOULD EXIST AS NEW OBJECT
-    const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
+    // const [babylonKey, setBabylonKey] = useState<string>('babylonKey_');
     const [clickFXChain, setClickFXChain] = useState<boolean>(false);
+    const [controlView, setControlView] = useState<string>("knobsView");
     const [activeSTKs, setActiveSTKs] = useState<any[]>([]);
     const [arpeggiatorOn, setArpeggiatorOn] = useState<number>(0);
     const [stkArpeggiatorOn, setStkArpeggiatorOn] = useState<number>(0);
@@ -207,48 +235,32 @@ export default function InitializationComponent() {
         }
     };
 
+    const doAutoAssignSampleToGrid = useRef<boolean>(false); // 0
+    const doAutoAssignUniqueSampleToGrid = useRef<boolean>(false); // 1
+    const doAutoAssignEveryOtherSampleToGrid = useRef<boolean>(false); // 2
+    const doAutoAssignOnBeatCountSampleToGrid = useRef<boolean>(false); // 3
+    const doAutoAssignEverySampleToGrid = useRef<boolean>(false); // 4
+
+    // const doAutoAssignPatternNumber = useRef<number>(0);
+    const [doAutoAssignPatternNum, setDoAutoAssignPatternNum] = useState<number>(0);
+
     resetHeatmapCell.current = false;
 
-    const beatDisplay = useRef<number>(0);
-    const numerCount = useRef<number>(0);
-    const denomCount = useRef<number>(0);
-    const patternCount = useRef<number>(0);
+    const babylonKeyRef = useRef<string>(`babylonKey_`);
 
-    // useEffect(() => {
 
-    //     let isMounted = true;
-    //     const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
-        
-    //     const bC = parsedNumbers.length > 0  
-    //         ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
-    //         : currentBeatCountToDisplay;  // Keep previous value if no valid number found
-        
-    //     console.log("BC: ", bC);
-    //     console.log("chuckMsg: ", chuckMsg);
-
-    //     beatDisplay.current = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
-    //     numerCount.current = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
-    //     denomCount.current = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
-    //     patternCount.current = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
-        
-    //     console.log("Beat display: ", beatDisplay);
-
-    //     // setCurrentBeatCountToDisplay(beatDisplay);
-    //     // setCurrentNumerCountColToDisplay(numerCount);
-    //     // setCurrentDenomCount(denomCount);
-    //     // setCurrentPatternCount(patternCount);
-        
-    //     return () => {
-    //         isMounted = false;
-    //     }
-    // }, [chuckMsg]);
+    useEffect(() => {
+        if (masterPatternsHashUpdated === true) {
+            setPatternsHashUpdated(false);
+        }
+    }, [masterPatternsHashUpdated]);
 
     useEffect(() => {
         // Create a function for setting up MIDI access asynchronously
         const setupMIDI = async () => {
             if (!chuckRef.current || !chuckRef.current.context) return;
 
-            console.log("CHECK CONTEXT: ", chuckRef.current.context);
+            console.log("chuck audio ctx: ", chuckRef.current.context);
 
             try {
                 // Request MIDI access
@@ -317,52 +329,39 @@ export default function InitializationComponent() {
     };
 
 
+const handleAssignEveryOtherSampleToGrid = (e: any) => {
+    console.log("check assign every other sample to grid is now... ",  !doAutoAssignEveryOtherSampleToGrid.current);
+    doAutoAssignEveryOtherSampleToGrid.current = !doAutoAssignEveryOtherSampleToGrid.current;
+}
 
+const handleAssignSampleToGrid= (e: any) => {
+    console.log("check assign sample to grid is now... ",  !doAutoAssignSampleToGrid.current);
+    doAutoAssignSampleToGrid.current = !doAutoAssignSampleToGrid.current;
+};
 
-    // const fillHashSlot = (x: number, y: number, z: number, inst: string) => {
-    //     if (!masterPatternsRef.current[`${z}`]) {
-    //         masterPatternsRef.current[`${z}`] = {};
-    //     }
+const handleAssignUniqueSampleToGrid = (e: any) => {
+    console.log("check assign unique sample to grid is now... ",  !doAutoAssignUniqueSampleToGrid.current);
+    doAutoAssignUniqueSampleToGrid.current = !doAutoAssignUniqueSampleToGrid.current;
+};
 
-    //     let col;
-    //     if (z === 9) {
-    //         col = "white"
-    //     } else if (z === 8) {
-    //         col = "black"
-    //     } else if (z === 7) {
-    //         col = "yellow"
-    //     } else if (z === 6) {
-    //         col = "red"
-    //     } else if (z === 5) {
-    //         col = "pink"
-    //     } else if (z === 4) {
-    //         col = "brown"
-    //     } else if (z === 3) {
-    //         col = "limegreen"
-    //     } else if (z === 2) {
-    //         col = "aqua"
-    //     } else if (z === 1) {
-    //         col = "maroon"
-    //     } else {
-    //         col = "blue"
-    //     }
+const handleAssignOnBeatCountSampleToGrid = (e: any) => {
+    console.log("check assign on beat count sample to grid is now... ",  !doAutoAssignOnBeatCountSampleToGrid.current);
+    doAutoAssignOnBeatCountSampleToGrid.current = !doAutoAssignOnBeatCountSampleToGrid.current;
+};
 
-    //     masterPatternsRef.current[`${z}`][`${x}`] = 
-    //     {
-    //         on: true,
-    //         note: mTFreqs[x + (x * y) + (x * y * z)] || 0.0,
-    //         noteHz: mTMidiNums[x + (x * y) + (x * y * z)] || 0.0,
-    //         velocity: 0.9,
-    //         color: col,
-    //         // fileNums: x % 2 === 0 ? [0, 1, 3, 2] : x % 5 === 0 ? [0] : [9999],
-    //         fileNums: !isInPatternEditMode ? [0, 1, 3, 2] : masterPatternsRef.current[`${z}`][`${x}`] && Object.keys(masterPatternsRef.current[`${z}`][`${x}`]).length > 0 && masterPatternsRef.current[`${z}`][`${x}`].fileNums ? masterPatternsRef.current[`${z}`][`${x}`].fileNums : x % 4 === 0 ? [0, 1, 3] : [2], // 9999
-    //         subdivisions: cellSubdivisions
-    //     }
-    // }
+const handleAssignEverySampleToGrid = (e: any) => {
+    console.log("check assign every sample to grid is now... ",  !doAutoAssignEverySampleToGrid.current);
+    doAutoAssignEverySampleToGrid.current = !doAutoAssignEverySampleToGrid.current;
+};
+
+const handleAssignPatternNumber = (e: any) => {
+    const newPatternNumber = e.target.value;
+    console.log("check auto assign pattern number is now... ",  newPatternNumber);
+    setDoAutoAssignPatternNum(newPatternNumber);
+};
 
 
 
-      
 
       useEffect(() => {
         const beatsPerMeasure = numeratorSignature;
@@ -398,12 +397,13 @@ export default function InitializationComponent() {
           
             const key = x + (x * y);
           
-            const fileNums = !isInPatternEditMode
-              ? [0, 1, 3, 2]
-              : (
-                  masterPatternsRef.current[zKey][`${x}`]?.fileNums ??
-                  (x % 4 === 0 ? [0, 1, 3] : [2])
-                );
+            // const fileNums = !isInPatternEditMode
+            //   ? []
+            //   : (
+            //       masterPatternsRef.current[zKey][`${x}`]?.fileNums ??
+            //       masterPatternsRef.current[zKey][`${x}`]?.fileNums.length > 0 ? masterPatternsRef.current[zKey][`${x}`]?.fileNums : (x % 2 === 0 ? [] : [])
+            //     );
+            const fileNums: any = [];
           
             masterPatternsRef.current[zKey][`${x}`] = {
               on: true,
@@ -412,7 +412,13 @@ export default function InitializationComponent() {
               velocity: 0.9,
               color,
               fileNums,
-              subdivisions: cellSubdivisions
+              subdivisions: currentHeatmapXY.current && currentHeatmapXY.current.x && currentHeatmapXY.current.y && currentHeatmapXY.current.x === x && currentHeatmapXY.current.y === z 
+              ? 
+                cellSubdivisions 
+              : 
+                (masterPatternsRef.current[zKey][`${x}`]?.subdivisions) 
+                    ?  masterPatternsRef.current[zKey][`${x}`]?.subdivisions 
+                    : 1, // come up with some better default to handle switching all in a row... (based on arp speed / rate)
             };
         };
 
@@ -429,7 +435,7 @@ export default function InitializationComponent() {
         setPatternsHashHook(masterPatternsRef.current);
         setPatternsHashUpdated(true);
       
-      }, [numeratorSignature, denominatorSignature, masterFastestRate, mTMidiNums, cellSubdivisions, mTFreqs]);
+      }, [numeratorSignature, denominatorSignature, masterFastestRate, mTMidiNums, cellSubdivisions, mTFreqs, setPatternsHashHook]);
     
     allOctaveMidiFreqs.current = {};
 
@@ -601,6 +607,7 @@ export default function InitializationComponent() {
         if (files.length === 0) return;
         if (isSubmitting.current) {
             console.log("Already submitting, aborting...");
+            isSubmitting.current = false; // UNLOCK
             return;
         }
 
@@ -619,7 +626,7 @@ export default function InitializationComponent() {
         const fileData: any = new Uint8Array(fileDataBuffer);
         const blob = new Blob([fileDataBuffer], { type: "audio/wav" });
         console.log("GETTING BLOB?? ", blob, "HAVE UP CURR??? ", uploadedBlob.current);
-        if (blob && !uploadedBlob.current) {
+        if (blob && (!uploadedBlob.current || blob.size !== uploadedBlob.current.size || blob.type !== uploadedBlob.current.type)) {
             uploadedBlob.current = blob;
         } else {
             return;
@@ -635,23 +642,25 @@ export default function InitializationComponent() {
             arrayBuffer = event.target.result;
             const formattedName = file.name.replaceAll(' ', '_').replaceAll('-', '');
             console.log("@@@ check the formatted name: ", formattedName);
-            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1 &&
-                filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1
-            ) {
-                // alert('blam');
-                // filesToProcess.current.push({ 'name': formattedName, 'data': fileData, 'processed': false });
-
+            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1 
+            // &&
+            //     filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1
+            ) {       
                 filesToProcess.current.push({ 'filename': formattedName, 'data': fileData, 'processed': false }); 
                 console.log("FILES TO PROCESS: ", filesToProcess.current);
+                chuckRef.current && chuckRef.current.createFile("", formattedName, fileData);
             } 
      
             
-            await getMeydaData(arrayBuffer);
+            const meydaDat = await getMeydaData(arrayBuffer);
             if (chuckHook) {
                 setChuckUpdateNeeded(true);
             }
             isSubmitting.current = false; // UNLOCK
+            // setValue("", []);
+            
         }
+        
         fileReader.readAsArrayBuffer(fileBlob);
     }
 
@@ -714,7 +723,7 @@ export default function InitializationComponent() {
     keysAndTuneDone.current = keysAndTuneDone.current || false;
 
 
-    const initFX = (updateCurrentFXScreen: any) => {
+    const initFX = useCallback((updateCurrentFXScreen: any) => {
         let visibleStkAndFX: Array<any>;
         if (universalSources.current) {
             console.log('curr screen / doReturnToSynth / checkedFXUpdating: ', currentScreen.current, doReturnToSynth.current, checkedFXUpdating);
@@ -752,19 +761,22 @@ export default function InitializationComponent() {
                                     `${getConvertedRadio(fxRadioValue)}` as keyof Sources]
                                     .effects[currentEffectType.current as keyof (Effects)])
                                 .filter((i: any) => i[0] === "presets"
-                                    && i[1] && Object.values(i[1])))[0][1]).map((i: any) => [i[1].label, i[1]])
+                                    && i[1] && Object.values(i[1])))[0][1]).map((i: any) => { 
+                                        console.log("I've set label as: ", [i[1].label, i[1]]); 
+                                        return[i[1].label, i[1]];
+                                    })  
                     :
                     Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
 
             setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
-            updateCurrentFXScreen(setFxKnobsCount, setBabylonKey, babylonKey);
+            // updateCurrentFXScreen(setFxKnobsCount, doUpdateBabylonKey, babylonKeyRef.current);
             setNeedsUpdate(true);
         }
         if (initialNodes.current && initialEdges.current) {
             setInitialNodesHook(initialNodes.current.filter((i: any) => i));
             setInitialEdgesHook(initialEdges.current.filter((i: any) => i));
         }        
-    };
+    }, [fxRadioValue, checkedFXUpdating]); // babylonKey, checkedFXUpdating, 
 
     useEffect(() => {
 
@@ -783,7 +795,6 @@ export default function InitializationComponent() {
 
         Object.keys(defaultSources).map((srcName: string) => {
             allFx.flat().map((fx: any) => {
-
                 const isChecked = (x: any) => checkedFXList.current.length > 0 && checkedFXList.current.indexOf(x) !== -1;
 
                 const src: EffectsSettings = defaultSources[`${srcName as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)] || {};
@@ -800,7 +811,7 @@ export default function InitializationComponent() {
                         defaultSources[`${getConvertedRadio(fxRadioValue) as keyof Sources}`] && defaultSources[`${srcName as keyof Sources}`].effects[fx.effectLabel as keyof (Effects)].presets.length < 1)
                 ) {
                     const pre_sets: any = (!src.presets || (src.presets && src.presets.length < 1)) && getFX1Preset(fx.effectVar);
-
+                    // console.log("EEEEESH / src.VarnName ", src.VarName, "PRESETS: ", src.presets);
                     if ((!src.presets || (src.presets && src.presets.length < 1))) {
                         src.presets = JSON.parse(JSON.stringify(pre_sets[0].presets));
                         src.Type = fx.effectLabel;
@@ -823,6 +834,7 @@ export default function InitializationComponent() {
                 })
 
                 if (!universalSources.current) {
+
                     universalSources.current = defaultSources;
                 }
                 markUpdated();
@@ -840,7 +852,8 @@ export default function InitializationComponent() {
     }, [
         fxRadioValue,
         markUpdated,
-        tune
+        tune,
+        initFX,
     ]);
 
     useEffect(() => {
@@ -908,6 +921,10 @@ export default function InitializationComponent() {
             audioin: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[4] ? Object.values(pedalChain)[4].map((i: any) => i.VarName) : [],
         }
 
+        console.log("CHAIN AUDIO IN: ", chain.audioin);
+
+        console.log("CHECK AUDIO IN ON Z CHAIN: ", `${getConvertedRadio(fxRadioValue).toLowerCase()}`)
+
         const currentInst: any[] = chain[`${getConvertedRadio(fxRadioValue).toLowerCase()}`]
         currentInst && setCurrentChain(currentInst);
 
@@ -927,6 +944,7 @@ export default function InitializationComponent() {
 
         Object.entries(sources).forEach((i: [string, Source]) => { // i[0] sourceKey i[1] sourceValue
             const theSource: string = i[0];
+            console.log("THE SOURCE NOW: ", Object.entries(i), "EFFECTS: ", Object.values(Object.values(i[1].effects).filter(i => i.On)));
             i[1] && i[1].effects && Object.values(i[1].effects).forEach((eS: EffectsSettings) => {
                 const theEffectsSettings = eS;
 
@@ -1179,7 +1197,6 @@ export default function InitializationComponent() {
         const audioContext = chuckRef.current.context;
 
         setupAudioAnalysisWorklet(chuckRef.current.context, setMeydaData).then(() => {
-            console.log("aud analysis made it this far...")
             // const processor = audioContext.createScriptProcessor(512, 1, 1);
             const processor = new AudioWorkletNode(audioContext, 'meyda-audio-processor');
             console.log("processor?????????: ", processor);
@@ -1193,8 +1210,9 @@ export default function InitializationComponent() {
 
             processor.port.onmessage = (event) => {
                 if (event.data.audioData) {
+                    const clonedBuffer = event.data.audioData.slice(0); 
                     event.data.audioData && workerRef.current?.postMessage({
-                        audioData: event.data.audioData,
+                        audioData: clonedBuffer,
                         sampleRate: audioContext.sampleRate,
                     });
                 }
@@ -1337,7 +1355,6 @@ export default function InitializationComponent() {
             const getSamplerFX = universalSources.current && Object.values(universalSources.current.sampler.effects).filter(i => i.On);
 
             const getAudioInFX = universalSources.current && Object.values(universalSources.current.audioin.effects).filter(i => i.On);
-
             const getSTKFX = universalSources.current && Object.values(universalSources.current.stk1.effects).filter(i => i.On);
 
             const signalChain: any = [];
@@ -1356,6 +1373,7 @@ export default function InitializationComponent() {
                 signalChain.indexOf(addedEffect) === -1 && signalChain.push(addedEffect);
 
                 Object.values(fx.presets).map((preset: any) => {
+                    console.log("what is preset in osc1 ", preset);
                     const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
                     if (!fx.Code) valuesReadout[preset.name] = latestValue;
                 })
@@ -1368,6 +1386,7 @@ export default function InitializationComponent() {
                 signalChain.indexOf(addedEffect) === -1 && signalChain.push(addedEffect);
 
                 Object.values(fx.presets).map((preset: any) => {
+                    console.log("what is preset in osc2 ", preset);
                     const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
                     if (!fx.Code) valuesReadout[preset.name] = latestValue;
                 })
@@ -1380,6 +1399,7 @@ export default function InitializationComponent() {
                 signalChainSampler.indexOf(addedEffect) === -1 && signalChainSampler.push(addedEffect);
 
                 Object.values(fx.presets).map((preset: any) => {
+                    console.log("what is preset in sampler ", preset);
                     const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
                     if (!fx.Code) valuesReadoutSampler[preset.name] = latestValue;
                 })
@@ -1392,6 +1412,7 @@ export default function InitializationComponent() {
                 signalChainAudioIn.indexOf(addedEffect) === -1 && signalChainAudioIn.push(addedEffect);
 
                 Object.values(fx.presets).map((preset: any) => {
+                    console.log("what is preset in audioin ", preset);
                     const latestValue = `${preset.value}${preset.type.includes('dur') ? '::ms' : ''} => ${varName}.${preset.name};`;
                     if (!fx.Code) valuesReadoutAudioIn[preset.name] = latestValue;
                 })
@@ -1415,14 +1436,14 @@ export default function InitializationComponent() {
             // console.log("Shred Count: ", shredCount);
             console.log("WHAT ARE PATTERNS? ", masterPatternsRef.current)
             console.log("what is alloctavemidifreqs? ", allOctaveMidiFreqs.current);
-            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? i.note : 9999.0 ) ) );
+            console.log("what is masterpatternref??? ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note > 0 ? parseFloat(i.note) : 9999.0 ) ) );
 
 
             activeSTKDeclarations.current = '';
             activeSTKSettings.current = ''; 
             activeSTKs.map((s: any) => {
                 activeSTKDeclarations.current = activeSTKDeclarations.current.concat(`${s.Type} ${s.VarName} => stk_FxChain => Dyno stk_Dyno => dac; `);
-                activeSTKPlayOn.current = activeSTKPlayOn.current.concat(`allFreqs[recurringTickCount] => ${s.VarName}.freq; 1 => ${s.VarName}.noteOn; `);
+                activeSTKPlayOn.current = activeSTKPlayOn.current.concat(`allFreqs[stk_f] => ${s.VarName}.freq; 1 => ${s.VarName}.noteOn; `);
                 activeSTKPlayOff.current = activeSTKPlayOff.current.concat(`1 => ${s.VarName}.noteOff; `);
             });
 
@@ -1433,24 +1454,15 @@ export default function InitializationComponent() {
             });
 
             console.log("###2 what are active stks? ", activeSTKs);
+            console.log("###3 what are active stk declarations? ", activeSTKSettings.current);
 
-
-
-            // currentBeatCountToDisplay={currentBeatCountToDisplay}
-            // currentNumerCountColToDisplay={currentNumerCountColToDisplay}
-            // currentDenomCount={currentDenomCount}
-            // currentPatternCount={currentPatternCount}
-
-
-
-            console.log("WHAT IS MISSING HERE?? ", Object.values(masterPatternsRef.current).map((i: any) => Object.entries(i[1])))
+            setChuckUpdateNeeded(!chuckUpdateNeeded);
 
             console.log("wtf??? ", filesToProcess.current);
 
             const filesArray = filesToProcess.current.map(
                 (f: any) => `me.dir() + "${f.filename}"`
-              ).join(', ');
-
+            ).join(', ');
 
             const noteToMidi = (note: string, octave: number) => {
                 const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
@@ -1463,21 +1475,9 @@ export default function InitializationComponent() {
                 return 60; // default to middle C if not found
             }
 
-            // const maxMidi = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMax);
-            // const minMidi = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMin);
-            // console.log("WHAT IS MAXMIN MIDI? ", maxMidi, minMidi);
-            // chuckRef.current && chuckRef.current.runCode(`
-            //     Std.mtof(${maxMidi}) => float freqMax;
-            //     <<< "MAX_MIN_MAX: ", freqMax >>>;    
-            // `);
-            // chuckRef.current && chuckRef.current.runCode(`
-            //     Std.mtof(${minMidi}) => float freqMin;
-            //     <<< "MAX_MIN_MIN:", freqMin >>>;    
-            // `);
 
             const maxFreq = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMax);
             const minFreq = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMin);
-            console.log("WHAT IS MAXMIN MIDI? ", maxFreq, minFreq);
 
             const newChuckCode = getChuckCode(
                 isTestingChord,
@@ -1498,14 +1498,14 @@ export default function InitializationComponent() {
                 valuesReadoutSTK,
                 valuesReadoutAudioIn,
                 getSourceFX,
-                resetNotes,
                 mTFreqs,
-                activeSTKDeclarations,
-                activeSTKSettings,
-                activeSTKPlayOn,
-                activeSTKPlayOff,
+                activeSTKDeclarations.current,
+                activeSTKSettings.current,
+                activeSTKPlayOn.current,
+                activeSTKPlayOff.current,
                 selectedChordScaleOctaveRange,
                 {maxFreq, minFreq},
+                hid,
             );
 
             chuckRef.current.runCode(newChuckCode);
@@ -1518,7 +1518,6 @@ export default function InitializationComponent() {
         } else {
             console.log("NO aChuck!");
         }
-
     }
 
 
@@ -1526,11 +1525,13 @@ export default function InitializationComponent() {
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    const [clickedFile, setClickedFile] = useState<any>(null);
     const handleClickUploadedFiles = (e: any) => {
         console.log("CLICKED FILES: ", e.target.innerText);
+        const theClickedFile = filesToProcess.current.filter((f: any) => f.filename.toLowerCase() === e.target.innerText.toLowerCase()); 
+        console.log("CLICKED FILE: ", theClickedFile);
+        setClickedFile(theClickedFile[0]);
         if (isInPatternEditMode) {
-            // const cellObjToEdit = masterPatternsRef.current[currentHeatmapXY.current.y][currentHeatmapXY.current.x];
-            // cellObjToEdit.fileNums.push(e.target.innerText);
         }
     }
 
@@ -1562,12 +1563,13 @@ export default function InitializationComponent() {
         micButton && (micButton.disabled = true);
         console.log("BROADCAST PLAY AUDIO IN ONCE!!!! ");
         chuckRef.current && chuckRef.current.broadcastEvent("playAudioIn");
+
     };
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
 
 
-    const updateKeyScaleChord = (key: string, scale: string, chord: string, octaveMax: string, octaveMin: string) => {
+    const updateKeyScaleChord = useCallback((key: string, scale: string, chord: string, octaveMax: string, octaveMin: string) => {
         setSelectedChordScaleOctaveRange({
             key: key,
             scale: scale,
@@ -1576,7 +1578,7 @@ export default function InitializationComponent() {
             octaveMin: octaveMin
         })
         setKeyScaleChord({key: key, scale: scale, chord: chord, octaveMax: octaveMax, octaveMin: octaveMin});
-        // const submitMingus = async () => {
+
         axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, { audioKey: key, audioScale: scale, octave: octaveMax }, {
             headers: {
                 'Content-Type': 'application/json'
@@ -1597,24 +1599,19 @@ export default function InitializationComponent() {
                     'Content-Type': 'application/json'
                 }
             }).then(({ data }) => {
-                console.log("TEST CHORDS 1# ", data);
-                console.log("TEST CHORDS 2# VALUES ", JSON.parse(data));
+                console.log("TEST CHORDS 2# VALUES: ", JSON.parse(data));
                 setChordHook( JSON.parse(data));
-                // return 
+               
                 handleMingusChordsData(data);
                 return data;
             });
-        // }
-    };
+   
+    }, []);
 
     // SLIDER CONTROL KNOB
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    const handleUpdateSliderVal = async (radioVal: string, obj: any, value: any) => {       
-        if (obj.fxType !== "stk" && (radioVal.trim() !== fxRadioValue.trim())) {
-            alert('returning');
-            return;
-        }
+    const handleUpdateSliderVal = useCallback(async (radioVal: string, obj: any, value: any) => {       
        
 
         if (universalSources.current) {
@@ -1653,42 +1650,9 @@ export default function InitializationComponent() {
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
         }
         setChuckUpdateNeeded(true);
-    };
+    },[fxRadioValue, markUpdated]);
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
-
-    // // TIMING (BPM / SIGNATURE)
-    // // ========================================================
-    // // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // const handleChangeBPM = (newBpm: number) => {
-    //     if (newBpm) {
-    //         setBpm(Number(newBpm));
-    //     }
-    //     setChuckUpdateNeeded(true);
-    // }
-
-    // const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
-    //     if (newBeatsNumerator) {
-    //         setBeatsNumerator(Number(newBeatsNumerator));
-    //         setNumeratorSignature(Number(newBeatsNumerator));
-    //     }
-    //     setChuckUpdateNeeded(true);
-    // }
-
-    // const handleChangeBeatsDenominator = (newDenominator: number) => {
-    //     if (newDenominator) {
-    //         setBeatsDenominator(Number(newDenominator));
-    //         setDenominatorSignature(Number(newDenominator));
-    //     }
-    //     setChuckUpdateNeeded(true);
-    // }
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    // ========================================================
-
-    // const handleShowFX = (closeOnly?: boolean) => {
-    //     currentScreen.current = "";
-    //     setShowFX(!showFX);
-    // };
 
     const updateFXInputRadio = (value: any) => {
         if (value && value !== fxRadioValue) {
@@ -1771,622 +1735,26 @@ export default function InitializationComponent() {
         setPatternsHashUpdated(true);
     }
 
+    const doUpdateBabylonKey = (value: any) => {
+        babylonKeyRef.current = value;
+    }
+
     const handleSourceToggle = (name: string, val: any) => {
         updateFXInputRadio(val);
         setVizSource(val);
         visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
 
         setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
-        updateCurrentFXScreen(setFxKnobsCount, setBabylonKey, babylonKey);
+        updateCurrentFXScreen(setFxKnobsCount, doUpdateBabylonKey, babylonKeyRef.current);
         setNeedsUpdate(true);
     };
 
 
-    // BE SURE TO ADD DURATION DIVISIONS (AND ALSO ELSEWHERE)
-    const playSTKOn = () => {
-        let allSTKs: any = {}; // ALL STKs ARE STRINGS OF INSTs
-        // try {
-        const stkInstsHolder: [string, EffectsSettings][] | undefined = universalSources.current &&
-            universalSources.current.stk1.instruments &&
-            Object.entries(universalSources.current.stk1.instruments).filter((i: any) => i[1].On);
-
-        console.log("insts holder??? ", stkInstsHolder);
-
-        stkInstsHolder && stkInstsHolder.map((stkInsts: [string, EffectsSettings]) => {
-            if (stkInsts[1].VarName) {
-                // console.log("getFXOnly_var: ", stkInst.VarName);
-                const presets: Preset[] | undefined | "" = universalSources.current &&
-                    universalSources.current.stk1.instruments &&
-                    universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments] &&
-                    universalSources.current.stk1.instruments[stkInsts[1].Type as keyof STKInstruments].presets;
-
-
-                if (presets && presets.length > 0 && stkInsts[1].VarName === "sit") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `                     
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].noteOn;  
-                        0.01/notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            // duration * ${numeratorSignature} - (now % duration  * ${numeratorSignature} )  => now;
-                            duration - (now % duration)  => now;
-                            1 =>  ${stkInsts[1].VarName}[i-1].noteOff; 
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bow") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'bowPressure')[0].value} => ${stkInsts[1].VarName}[i-1].bowPressure;
-                        ${presets.filter(p => p.name === 'bowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].bowPosition;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wg") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        // ${presets.filter(p => p.name === 'bowMotion')[0].value} => ${stkInsts[1].VarName}[i-1].bowMotion;
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'strikePosition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
-                        ${presets.filter(p => p.name === 'gain')[0].value} => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-                        ${presets.filter(p => p.name === 'bowRate')[0].value} => ${stkInsts[1].VarName}[i-1].bowRate;
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-                        ${presets.filter(p => p.name === 'startBowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBowing;
-                
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwbtl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        
-                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "brs") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        notesToPlay[i] + 36 => Std.mtof => ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;    
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;    
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-                        ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
-                        ${presets.filter(p => p.name === 'lip')[0].value} => ${stkInsts[1].VarName}[i-1].lip;
-                        ${presets.filter(p => p.name === 'slide')[0].value} => ${stkInsts[1].VarName}[i-1].slide;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        
-                        ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "shak") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'energy')[0].value} => ${stkInsts[1].VarName}[i-1].energy;
-                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-                        ${presets.filter(p => p.name === 'objects')[0].value} => ${stkInsts[1].VarName}[i-1].objects;
-                        ${presets.filter(p => p.name === 'decay')[0].value} => ${stkInsts[1].VarName}[i-1].decay;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mdlbr") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'stickHardness')[0].value} => ${stkInsts[1].VarName}[i-1].stickHardness;
-                        ${presets.filter(p => p.name === 'strikePOsition')[0].value} => ${stkInsts[1].VarName}[i-1].strikePosition;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'directGain')[0].value} => ${stkInsts[1].VarName}[i-1].directGain;
-                        ${presets.filter(p => p.name === 'masterGain')[0].value} => ${stkInsts[1].VarName}[i-1].masterGain;
-                        ${presets.filter(p => p.name === 'preset')[0].value} => ${stkInsts[1].VarName}[i-1].preset;
-                        ${presets.filter(p => p.name === 'volume')[0].value} => ${stkInsts[1].VarName}[i-1].volume;
-                        ${presets.filter(p => p.name === 'strike')[0].value} => ${stkInsts[1].VarName}[i-1].strike;
-                        ${presets.filter(p => p.name === 'damp')[0].value} => ${stkInsts[1].VarName}[i-1].damp;
-
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }
-                    `;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "flut") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'jetDelay')[0].value} => ${stkInsts[1].VarName}[i-1].jetDelay;
-                        ${presets.filter(p => p.name === 'jetReflection')[0].value} => ${stkInsts[1].VarName}[i-1].jetReflection;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-
-
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-                        ${presets.filter(p => p.name === 'endReflection')[0].value} => ${stkInsts[1].VarName}[i-1].endReflection;
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "clair") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;
-
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-
-
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "f") {
-                    console.log("IN FRENCH HORN::: ", presets);
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "m") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'pickupPosition')[0].value} => ${stkInsts[1].VarName}[i-1].pickupPosition;
-                        ${presets.filter(p => p.name === 'sustain')[0].value} => ${stkInsts[1].VarName}[i-1].sustain;
-                        ${presets.filter(p => p.name === 'stretch')[0].value} => ${stkInsts[1].VarName}[i-1].stretch;
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-                        ${presets.filter(p => p.name === 'baseLoopGain')[0].value} => ${stkInsts[1].VarName}[i-1].baseLoopGain;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "percFlut") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "man") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'bodySize')[0].value} => ${stkInsts[1].VarName}[i-1].bodySize;
-                        ${presets.filter(p => p.name === 'pluckPos')[0].value} => ${stkInsts[1].VarName}[i-1].pluckPos;
-                        ${presets.filter(p => p.name === 'stringDamping')[0].value} => ${stkInsts[1].VarName}[i-1].stringDamping;
-                        ${presets.filter(p => p.name === 'stringDetune')[0].value} => ${stkInsts[1].VarName}[i-1].stringDetune;
-                        ${presets.filter(p => p.name === 'pluck')[0].value} => ${stkInsts[1].VarName}[i-1].pluck;
-
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "tubbl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 48 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "blwhl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        ${presets.filter(p => p.name === 'reed')[0].value} => ${stkInsts[1].VarName}[i-1].reed;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;
-                        ${presets.filter(p => p.name === 'tonehole')[0].value} => ${stkInsts[1].VarName}[i-1].tonehole;
-                        ${presets.filter(p => p.name === 'vent')[0].value} => ${stkInsts[1].VarName}[i-1].vent;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;                                
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.size() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'speak')[0].value} => ${stkInsts[1].VarName}[i-1].speak;
-                        ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
-                        duration - (now % duration)  => now;
-                        if (${stkArpeggiatorOn} == 1) {
-                            ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "sax") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                        
-                        ${presets.filter(p => p.name === 'stiffness')[0].value} => ${stkInsts[1].VarName}[i-1].stiffness;
-                        ${presets.filter(p => p.name === 'aperture')[0].value} => ${stkInsts[1].VarName}[i-1].aperture;
-                        ${presets.filter(p => p.name === 'pressure')[0].value} => ${stkInsts[1].VarName}[i-1].pressure;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'rate')[0].value} => ${stkInsts[1].VarName}[i-1].rate;              
-                        ${presets.filter(p => p.name === 'blowPosition')[0].value} => ${stkInsts[1].VarName}[i-1].blowPosition;
-                        ${presets.filter(p => p.name === 'noiseGain')[0].value} => ${stkInsts[1].VarName}[i-1].noiseGain;                  
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        ${presets.filter(p => p.name === 'startBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].startBlowing;  
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInsts[1].VarName}[i-1].stopBlowing;  
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "bthree") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 12 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "fmVoic") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'vowel')[0].value} => ${stkInsts[1].VarName}[i-1].vowel;
-                        ${presets.filter(p => p.name === 'spectralTilt')[0].value} => ${stkInsts[1].VarName}[i-1].spectralTilt;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                }
-
-                else if (presets && presets.length > 0 && stkInsts[1].VarName === "voic") { // is this a dupe?? see above
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                                
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        ${presets.filter(p => p.name === 'phonemeNum')[0].value} => ${stkInsts[1].VarName}[i-1].phonemeNum;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'quiet')[0].value} => ${stkInsts[1].VarName}[i-1].quiet;
-                        
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                    }`;
-                }
-
-                else if (presets && presets.length > 0 && stkInsts[1].VarName === "krstl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-            
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "rod") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "wur") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "mog") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'filterQ')[0].value} => ${stkInsts[1].VarName}[i-1].filterQ;
-                        ${presets.filter(p => p.name === 'filterSweepRate')[0].value} => ${stkInsts[1].VarName}[i-1].filterSweepRate;
-                        ${presets.filter(p => p.name === 'vibratoFreq')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoFreq;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'vibratoGain')[0].value} => ${stkInsts[1].VarName}[i-1].vibratoGain;
-                        ${presets.filter(p => p.name === 'afterTouch')[0].value} => ${stkInsts[1].VarName}[i-1].afterTouch;
-                        ${presets.filter(p => p.name === 'modDepth')[0].value} => ${stkInsts[1].VarName}[i-1].modDepth;
-                        ${presets.filter(p => p.name === 'modSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].modSpeed;
-
-                        notesToPlay[i] + 36 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hevyMetl") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                } else if (presets && presets.length > 0 && stkInsts[1].VarName === "hnkytonk") {
-                    allSTKs[`${stkInsts[1].VarName}`] = `
-                        ${presets.filter(p => p.name === 'gain')[0].value} / notesToPlay.cap() => ${stkInsts[1].VarName}[i-1].gain;
-                            
-                        ${presets.filter(p => p.name === 'controlOne')[0].value} => ${stkInsts[1].VarName}[i-1].controlOne;
-                        ${presets.filter(p => p.name === 'controlTwo')[0].value} => ${stkInsts[1].VarName}[i-1].controlTwo;
-                        ${presets.filter(p => p.name === 'lfoSpeed')[0].value} => ${stkInsts[1].VarName}[i-1].lfoSpeed;
-                        ${presets.filter(p => p.name === 'lfoDepth')[0].value} => ${stkInsts[1].VarName}[i-1].lfoDepth;
-
-                        notesToPlay[i] + 24 => Std.mtof =>  ${stkInsts[1].VarName}[i-1].freq;
-                        1 => ${stkInsts[1].VarName}[i-1].noteOn;
-
-                        
-                        if (${stkArpeggiatorOn} == 1) {
-                            duration - (now % duration)  => now;
-                            1 => ${stkInsts[1].VarName}[i-1].noteOff;
-                        }`;
-                }
-                else {
-                    console.log("why in the else??? ", stkInsts);
-                }
-                console.log("WHATTTT IS GOING ON? ", allSTKs);
-                return Object.values(allSTKs);
-                // } else if (name === "voic") { // <-- buggy ... needs another look            
-            }
-        });
-        console.log("RETURNING STKS... ", Object.values(allSTKs));
-        return Object.values(allSTKs);
+    const userInteractionUpdatedScore = (newScore: any) => {
+        console.log("WHAT IS NEW SCORE?? ", newScore);
+        setPatternsHashHook(newScore);
+        setPatternsHashUpdated(true);
     }
-
-    // useEffect(() => {
-    //     console.log("******************************* BAM ----> ", mingusChordsData, "//** ", mingusKeyboardData);
-    // }, [mingusChordsData, mingusKeyboardData]);
-
-    // TODO: CONVERT THIS TO A HELPER!!!
-    const playSTKOff = () => {
-
-        // const [currStkType, currStkVar] = currentStkTypeVar.current;
-        let stkInsts = universalSources.current && universalSources.current.stk1.instruments;
-        const presets: Preset[] | undefined | "" =
-            universalSources.current &&
-            universalSources.current.stk1.instruments &&
-            Object.entries(universalSources.current.stk1.instruments)
-                .filter((i: any) => i.On)
-                .map((i: any) => i[1] &&
-                {
-                    [i[0]]: i[1].presets.filter((i: Preset) => i)
-                });
-
-        presets && Object.entries(presets).map((preset: [string, Preset], idx: number) => {
-            if (presets && stkInsts && Object.values(stkInsts).length > 0) {
-                Object.values(stkInsts) && Object.values(stkInsts).length > 0 && Object.values(stkInsts).map((stkInst: EffectsSettings) => {
-                    if (stkInst.VarName === "sit" && stkInst.Type === preset[0]) {
-                        return `1 =>  ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "bow" && stkInst.Type === preset[0]) {
-                        return `
-                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInst.VarName}[i-1].stopBowing;
-                            1 => ${stkInst.VarName}[i-1].noteOff;
-                        `;
-                    } else if (stkInst.VarName === "wg" && stkInst.Type === preset[0]) {
-                        return `
-                            ${presets.filter(p => p.name === 'stopBowing')[0].value} => ${stkInst.VarName}[i-1].stopBowing;
-                            1 => ${stkInst.VarName}[i-1].noteOff;
-                        `;
-                    } else if (stkInst.VarName === "blwbtl" && stkInst.Type === preset[0]) {
-                        return `
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInst.VarName}[i-1].stopBlowing;
-                        `;
-                    } else if (stkInst.VarName === "brs" && stkInst.Type === preset[0]) {
-                        return `
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInst.VarName}[i-1].stopBlowing;
-                            1 => ${stkInst.VarName}[i-1].noteOff;
-                        `;
-                    } else if (stkInst.VarName === "shak" && stkInst.Type === preset[0]) {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "mdlbr" && stkInst.Type === preset[0]) {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "flut" && stkInst.Type === preset[0]) {
-                        return `                            
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInst.VarName}[i-1].stopBlowing;
-                            1 => ${stkInst.VarName}[i-1].noteOff;
-                        `;
-                    } else if (stkInst.VarName === "clair" && stkInst.Type === preset[0]) {
-                        return `                            
-                            ${presets.filter(p => p.name === 'stopBlowing')[0].value} => ${stkInst.VarName}[i-1].stopBlowing;
-                            1 => ${stkInst.VarName}[i-1].noteOff;
-                        `;
-                    } else if (stkInst.VarName === "f" && stkInst.Type === preset[0]) {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "m") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "percFlut") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "man") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "tubbl") {
-                        return `                                
-                                1 => ${stkInst.VarName}[i-1].noteOff;
-                            `;
-                    } else if (stkInst.VarName === "blwhl") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    }
-                    else if (stkInst.VarName === "voic") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    }
-                    else if (stkInst.VarName === "sax") {
-                        return `                                
-                            ${stkInst.presets.filter((i: any) => i.name === "stopBlowing")[0].value} => ${stkInst.VarName}[i-1].stopBlowing;  
-                            1 => ${stkInst.VarName}[i-1].noteOff;
-                        `;
-                    } else if (stkInst.VarName === "bthree") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-
-                    } else if (stkInst.VarName === "fmVoic") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`
-                    }
-                    else if (stkInst.VarName === "voic") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    }
-                    else if (stkInst.VarName === "krstl") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "rod") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "wur") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "mog") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "hevyMetl") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    } else if (stkInst.VarName === "hnkytonk") {
-                        return `1 => ${stkInst.VarName}[i-1].noteOff;`;
-                    }
-                })
-                return ``;
-            }
-        })
-    }
-
 
     const handleMingusKeyboardData = (data: any) => {
         setMingusKeyboardData(data);
@@ -2413,9 +1781,10 @@ export default function InitializationComponent() {
     const handleChuckMsg = (chuckMsg: string) => {
         // console.log("CHUCK MSG: ", chuckMsg);
         if (chuckMsg.includes("MAX_MIN:")) {
+            alert("YOO!!!!")
             console.log("MAX MIN MSG!!! ", chuckMsg);
-            let maxFreq; 
-            let minFreq;
+            let maxFreq = '440'; 
+            let minFreq = '0';
             maxFreq = chuckMsg.split("::::")[0].trim();
             minFreq = chuckMsg.split("::::")[1].trim();
             console.log("MAX MIN FREQ????: ", maxFreq, minFreq);
@@ -2424,6 +1793,9 @@ export default function InitializationComponent() {
         if (chuckMsg.includes("ADSR")) {
             console.log("ADSR MSG!!! ", chuckMsg);
         }
+        // if (chuckMsg.includes("TEST_FUQIN_FILES")) {
+        //     console.log("TEST_FUQIN_FILES MSG!!! ", chuckMsg);
+        // }
 
         let isMounted = true;
         const parsedNumbers = chuckMsg.match(/\d+/g) || [];  // Ensure it's always an array
@@ -2432,8 +1804,8 @@ export default function InitializationComponent() {
             ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
             : currentBeatCountToDisplay;  // Keep previous value if no valid number found
         
-        // console.log("BC: ", bC);
-        // console.log("chuckMsg: ", chuckMsg);
+        
+
 
         const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
         const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
@@ -2451,6 +1823,8 @@ export default function InitializationComponent() {
             isMounted = false;
         }
     }
+
+    let hid: HID | null = null;
 
     const newInitChuck = async () => {
         // await initChuck();
@@ -2478,6 +1852,7 @@ export default function InitializationComponent() {
                 audioContext.destination.maxChannelCount,
                 whereIsChuck
             );
+            hid = await HID.init(theChuck); 
             await theChuck.connect(audioContext.destination);
             if (theChuck && theChuck.context.state === "suspended") {
                 const theChuckContext: any = theChuck.context;
@@ -2493,6 +1868,7 @@ export default function InitializationComponent() {
             chuckRef.current && setChuckHook(chuckRef.current);
 
             chuckRef.current.chuckPrint = (message) => { 
+                console.log("CHUCK PRINT: ", message);
                 if (message.includes("TICK: ")) {
                     const parsedMsg = message.split(":")[1].trim();
 
@@ -2514,7 +1890,7 @@ export default function InitializationComponent() {
         if (inputRef.current) {
           inputRef.current.click();
         }
-      };
+    };
     
 
     const toggleSliderPanelChildren = (panel: string) => {
@@ -2527,7 +1903,7 @@ export default function InitializationComponent() {
 
         // Move the found string to index 0
         setRightPanelOptions([panel, ...rightPanelOptions.slice(0, index), ...rightPanelOptions.slice(index + 1)]);
-        console.log("sanity...: ", [panel, ...rightPanelOptions.slice(0, index), ...rightPanelOptions.slice(index + 1)]);
+        // console.log("sanity...: ", [panel, ...rightPanelOptions.slice(0, index), ...rightPanelOptions.slice(index + 1)]);
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2548,8 +1924,44 @@ export default function InitializationComponent() {
         xVal: number,
         yVal: number
     ) => {
+
         const indices = fileNames.map((fileName: string) => filesToProcess.current.map((i: any) => i.filename).indexOf(fileName));
-        if (masterPatternsRef.current[yVal] && masterPatternsRef.current[yVal][xVal]) masterPatternsRef.current[yVal][xVal].fileNums = indices;
+
+        const assignEveryOtherReferenceNumber = xVal % 2;
+
+        if (masterPatternsRef.current[yVal] && masterPatternsRef.current[yVal][xVal]) {
+            
+            if (doAutoAssignPatternNum.toString() === "0") {
+                masterPatternsRef.current[yVal][xVal].fileNums = indices;
+            } else if (
+                doAutoAssignPatternNum.toString() === "1"
+            ) {
+                console.log("in doAssignSampleToGrid...");
+                for (let y1 = 0; y1 < denominatorSignature; y1++) {
+                    masterPatternsRef.current[y1 + 1][xVal].fileNums = indices;
+                }
+            } else if (doAutoAssignPatternNum.toString() === "2" ) {
+                for (let y1 = 0; y1 < denominatorSignature; y1++) {
+                    for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
+                        if (x1 % numeratorSignature === 0 && masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) {
+                            masterPatternsRef.current[y1 + 1][x1].fileNums = indices;
+                        }
+                    };
+                }
+            } else if (doAutoAssignPatternNum.toString() === "3") {
+                for (let y1 = 0; y1 < denominatorSignature; y1++) {
+                    for (let x1 = assignEveryOtherReferenceNumber; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
+                        if(masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1 + 1][x1].fileNums = indices;
+                    };
+                }
+            } else if (doAutoAssignPatternNum.toString() === "4") {
+                for (let y1 = 0; y1 < denominatorSignature; y1++) {
+                    for (let x1 = assignEveryOtherReferenceNumber; x1 <= numeratorSignature * masterFastestRate; x1++) {
+                        if(masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1 + 1][x1].fileNums = indices;
+                    };
+                }
+            } 
+        }
         setPatternsHashHook(masterPatternsRef.current);
     };
 
@@ -2568,8 +1980,6 @@ export default function InitializationComponent() {
      }, [masterPatternsHashHook]);
 
     const testChord = () => {
-        // console.log("CHORD PROGS", mingusChordsData[0].progs);
-        // console.log("CHORD PROGS NUMS", mingusChordsData[0].progs_nums);
         console.log(
             "CHORDA ", chordHook
         )
@@ -2601,6 +2011,14 @@ export default function InitializationComponent() {
                 getConvertedRadio,
                 fxRadioValue,
         );
+    }
+
+    const switchControlView = () => {
+        if (controlView === 'knobsView') {
+            setControlView('itemizedValuesView')
+        } else {
+            setControlView('knobsView')
+        }
     }
 
     return (
@@ -2653,6 +2071,8 @@ export default function InitializationComponent() {
                             runChuck={runChuck}
                             stopChuckInstance={stopChuckInstance}
                             chuckMicButton={chuckMicButton}
+                            numeratorSignature={numeratorSignature}
+                            denominatorSignature={denominatorSignature}
                         />
                         {
                             uploadedBlob.current && 
@@ -2660,6 +2080,8 @@ export default function InitializationComponent() {
                                 uploadedBlob={uploadedBlob}
                                 // setWavesurfer={setWavesurfer}
                                 getMeydaData={getMeydaData}
+                                clickedFile={clickedFile}
+                                chuck={chuckRef.current}
                             />
                         }
                     </Box>
@@ -2701,8 +2123,6 @@ export default function InitializationComponent() {
                                             paddingLeft: '24px',
                                             margin: '16px',
                                             color: 'rgba(255,255,255,0.78)',
-                                            // background: 'rgba(0,0,0,0.78)',
-                                            // backgroundColor: 'rgba(0,0,0,0.78)',
                                             border: 'rgba(255,255,255,0.78)',
                                             '&:hover': {
                                                 color: '#f5f5f5 !important',
@@ -2735,155 +2155,141 @@ export default function InitializationComponent() {
                                 display: 'flex',
                                 flexDirection: 'row',
                             }}
-                        >
-                            {chuckHook &&
+                        >                            
+                            {chuckHook && 
                                 <>
+                                    
                                     <Box id="rightPanelWrapper">
-                                        <Box
-                                            ref={parentDivRef}
-                                        >
-                                            <Box id="rightPanelHeader">
-                                                <Box className="right-panel-header-wrapper">
-                                                    <Button 
-                                                        id='toggleSliderPanelChildren_Effects' 
-                                                        className='right-panel-header-button'
-                                                        sx={{ backgroundColor: rightPanelOptions[0] === 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
-                                                        onClick={(e: any) => toggleSliderPanelChildren('effects')}
-                                                    >
-                                                            Effects View
-                                                    </Button>
-                                                    <Button 
-                                                        id='toggleSliderPanelChildren_Pattern' 
-                                                        className='right-panel-header-button'
-                                                        sx={{ backgroundColor: rightPanelOptions[0] !== 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
-                                                        onClick={(e: any) => toggleSliderPanelChildren('pattern')}
-                                                    >
-                                                        Patterns View
-                                                    </Button>
-                                                </Box>
-                                                {
-                                                    universalSources.current && Object.keys(universalSources.current).length > 0 && rightPanelOptions[0] === 'effects' &&
-                                                    <GroupToggle
-                                                        name={"test name"}
-                                                        options={Object.keys(universalSources.current).map(i => i)}
-                                                        handleSourceToggle={handleSourceToggle}
-                                                    />
-                                                }
-                                                <br />
-                                                {/* <Box className="right-panel-header-wrapper">
-                                                    <Button id='toggleSliderPanelChildren_Effects' className='right-panel-header-button' onClick={(e: any) => toggleSliderPanelChildren('effects')}>Effects View</Button>
-                                                    <Button id='toggleSliderPanelChildren_Pattern' className='right-panel-header-button' onClick={(e: any) => toggleSliderPanelChildren('pattern')}>Patterns View</Button>
-                                                </Box> */}
+                                    <Box
+                                        ref={parentDivRef}
+                                        sx={{
+                                            display: controlView !== 'knobsView' ? 'none' : 'flex',
+                                            flexDirection: 'column',
+                                        }} 
+                                    >
+                                        <Box id="rightPanelHeader">
+                                            <Box className="right-panel-header-wrapper">
+                                                <Button 
+                                                    id='toggleSliderPanelChildren_Effects' 
+                                                    className='right-panel-header-button'
+                                                    sx={{ backgroundColor: rightPanelOptions[0] === 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
+                                                    onClick={(e: any) => toggleSliderPanelChildren('effects')}
+                                                >
+                                                        Effects View
+                                                </Button>
+                                                <Button 
+                                                    id='toggleSliderPanelChildren_Pattern' 
+                                                    className='right-panel-header-button'
+                                                    sx={{ backgroundColor: rightPanelOptions[0] !== 'effects' ? 'rgba(255,255,255,0.178)' : 'transparent' }}
+                                                    onClick={(e: any) => toggleSliderPanelChildren('pattern')}
+                                                >
+                                                    Patterns View
+                                                </Button>
                                             </Box>
-                                            <Box sx={{ maxHeight: 'calc(100% - 6rem)', display: rightPanelOptions[0] === 'effects' ? "flex" : "none" }}>
-                                                <FXRouting
-                                                    key={fXChainKey + fxRadioValue}
-                                                    fxData={universalSources.current || defaultSources}
-                                                    width={440}
-                                                    height={440}
-                                                    // handleFXGroupChange={handleFXGroupChange}
-                                                    updateCheckedFXList={handleUpdateCheckedFXList}
-                                                    fxGroupsArrayList={fxGroupOptions}
-                                                    checkedFXList={checkedFXList.current}
-                                                    fxFX={[]}
-                                                    handleClickName={handleClickName}
-                                                    setClickFXChain={setClickFXChain}
-                                                    clickFXChain={clickFXChain}
-                                                    updateFXInputRadio={updateFXInputRadio}
-                                                    fxRadioValue={fxRadioValue}
-                                                    // updateStkKnobs={updateStkKnobs}
-                                                    setStkValues={setStkValues}
-                                                    stkValues={stkValues}
-                                                    currentScreen={currentScreen.current}
-                                                    playUploadedFile={playUploadedFile}
-                                                    lastFileUpload={lastFileUpload}
-                                                    updateFileUploads={updateFileUploads}
-                                                    handleCheckedFXToShow={handleCheckedFXToShow}
-                                                    checkedEffectsListHook={checkedEffectsListHook}
-                                                    setCheckedEffectsListHook={setCheckedEffectsListHook}
-                                                />
-                                                <Box id={'reactDiagramsPedalboardWrapper'}>
-                                                    <ReactDiagramsPedalboard
-                                                        currentChain={currentChain}
-                                                        sourceName={getConvertedRadio(fxRadioValue)}
-                                                    />
-                                                </Box>
-                                            </Box>
-                                            {/* <div id="modal-root"></div> */}
-                                            <Box sx={{display: rightPanelOptions[0] !== 'effects' ? "flex" : "none" }}>
-                                                <NotesQuickDash
-                                                    featuresLegendData={[]}
-                                                    universalSources={universalSources.current}
+                                            {
+                                                universalSources.current && Object.keys(universalSources.current).length > 0 && rightPanelOptions[0] === 'effects' &&
+                                                <GroupToggle
+                                                    name={"test name"}
+                                                    options={Object.keys(universalSources.current).map(i => i)}
                                                     handleSourceToggle={handleSourceToggle}
-                                                    vizSource={vizSource}
-                                                    currentNumerCount={currentNumerCount}
-                                                    currentBeatSynthCount={currentBeatSynthCount}
-                                                    handleMasterFastestRate={handleMasterRateUpdate}
-                                                    handleOsc1RateUpdate={handleOsc1RateUpdate}
-                                                    handleOsc2RateUpdate={handleOsc2RateUpdate}
-                                                    handleStkRateUpdate={handleStkRateUpdate}
-                                                    handleSamplerRateUpdate={handleSamplerRateUpdate}
-                                                    handleAudioInRateUpdate={handleAudioInRateUpdate}
-                                                    currentNoteVals={currentNoteVals}
-                                                    filesToProcess={filesToProcess.current}
-                                                    numeratorSignature={numeratorSignature}
-                                                    denominatorSignature={denominatorSignature}
-                                                    editPattern={editPattern}
-                                                    masterPatternsHashHook={masterPatternsHashHook}
-                                                    masterPatternsHashHookUpdated={masterPatternsHashUpdated}
-                                                    inPatternEditMode={inPatternEditMode}
-                                                    selectFileForAssignment={selectFileForAssignment}
-                                                    handleChangeCellSubdivisions={((num: number) => {
-                                                        console.log("NUMMMMM ", num) 
-                                                        setCellSubdivisions(cellSubdivisions + 1);
-                                                    })}
-                                                    cellSubdivisions={cellSubdivisions}
-                                                    resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
-                                                    handleClickUploadedFiles={handleClickUploadedFiles}
-                                                    parentDiv={parentDivRef.current}
-
-                                                    masterFastestRate={masterFastestRate}
-
-                                                    currentBeatCountToDisplay={currentBeatCountToDisplay}
-                                                    currentNumerCountColToDisplay={currentNumerCountColToDisplay}
-                                                    currentDenomCount={currentDenomCount} 
-                                                    currentPatternCount={currentPatternCount}
-
-                                                    exitEditMode={exitEditMode}
-
-                                                    clickHeatmapCell={clickHeatmapCell}
-
-                                                    isInPatternEditMode={isInPatternEditMode.current}
-                                                    handleLatestSamples={handleLatestSamples}
-                                                    handleLatestNotes={handleLatestNotes}
-
-                                                    mTFreqs={mTFreqs}
-                                                    mTMidiNums={mTMidiNums}
-                                                    updateKeyScaleChord={updateKeyScaleChord}
-                                                    testChord={testChord}
-                                                    testScale={testScale}
+                                                />
+                                            }
+                                            <br />
+                                        </Box>
+                                        <Box sx={{ maxHeight: 'calc(100% - 6rem)', display: rightPanelOptions[0] === 'effects' ? "flex" : "none" }}>
+                                            <FXRouting
+                                                key={fXChainKey + fxRadioValue}
+                                                fxData={universalSources.current || defaultSources}
+                                                width={440}
+                                                height={440}
+                                                // handleFXGroupChange={handleFXGroupChange}
+                                                updateCheckedFXList={handleUpdateCheckedFXList}
+                                                fxGroupsArrayList={fxGroupOptions}
+                                                checkedFXList={checkedFXList.current}
+                                                fxFX={[]}
+                                                handleClickName={handleClickName}
+                                                setClickFXChain={setClickFXChain}
+                                                clickFXChain={clickFXChain}
+                                                updateFXInputRadio={updateFXInputRadio}
+                                                fxRadioValue={fxRadioValue}
+                                                // updateStkKnobs={updateStkKnobs}
+                                                setStkValues={setStkValues}
+                                                stkValues={stkValues}
+                                                currentScreen={currentScreen.current}
+                                                playUploadedFile={playUploadedFile}
+                                                lastFileUpload={lastFileUpload}
+                                                updateFileUploads={updateFileUploads}
+                                                handleCheckedFXToShow={handleCheckedFXToShow}
+                                                checkedEffectsListHook={checkedEffectsListHook}
+                                                setCheckedEffectsListHook={setCheckedEffectsListHook}
+                                            />
+                                            <Box id={'reactDiagramsPedalboardWrapper'}>
+                                                <ReactDiagramsPedalboard
+                                                    currentChain={currentChain}
+                                                    sourceName={getConvertedRadio(fxRadioValue)}
                                                 />
                                             </Box>
                                         </Box>
+                                        {/* <div id="modal-root"></div> */}
+                                        <Box sx={{display: rightPanelOptions[0] !== 'effects' ? "flex" : "none" }}>
+                                            <NotesQuickDash
+                                                featuresLegendData={[]}
+                                                universalSources={universalSources.current}
+                                                handleSourceToggle={handleSourceToggle}
+                                                vizSource={vizSource}
+                                                currentNumerCount={currentNumerCount}
+                                                currentBeatSynthCount={currentBeatSynthCount}
+                                                handleMasterFastestRate={handleMasterRateUpdate}
+                                                handleOsc1RateUpdate={handleOsc1RateUpdate}
+                                                handleOsc2RateUpdate={handleOsc2RateUpdate}
+                                                handleStkRateUpdate={handleStkRateUpdate}
+                                                handleSamplerRateUpdate={handleSamplerRateUpdate}
+                                                handleAudioInRateUpdate={handleAudioInRateUpdate}
+                                                currentNoteVals={currentNoteVals}
+                                                filesToProcess={filesToProcess.current}
+                                                numeratorSignature={numeratorSignature}
+                                                denominatorSignature={denominatorSignature}
+                                                editPattern={editPattern}
+                                                masterPatternsHashHook={masterPatternsHashHook}
+                                                masterPatternsHashHookUpdated={masterPatternsHashUpdated}
+                                                inPatternEditMode={inPatternEditMode}
+                                                selectFileForAssignment={selectFileForAssignment}
+                                                handleChangeCellSubdivisions={((num: number) => {
+                                                    setCellSubdivisions(cellSubdivisions + 1);
+                                                })}
+                                                cellSubdivisions={cellSubdivisions}
+                                                resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
+                                                handleClickUploadedFiles={handleClickUploadedFiles}
+                                                parentDiv={parentDivRef.current}
+
+                                                masterFastestRate={masterFastestRate}
+
+                                                currentBeatCountToDisplay={currentBeatCountToDisplay}
+                                                currentNumerCountColToDisplay={currentNumerCountColToDisplay}
+                                                currentDenomCount={currentDenomCount} 
+                                                currentPatternCount={currentPatternCount}
+
+                                                exitEditMode={exitEditMode}
+
+                                                clickHeatmapCell={clickHeatmapCell}
+
+                                                isInPatternEditMode={isInPatternEditMode.current}
+                                                handleLatestSamples={handleLatestSamples}
+                                                handleLatestNotes={handleLatestNotes}
+
+                                                mTFreqs={mTFreqs}
+                                                mTMidiNums={mTMidiNums}
+                                                updateKeyScaleChord={updateKeyScaleChord}
+                                                testChord={testChord}
+                                                testScale={testScale}
+                                                userInteractionUpdatedScore={userInteractionUpdatedScore}
+                                                handleAssignPatternNumber={handleAssignPatternNumber}
+                                                doAutoAssignPatternNumber={doAutoAssignPatternNum}
+                                            />
+                                        </Box>
                                     </Box>
-
-
-
-
-            {/* WTF is current screen??? {currentScreen.current} */}
-            {/* {...Object(visibleFXKnobs).values().map((i: any)=>i).toString()} */}
-
-
-
-                                    {/* BABYLON LAYER */}
-                                    <Box 
-                                        sx={{
-                                            boxSizing: 'border-box',
-                                            width: '100%',
-                                            height: '100%',
-                                        }}
-                                        key={babylonKey}
-                                    >
+                                    </Box>
+                                     
 {currentScreen.current !== "synth" && <ArrowBack 
     onClick={() => {
         currentScreen.current = "synth";
@@ -2891,8 +2297,8 @@ export default function InitializationComponent() {
         setFxKnobsCount(moogGrandmotherEffects.current.length);
         updateCurrentFXScreen(
             setFxKnobsCount,
-            setBabylonKey,
-            babylonKey,
+            doUpdateBabylonKey,
+            babylonKeyRef.current,
         );
     }}
     sx={{
@@ -2905,29 +2311,58 @@ export default function InitializationComponent() {
     zIndex: "9999",
     background: "purple",
 }}></ArrowBack>}
-{/* <span style={{zIndex: "9999", color: 'white', position: "absolute", top: "68px", right: "148px"}}>
-    {currentScreen.current.includes("_") ? currentScreen.current.replace("stk_", "") : `${currentScreen.current.charAt(0).toUpperCase()}${currentScreen.current.slice(1)} `}
-</span> */}
-                                        {babylonReady && babylonReady && <BabylonLayer
-                                            currentBeatCountToDisplay={{currentBeatCountToDisplay}}
-                                            bpm={bpm}
-                                            handleUpdateSliderVal={handleUpdateSliderVal}
-                                            fxKnobsCount={fxKnobsCount}
-                                            needsUpdate={needsUpdate}
-                                            handleResetNeedsUpdate={() => setNeedsUpdate(false)}
-                                            effects={currentFX.current}
-                                            visibleFXKnobs={visibleFXKnobs.current}
-                                            chuckUpdateNeeded={chuckUpdateNeeded}
-                                            chuckHook={chuckHook}
-                                            hasHexKeys={hasHexKeys}
-                                            showFX={{ showFX }}
-                                            programIsOn={programIsOn}
-                                            microTonalArr={newMicroTonalArr}
-                                            updateHasHexKeys={updateHasHexkeys}
-                                            fxRadioValue={fxRadioValue || "osc1"}
-                                        />}
-                                    </Box>
+                                    <Box 
+                                        sx={{
+                                            position: 'relative',
+                                            marginLeft: '140px',
+                                        }}
+                                    >
+                                        
+                                        {
+                                            controlView !== 'knobsView' 
+                                            ?
+                                                <Box sx={{top: "54px", width: "100%", height: "100%", boxSizing: "border-box", padding: "0px", margin: "0px"}}> 
+                                                    <ControlValsView
+                                                        updateKeyScaleChord={updateKeyScaleChord}
+                                                        testChord={testChord}
+                                                        testScale={testScale}
+                                                        files={filesToProcess.current}
+                                                    /> 
+                                                </Box>
+                                            :   
+                                                <Box 
+                                                    sx={{
+                                                        boxSizing: 'border-box',
+                                                        width: '100%',
+                                                        height: '100%',
+                                                    }}
+                                                    key={babylonKeyRef.current}
+                                                >
 
+
+                                                    {babylonReady && babylonReady && <BabylonLayer
+                                                        currentBeatCountToDisplay={{currentBeatCountToDisplay}}
+                                                        bpm={bpm}
+                                                        handleUpdateSliderVal={handleUpdateSliderVal}
+                                                        fxKnobsCount={fxKnobsCount}
+                                                        needsUpdate={needsUpdate}
+                                                        handleResetNeedsUpdate={() => setNeedsUpdate(false)}
+                                                        effects={currentFX.current}
+                                                        visibleFXKnobs={visibleFXKnobs.current}
+                                                        chuckUpdateNeeded={chuckUpdateNeeded}
+                                                        chuckHook={chuckHook}
+                                                        hasHexKeys={hasHexKeys}
+                                                        showFX={{ showFX }}
+                                                        programIsOn={programIsOn}
+                                                        microTonalArr={newMicroTonalArr}
+                                                        updateHasHexKeys={updateHasHexkeys}
+                                                        fxRadioValue={fxRadioValue || "osc1"}
+                                                    />}
+                                                </Box>
+                                        }
+                                    
+                                    
+                                    </Box>
                                     {/* LEFT CONTAINER */}
                                     <Box id="leftContainerWrapper">
                                         {
@@ -2939,7 +2374,7 @@ export default function InitializationComponent() {
                                                     paddingTop: "12px",
                                                     justifyContent: "center",
                                                     alignItems: "center",
-                                                    paddingBottom: "32px",
+                                                    // paddingBottom: "32px",
                                                     
                                                 }}>
                                                     <BPMModule
@@ -2967,6 +2402,32 @@ export default function InitializationComponent() {
                                             FileUploadIcon={FileUploadIcon}
                                             inputRef={inputRef}
                                         />
+                                        <Box>
+                                            <InstrumentsAndMicrotones
+                                            // updateStkKnobs={updateStkKnobs}
+                                            stkValues={stkValues}
+                                            setStkValues={setStkValues}
+                                            tune={tune}
+                                            currentMicroTonalScale={currentMicroTonalScale}
+                                            setFxKnobsCount={setFxKnobsCount}
+                                            doUpdateBabylonKey={doUpdateBabylonKey}
+                                            // setBabylonKey={setBabylonKey}
+                                            babylonKey={babylonKeyRef.current}
+                                            setNeedsUpdate={setNeedsUpdate}
+                                            currentScreen={currentScreen}
+                                            currentFX={currentFX}
+                                            currentStkTypeVar={currentStkTypeVar}
+                                            universalSources={universalSources}
+                                            updateCurrentFXScreen={updateCurrentFXScreen}
+                                            getSTK1Preset={getSTK1Preset} 
+                                            universalSourcesRef={universalSources}                                            />
+                                        </Box>
+
+                                        <MingusPopup 
+                                            updateKeyScaleChord={updateKeyScaleChord}
+                                            testChord={testChord}
+                                            testScale={testScale}
+                                        />  
 
 
                                         <Box sx={{ position: "relative" }}>
@@ -3003,36 +2464,8 @@ export default function InitializationComponent() {
                                             </Box>
                                         </Box>
 
-                                        <Box>
-                                            <InstrumentsAndMicrotones
-                                            // updateStkKnobs={updateStkKnobs}
-                                            stkValues={stkValues}
-                                            setStkValues={setStkValues}
-                                            tune={tune}
-                                            currentMicroTonalScale={currentMicroTonalScale}
-                                            setFxKnobsCount={setFxKnobsCount}
-                                            setBabylonKey={setBabylonKey}
-                                            babylonKey={babylonKey}
-                                            setNeedsUpdate={setNeedsUpdate}
-                                            currentScreen={currentScreen}
-                                            currentFX={currentFX}
-                                            currentStkTypeVar={currentStkTypeVar}
-                                            universalSources={universalSources}
-                                            updateCurrentFXScreen={updateCurrentFXScreen}
-                                            getSTK1Preset={getSTK1Preset} 
-                                            universalSourcesRef={universalSources}                                            />
-                                        </Box>
+                                        <Button onClick={switchControlView}>Toggle Main View</Button>
 
-                                        {/* <Box>
-                                            <Box sx={{ 
-                                                display: 'flex', 
-                                                flexDirection: 'column',
-                                                borderRight: '0.5px solid rgba(255,255,255,0.78)', 
-                                            
-                                            }}><MingusPopup 
-                                                updateKeyScaleChord={updateKeyScaleChord}
-                                            /> </Box>
-                                        </Box> */}
                                     </Box>
                                 </>
                             }

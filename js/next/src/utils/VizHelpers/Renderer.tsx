@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { InteractionData } from "./Heatmap";
-import { Box, Button, CardHeader, Grid, useTheme } from "@mui/material";
+import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
-import FileWrapper from "@/app/components/FileWrapper";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
-import WaveSurfer from 'wavesurfer.js'
 import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from "../constants";
 import InsetCheckboxDropdown from "@/app/components/InsetCheckboxDropdowns";
 import { PortalCenterModal } from "@/app/components/PortalCenterModal";
-import { background } from "@/app/components/VizxHelpers/BrushChart";
 import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
 import MingusPopup from "@/app/components/MingusPopup";
 // import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
@@ -68,6 +65,9 @@ type RendererProps = {
   updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
   testChord: () => void;
   testScale: () => void;
+  userInteractionUpdatedScore: (x: number) => void;
+  handleAssignPatternNumber: (e: any) => void;
+  doAutoAssignPatternNumber: number;
 };
 
 export const Renderer = ({
@@ -99,6 +99,9 @@ export const Renderer = ({
   updateKeyScaleChord,
   testChord,
   testScale,
+  userInteractionUpdatedScore,
+  handleAssignPatternNumber,
+  doAutoAssignPatternNumber
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -188,7 +191,7 @@ export const Renderer = ({
 
     const triggerEditPattern = async (e: any, num: any) => {
       const el: any = Object.values(e.target)[1];
-      console.log('WTF EL??? ', el);
+      // console.log('WTF EL??? ', el);
 
       inPatternEditMode(true);
 
@@ -205,7 +208,7 @@ export const Renderer = ({
       cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
       yVal && getInstrumentName(yVal);
       console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", Number(yVal),Number(xVal), masterPatternsHashHook );
-      console.log("%cCELL DATA!!!!!: ", isFill, xVal, yVal, "color: magenta;", cellData.current);
+      console.log("%cCELL DATA!!!!!: ", isFill, cellData.current);
       setShowPatternEditorPopup(true);
       document.getElementById(`fill_${xVal}_${yVal}`);
       const elToChange: any = 
@@ -216,11 +219,6 @@ export const Renderer = ({
           return elToChange.style.fill = FOREST_GREEN;
       }
     }
-
-    // useEffect(() => {
-    //   console.log("OYOYOYOY ", filesToProcess.map((f: any) => f.filename));
-    // }, []);
-
 
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
@@ -250,6 +248,10 @@ export const Renderer = ({
                         height={yScale.bandwidth()}
                         opacity={1}
                         fill={
+                       currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y)
+                       ?
+                          RUSTY_ORANGE  
+                       :   
                           currentBeatCountToDisplay === Number(d.x)
                           ?
                             FOREST_GREEN
@@ -273,8 +275,10 @@ export const Renderer = ({
                   }}
                   onMouseLeave={() => setHoveredCell(null)}
                   cursor="pointer"
-                  style={{ zIndex: 100, pointerEvents: "auto" }}
-                />
+                  style={{ zIndex: 1, pointerEvents: "auto" }}
+                > 
+                  <text>{d.x} {d.y}</text>
+                </rect>
               )
             }
           )
@@ -285,7 +289,7 @@ export const Renderer = ({
   
   const xLabels = allXGroups.map((name, i) => {
     const x = xScale(name);
-    
+
     if (!x) {
       return null;
     }
@@ -327,10 +331,6 @@ export const Renderer = ({
     );
   });
 
-  // const handleEditMode = () => {
-  //   setIsInEditMode(!isInEditMode);
-  // };
-
   const handleCloseEditorPopup = () => {
     setShowPatternEditorPopup(false);
     rebuildHeatmap();
@@ -344,7 +344,6 @@ export const Renderer = ({
     console.log("WHAT IS E TARGET FOR NOTE TO REMOVE? ", e.target.id.split('_'));
   }
 
-
   const onPlayPause = () => {
     if (wavesurfer) {
           wavesurfer.playPause()
@@ -356,12 +355,21 @@ export const Renderer = ({
   function handleLatestSamplesFinal(selected: any) {
     console.log("WHAT IS THE FILE NAME? ", selected);
     handleLatestSamples(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
+    userInteractionUpdatedScore(masterPatternsHashHook);
   }
 
   function handleLatestNotesFinal (selected: any) {
     console.log("WHAT ARE THE NOTES? ", selected);
     handleLatestNotes(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
   };
+
+  function getFileNumsPreselected() {
+    const getNumsAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums);
+    console.log("WHAT ARE THE FILE NUMBERS ACROSS GRID? ", getNumsAcrossGrid);
+    const fileNumsPreselected = new Set(getNumsAcrossGrid);
+    console.log("WHAT ARE THE FILE NUMBERS PRESELECTED? ", fileNumsPreselected);
+    return fileNumsPreselected;
+  }
   
   return (
     <Box
@@ -412,12 +420,7 @@ export const Renderer = ({
                 onClick={handleCloseEditorPopup}
               />
             </Box>
-
-            {/* <Box 
-              key={`wrap_edit_popup__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}_${currentYVal.current}_${currentXVal.current}`}>
- */}
-
-              <Box
+            <Box
                 key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
                 sx={{
                   display: "flex",
@@ -427,26 +430,14 @@ export const Renderer = ({
                   // marginRight: '100px',
                   
                   textAlign: 'left',
-                  minWidth: '256px',
-                  minHeight: "420px",
+                  minWidth: '600px',
                   // border: 'solid 0.5px rgb(175, 240, 91)',
                   borderRadius: '5px',
-                  padding: '32px',
+                  padding: '8px',
                   margin: '8px',
                   color: 'rgba(255,255,255,0.78)',
                 }}
               >
-                  {/* <Box 
-                    key={`wrap_new_details_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                    // sx={{ 
-                    //   padding: '16px', 
-                    // }}
-                  > */}
-                      {/* <Box
-                        sx={{
-                          display: 'flex',
-                        }}
-                      > */}
                         Cell: {
                           `${currentXVal.current} | ${currentYVal.current}`
                         }  
@@ -458,47 +449,35 @@ export const Renderer = ({
                           handleChangeCellSubdivisions={handleChangeCellSubdivisions}
                           cellSubdivisions={cellSubdivisions}
                         />
-                      {/* </Box> */}
-                      {/* <SubdivisionsPicker
-                        xVal={currentXVal.current}
-                        yVal={currentYVal.current}
-                          masterPatternsHashHook={masterPatternsHashHook}
-                        handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-                        cellSubdivisions={cellSubdivisions}
-                      /> */}
                       <Box>
-                        {/* Samples: {
-                          new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) 
-                        } */}
-
-                        Instrument: {instrument}
+            
                         <br/>
 
                         Samples:
                         <InsetCheckboxDropdown 
                           files={new Set(filesToProcess.map((f: any) => f.filename))} 
                           handleLatestSamplesFinal={handleLatestSamplesFinal} 
-                          fileNumsPreselected={new Set(Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums)) } />
+                          fileNumsPreselected={getFileNumsPreselected()} />
+                          <>
+                          <FormControl>
+                            <FormLabel id="demo-radio-buttons-group-label">Assignment</FormLabel>
+                            <RadioGroup
+                              aria-labelledby="demo-radio-buttons-group-label"
+                              value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}
+                              name="radio-buttons-group"
+                              onChange={handleAssignPatternNumber}
+                            >
+                              <FormControlLabel value="0" control={<Radio />} label="Unique" />
+                              <FormControlLabel value="1" control={<Radio />} label="Measure Count" />
+                              <FormControlLabel value="2" control={<Radio />} label="Beat Count" />
+                              <FormControlLabel value="3" control={<Radio />} label="Alternate Beats" />
+                              <FormControlLabel value="4" control={<Radio />} label="Every Beat" />
+                            </RadioGroup>
+                          </FormControl>
+                          </>
                       </Box>
-                      {/* <Box>              
-                        Velocity: {
-                          masterPatternsHashHook && 
-                          masterPatternsHashHook.length > 0 &&
-                          masterPatternsHashHook[`${currentYVal.current}`] &&
-                          masterPatternsHashHook[`${currentYVal.current}`].length &&
-                          Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.velocity) || "No notes"
-                        }
-                      </Box> */}
                       <Box>
-                        Notes: 
-                        {/* {
-                          masterPatternsHashHook && 
-                          masterPatternsHashHook.length > 0 &&
-                          masterPatternsHashHook[`${currentYVal.current}`] &&
-                          masterPatternsHashHook[`${currentYVal.current}`].length &&
-                          Object.values(masterPatternsHashHook[`${currentYVal.current}`]).map((i: any) => i.note) || "No notes"
-                        } */}
-                        
+                        Notes:             
                         {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
                         (<InsetNotesDropdown 
                           notes={mTFreqs} 
@@ -507,36 +486,7 @@ export const Renderer = ({
                         />)}
 
                       </Box>
-                  {/* </Box> */}
-                  <Box sx={{ 
-                      display: 'flex', 
-                      flexDirection: 'column',
-                      borderRight: '0.5px solid rgba(255,255,255,0.78)',
-                  }}>                    
-                    <MingusPopup 
-                      updateKeyScaleChord={updateKeyScaleChord}
-                      testChord={testChord}
-                      testScale={testScale}
-                    /> 
-                  </Box>
-                  {/* <span
-                    style={{ 
-                      display: "flex", 
-                      flexDirection: "row",
-                      justifyContent: "stretch", 
-                    }}
-                      key={`noteEditDisplaySpanWrapper_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}>
 
-                    Subdivisions:
-                    <SubdivisionsPicker
-                      xVal={currentXVal.current}
-                      yVal={currentYVal.current}
-                        masterPatternsHashHook={masterPatternsHashHook}
-                      handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-                      cellSubdivisions={cellSubdivisions}
-                    />
-                  </span> */}
-                {/* </Box> */}
               <Box 
                 key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
                 sx={{

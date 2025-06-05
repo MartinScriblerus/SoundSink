@@ -95,7 +95,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'karplus' || stkVal === 'stifkrp' || stkVal === "m") {
+    } else if (stkVal === 'karplus' || stkVal === 'stifkrp' || stkVal === "m" || stkVal === 'stifkarp') {
         theStk1Fx = {
             presets: stifKarpPresets,
             type: stkIdentifierStifKarp,
@@ -277,7 +277,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'percFlut' || stkVal === 'percFlut') {
+    } else if (stkVal === 'percFlut' || stkVal === 'percFlut' || stkVal === 'percflut') {
         theStk1Fx = {
             presets: percFlutPresets,
             type: stkIdentifierPercFlut,
