@@ -60,6 +60,9 @@ type HeatmapProps = {
   updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
   testChord: () => void;
   testScale: () => void;
+  userInteractionUpdatedScore: (x: number) => void;
+  handleAssignPatternNumber: (e: any) => void;
+  doAutoAssignPatternNumber: number;
 };
 
 export type InteractionData = {
@@ -116,6 +119,9 @@ export const Heatmap = ({
   updateKeyScaleChord,
   testChord,
   testScale,
+  userInteractionUpdatedScore,
+  handleAssignPatternNumber,
+  doAutoAssignPatternNumber,
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -236,6 +242,10 @@ useEffect(() => {
               updateKeyScaleChord={updateKeyScaleChord}
               testChord={testChord}
               testScale={testScale}
+              userInteractionUpdatedScore={userInteractionUpdatedScore}
+              handleAssignPatternNumber={handleAssignPatternNumber}
+              doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+              
             />
           }
           <Tooltip 

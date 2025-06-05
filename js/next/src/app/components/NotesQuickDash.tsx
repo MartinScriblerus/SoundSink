@@ -59,6 +59,9 @@ type QuickDashProps = {
     updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
     testChord: () => void;
     testScale: () => void;
+    userInteractionUpdatedScore: (x: any) => void;
+    handleAssignPatternNumber: (e: any) => void;
+    doAutoAssignPatternNumber: number;
 }
 
 const NotesQuickDash = (props:QuickDashProps) => {
@@ -105,12 +108,16 @@ const NotesQuickDash = (props:QuickDashProps) => {
         updateKeyScaleChord,
         testChord,
         testScale,
+        userInteractionUpdatedScore,
+        handleAssignPatternNumber,
+        doAutoAssignPatternNumber,
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
     const [height, setHeight] = useState<number | undefined>(undefined);
 
     const updateCellColor = (msg: any) => {
+        console.log("UPDATE CELL COLOR: ", msg);
         setUpdateCellColorBool(msg);
     }
 
@@ -221,6 +228,9 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             updateKeyScaleChord={updateKeyScaleChord}
                             testChord={testChord}
                             testScale={testScale}
+                            userInteractionUpdatedScore={userInteractionUpdatedScore}
+                            handleAssignPatternNumber={handleAssignPatternNumber}
+                            doAutoAssignPatternNumber={doAutoAssignPatternNumber}
                         />
                     }
                 </Box>

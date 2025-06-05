@@ -7,13 +7,12 @@ import { currentScreen, moogGrandmotherEffects, stkKnobValsRef, visibleFXKnobs }
 import { EffectsSettings } from "@/types/audioTypes";
 
 type InstrumentsAndMicrotonesProps = {
-    // updateStkKnobs: (x: STKOption[]) => void,
     stkValues: STKOption[],
     setStkValues: React.Dispatch<React.SetStateAction<any>>,
     tune: Tune,
     currentMicroTonalScale: (scale: any) => void,
     setFxKnobsCount: Dispatch<React.SetStateAction<number>>,
-    setBabylonKey: Dispatch<React.SetStateAction<string>>,
+    doUpdateBabylonKey: (value: string) => void,
     babylonKey: string,
     setNeedsUpdate: Dispatch<React.SetStateAction<boolean>>,
     currentScreen: React.MutableRefObject<string>,
@@ -22,7 +21,7 @@ type InstrumentsAndMicrotonesProps = {
     universalSources: React.MutableRefObject<any>,
     updateCurrentFXScreen: (
         setFxKnobsCount: Dispatch<React.SetStateAction<number>>,
-        setBabylonKey: Dispatch<React.SetStateAction<string>>,
+        doUpdateBabylonKey: (value: string) => void,
         babylonKey: string
     ) => void,  
     universalSourcesRef: React.MutableRefObject<any>,
@@ -41,7 +40,7 @@ const InstrumentsAndMicrotones = (
         tune, 
         currentMicroTonalScale,
         setFxKnobsCount,
-        setBabylonKey,
+        doUpdateBabylonKey,
         babylonKey,
         setNeedsUpdate, 
         updateCurrentFXScreen,
@@ -61,7 +60,7 @@ const InstrumentsAndMicrotones = (
                 setFxKnobsCount(moogGrandmotherEffects.current.length);
                 updateCurrentFXScreen(        
                     setFxKnobsCount,
-                    setBabylonKey,
+                    doUpdateBabylonKey,
                     babylonKey );
                 setNeedsUpdate(true);
                 return;
@@ -104,7 +103,7 @@ const InstrumentsAndMicrotones = (
                     setFxKnobsCount(knobsCountTemp);
                     updateCurrentFXScreen(
                         setFxKnobsCount,
-                        setBabylonKey,
+                        doUpdateBabylonKey,
                         babylonKey,
                     );
                 }

@@ -2,18 +2,20 @@ import { Box, Button } from "@mui/material"
 import { clippedDuration, ffmpegRef, filesToProcess, messageRef, regionEnd, regionStart, totalDuration, wavesurferRef } from "../state/refs";
 import { toBlobURL } from "@ffmpeg/util";
 import RegionsPlugin, { Region } from "wavesurfer.js/dist/plugins/regions";
-import wavesurfer from "wavesurfer.js";
 import WaveSurferPlayer from '@wavesurfer/react';
 import { useEffect, useMemo, useState } from "react";
 import React from "react";
+import { Chuck } from "webchuck";
 
 type FileWindowProps = {
     uploadedBlob: React.MutableRefObject<Blob | MediaSource >;
     // setWavesurfer: React.Dispatch<React.SetStateAction<any>>;
     getMeydaData: (arrayBuffer: ArrayBuffer) => Promise<any>;
+    clickedFile: React.MutableRefObject<string | null>;
+    chuck: Chuck | undefined;
 }
 const FileWindow = (props: FileWindowProps) => {
-    const { uploadedBlob, getMeydaData } = props;
+    const { uploadedBlob, getMeydaData, clickedFile, chuck } = props;
     const [isPlaying, setIsPlaying] = useState(false);
 
     const [loaded, setLoaded] = useState(false);
@@ -61,10 +63,10 @@ const FileWindow = (props: FileWindowProps) => {
             console.error('Only WAV files are supported ', name, "BLOB: ", blob);
             return;
         }
+
+        const formData = new FormData();
+        formData.append('file', blob, name);
     
-            const formData = new FormData();
-            formData.append('file', blob, name);
-        
         const response = await fetch('http://localhost:8000/analyze_audio/', {
             method: 'POST',
             body: formData,
@@ -72,11 +74,21 @@ const FileWindow = (props: FileWindowProps) => {
         
         try {
             const result = await response.json();
-            console.log(result);
         } catch (e) {
             console.error('Error parsing JSON response:', e);
         }
     }
+
+    async function testAudio() {
+        const start: number | any = regionStart.current; 
+        const end: number | any = regionEnd.current;
+        // alert("TEST AUDIO: " + [start, end].toString());
+        regionsPlugin[0].getRegions().forEach((region: Region) => {
+            (region as any).play({ loop: true });
+            console.log("REGION PLAYED: ", region);
+
+        });
+    };
 
     async function clipAudio() {
         const start: number | any = regionStart.current; 
@@ -85,25 +97,26 @@ const FileWindow = (props: FileWindowProps) => {
         if (!start ||!end ) return;
         
         const ffmpeg = ffmpegRef.current;
-        
+        console.log("File to proc 1?: ", filesToProcess.current);
         const audioFile = filesToProcess.current[filesToProcess.current.length - 1];
-                
+        console.log("trying to clip audio: ", audioFile, "START: ", start, "END: ", end);
+        const clonedBuffer = audioFile.data.slice(0); 
         try {
             // Write the audio file to the FFmpeg wasm file system
             await ffmpeg.writeFile(
-            audioFile.filename,
-            audioFile.data
+                audioFile.filename,
+                clonedBuffer
             );
             
             // Run the FFmpeg command
             await ffmpeg.exec([
-            '-i', audioFile.filename,
-            '-ss', start.toString(), // Start time
-            '-t', (end - start).toString(), // Duration
-            '-c', 'copy',
-            '-f','wav',
-            // 'clipped_audio.mp3'
-            `clipped_${audioFile.filename}`
+                '-i', audioFile.filename,
+                '-ss', start.toString(), // Start time
+                '-t', (end - start).toString(), // Duration
+                '-c', 'copy',
+                '-f','wav',
+                // 'clipped_audio.mp3'
+                `clipped_${audioFile.filename}`
             ]);
         
             // Read the clipped audio file
@@ -120,14 +133,14 @@ const FileWindow = (props: FileWindowProps) => {
             const arrayBuffer = await response.arrayBuffer();
 
             const newClippedFile = readArrayBufferAsFile(arrayBuffer);
-            
-            uploadAudioFile(blob, `clipped_${audioFile.filename}`);
-
+            await uploadAudioFile(blob, `${audioFile.filename.split('.').slice(0,-1).join(',')}_clipped.wav`);
             ///// remove below if causing troubles
             filesToProcess.current.push({
-                data: newClippedFile,
-                name: `${audioFile.filename}_clipped.mp3`
+                data: clippedAudio,
+                filename: `${audioFile.filename.split('.').slice(0,-1).join(',')}_clipped.wav`,
+                processed: false,
             });
+            chuck && chuck.createFile("", `${audioFile.filename.split('.').slice(0,-1).join(',')}_clipped.wav`, clippedAudio);
             ////////////////////////////////////////
             const clippedAudioMeydaData = await getMeydaData(arrayBuffer);
             console.log("CLIPPED AUDIO MEYDA DATA: ", clippedAudioMeydaData);
@@ -150,7 +163,9 @@ const FileWindow = (props: FileWindowProps) => {
         if (ws) {        
             const region = ws.plugins[0].addRegion({
                 start: 0,
-                end: 10,
+                end: .1,
+                drag: true,
+                resize: true,
                 color: 'rgba(0, 255, 0, 0.5)',
             });
     
@@ -177,7 +192,11 @@ const FileWindow = (props: FileWindowProps) => {
         }
         wavesurferRef.current = ws;
 
-        if ((wavesurferRef.current !== wavesurfer) && wavesurferRef.current && !wavesurfer) {
+        if ((
+            wavesurferRef.current !== wavesurfer) && 
+            wavesurferRef.current && 
+            !wavesurfer
+        ) {
             setWavesurfer(wavesurferRef.current)
         }
         // setIsPlaying(false)
@@ -188,47 +207,63 @@ const FileWindow = (props: FileWindowProps) => {
         wavesurferRef.current && wavesurferRef.current.playPause()
     }
     
-    let regionsPlugin; 
+    const regionsPlugin = useMemo(() => [RegionsPlugin.create()], []);
     useEffect(() => {
         load();
-        // regionsPlugin = useMemo(() => [RegionsPlugin.create()], []);
+        // const regionsPlugin = useMemo(() => [RegionsPlugin.create()], []);
     }, []);
+
+    useEffect(() => {
+        if (!clickedFile) return;
+        const theFile: any = Object.values(clickedFile).map((i:any) => i[0]);
+        console.log("CLICKED FILE!!!: ", theFile);
+        theFile && fetch(theFile)
+            .then(response => response.arrayBuffer())
+            .then(buffer => {
+                const uint8Array = new Uint8Array(buffer);
+                console.log("CLICKED FILE BUFFER: ", uint8Array);
+                // WebChucK.FS_createDataFile('/', 'my_audio.wav', uint8Array, true, true);
+       });
+    }, [clickedFile]);
 
     return (
          
             <Box
                 id="waveSurferContainer"
                 sx={{
-                    display: "block",
+                    display: "inline-block",
                     zIndex: 9999,
                     position: "relative",
-                    top: "0px",
+                    top: "300px",
                     left: "0px",
                     width: "calc(100% - 396px)",
                     // justifyContent: "stretch",
                     background: "rgba(0,0,0,0.98)",
                     pointerEvents: "auto",
+                    overflow: "hidden",
                 }}
             >
                 <Button style={{zIndex: 9999}} onClick={onPlayPause}>
                     {isPlaying ? 'Pause' : 'Play'}
                 </Button>
-                <Button style={{zIndex: 9999}} onClick={() => clipAudio()}>
+                <Button style={{zIndex: 9999}} onClick={clipAudio}>
                     Clip
+                </Button>
+                <Button style={{zIndex: 9999}} onClick={testAudio}>
+                    Test
                 </Button>
                 <WaveSurferPlayer
                     height={100}
                     waveColor="#4d91ff"
-                    progressColor="#4d91ff"
+                    progressColor="#4D91ff"
                     // url="/my-server/audio.wav"
-                    // url={URL.createObjectURL(uploadedBlob.current)}
                     url={audioUrl}
                     onReady={onReady}
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                     onPlayPause={onPlayPause}
                     // plugins={[RegionsPlugin.create()]}
-                    plugins={useMemo(() => [RegionsPlugin.create()], [])}
+                    plugins={regionsPlugin}
                 />
 
             </Box>

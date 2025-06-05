@@ -58,6 +58,26 @@ export default function CustomDropdown({
     setIsOpen(false);
   };
 
+    useEffect(() => {
+        // If modal is open, add event listener to detect outside clicks
+        if (isOpen) {
+          const handleClickOutside = (event: any) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+              setIsOpen(false); // Close the modal if clicked outside
+            }
+          };
+    
+          // Add the event listener
+          document.addEventListener('mousedown', handleClickOutside);
+    
+          // Clean up the event listener when the component unmounts or when modal closes
+          return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+          };
+        }
+      }, [isOpen]);
+
+
   return (
     <Box sx={{ flexDirection: 'row', width: '100%', outline: 'none', position: 'relative' }}>
       <FormControl sx={{ width: '100%', color: 'rgba(255,255,255,0.78)' }}>
@@ -107,8 +127,8 @@ export default function CustomDropdown({
               padding: 0,
               margin: 0,
               zIndex: 99999,
-              left: '120px',
-              top: '-350px',
+              left: '140px',
+              top: '-128px',
             }}
           >
             {/* Search Input */}

@@ -30,7 +30,7 @@ export const handleReturnToSynth = () => {
 
 export const updateCurrentFXScreen = (
     setFxKnobsCount: React.Dispatch<SetStateAction<any>>,
-    setBabylonKey: React.Dispatch<SetStateAction<any>>,
+    doUpdateBabylonKey: (value: string) => void,
     babylonKey: string,
 ) => {
     if (visibleFXKnobs.current && currentScreen.current.includes('stk') || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
@@ -41,7 +41,7 @@ export const updateCurrentFXScreen = (
         // visibleFXKnobs.current = visibleFXKnobs.current || Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
         setFxKnobsCount(visibleFXKnobs.current.length);
     }
-    setBabylonKey(`${babylonKey}1`);
+    doUpdateBabylonKey(`${babylonKey}1`);
 };
 
 export const updateCheckedFXList = async (

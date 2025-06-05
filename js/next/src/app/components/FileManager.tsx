@@ -33,7 +33,6 @@ const FileManager = (props: FileManagerProps) => {
                         display: "flex",
                         flexDirection: "row",
                         width: "100%",
-                        paddingTop: '48px',
                     }}
                     onSubmit={handleSubmit(onSubmit)}
                 >

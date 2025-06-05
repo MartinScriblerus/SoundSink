@@ -16,7 +16,7 @@ const saxofonyPresets = {
         label: "Aperture",
         value: 0.36,
         min: .3,
-        max: 1,
+        max: .8,
         screenInterface: "knob",
         fxType: "stk",
     },

@@ -14,7 +14,8 @@ export default function HydraInit(props: HydraProps) {
     const { currentBeatCountToDisplay, fxRadioValue, bpm } = props;
     const hydraRef = useRef<any>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
-    const [hydraTick, setHydraTick] = useState(0);
+    // const [hydraTick, setHydraTick] = useState(0);
+    const hydraTickRef = useRef<number>(0);
 
     useEffect(() => {
         let destroyed = false
@@ -110,7 +111,8 @@ export default function HydraInit(props: HydraProps) {
         ) {
       
           // console.log(`Beat: ${Object.values(currentBeatCountToDisplay)}`)
-          setHydraTick(hydraTick+1);
+          // setHydraTick(() => hydraTick+1);
+          hydraTickRef.current = hydraTickRef.current + 1;
         
           const { synth } = hydraRef.current
           // console.log('synth#### ', synth);
@@ -121,14 +123,14 @@ export default function HydraInit(props: HydraProps) {
           
      
           synth.osc(5, 0.09, 0.001)
-          .kaleid([hydraTick % 16 === 0 ? 3 : 40])
+          .kaleid([hydraTickRef.current % 16 === 0 ? 3 : 40])
           .color(0.5, 0.3)
           .colorama(0.4)
-          .rotate(0.009, hydraTick % 16 ? ()=>Math.sin(synth.time)* -0.001 : ()=>Math.sin(synth.time)* 0.01 )
+          .rotate(0.009, hydraTickRef.current % 16 ? ()=>Math.sin(synth.time)* -0.001 : ()=>Math.sin(synth.time)* 0.01 )
           .modulateRotate(synth.o0,()=>Math.sin(synth.time) * 0.003)
-          .modulate(synth.o0, hydraTick % 4 !== 0 ? 0.29 : 0.89)
+          .modulate(synth.o0, hydraTickRef.current % 4 !== 0 ? 0.29 : 0.89)
           .scale(0.9)
-      .blend(synth.src(hydraRef.current.s[0]))
+      // .blend(synth.src(hydraRef.current.s[0]))
           .out(synth.o0)
 
 
@@ -140,10 +142,10 @@ export default function HydraInit(props: HydraProps) {
         <canvas
           id="hydraCanvas"
           style={{
-            position: 'absolute',
+            position: 'relative',
             // top: '50vh',
             // right: '400px',
-            top: '80px',
+            top: '0px',
             left: '0px',
             zIndex: 9999,
             pointerEvents: 'none',

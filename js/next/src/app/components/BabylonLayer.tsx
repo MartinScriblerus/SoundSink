@@ -72,25 +72,6 @@ function BabylonScene(props: {
 
 
 
-    // const game: BabylonGame = {
-    //     canvas:  undefined,
-    //     engine: undefined,
-    //     scene: undefined,
-    //     camera: [],
-    //     light: [],
-    //     gui: [],
-    //     advancedTexture: [],
-    //     panel: [], //GUI.StackPanel[] | undefined;
-    //     header: [], // GUI.TextBlock[];
-    //     slider: [], // GUI.Slider[] | undefined;
-    //     knob: [],
-    //     meshes: [],
-    //     camera1: {},
-    //     camera2: {},
-    //     // runRenderLoop: undefined,
-    // } as BabylonGame;
-
-
     const prevKnobValue = useRef<number>(0);
     const prevKnobVals = useRef<any>({});
 
@@ -99,60 +80,15 @@ function BabylonScene(props: {
     const pivot = useRef<any>({});
     const knobPosition = useRef<any>();
 
-    // const rot_state2 = useRef<any>();
-    // const hasHexKeys = useRef<boolean>(false);
-    // const isEditingHextiles = useRef<boolean>(false);
 
-    // const myScrollViewer = new GUI.ScrollViewer();
-
-    // useEffect(() => {
-    //     if (!hasHexKeys && game && game.scene) {
-    //         game.scene.activeCamera = game.scene.cameras[0];
-    //     }
-    // }, [hasHexKeys])
-
-    // useEffect(() => {
- 
-        // alert(hasHexKeys)
-        // if (!hasHexKeys) {
-        // if (!isEditingHextiles.current) {
-        //     while(game.scene && Object.keys(game.scene).length > 0 && game.scene.meshes.length && game.scene.getMeshByName("hexTile") && game.scene.getMeshByName("hexTile").length > 0) {
-        //         game.scene.getMeshByName("hexTile").dispose();
-        //     }
-        //     // game.scene && game.scene.meshes.forEach((i: any) => i.name === "hexTile" && i.dispose() && i === null);
-        // } else {
-        //     isEditingHextiles.current = false;
-        // }
-        // const hexTiles = game.scene && game.scene.meshes.filter((i: any) => i.name === "hexTile" && i);
-
-        // while(game.scene && Object.keys(game.scene).length > 0 && game.scene.meshes.length && game.scene.getMeshByName("hexTile")){
-        //     game.scene.getMeshByName("hexTile").dispose();
-        // }
-        // // console.log("ERR HEXTILES 1", game.scene && game.scene.meshes.filter((i: any) => i.name === "hexTile" && i));
-        // // console.log("check sane: ", game.scene && game.scene.meshes && game.scene.meshes.filter((m: any) => m.name === "hexTile"))
-        // console.log("MICRO ARR??? ", microTonalArr);
-        // if (chuckHook && 
-        //     game.scene && game.scene.meshes && 
-        //     // game.scene.meshes.filter((m: any) => m.name === "hexTile").length < 1 &&
-        //     microTonalArr && microTonalArr.length > 0 && 
-        //     hexTiles.length === 0) {
-        //         isEditingHextiles.current = true;
-        //         getHexKeyboard(game, chuckHook, microTonalArr);
-        //         alert("updating has hex keys to true");
-        //         updateHasHexKeys(true);
-        // }
-    // }, [hasHexKeys, microTonalArr])
 
 
 
     let previousMesh: BABYLON.AbstractMesh[] = [];
-
-// const runOnce = useRef<any>();
-// runOnce.current = false;
+   
 
         useEffect(() => {
-            // if (runOnce.current === true) return;
-            const game: BabylonGame = {
+            const game = {
                 canvas:  undefined,
                 engine: undefined,
                 scene: undefined,
@@ -170,29 +106,15 @@ function BabylonScene(props: {
                 // runRenderLoop: undefined,
             } as BabylonGame;
         
-        
-            console.log("*** OUTER");
+   
             if (game) game.canvas = document.querySelector(`#babylonCanvas`);
             if (!game || !game.canvas) return;
-                console.log("*** WITHIN");
-                // console.log("WTF IS GAME?? ", game);
-                // console.log('in useeffect getting canvas');
-                //  game.canvas = document.querySelector(`#babylonCanvas`);  
-                // if (babylongame && !babylongame.canvas2) {
-                //     babylongame.canvas2 = document.querySelector('visualizer');
-                // }
-                // const engine = new BABYLON.Engine(
-                //     game.canvas,
-                //     true, // antialias
-                // );
-
-                // if (game.engine) return;
+  
 
                 game.engine = new BABYLON.Engine(
                     game.canvas,
                     true, // antialias
                 );
-                // babylongame.scene = new BABYLON.Scene(babylongame.engine);
                 game.knob = {};
                 game.header = {};
                 game.scene = new BABYLON.Scene(game.engine);
@@ -205,26 +127,17 @@ function BabylonScene(props: {
                 
                 
                 game.scene.materials.greenMat = new BABYLON.StandardMaterial("greenMat", game.scene);
-                game.scene.materials.greenMat.emissiveColor = new BABYLON.Color3(158/255, 210/255, 162/255);
-                
+                game.scene.materials.greenMat.emissiveColor = new BABYLON.Color3(158/255, 210/255, 162/255);                
                 game.scene.materials.blueMat = new BABYLON.StandardMaterial("blueMat", game.scene);
-                // blueMat.emissiveColor = new BABYLON.Color3(219/255, 230/255, 151/255);
-                game.scene.materials.blueMat.emissiveColor = new BABYLON.Color3(219/255, 230/255, 151/255);
-                // (0.056, 0.199, 1.0)
-        
+                game.scene.materials.blueMat.emissiveColor = new BABYLON.Color3(219/255, 230/255, 151/255);        
                 game.scene.materials.blackMat = new BABYLON.StandardMaterial("blackMat", game.scene);
                 game.scene.materials.blackMat.diffuseColor = new BABYLON.Color3(0/255, 0/255, 0/255);
-                
                 game.scene.materials.whiteMat = new BABYLON.StandardMaterial("whiteMat", game.scene);
                 game.scene.materials.whiteMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
-        
                 game.scene.materials.purpleMat = new BABYLON.StandardMaterial("purpleMat", game.scene);
-                // purpleMat.emissiveColor = new BABYLON.Color3(0.056, 0.199, 1.0);
                 game.scene.materials.purpleMat.emissiveColor = new BABYLON.Color3(144/255, 204/255, 212/255);
-        
                 game.scene.materials.greyMat = new BABYLON.StandardMaterial("greyMat", game.scene);
                 game.scene.materials.greyMat.emissiveColor = new BABYLON.Color3(90/255, 99/255, 111/255);
-        
                 game.scene.materials.redMat = game.scene.materials.purpleMat;
                 
                 const pbr = new BABYLON.PBRMaterial("pbr", game.scene);
@@ -254,11 +167,9 @@ function BabylonScene(props: {
                 game.camera1.id = "camera1";
                 game.camera1.viewport = new BABYLON.Viewport(0.0, 0.0, 1.0, 1.0);
         
-                // if(hasHexKeys) {
-                //     game.scene.activeCamera = game.scene.cameras[1]
-                // } else {
-                    game.scene.activeCamera = game.scene.cameras[0]
-                // }
+
+                game.scene.activeCamera = game.scene.cameras[0]
+
         
                 rot_state.current = {x:game.camera1.alpha, y:game.camera1.beta};
         
@@ -267,40 +178,6 @@ function BabylonScene(props: {
                     game.scene.cameras.push(game.camera1);
                 }
             
-                // const camera2 = new BABYLON.ArcRotateCamera("ArcRotCamera", 0, -1, 10.1762, BABYLON.Vector3.Zero(), game.scene); 
-                
-                // let camera2TargetPosition = { alpha: 1.6, beta: 0, radius: 12, x: 0, y: 0, z: 0 };
-            
-            
-                // camera2.setTarget(new BABYLON.Vector3(camera2TargetPosition.x, camera2TargetPosition.y, camera2TargetPosition.z));
-            
-                // camera2.attachControl(game.scene, false);
-                
-                // camera2.position = new BABYLON.Vector3(0, 0, 12);
-                // camera2.inputs.attached.keyboard.detachControl();
-                // camera2.inputs.attached.mousewheel.detachControl();
-                // camera2.inputs.attached.pointers.detachControl();
-                
-                // // camera2.multiTouchPanAndZoom = false;
-                // // camera2.multiTouchPanning = false;
-                // // camera2.pinchInwards = false;
-                // // camera2pinchZoom = false;
-                // camera2.inputs.removeByType("ArcRotationCameraInputs");
-                // camera2.wheelDeltaPercentage = 0.0;
-                // camera2.panningSensibility = 0.0;
-                // camera2.fov = 1.05;
-                // camera2.id = "camera2";
-                // // camera2.alpha = camera2TargetPosition.alpha;
-                // camera2.alpha = 1.5685;
-                // camera2.beta = camera2TargetPosition.beta;
-                // camera2.radius = camera2TargetPosition.radius;
-                // camera2.viewport = new BABYLON.Viewport(0.0, 0.0, 1.0, 1.0);
-            
-                // rot_state2.current = {x:camera2.alpha, y:camera2.beta};
-                // if (game.scene.cameras.length < 2 && camera2.id === "camera2") {
-                //     game.scene.cameras.push(camera2);
-                // }
-                        
                 for(let i = 0; i < squareRoot; i++) {
                     for (let j = 0; j < squareRoot; j++) {
         
@@ -308,7 +185,6 @@ function BabylonScene(props: {
                     // console.log("J??? ", j);
 
                     const effectsIndex = j + squareRoot * i;
-                    // console.log('viz idx: ', effectsIndex, visibleFXKnobs[effectsIndex]);
                         if (visibleFXKnobs && visibleFXKnobs.length > 0 && visibleFXKnobs[effectsIndex] && effectsIndex < fxKnobsCount) {
                             if(Object.keys(prevKnobVals.current).indexOf(`${i}`) === -1) {
                                     prevKnobVals.current.i = prevKnobVals.current.i || {};
@@ -317,12 +193,6 @@ function BabylonScene(props: {
                                 // create a light for each knob
                                 game.light = new BABYLON.SpotLight("spotLight", new BABYLON.Vector3(0, 30, -10), new BABYLON.Vector3(0, -1, 0), Math.PI / 3, 2, game.scene);
                                 game.light.intensity = 0.07;
-                                    
-                                
-                                
-                                
-                                
-                                
                                 
                                 // create a stack panel GUI for each knob
                                 const paneL = new GUI.StackPanel();
@@ -494,12 +364,7 @@ function BabylonScene(props: {
                                             console.log("no game currently")
                                         }
                                     });
-                                    // return () => {
-                                    //     game?.scene?.meshes.forEach((mesh: any) => {
-                                    //         mesh.dispose();
-                                    //         mesh = null;
-                                    //     });
-                                    // };
+
                                 // SEE / ADD STARTER CODE FOR SWITCH HERE! (***see switchKnob file***)
                                 }   
                                 // return;
@@ -509,7 +374,7 @@ function BabylonScene(props: {
  
         
 
-                // let camera2TargetPosition = { alpha: 1.6, beta: 0, radius: 12, x: 0, y: 0, z: 0 };
+
                 game && game.engine && game.engine.runRenderLoop(function () {
                     if (game && game.scene && game.scene.cameras.length > 0 && rot_state.current && rot_state.current.length > 0) {
                         if (game.scene.cameras && game.scene.cameras.length > 0) {
@@ -520,13 +385,6 @@ function BabylonScene(props: {
                             game.scene.cameras[0].position = new BABYLON.Vector3(0, 0, 12);
                         }
 
-                        // game.scene.cameras[1].setTarget(new BABYLON.Vector3(0, 0, 0));
-                        // game.scene.cameras[1].rotation.x = rot_state2.current.x;
-                        // game.scene.cameras[1].rotation.y = rot_state2.current.y;
-                        // // let camera2TargetPosition = { alpha: 1.6, beta: 0, radius: 12, x: 0, y: 0, z: 0 };
-
-                        // game.scene.cameras[1].inputs.attached.mouse.detachControl();
-                        // game.scene.cameras[1].position = new BABYLON.Vector3(0, 0, 12);
                     }
                     game && game.scene && game.scene.render();
           
@@ -558,7 +416,7 @@ function BabylonScene(props: {
                 };
 
         //    runOnce.current = true; 
-        },[]);
+        },[fxKnobsCount, visibleFXKnobs, fxRadioValue, handleUpdateSliderVal]);
 
 
     // useEffect(() => {
@@ -628,12 +486,6 @@ function BabylonScene(props: {
             // }
             />
             </div>
-            <HydraInit 
-                bpm={bpm}
-                currentBeatCountToDisplay={
-                    currentBeatCountToDisplay}
-                fxRadioValue={fxRadioValue}
-            />
         </Box>
 
     )

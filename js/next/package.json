@@ -19,6 +19,7 @@
     "@huggingface/inference": "^3.7.1",
     "@mui/icons-material": "^5.15.3",
     "@mui/material": "^5.15.3",
+    "@mui/x-tree-view": "^8.4.0",
     "@projectstorm/react-diagrams": "^7.0.4",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^14.3.1",
