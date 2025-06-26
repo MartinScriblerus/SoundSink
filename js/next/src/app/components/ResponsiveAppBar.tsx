@@ -157,7 +157,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                         </Typography>
 
                         <Typography sx={{ marginLeft: "12px", marginRight: "12px", fontSize: "24px !important" }}>
-                            {currentBeatCountToDisplay }
+                            {Math.floor(Math.ceil(currentBeatCountToDisplay / numeratorSignature))}
                         </Typography>
                       </Box>
                   </Box>

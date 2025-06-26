@@ -33,14 +33,11 @@ export const updateCurrentFXScreen = (
     doUpdateBabylonKey: (value: string) => void,
     babylonKey: string,
 ) => {
-    if (visibleFXKnobs.current && currentScreen.current.includes('stk') || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
-        setFxKnobsCount(visibleFXKnobs.current.length);
-    } else if (currentScreen.current === 'synth') {
-        // currentFX.current = [];
-        // currentFX.current = moogGrandmotherEffects.current;
-        // visibleFXKnobs.current = visibleFXKnobs.current || Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-        setFxKnobsCount(visibleFXKnobs.current.length);
-    }
+    // if (visibleFXKnobs.current && currentScreen.current.includes('stk') || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
+    //     setFxKnobsCount(visibleFXKnobs.current.length);
+    // } else if (currentScreen.current === 'synth') {
+    setFxKnobsCount(visibleFXKnobs.current.length);
+    // }
     doUpdateBabylonKey(`${babylonKey}1`);
 };
 

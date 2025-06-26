@@ -1,5 +1,5 @@
 export const stkVariableBlowBotl = "blwbtl";
-export const stkIdentifierBlowBotl = "Bottle";
+export const stkIdentifierBlowBotl = "BlowBtl";
 
 const blowBotlPresets = {
     noiseGain: {

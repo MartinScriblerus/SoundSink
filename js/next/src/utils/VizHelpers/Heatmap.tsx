@@ -3,6 +3,7 @@ import { Renderer } from "./Renderer";
 import { Tooltip } from "./Tooltip";
 import { Box, useTheme } from "@mui/material";
 import ArpSpeedSliders from "@/app/components/ArpSpeedSliders";
+import { Tune } from "@/tune";
 
 type HeatmapProps = {
   width: number;
@@ -53,7 +54,9 @@ type HeatmapProps = {
     notes: string[],
     xVal: number,
     yVal: number,
-) => void;
+  ) => void;
+
+  updateMicroTonalScale: (scale: any) => void;
 
   mTFreqs:number[];
   mTMidiNums:number[];
@@ -63,6 +66,28 @@ type HeatmapProps = {
   userInteractionUpdatedScore: (x: number) => void;
   handleAssignPatternNumber: (e: any) => void;
   doAutoAssignPatternNumber: number;
+
+
+
+  setStkValues: React.Dispatch<React.SetStateAction<any>>; 
+  tune: Tune;
+  currentMicroTonalScale: (scale: any) => void;
+  setFxKnobsCount: React.Dispatch<React.SetStateAction<number>>;
+  doUpdateBabylonKey: any;
+  // setBabylonKey={setBabylonKey}
+  babylonKey: string;
+  setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  currentScreen: React.MutableRefObject<string>;
+  currentFX: React.MutableRefObject<any>;
+  currentStkTypeVar: React.MutableRefObject<string>;
+  // universalSources={universalSources}
+  updateCurrentFXScreen: any;
+
+  getSTK1Preset: (x: string) => any; 
+  universalSources: React.MutableRefObject<any>;
+  mingusKeyboardData: any;
+  mingusChordsData: any;
+  updateMingusData: (data: any) => void;
 };
 
 export type InteractionData = {
@@ -122,6 +147,27 @@ export const Heatmap = ({
   userInteractionUpdatedScore,
   handleAssignPatternNumber,
   doAutoAssignPatternNumber,
+
+  setStkValues,
+  tune,
+  currentMicroTonalScale,
+  setFxKnobsCount,
+  doUpdateBabylonKey,
+  // setBabylonKey,
+  babylonKey,
+  setNeedsUpdate,
+  currentScreen,
+  currentFX,
+  currentStkTypeVar,
+  // universalSources,
+  updateCurrentFXScreen,
+  getSTK1Preset,
+  universalSources,
+  updateMicroTonalScale,
+  mingusKeyboardData,
+  mingusChordsData,
+  updateMingusData,
+  
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -245,6 +291,31 @@ useEffect(() => {
               userInteractionUpdatedScore={userInteractionUpdatedScore}
               handleAssignPatternNumber={handleAssignPatternNumber}
               doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+              
+
+
+
+
+              setStkValues={setStkValues}
+              tune={tune}
+              currentMicroTonalScale={currentMicroTonalScale}
+              setFxKnobsCount={setFxKnobsCount}
+              doUpdateBabylonKey={doUpdateBabylonKey}
+              // setBabylonKey={setBabylonKey}
+              babylonKey={babylonKey}
+              setNeedsUpdate={setNeedsUpdate}
+              currentScreen={currentScreen}
+              currentFX={currentFX}
+              currentStkTypeVar={currentStkTypeVar}
+              // universalSources={universalSources}
+              updateCurrentFXScreen={updateCurrentFXScreen}
+              getSTK1Preset={getSTK1Preset} 
+              universalSources={universalSources} 
+              updateMicroTonalScale={updateMicroTonalScale}
+
+              mingusKeyboardData={mingusKeyboardData}
+              mingusChordsData={mingusChordsData}
+              updateMingusData={updateMingusData}
               
             />
           }

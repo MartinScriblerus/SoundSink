@@ -68,3 +68,14 @@ export async function convertFrequency(notefreqchart: any, freq: number, microFr
     // console.log("NEW MICRO ARR: ", newMicroTonalArr);
     return freqLets;
 }
+
+export const noteToMidi = (note: string, octave: number) => {
+    const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    for (let i = 0; i < names.length; i++) {
+        if (note == names[i]) {
+            return (octave + 1) * 12 + i;
+        }
+    }
+    // fallback
+    return 60; // default to middle C if not found
+}

@@ -15,13 +15,14 @@ interface Props {
   // selectRef: any;
   tune: any;
   currentMicroTonalScale: any;
+  updateMicroTonalScale: (option: MicrotoneOption) => void;
 }
 
 const BATCH_SIZE = 30;
 
 export default function CustomDropdown({ 
   // selectRef, 
-  tune, currentMicroTonalScale }: Props) {
+  tune, currentMicroTonalScale, updateMicroTonalScale }: Props) {
   const theme = useTheme();
   const [page, setPage] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
@@ -55,31 +56,44 @@ export default function CustomDropdown({
 
   const handleSelect = (option: MicrotoneOption) => {
     currentMicroTonalScale(option);
+    updateMicroTonalScale(option);
     setIsOpen(false);
   };
 
-    useEffect(() => {
-        // If modal is open, add event listener to detect outside clicks
-        if (isOpen) {
-          const handleClickOutside = (event: any) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-              setIsOpen(false); // Close the modal if clicked outside
-            }
-          };
-    
-          // Add the event listener
-          document.addEventListener('mousedown', handleClickOutside);
-    
-          // Clean up the event listener when the component unmounts or when modal closes
-          return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-          };
+  useEffect(() => {
+    // Reset pagination when search term changes
+    console.log("CURR MT SCALE??? ", Object.values(currentMicroTonalScale));
+  }, [currentMicroTonalScale]);
+
+useEffect(() => {
+    // If modal is open, add event listener to detect outside clicks
+    if (isOpen) {
+      const handleClickOutside = (event: any) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false); // Close the modal if clicked outside
         }
-      }, [isOpen]);
+      };
+
+      // Add the event listener
+      document.addEventListener('mousedown', handleClickOutside);
+
+      // Clean up the event listener when the component unmounts or when modal closes
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
 
   return (
-    <Box sx={{ flexDirection: 'row', width: '100%', outline: 'none', position: 'relative' }}>
+    <Box 
+      sx={{ 
+        flexDirection: 'row', 
+        width: '100%', 
+        outline: 'none', 
+        position: 'relative' 
+      }}
+    >
       <FormControl sx={{ width: '100%', color: 'rgba(255,255,255,0.78)' }}>
         <div
           // ref={selectRef}
@@ -92,15 +106,15 @@ export default function CustomDropdown({
             cursor: 'pointer',
             fontFamily: 'monospace',
             fontSize: '12px',
-            width: '100%',
+            minWidth: '100%',
             // minWidth: '180px',
             justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center'
+            alignItems: 'left',
+            textAlign: 'left'
           }}
           onClick={() => setIsOpen(!isOpen)}
         >
-          Microtonal Scales
+          Microtonal: {currentMicroTonalScale.label ? currentMicroTonalScale.label : 'Select...'}
         </div>
         {isOpen && (
           <div

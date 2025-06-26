@@ -35,11 +35,17 @@ export const getChuckCode = (
     console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs);
     console.log("MAX MINNING! ", maxMinFreq, mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) )
     console.log("JUST PRIOR TO CHUCK HERE IS isTestingChord: ", isTestingChord);
-    console.log("HEY_YO! ", filesArray);
+    console.log("MASTER FASTEST RATE IS ", masterFastestRate);
+    console.log("HEY_YO FILES ARRAY! ", filesArray);
+
+
+    console.log("CHECK SIGNAL CHAIN, EFFECTS READOUTS, and STK SETUP: ", signalChain, signalChainSTK, valuesReadout, valuesReadoutSTK, activeSTKDeclarations, activeSTKSettings);
  
-    console.log("SANE CHECK IN CHUCK HELPER: ", Object.values(masterPatternsRef.current));
+    console.log("MASTERPATTERNSREF IN CHUCK HELPER: ", Object.values(masterPatternsRef.current));
 
     const beatInMilliseconds = (60000 / bpm) / masterFastestRate * 2;
+
+    console.log("BEAT LENGTH IN MILLISECONDS >>> ", beatInMilliseconds);
 
     type NoteEvent = {
         freq: number;
@@ -50,8 +56,11 @@ export const getChuckCode = (
       
     console.log("*STK SANITY 1 -- declarations ", activeSTKDeclarations);
     console.log("*STK SANITY 2 -- settings ", activeSTKSettings);
-    console.log("*STK SANITY 3 -- playOn ", activeSTKPlayOn);
-    console.log("*STK SANITY 4 -- playOff ", activeSTKPlayOff);
+
+    console.log("&* VALUES READOUT TEST ", valuesReadout);
+    console.log("&* GET SOURCE TEST ",getSourceFX('osc1'));
+    // console.log("*STK SANITY 3 -- playOn ", activeSTKPlayOn);
+    // console.log("*STK SANITY 4 -- playOff ", activeSTKPlayOff);
 
 
     const newChuckCode = `
@@ -63,20 +72,31 @@ export const getChuckCode = (
     
     // Global variables and events
     global Event playNote;
+    global Event playSingleNote;
+    global Event playSingleNoteOff;
     global Event playSTK;
     global Event startMeasure;
     global Event playAudioIn;
     global float bpm; bpm => float bpmInit;
+    global float testNotesArr[0];
+    global float chuckNotesOff[0];
+
+    global float moogGMDefaults[0]; 
+    global float effectsDefaults[0];  
+    global float stkEffectsDefaults[0];  
+
+    ${hid} => Hid hi;                
+
+    HidMsg msg;             
+
 
     ${numeratorSignature} => global int numeratorSignature;
     ${denominatorSignature} => global int denominatorSignature;
 
     // Initial settings
-    120.0 => bpmInit;
-    4 => numeratorSignature;
-    4 => denominatorSignature;
+    ${bpm} => bpmInit;
 
-    0 => global int arpeggiatorOn;
+    1 => global int arpeggiatorOn;
 
     ${beatInMilliseconds} => float beatInt;
 
@@ -85,15 +105,10 @@ export const getChuckCode = (
 
     ${numeratorSignature.toFixed(2)} / denominatorSignature => float beatFactor;
     quarterNote * beatFactor => dur adjustedBeat;
-
-    // (beatInt)::ms => dur beat;
     adjustedBeat => dur beat;
-
 
     beat * numeratorSignature => dur whole;
     whole * denominatorSignature => dur measure;
-
-
 
     // Number of voices for polyphony
     8 => global int numVoices;
@@ -117,8 +132,6 @@ export const getChuckCode = (
 
     0 => global int tickCounter;
     0 => global int fastestTickCounter;
-
-
 
     class Osc1_EffectsChain extends Chugraph
     { 
@@ -146,7 +159,6 @@ export const getChuckCode = (
         ${getSourceFX('audioin')}
     }
 
-
     SndBuf buffers[5] => Sampler_EffectsChain sampler_FxChain => Dyno audInDynoSampler => dac;
     
     fun void SilenceAllBuffers()
@@ -162,8 +174,6 @@ export const getChuckCode = (
     // BEGIN SYNTH VOICE DEFAULTS
     class SynthVoice extends Chugraph
     {
-
-
         saw1 => lpf => adsr => limiter => outlet;
 
         saw2 => lpf;
@@ -228,8 +238,8 @@ export const getChuckCode = (
         ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter.attackTime; // can we hardcode these???
         ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter.thresh; // can we hardcode these???
 
-        0::ms => limiter.attackTime; // can we hardcode these???
-        0.8 => limiter.thresh; // can we hardcode these???
+        // 0::ms => limiter.attackTime; // can we hardcode these???
+        // 0.8 => limiter.thresh; // can we hardcode these???
         
         // rethink volume when creating a master panel....
         0.56 => saw1.gain => saw2.gain;
@@ -238,7 +248,7 @@ export const getChuckCode = (
 
         // ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
         // filterCutoff => lpf.freq;
-        10 => float filterCutoff;
+        10.0 => float filterCutoff;
         filterCutoff => lpf.freq;
 
         configureADSR(adsr, beat, atkKnob, decKnob, susKnob, relKnob);
@@ -246,7 +256,7 @@ export const getChuckCode = (
 
         // moogGrandmotherEffects["offset"] => float offset;
         ${moogGrandmotherEffects.current.offset.value} => float offset; // why are we hardcoding these???
-        500 => int filterEnv;
+        0 => int filterEnv;
         1.0 => float osc2Detune;
         ${moogGrandmotherEffects.current.oscOffset.value} => float oscOffset;
 
@@ -272,6 +282,7 @@ export const getChuckCode = (
         
         fun void keyOn(float noteNumber)
         {
+            <<< "CALLED KEYON WITH ", noteNumber >>>;
             Std.mtof(offset + Std.ftom(noteNumber)) => SetOsc1Freq;
             Std.mtof(offset + Std.ftom(noteNumber) + oscOffset) - osc2Detune => SetOsc2Freq;
             // Std.mtof(offset + noteNumber) => SetOsc1Freq;
@@ -386,25 +397,38 @@ export const getChuckCode = (
 
         fun void monitorEnvelope() {
             while (adsr.state() != 0 || adsr.value() > 0.001) {
-                whole / fastestRateUpdate => now;
+                whole => now;
             }
             // Cleanup or disable this voice if needed
             // Could add back to a voice pool here
         }
         fun void keyOff(int noteNumber) {
-            adsr.keyOff();
+            <<< "CALLED KEYOFF WITH ", noteNumber >>>;
+             
+            noteNumber => adsr.keyOff;
             spork ~ monitorEnvelope();
         }
 
         fun void filterEnvelope()
         {
-            filterCutoff => float startFreq;
+            // filterCutoff => float startFreq;
 
-            while ((adsr.state() != 0 && adsr.value() == 0) == false)
+            // while ((adsr.state() != 0 && adsr.value() == 0) == false)
+            // {
+            //     // Std.fabs((filterEnv * adsr.value()) + startFreq + filterLfo.last()) => lpf.freq;
+            //      (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;   
+            //     beat => now;
+            // }
+            filterCutoff => float startFreq;
+            while((adsr.state() != 0 && adsr.value() == 0) == false)
             {
-                // Std.fabs((filterEnv * adsr.value()) + startFreq + filterLfo.last()) => lpf.freq;
-                 (filterEnv * adsr.value()) + startFreq + filterLfo.last() => lpf.freq;   
-                beat => now;
+                Std.fabs((filterEnv * adsr.value()) + startFreq + filterLfo.last()) => lpf.freq;  
+                
+                // <<< "IN HERE" >>>;                      
+                adsr.releaseTime() => now;
+                1 => adsr.keyOff;
+                
+                me.yield();
             }
         }
 
@@ -424,7 +448,8 @@ export const getChuckCode = (
             // 10::ms => now;
             //   whole/4 => now;
             // if (arpeggiatorOn == 1) {
-                (whole)/numVoices - (now % (whole)/numVoices) => now;
+                // (whole)/numVoices - (now % (whole)/numVoices) => now;
+                beat => now;
             // } else {
             //     (whole) - (now % (whole)) => now;
             // } 
@@ -493,7 +518,7 @@ export const getChuckCode = (
             {
                 0 => amount;
             }
-            5000 * (amount / 100) => filterLfo.gain;
+            500 * (amount / 100) => filterLfo.gain;
         }
             
         fun void noise(float amount)
@@ -511,7 +536,10 @@ export const getChuckCode = (
     }
     SynthVoice voice[numVoices];
 
-    for (0 => int i; i < numVoices; i++) {
+      
+
+    // for (0 => int i; i < numVoices; i++) {
+    for (0 => int i; i < testNotesArr.size(); i++) {
         ${moogGrandmotherEffects.current.cutoff.value} => voice[i].cutoff;
         ${moogGrandmotherEffects.current.rez.value} => voice[i].rez;
         ${moogGrandmotherEffects.current.env.value} => voice[i].env;
@@ -1049,26 +1077,96 @@ export const getChuckCode = (
 
     adc => audioin_SpecialFxChain =>  AudioIn_EffectsChain audioin_FxChain => Dyno audInDyno => dac;
 
+    fun void handlerPlaySingleNoteOff(Event playSingleNoteOff) {
+      playSingleNoteOff => now;
+      while (true) {
+        playSingleNoteOff => now;
+            if (testNotesArr.size() > 0) { 
+                
+                for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+                    9999.0 => testNotesArr[j];
+                    
+                    for (0 => int k; k < chuckNotesOff.size(); k++) {
+                        <<< "CHUCK NOTE OFF / TESTNOTESARR ", chuckNotesOff[k], testNotesArr[j] >>>;
+                        if (
+                            testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0 &&
+                            chuckNotesOff[k] == testNotesArr[j]
+                        ) {
+                            voice[j].keyOff(1);
+                            <<< "BOOM OFF! ",  testNotesArr[j] >>>;
+                            9999.0 => testNotesArr[j];
+                        }
+                    }
+                }
+            }
 
+      }
+    }
 
+    fun void handlerPlaySingleNote(Event playSingleNote) {
+        playSingleNote => now;
+        while (true) {
+            playSingleNote => now;
+            if (testNotesArr.size() > 0) { 
+                for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+ 
+                    if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0) {
+
+                        testNotesArr[j] => voice[j].keyOn;
+                        // if (arpeggiatorOn == 1) {
+                            // beat => now;
+                        // }
+                        // voice[j].keyOff(1);
+                    } 
+                    // voice[j].keyOff(1);
+                }
+
+                beat => now;
+                
+                for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+                    for (0 => int k; k < chuckNotesOff.size(); k++) {
+                        if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0 && chuckNotesOff[k] == testNotesArr[j]) {
+                            voice[j].keyOff(1);
+                        }
+                    }
+                    // voice[j].keyOff(1);
+                }
+                [9999.0] @=> testNotesArr;
+            }
+        }
+    }
 
     fun void handlerPlayNote(Event playANote) {
+        playANote => now;
         while (true) {
             playANote => now;
             [${
-                mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) 
-
-            }] @=> float notesArr[]; 
-            [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq)}] @=> float allFreqs[];
+                // mTFreqs && mTFreqs.length > 0 ? mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) : 9999.0
+                mTFreqs && mTFreqs.length > 0 ? mTFreqs : '9999.0'
+            }] @=> float notesArr[];
+            // <<< "NOTES_ARR ", notesArr.string() >>>; 
+            [${
+                mTFreqs && mTFreqs.length > 0 ? mTFreqs : '9999.0'
+            }] @=> float allFreqs[];
+            //  <<< "FREQS_ARR ", allFreqs.string() >>>;
             for (0 => int j; j < notesArr.size() && j < numVoices; j++) {
  
                 if (notesArr[j] > 0.00 && notesArr[j] != 9999.0) {
                     notesArr[j] => voice[j].keyOn;
-                    beat => now;
-
-                    voice[j].keyOff(1);
+                    // notesArr[j] => voice[j].SetOsc1Freq;
+                    // beat => now;
+                    if (arpeggiatorOn == 1) {
+                        beat => now;
+                    }
+                    // voice[j].keyOff(1);
                 }
             }
+            if (arpeggiatorOn == 0) {
+                beat / ${masterFastestRate} => now;
+            }
+            // for (0 => int j; j < notesArr.size() && j < numVoices; j++) {
+            //     voice[j].keyOff(1);
+            // }
         }         
     }
 
@@ -1079,7 +1177,9 @@ export const getChuckCode = (
         while (true) {
             playASTK => now;
 
-            [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq)}] @=> float allFreqs[];
+            [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq).length > 0 ? 
+                mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq) : 9999.3
+            }] @=> float allFreqs[];
             for (0 => int stk_f; stk_f < allFreqs.size() && stk_f < numVoices; stk_f++) {
                 ${activeSTKSettings}
                 ${activeSTKPlayOn}
@@ -1103,10 +1203,11 @@ export const getChuckCode = (
   
         int recurringTickCount;
         if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
-        tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
+            tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
         } else {
-        tickCount => recurringTickCount;
+            tickCount => recurringTickCount;
         }
+
 
         if (recurringTickCount >= filesArr.size()) return;
 
@@ -1136,9 +1237,34 @@ export const getChuckCode = (
     beat / fastestRateUpdate => dur step; 
 
     spork ~ handlerPlayNote(playNote);
+    spork ~ handlerPlaySingleNote(playSingleNote);
+    spork ~ handlerPlaySingleNoteOff(playSingleNoteOff);
     spork ~ handlerPlaySTK1(playSTK);
-    while(true && ${!isTestingChord})
+
+
+    me.yield(); // <<<<< DO WE WANT THIS HERE? IF SHIT BREAKS... THIS COULD BE WHY???
+
+
+
+
+    
+
+
+
+
+    while(true
+    //  && ${!isTestingChord}
+     )
     {
+
+        if (testNotesArr.size() > 0) {
+            // playNote.broadcast();
+            // playSingleNote.broadcast();
+        } else {
+            playSingleNoteOff.broadcast();
+        }
+
+
         if (now >= startTimeMeasureLoop + step) {
             fastestTickCounter + 1 => fastestTickCounter;
             <<< "TICK:", fastestTickCounter >>>;
@@ -1147,7 +1273,7 @@ export const getChuckCode = (
             step => now;     
 
         }
-        if (now >= startTimeMeasureLoop + beat) {
+        if (now >= startTimeMeasureLoop + ( beat / ${masterFastestRate} )) {
             tickCounter + 1 => tickCounter;
             spork ~ handlePlayDrumMeasure(fastestTickCounter);
             playNote.signal();
@@ -1155,12 +1281,14 @@ export const getChuckCode = (
             
            
            // me.yield(); // optional safety to yield to spork
-           startTimeMeasureLoop + beat => startTimeMeasureLoop;
+           startTimeMeasureLoop + ( beat / ${masterFastestRate} ) => startTimeMeasureLoop;
         } 
-        whole / fastestRateUpdate => now;
-        for (0 => int i; i < numVoices; i++) {
-            1 => voice[i].keyOff;
-        }
+        beat / ${masterFastestRate} => now;
+        // for (0 => int i; i < numVoices; i++) {
+        // 1 => voice[i].keyOff;
+        // }
+
+        
 
     }
 
@@ -1170,17 +1298,30 @@ export const getChuckCode = (
 
 
     // TESTING CHORDS ONLY
-    ////////////////////////////////////////////////////////////////
-    if (${!isTestingChord}) {
-    } else {
+    //////////////////////////////////////////////////////////////// (we should prob get rid of this shit!!!!)
+    // if (${!isTestingChord}) {
+    // } else {
 
     
-        spork ~ handlePlayDrumMeasure(tickCounter);
+    //     spork ~ handlePlayDrumMeasure(tickCounter);
    
-        me.yield();    
-        whole => now;
-    }
+    //     me.yield();    
+    //     whole => now;
+    // }
     ////////////////////////////////////////////////////////////////
     `;
     return newChuckCode;
 }
+
+export const noteToFreq = (note: string, octave: number): number => {
+    const names = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+    const i = names.indexOf(note.toUpperCase());
+    if (i === -1) {
+        throw new Error(`Invalid note name: ${note}`);
+    }
+
+    const midi = (octave + 1) * 12 + i; // MIDI number
+    const freq = 440 * Math.pow(2, (midi - 69) / 12); // Convert MIDI to Hz
+    return freq;
+};
+

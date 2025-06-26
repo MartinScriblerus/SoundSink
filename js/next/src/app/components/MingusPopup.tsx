@@ -213,8 +213,8 @@ const MingusPopup = ({
                 flexDirection: 'column', 
                 justifyContent: 'center', 
                 alignItems: 'center',
-                height: '32px !important',
-                maxHeight: '32px !important',
+                // height: '64px !important',
+                // maxHeight: '64px !important',
                 boxSizing: 'border-box',
                 background: 'rgba(0,0,0,0.3)',   
                 color: 'rgba(255,255,255,0.78)',           
@@ -225,34 +225,42 @@ const MingusPopup = ({
                     flexDirection: 'row',
                     justifyContent: 'center',
                     display: 'flex',
+                    backgroundColor: "rgba(255,255,255,0.078) !important",
+                    paddingLeft: '8px !important',
                     // alignItems: 'right', 
                     cursor: 'pointer',
                 }}
                 onClick={() => setIsOctaveMaxSelectOpen(!isOctaveMaxSelectOpen)}
                 >
-                    <span style={{
-                        width: "100%",
-                        pointerEvents:"none"
-                    }}>Max:</span>
+                    <div 
+                        style={{
+                            width: "100%",
+                            pointerEvents:"none",
+                            paddingTop: '8px',
+                            paddingBottom: '8px',
+                        }}
+                    >
+                        Max:</div>
                     <div
-                    ref={selectOctaveMaxRef}
-                    style={{
-                        cursor: 'pointer',
-                        fontFamily: 'monospace',
-                        fontSize: '12px',
-                        width: '100%',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        // marginLeft: '50% !important', 
-                        position: 'relative',
-                        padding: '0px',
-                        margin: '0px',
-                    }}
-                    
+                        ref={selectOctaveMaxRef}
+                        style={{
+                            cursor: 'pointer',
+                            fontFamily: 'monospace',
+                            fontSize: '12px',
+                            width: '100%',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            paddingTop: '8px',
+                            paddingBottom: '8px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            // marginLeft: '50% !important', 
+                            position: 'relative',
+                            padding: '0px',
+                            margin: '0px',
+                        }}
                     >
                     {selectedOctaveMax} 
                     </div>
@@ -317,6 +325,8 @@ const MingusPopup = ({
                     position: 'relative', 
                     flexDirection: 'row',
                     justifyContent: 'center',
+                    backgroundColor: "rgba(255,255,255,0.078) !important",
+                    paddingLeft: '8px !important',
                     display: 'flex',
                     alignItems: 'center',  
                     width: '100% !important',
@@ -328,13 +338,15 @@ const MingusPopup = ({
                 style={{
                     pointerEvents: 'none',
                     width: '100%',
+                    paddingTop: '8px',
+                    paddingBottom: '8px',
                 }}
                 >Min: </span>
                     <div
                     ref={selectOctaveMinRef}
                     style={{
                         // background: 'rgba(0,0,0,0.6)',
-                        height: '32px !important',
+                        height: '64px !important',
                         color: 'rgba(255,255,255,0.78)',
                         cursor: 'pointer',
                         fontFamily: 'monospace',
@@ -348,6 +360,8 @@ const MingusPopup = ({
                         display: 'flex',
                         flexDirection: 'column',
                         margin: '0px',
+                        paddingTop: '8px',
+                        paddingBottom: '8px',
 
                     }}
                     >
@@ -415,10 +429,13 @@ const MingusPopup = ({
                     width: '100%', 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    justifyContent: 'space-between', 
+          
+                    // justifyContent: 'space-between', 
                     alignItems: 'center', 
                     padding: '0px !important', 
-                    margin: '0px !important' 
+                    margin: '0px !important', 
+                    background: 'rgba(0,0,0,0.3)',   
+                    color: 'rgba(255,255,255,0.78)',   
                 }}
             >
                 <FormControl sx={{ 
@@ -431,7 +448,9 @@ const MingusPopup = ({
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',  
-                    height: '32px !important',
+                    backgroundColor: "rgba(255,255,255,0.078) !important",
+                    paddingLeft: '8px !important',
+                    // height: '64px !important',
                     border: '1px solid rgba(255,255,255,0.8)',
                     background: 'rgba(0,0,0,0.3)', 
                 }}
@@ -439,6 +458,8 @@ const MingusPopup = ({
                 ><span style={{
                     pointerEvents:"none",
                     width: "100%",
+                    paddingTop: '8px',
+                    paddingBottom: '8px',
                 }}>Key:</span>
                     <div
                         ref={selectKeyRef}
@@ -457,7 +478,9 @@ const MingusPopup = ({
                             overflow: 'hidden',
                             display: 'flex',
                             flexDirection: 'column',
-                            height: '32px !important',
+                            height: '64px !important',
+                            paddingTop: '8px',
+                            paddingBottom: '8px',
                         }}
                         // onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
                         >
@@ -510,24 +533,28 @@ const MingusPopup = ({
                     </div>
                     )}
                 </FormControl>
-                <FormControl sx={{ 
-                    // width: '60px', 
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    color: 'rgba(255,255,255,0.78)', 
-                    position: 'relative',
-                    justifyContent: 'center',
-                    alignItems: 'center',  
-                    height: '32px !important',
-                    border: '1px solid rgba(255,255,255,0.8)',
-                    background: 'rgba(0,0,0,0.3)', 
-                    cursor: 'pointer',
-                }}
-                onClick={() => setIsChordSelectOpen(!isChordSelectOpen)}
+                <FormControl 
+                    sx={{ 
+                        // width: '60px', 
+                        width: '100%',
+                        display: 'inline-flex',
+                        flexDirection: 'row',
+                        color: 'rgba(255,255,255,0.78)', 
+                        position: 'relative',
+                        justifyContent: 'center',
+                        alignItems: 'center',  
+
+                        backgroundColor: "rgba(255,255,255,0.078) !important",
+                        paddingLeft: '8px !important',
+                        height: '32px !important',
+                        border: '1px solid rgba(255,255,255,0.8)',
+                        background: 'rgba(0,0,0,0.3)', 
+                        cursor: 'pointer',
+                    }}
+                    onClick={() => setIsChordSelectOpen(!isChordSelectOpen)}
                 ><span style={{
-                    pointerEvents: "none",
-                    width: "100%",
+                        pointerEvents: "none",
+                        width: "100%",
                 }}>Chordz:</span>
                     <div
                         ref={selectChordRef}
@@ -617,10 +644,13 @@ const MingusPopup = ({
                         position: 'relative',
                         flexDirection: 'row',
                         justifyContent: 'center',
-                        
-                        display: 'flex',
-                        alignItems: 'center',  
                         height: '32px !important',
+                        display: 'inline-flex',
+                        alignItems: 'center',  
+                        // height: '32px !important',
+                        backgroundColor: "rgba(255,255,255,0.078) !important",
+                        paddingLeft: '8px !important',
+                        // height: '64px !important',
                         border: '1px solid rgba(255,255,255,0.8)',
                         background: 'rgba(0,0,0,0.3)', 
                         cursor: 'pointer',
@@ -630,6 +660,7 @@ const MingusPopup = ({
                     <span style={{
                         pointerEvents: 'none',
                         width: '100%',
+                        
                     }}>Scale:</span>
                     <div
                         ref={selectScaleRef}
@@ -640,6 +671,7 @@ const MingusPopup = ({
                             fontFamily: 'monospace',
                             fontSize: '12px',
                             width: '100%',
+                            
                             minWidth: '60px',
                             justifyContent: 'center',
                             alignItems: 'center',

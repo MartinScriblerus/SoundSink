@@ -17,7 +17,8 @@ const KeyboardControls = (
                 flexDirection: 'row',
                 justifyContent: 'left',
                 alignItems: 'left',
-                display: chuckHook ? 'flex': 'none',
+                // display: chuckHook ? 'flex': 'none',
+                display: 'flex',
                 fontFamily: 'monospace',
             }}>
         </Box>

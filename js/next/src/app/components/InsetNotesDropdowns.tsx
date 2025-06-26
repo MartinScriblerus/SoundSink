@@ -50,7 +50,7 @@ const InsetNotesDropdown = ({
         options.options.push({ value: f, label: f });
       }
     });
-    console.log("notes options: ", options);
+    console.log("FUQIN notes options: ", options);
     setOptionsHook(options.options);
 
     const preSelOpts = notesPreselected && Array.from(notesPreselected).length > 0 && Array.from(notesPreselected).map((i: any) => options.options[i]);

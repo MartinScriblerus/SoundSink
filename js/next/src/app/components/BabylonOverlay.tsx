@@ -19,7 +19,6 @@ const BabylonOverlay = (props: {
     visibleFXKnobs: any,
     chuckUpdateNeeded: boolean; 
     handleTurnKnob: () => void;
-    // runChuck: () => void;
     programIsOn:boolean;
     microTonalArr: any[];
     chuckHook: Chuck | undefined;

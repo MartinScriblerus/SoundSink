@@ -24,24 +24,24 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
             }}
         >
             <FormControl
-            sx={{
-                margin: '8px',
-                padding: '0px',
-                color: 'rgba(228,225,209,1)',
-                maxWidth: '76px',
-                width: '50%',
-                height: 'auto', // ✅
-            }}
+                sx={{
+                    // margin: '8px',
+                    padding: '0px',
+                    color: 'rgba(228,225,209,1)',
+                    maxWidth: '76px',
+                    width: '50%',
+                    // height: 'auto', // ✅
+                }}
             >
             <TextField
                 type="number"
                 value={cellSubdivisions}
                 onChange={(event) => {
-                const val = Number(event.target.value);
-                if (val > 0) {
-                    handleChangeCellSubdivisions(val, xVal, yVal);
-                    masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = val;
-                }
+                    const val = Number(event.target.value);
+                    if (val > 0) {
+                        handleChangeCellSubdivisions(val, xVal, yVal);
+                        masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = val;
+                    }
                 }}
                 inputProps={{
                 style: {

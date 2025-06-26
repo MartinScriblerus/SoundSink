@@ -9,9 +9,10 @@ import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from "../constants
 import InsetCheckboxDropdown from "@/app/components/InsetCheckboxDropdowns";
 import { PortalCenterModal } from "@/app/components/PortalCenterModal";
 import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
+import { Tune } from "@/tune";
 import MingusPopup from "@/app/components/MingusPopup";
-// import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js'
-// import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.esm.js'
+import InstrumentsAndMicrotones from "@/app/components/InstrumentsAndMicrotones";
+
 
 
 const MARGIN = { top: 10, right: 50, bottom: 30, left: 50 };
@@ -68,6 +69,28 @@ type RendererProps = {
   userInteractionUpdatedScore: (x: number) => void;
   handleAssignPatternNumber: (e: any) => void;
   doAutoAssignPatternNumber: number;
+
+  setStkValues: React.Dispatch<React.SetStateAction<any>>; 
+  tune: Tune;
+  currentMicroTonalScale: (scale: any) => void;
+  setFxKnobsCount: React.Dispatch<React.SetStateAction<number>>;
+  doUpdateBabylonKey: any;
+  // setBabylonKey={setBabylonKey}
+  babylonKey: string;
+  setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  currentScreen: React.MutableRefObject<string>;
+  currentFX: React.MutableRefObject<any>;
+  currentStkTypeVar: React.MutableRefObject<string>;
+  // universalSources={universalSources}
+  updateCurrentFXScreen: any;
+
+  getSTK1Preset: (x: string) => any; 
+  universalSources: React.MutableRefObject<any>;
+  updateMicroTonalScale: (scale: any) => void;
+
+  mingusKeyboardData: any;
+  mingusChordsData: any;
+  updateMingusData: (data: any) => void;
 };
 
 export const Renderer = ({
@@ -101,7 +124,21 @@ export const Renderer = ({
   testScale,
   userInteractionUpdatedScore,
   handleAssignPatternNumber,
-  doAutoAssignPatternNumber
+  doAutoAssignPatternNumber,
+
+
+  setStkValues,
+  tune,
+  currentMicroTonalScale,
+  setFxKnobsCount,
+  doUpdateBabylonKey,
+
+  getSTK1Preset,
+  universalSources,
+  updateMicroTonalScale,
+  mingusKeyboardData,
+  mingusChordsData,
+  updateMingusData,
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -370,6 +407,19 @@ export const Renderer = ({
     console.log("WHAT ARE THE FILE NUMBERS PRESELECTED? ", fileNumsPreselected);
     return fileNumsPreselected;
   }
+
+  function getNotesPreselected() {
+    console.log("JUST IN CASE FUQIN SANITY: ", masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`]);
+    const getNotesAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].note);
+    console.log("WHAT ARE THE NOTE NUMBERS ACROSS GRID? ", getNotesAcrossGrid);
+    const noteNumsPreselected = new Set(getNotesAcrossGrid);
+    console.log("WHAT ARE THE NOTE NUMBERS PRESELECTED? ", noteNumsPreselected);
+    return noteNumsPreselected;
+  }
+
+  // console.log("AYAYAY MingusKeyboardsData ", mingusKeyboardData.data);
+
+  // mingusChordsData && mingusChordsData.length > 0 && console.log("AYAYAY MingusChordsData ", JSON.parse(mingusChordsData));
   
   return (
     <Box
@@ -420,6 +470,10 @@ export const Renderer = ({
                 onClick={handleCloseEditorPopup}
               />
             </Box>
+            <Box>
+            {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[0].toString()}
+            {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[2].toString()}
+            </Box>
             <Box
                 key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
                 sx={{
@@ -433,59 +487,205 @@ export const Renderer = ({
                   minWidth: '600px',
                   // border: 'solid 0.5px rgb(175, 240, 91)',
                   borderRadius: '5px',
-                  padding: '8px',
-                  margin: '8px',
+                  padding: '4px',
+                  width: '100%',
+                  // margin: '8px',
                   color: 'rgba(255,255,255,0.78)',
+
                 }}
               >
-                        Cell: {
-                          `${currentXVal.current} | ${currentYVal.current}`
-                        }  
-                        <br/>
-                        Subdivisions: <SubdivisionsPicker
-                          xVal={currentXVal.current}
-                          yVal={currentYVal.current}
-                          masterPatternsHashHook={masterPatternsHashHook}
-                          handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-                          cellSubdivisions={cellSubdivisions}
-                        />
-                      <Box>
-            
-                        <br/>
+                <Box 
+                  style={{
+                    fontFamily: 'monospace',
+                    fontWeight: '100',
+                    color: 'rgba(255,255,255,0.78)',
+                    fontSize: '22px',
+                    paddingLeft: '8px',
+                    width: '100%',
+                    paddingTop: '8px',
+                    paddingBottom: '8px',
+                    background: 'rgba(255,255,255,0.078)',
+                    display: 'inline-block',
+                  }}
+                >
+           <span style={{
+            marginRight: "32px",
 
-                        Samples:
+           }}>
+                    Cell: {
+                      `${currentXVal.current} | ${currentYVal.current}`
+                    }  
+           </span>  
+                  <Box 
+                    sx={{
+                      display: "inline-flex",
+                      flexDirection: "row",
+                      justifyContent: "stretch",
+                      alignItems: "center",
+                      width: "50%",
+                      paddingLeft: '8px',
+                      paddingTop: "8px",
+                      fontSize: '16px',
+
+                      borderRadius: '5px',
+                      // background: 'rgba(0,0,0,0.78)',
+                      blur: "8px",
+                    }}
+                  >
+                    Subdivisions: <SubdivisionsPicker
+                      xVal={currentXVal.current}
+                      yVal={currentYVal.current}
+                      masterPatternsHashHook={masterPatternsHashHook}
+                      handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                      cellSubdivisions={cellSubdivisions}
+                    />
+                  </Box>
+                </Box>
+
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                  
+                      width: "100%",
+                      alignContent: "top",
+                      padding: "8px",
+                      gap: "8px",
+                      alignItems: "top"
+                    }}
+                  >
+                    <Box 
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        // alignItems: "center",
+                        width: "50%",
+                        alignItems: "top",
+                        border: 'solid 1px rgba(255,255,255,0.78)',
+                        borderRadius: '5px',
+                        padding: '8px',
+                      }}
+                    >        
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          flexDirection: "column",
+                          justifyContent: "stretch",
+                          alignItems: "left",
+                          width: "100%",
+                        }}
+                      >
+                        <span
+                          style={{
+                            paddingTop: "4px",
+                            paddingBottom: "8px",
+                          }}
+                        >
+                          Samples:
+                        </span>
                         <InsetCheckboxDropdown 
                           files={new Set(filesToProcess.map((f: any) => f.filename))} 
                           handleLatestSamplesFinal={handleLatestSamplesFinal} 
                           fileNumsPreselected={getFileNumsPreselected()} />
-                          <>
-                          <FormControl>
-                            <FormLabel id="demo-radio-buttons-group-label">Assignment</FormLabel>
-                            <RadioGroup
-                              aria-labelledby="demo-radio-buttons-group-label"
-                              value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}
-                              name="radio-buttons-group"
-                              onChange={handleAssignPatternNumber}
-                            >
-                              <FormControlLabel value="0" control={<Radio />} label="Unique" />
-                              <FormControlLabel value="1" control={<Radio />} label="Measure Count" />
-                              <FormControlLabel value="2" control={<Radio />} label="Beat Count" />
-                              <FormControlLabel value="3" control={<Radio />} label="Alternate Beats" />
-                              <FormControlLabel value="4" control={<Radio />} label="Every Beat" />
-                            </RadioGroup>
-                          </FormControl>
-                          </>
                       </Box>
-                      <Box>
-                        Notes:             
+              
+                        <FormControl>
+                          {/* <FormLabel id="demo-radio-buttons-group-label">Assignment</FormLabel> */}
+                          <RadioGroup
+                            aria-labelledby="demo-radio-buttons-group-label"
+                            value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}
+                            name="radio-buttons-group"
+                            onChange={handleAssignPatternNumber}
+                          >
+                            <FormControlLabel value="0" control={<Radio />} label="Unique" />
+                            <FormControlLabel value="1" control={<Radio />} label="Measure Count" />
+                            <FormControlLabel value="2" control={<Radio />} label="Beat Count" />
+                            <FormControlLabel value="3" control={<Radio />} label="Alternate Beats" />
+                            <FormControlLabel value="4" control={<Radio />} label="Every Beat" />
+                          </RadioGroup>
+                        </FormControl>
+                    
+                    </Box>
+                    
+                    <Box 
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        width: "50%",
+                        border: 'solid 1px rgba(255,255,255,0.78)',
+                        borderRadius: '5px',
+                        padding: '8px',
+                      }}
+                    >
+
+
+                      
+
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          flexDirection: "column",
+                          justifyContent: "stretch",
+                          alignItems: "left",
+                          width: "100%",
+                        }}
+                      >
+                        <span
+                          style={{
+                            paddingTop: "4px",
+                            paddingBottom: "8px",
+                          }}
+                        >
+                          Notes:
+                        </span>          
                         {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
-                        (<InsetNotesDropdown 
-                          notes={mTFreqs} 
-                          handleLatestNotesFinal={handleLatestNotesFinal} 
-                          notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
-                        />)}
+                        (<span key={`notesDropdown_${mTFreqs}`}>
+                          ???? {mTFreqs.length}
+                          <InsetNotesDropdown 
+                            notes={mTFreqs} 
+                            handleLatestNotesFinal={handleLatestNotesFinal} 
+                            // notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
+                            notesPreselected={getNotesPreselected()}
+                          />
+                        </span>)}
 
                       </Box>
+                      <Box sx={{
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        alignItems: "top",
+       
+                      }}>
+                        <MingusPopup 
+                          updateKeyScaleChord={updateKeyScaleChord}
+                          testChord={testChord}
+                          testScale={testScale}
+                        />  
+                          <InstrumentsAndMicrotones
+                              tune={tune}
+                              currentMicroTonalScale={currentMicroTonalScale}
+                              setFxKnobsCount={setFxKnobsCount}
+                              doUpdateBabylonKey={doUpdateBabylonKey}
+                              getSTK1Preset={getSTK1Preset}   
+                              updateMicroTonalScale={updateMicroTonalScale}                                   
+                          />
+                      </Box>
+
+                      {/* <MingusPopup 
+                          updateKeyScaleChord={updateKeyScaleChord}
+                          testChord={testChord}
+                          testScale={testScale}
+                      />   */}
+
+
+                    </Box>
+                  </Box>
 
               <Box 
                 key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}

@@ -74,9 +74,29 @@ const FileWindow = (props: FileWindowProps) => {
         
         try {
             const result = await response.json();
+            console.log("UPLOAD FILE RESPONSE: ", response, "RESULT: ", result);
         } catch (e) {
-            console.error('Error parsing JSON response:', e);
+            console.error('Error parsing JSON response in upload file:', e);
         }
+    }
+
+    async function transposeAudio() {
+        const filename = filesToProcess.current[filesToProcess.current.length - 1].filename;
+
+        const response = await fetch('http://localhost:8000/transpose_sample', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                file_path: filename,
+                pitch_shift: 2,     // semitone steps (e.g. +2 or -3)
+                rate_shift: 0.5     // playback speed factor (e.g. 1.0 = no change)
+            }),
+        });
+
+        const result = await response.json();
+        console.log("TRANSPOSE RESPONSE?: ", response, "RESULT: ", result);
     }
 
     async function testAudio() {
@@ -243,14 +263,18 @@ const FileWindow = (props: FileWindowProps) => {
                     overflow: "hidden",
                 }}
             >
-                <Button style={{zIndex: 9999}} onClick={onPlayPause}>
+                {/* <Button style={{zIndex: 9999}} onClick={onPlayPause}>
                     {isPlaying ? 'Pause' : 'Play'}
+                </Button> */}
+
+                <Button style={{zIndex: 9999}} onClick={testAudio}>
+                    Play
                 </Button>
                 <Button style={{zIndex: 9999}} onClick={clipAudio}>
                     Clip
                 </Button>
-                <Button style={{zIndex: 9999}} onClick={testAudio}>
-                    Test
+                <Button style={{zIndex: 9999}} onClick={transposeAudio}>
+                    Transpose
                 </Button>
                 <WaveSurferPlayer
                     height={100}
