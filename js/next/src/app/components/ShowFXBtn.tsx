@@ -23,7 +23,7 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
                 display: programIsOn ? "flex" : "none",
                 flexDirection: "row",
                 width: "100% !important",
-                background: 'rgba(0,0,0,0.78)',
+                background: 'rgba(28,28,28,0.78)',
             }} 
             direction="row" spacing={2}>
             <Button 
@@ -33,12 +33,12 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
                     flexDirection: "row",
                     width: "100%",
                     border: MUTED_OLIVE,
-                    background: 'rgba(0,0,0,0.78)',
-                    color: `rgba(0,0,0,0.78) important!`,
+                    background: 'rgba(28,28,28,0.78)',
+                    color: `rgba(28,28,28,0.78) important!`,
                     marginLeft: '0px',              
                     '&:hover': {
-                        color: 'rgba(255,255,255,0.78)',
-                        background: 'rgba(0,0,0,0.78)',
+                        color: 'rgba(245,245,245,0.78)',
+                        background: 'rgba(28,28,28,0.78)',
                     }
                 }} 
                 className={"ui_SynthLayerButton"}

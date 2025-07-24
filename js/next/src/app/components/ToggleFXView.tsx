@@ -40,8 +40,8 @@ const ToggleFXView = ({
                 transform: 'scale(0.7)',
                 minHeight: '60px',
                 border: MUTED_OLIVE,
-                background: 'rgba(0,0,0,0.78)',
-                color: `rgba(255,255,255,0.78) important!`,
+                background: 'rgba(28,28,28,0.78)',
+                color: `rgba(245,245,245,0.78) important!`,
                 display: programIsOn ? "flex" : "none",
                 marginLeft: '0px',
                 marginBottom: '4px',
@@ -49,8 +49,8 @@ const ToggleFXView = ({
                 pointerEvents: "auto",
                 cursor: "pointer",
                 '&:hover': {
-                    color: 'rgba(255,255,255,0.78)',
-                    background: 'rgba(0,0,0,0.78)',
+                    color: 'rgba(245,245,245,0.78)',
+                    background: 'rgba(28,28,28,0.78)',
                     border: `1px solid ${MUTED_OLIVE}`,
                 },
                 // pointerEvents: fxCountHandler+stkCountHandler === 0 ? 'none': 'auto'

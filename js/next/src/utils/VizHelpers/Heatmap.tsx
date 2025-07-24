@@ -42,7 +42,6 @@ type HeatmapProps = {
 
   clickHeatmapCell: any;
 
-  exitEditMode: () => void;
   isInPatternEditMode: boolean;
 
   handleLatestSamples: (    
@@ -60,9 +59,7 @@ type HeatmapProps = {
 
   mTFreqs:number[];
   mTMidiNums:number[];
-  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
-  testChord: () => void;
-  testScale: () => void;
+  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any, f: any, g: any) => void;
   userInteractionUpdatedScore: (x: number) => void;
   handleAssignPatternNumber: (e: any) => void;
   doAutoAssignPatternNumber: number;
@@ -88,6 +85,14 @@ type HeatmapProps = {
   mingusKeyboardData: any;
   mingusChordsData: any;
   updateMingusData: (data: any) => void;
+  handleChangeNotesAscending: (order: string) => void;
+  mTNames: string[];
+  fxRadioValue: string;
+  noteBuilderFocus: string;
+  handleNoteBuilder: (focus: string) => void;
+  exitEditMode: () => void;
+  handleNoteLengthUpdate: (e: any, cellData: any) => void;
+  handleNoteVelocityUpdate: (e: any, cellData: any) => void;
 };
 
 export type InteractionData = {
@@ -132,7 +137,6 @@ export const Heatmap = ({
   currentPatternCount,
 
   masterFastestRate,
-  exitEditMode,
   clickHeatmapCell,
   isInPatternEditMode,
 
@@ -142,8 +146,6 @@ export const Heatmap = ({
   mTFreqs,
   mTMidiNums,
   updateKeyScaleChord,
-  testChord,
-  testScale,
   userInteractionUpdatedScore,
   handleAssignPatternNumber,
   doAutoAssignPatternNumber,
@@ -167,54 +169,44 @@ export const Heatmap = ({
   mingusKeyboardData,
   mingusChordsData,
   updateMingusData,
-  
+  handleChangeNotesAscending,
+  mTNames,
+  fxRadioValue,
+  noteBuilderFocus,
+  handleNoteBuilder,
+  exitEditMode,
+  handleNoteLengthUpdate,
+  handleNoteVelocityUpdate,
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
 
   const theme = useTheme();
 
-  const nCol = numeratorSignature * denominatorSignature;
-  const nRow = 4;
-  const patternarr: Array<any> = [];
-  let counter = 0;
-  Array.from(Array(numeratorSignature * denominatorSignature * masterFastestRate)).forEach(()=>{
-    counter += 1;
-    patternarr.push(counter);
-  });
     
-useEffect(() => {
-  setDoRebuildHeatmap(true);
-  // exitEditMode();
-}, [doRebuildHeatmap]);
+  useEffect(() => {
+    setDoRebuildHeatmap(true);
+  }, [doRebuildHeatmap]);
 
 
-  // useEffect(() => {
-  //   console.log("patterns hash updated: ", masterPatternsHashHookUpdated);
-  // },[masterPatternsHashHookUpdated])
-
-  // useEffect(() => {
-  //   console.log("phash: ", masterPatternsHashHook);
-  // }, [masterPatternsHashHook.length])
-
-
-  // useEffect(() => {
-  //   if (updateCellColorBool) {
-  //     updateCellColor(false);
-  //   }
-  // }, [updateCellColorBool])
 
   
   type HeatmapData = { x: string; y: string; value: number }[];
-  
+    
+  const nCol = numeratorSignature * denominatorSignature;
+  const nRow = denominatorSignature;  // if that's your row count
+
+  const xLabels = Array.from({ length: nCol }, (_, i) => i + 1);
+  const yLabels = Array.from({ length: nRow }, (_, i) => i + 1);
+
   let heatmapData: HeatmapData = [];
-  
-  for (let x = 0; x < nCol; x++) {
-    for (let y = 0; y < nRow; y++) {
+
+  for (let x of xLabels) {
+    for (let y of yLabels) {
       heatmapData.push({
-        x: patternarr[x],
-        y: patternarr[y],
-        value: y !== 0 && x === (currentNumerCount % numeratorSignature) ? 9 : (y === 0 && x === (currentBeatSynthCount)) ? 18 : x,
+        x: x.toString(),
+        y: y.toString(),
+        value: x,  // or whatever makes sense
       });
     }
   }
@@ -223,10 +215,14 @@ useEffect(() => {
     setDoRebuildHeatmap(true);
   }
 
+  // console.log("ARRRR ", masterPatternsHashHook);
+
+  // THE X AND Y OF HEATMAP DATA CORRESPOND TO THE X AND Y AXIS # OF THE HEATMAP
+  // console.log("UGGG ", heatmapData);
+
+
   return (
     <Box sx={{ 
-      background: 'rgba(0,0,0,0.78)',
-      // position: "relative", 
       left: '0',
       right: '0',
       zIndex: '40',
@@ -241,91 +237,88 @@ useEffect(() => {
         width:'100%',
         justifyContent: 'center',
       }}>
-        <ArpSpeedSliders 
-          handleOsc1RateUpdate={handleOsc1RateUpdate} 
-          handleOsc2RateUpdate={handleOsc2RateUpdate}
-          handleMasterFastestRate={handleMasterFastestRate}
-          handleStkRateUpdate={handleStkRateUpdate} 
-          handleSamplerRateUpdate={handleSamplerRateUpdate} 
-          handleAudioInRateUpdate={handleAudioInRateUpdate}
-          filesToProcess={filesToProcess}
-          currentNoteVals={currentNoteVals}
-          vizSource={vizSource}
-        />  
+
         <Box sx={{
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'center',
         }}>
-          {
-            <Renderer
-              width={400}
-              height={270}
-              data={heatmapData}
-              setHoveredCell={setHoveredCell}
-              editPattern={editPattern}
+            {
+              <Renderer
+                width={400}
+                height={270}
+                data={heatmapData}
+                setHoveredCell={setHoveredCell}
+                editPattern={editPattern}
+                masterPatternsHashHook={masterPatternsHashHook}
+                masterPatternsHashHookUpdated={masterPatternsHashHookUpdated}
+                updateCellColorBool={updateCellColorBool}
+                updateCellColor={updateCellColor}
+                inPatternEditMode={inPatternEditMode}
+                filesToProcess = {filesToProcess}
+                selectFileForAssignment = {selectFileForAssignment}
+                handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                cellSubdivisions={cellSubdivisions}
+                resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
+                rebuildHeatmap={rebuildHeatmap}
+                currentBeatCountToDisplay={currentBeatCountToDisplay}
+                currentNumerCountColToDisplay={currentNumerCountColToDisplay}
+                currentDenomCount={currentDenomCount}
+                currentPatternCount={currentPatternCount}
+                clickHeatmapCell={clickHeatmapCell}
+                handleLatestSamples={handleLatestSamples}
+                handleLatestNotes={handleLatestNotes}
+                mTFreqs={mTFreqs}
+                mTMidiNums={mTMidiNums}
+                updateKeyScaleChord={updateKeyScaleChord}
+                userInteractionUpdatedScore={userInteractionUpdatedScore}
+                handleAssignPatternNumber={handleAssignPatternNumber}
+                doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+                setStkValues={setStkValues}
+                tune={tune}
+                currentMicroTonalScale={currentMicroTonalScale}
+                setFxKnobsCount={setFxKnobsCount}
+                doUpdateBabylonKey={doUpdateBabylonKey}
+                // setBabylonKey={setBabylonKey}
+                babylonKey={babylonKey}
+                setNeedsUpdate={setNeedsUpdate}
+                currentScreen={currentScreen}
+                currentFX={currentFX}
+                currentStkTypeVar={currentStkTypeVar}
+                // universalSources={universalSources}
+                updateCurrentFXScreen={updateCurrentFXScreen}
+                getSTK1Preset={getSTK1Preset} 
+                universalSources={universalSources} 
+                updateMicroTonalScale={updateMicroTonalScale}
+                mingusKeyboardData={mingusKeyboardData}
+                mingusChordsData={mingusChordsData}
+                updateMingusData={updateMingusData}
+                handleChangeNotesAscending={handleChangeNotesAscending}
+                mTNames={mTNames}
+                fxRadioValue={fxRadioValue}
+                handleOsc1RateUpdate={handleOsc1RateUpdate} 
+                handleOsc2RateUpdate={handleOsc2RateUpdate}
+                handleMasterFastestRate={handleMasterFastestRate}
+                handleStkRateUpdate={handleStkRateUpdate} 
+                handleSamplerRateUpdate={handleSamplerRateUpdate} 
+                handleAudioInRateUpdate={handleAudioInRateUpdate}
+                currentNoteVals={currentNoteVals}
+                vizSource={vizSource}
+                noteBuilderFocus={noteBuilderFocus}
+                handleNoteBuilder={handleNoteBuilder}
+                exitEditMode={exitEditMode}
+                handleNoteLengthUpdate={handleNoteLengthUpdate}
+                handleNoteVelocityUpdate={handleNoteVelocityUpdate}
+              />
+            }
+            <Tooltip 
+              interactionData={hoveredCell} 
+              width={width || 0} 
+              height={height || 0}
               masterPatternsHashHook={masterPatternsHashHook}
-              masterPatternsHashHookUpdated={masterPatternsHashHookUpdated}
-              updateCellColorBool={updateCellColorBool}
-              updateCellColor={updateCellColor}
-              inPatternEditMode={inPatternEditMode}
-              filesToProcess = {filesToProcess}
-              selectFileForAssignment = {selectFileForAssignment}
-              handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-              cellSubdivisions={cellSubdivisions}
-              resetCellSubdivisionsCounter={resetCellSubdivisionsCounter}
-              rebuildHeatmap={rebuildHeatmap}
-
-              currentBeatCountToDisplay={currentBeatCountToDisplay}
-              currentNumerCountColToDisplay={currentNumerCountColToDisplay}
-              currentDenomCount={currentDenomCount}
-              currentPatternCount={currentPatternCount}
-              clickHeatmapCell={clickHeatmapCell}
-              handleLatestSamples={handleLatestSamples}
-              handleLatestNotes={handleLatestNotes}
-              mTFreqs={mTFreqs}
-              mTMidiNums={mTMidiNums}
-              updateKeyScaleChord={updateKeyScaleChord}
-              testChord={testChord}
-              testScale={testScale}
-              userInteractionUpdatedScore={userInteractionUpdatedScore}
-              handleAssignPatternNumber={handleAssignPatternNumber}
-              doAutoAssignPatternNumber={doAutoAssignPatternNumber}
-              
-
-
-
-
-              setStkValues={setStkValues}
-              tune={tune}
-              currentMicroTonalScale={currentMicroTonalScale}
-              setFxKnobsCount={setFxKnobsCount}
-              doUpdateBabylonKey={doUpdateBabylonKey}
-              // setBabylonKey={setBabylonKey}
-              babylonKey={babylonKey}
-              setNeedsUpdate={setNeedsUpdate}
-              currentScreen={currentScreen}
-              currentFX={currentFX}
-              currentStkTypeVar={currentStkTypeVar}
-              // universalSources={universalSources}
-              updateCurrentFXScreen={updateCurrentFXScreen}
-              getSTK1Preset={getSTK1Preset} 
-              universalSources={universalSources} 
-              updateMicroTonalScale={updateMicroTonalScale}
-
-              mingusKeyboardData={mingusKeyboardData}
-              mingusChordsData={mingusChordsData}
-              updateMingusData={updateMingusData}
-              
+              isInPatternEditMode={isInPatternEditMode}
             />
-          }
-          <Tooltip 
-            interactionData={hoveredCell} 
-            width={width || 0} 
-            height={height || 0}
-            masterPatternsHashHook={masterPatternsHashHook}
-            isInPatternEditMode={isInPatternEditMode}
-          />
+
         </Box>
       </Box>
     </Box>

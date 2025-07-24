@@ -54,7 +54,7 @@ const BabylonOverlay = (props: {
             microTonalArr && microTonalArr.length > 0 && 
             hexTiles.length === 0) {
                 getHexKeyboard(game, chuckHook, microTonalArr);
-                alert("heyo has hexkeys");
+                console.log("heyo has hexkeys");
                 updateHasHexKeys(true);
         }
         if (chuckHook) {

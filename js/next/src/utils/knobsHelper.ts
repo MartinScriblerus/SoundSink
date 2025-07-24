@@ -167,3 +167,7 @@ export const updateStkKnobs = (
             }
         }
 }
+
+export const valuetext = (value: number) => {
+    return `${value}`;
+};

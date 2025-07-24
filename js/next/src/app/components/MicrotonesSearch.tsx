@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { Box, FormControl, Input } from '@mui/material';
 import microtoneDescsData from '../microtone_descriptions.json';
-import { ROYALBLUE } from '@/utils/constants';
+import { PALE_BLUE } from '@/utils/constants';
 
 interface MicrotoneOption {
   value: string;
@@ -94,15 +94,15 @@ useEffect(() => {
         position: 'relative' 
       }}
     >
-      <FormControl sx={{ width: '100%', color: 'rgba(255,255,255,0.78)' }}>
+      <FormControl sx={{ width: '100%', color: 'rgba(245,245,245,0.78)' }}>
         <div
           // ref={selectRef}
           style={{
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid #9e9e9e',
+            background: 'rgba(28,28,28,0.3)',
+            // border: '1px solid #9e9e9e',
             paddingTop: '8px',
             paddingBottom: '8px',
-            color: 'rgba(255,255,255,0.78)',
+            color: 'rgba(245,245,245,0.78)',
             cursor: 'pointer',
             fontFamily: 'monospace',
             fontSize: '12px',
@@ -127,15 +127,15 @@ useEffect(() => {
               // maxHeight: '300px',
               // overflowY: 'auto',
               // backgroundColor: ROYALBLUE,
-              // color: 'rgba(255,255,255,0.78)',
+              // color: 'rgba(245,245,245,0.78)',
               // zIndex: 9999,
               width: '100%',
               maxHeight: '450px',
               minWidth: '200px',
               fontSize: '12px',
               overflowY: 'auto',
-              background: 'rgba(0,0,0,0.78)',
-              color: 'rgba(255,255,255,0.78)',
+              background: 'rgba(28,28,28,0.78)',
+              color: 'rgba(245,245,245,0.78)',
               fontFamily: 'monospace',
               listStyle: 'none',
               padding: 0,
@@ -156,9 +156,8 @@ useEffect(() => {
                 fontFamily: 'monospace',
                 fontSize: '12px',
                 marginBottom: '8px',
-                // background: 'rgba(0,0,0,0.3)',
-                background: 'rgba(0,0,0,1)',
-                color: 'rgba(255,255,255,0.78)',
+                background: 'rgba(28,28,28,1)',
+                color: 'rgba(245,245,245,0.78)',
               }}
             />
             {/* Dropdown Options */}
@@ -167,11 +166,11 @@ useEffect(() => {
                 key={option.value}
                 onClick={() => handleSelect(option)}
                 style={{
-                  borderTop: '1px solid rgba(255,255,255,0.4)',
+                  borderTop: '1px solid rgba(245,245,245,0.4)',
                   padding: '5px',
                   cursor: 'pointer',
                   fontFamily: 'monospace',
-                  background: ROYALBLUE,
+                  background: PALE_BLUE,
                 }}
               >
                 {option.label}

@@ -16,51 +16,14 @@ import { MUTED_OLIVE, PALE_BLUE } from '@/utils/constants';
 type PedalboardProps = {
     currentChain: any;
     sourceName: string;
+    width: number;
+    height: number;
 };
 
 const ReactDiagramsPedalboard = (props: PedalboardProps) => {
-    const {currentChain, sourceName} = props;
+    const {currentChain, sourceName, width, height} = props;
 
     const theme = useTheme();
-
-
-    // // intermediate connector nodes
-    // const getNewNodes = ((source: string, nodeVarNames: string[]) => {
-    //     const userAddedNodeNames = nodeVarNames.filter(nodeName => !nodeName.includes('source') && !nodeName.includes('outlet'));
-    //     const nodesArr = [
-    //         {
-    //             id: `${sourceName}_source`,
-    //             target: [''],
-    //             source: ['']
-    //         },
-    //         {
-    //             id: `${sourceName}_outlet`,
-    //             target: [''],
-    //             source: [''],
-    //         }
-    //     ];
-     
-    //     if (userAddedNodeNames.length > 0) {
-    //         userAddedNodeNames.map((nodeName: string, idx: number) => {  
-    //             if (userAddedNodeNames.length - 1 === idx ) {
-    //                 console.log("this will likely send to outlet: ", idx, nodeName)
-    //             } 
-    //             //add in an override here for editing the order of pedals in chain...
-    //             nodesArr.splice(nodesArr.length - 1, 0,
-    //             {
-    //                 id: `${nodeName}`,
-    //                 target: [userAddedNodeNames.length - 1 === idx ? `${sourceName}_outlet` : `${sourceName}_${userAddedNodeNames[idx + 1]}`],
-    //                 source: [idx < 1 ? `${sourceName}_source` : `${sourceName}_${userAddedNodeNames[idx - 1]}`] 
-    //             });
-    //         });
-    //     } else {
-    //         nodesArr[0].target = [`${sourceName}_outlet`];
-    //         nodesArr[1].source = [`${sourceName}_source`];
-    //     }
-    //     nodesArr[0].target = [...nodesArr[0].target, `${sourceName}_${userAddedNodeNames[0]}`]; 
-    //     nodesArr[nodesArr.length - 1].source = [...nodesArr[nodesArr.length - 1].source, `${sourceName}_${userAddedNodeNames[userAddedNodeNames.length - 1]}`];
-    //     return nodesArr;
-    // });
 
     const engine = useMemo(() => {
         const engine = createEngine();
@@ -109,7 +72,8 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
             name: `${sourceName} source`,
             color: PALE_BLUE,
         });
-        node1.setPosition(0, 180);
+        const normalizedHeight = height > 200 ? height - 200 : 48;
+        node1.setPosition(32, normalizedHeight);
   
         // Node Outlet
         const node2 = new DefaultNodeModel({
@@ -117,7 +81,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
             color: PALE_BLUE,
         });
         // node2.setPosition(140, 280);
-        node2.setPosition(140, 12);
+        node2.setPosition(width - 100, 48);
         
         const newNodesFodder = currentChain && currentChain.length > 0 ? getNewNodes(sourceName, currentChain) : [];
         const newNodes: any = [];
@@ -130,7 +94,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
                 name: `${node.id}_${sourceName}`,
                 color: MUTED_OLIVE,
             });
-            newNode.setPosition(40, (idx) * 70);
+            newNode.setPosition((idx) * 80, (idx) * 48);
             newNode.addOutPort('Out');
             newNode.addInPort('In');
             newNodes.push(newNode);
@@ -175,11 +139,15 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         model.addAll(node1, node2, ...newNodes, initialLink, ...newLinks);
         engine.setModel(model);
         return engine;
-    }, [currentChain, sourceName]);
+    }, [currentChain, sourceName, width, height]);
 
     
     return(
-        <CanvasWidget engine={engine} className={'pedalboard-canvas'} />
+        <Box 
+            sx={{ width:width, height:height }}
+        >
+            <CanvasWidget engine={engine} className={'pedalboard-canvas'} />
+        </Box>
     )
 };
 

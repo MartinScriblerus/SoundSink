@@ -258,7 +258,7 @@ const FileWindow = (props: FileWindowProps) => {
                     left: "0px",
                     width: "calc(100% - 396px)",
                     // justifyContent: "stretch",
-                    background: "rgba(0,0,0,0.98)",
+                    background: "rgba(28,28,28,0.98)",
                     pointerEvents: "auto",
                     overflow: "hidden",
                 }}

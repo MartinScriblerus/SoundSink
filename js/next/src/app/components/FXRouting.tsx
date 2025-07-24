@@ -102,10 +102,10 @@ export default function FXRouting(props: FXRoutingProps) {
       flexDirection: "column",
       alignItems: "stretch",
       maxHeight: "calc(100vh - 204px)",
-      width: "180px",
+      // width: "180px",
       overflowY: "auto",
       zIndex: 1
-    }}>             
+    }}>          
         <FXCheckboxLabels
           fxValsRef={fxFX}
           handleFXGroupChange={handleFXGroupChange}

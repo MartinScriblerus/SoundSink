@@ -99,7 +99,15 @@ function BabylonScene(props: {
             // runRenderLoop: undefined,
         } as BabylonGame;
     
-
+        function desaturate(color: any, amount=0.36) {
+        // amount: 0=no change, 1=fully gray
+        const gray = (color.r + color.g + color.b) / 3;
+        return new BABYLON.Color3(
+            color.r * (1 - amount) + gray * amount,
+            color.g * (1 - amount) + gray * amount,
+            color.b * (1 - amount) + gray * amount
+        );
+        }
         if (game) game.canvas = document.querySelector(`#babylonCanvas`);
         if (!game || !game.canvas) return;
 
@@ -119,18 +127,30 @@ function BabylonScene(props: {
             // console.log('babylon game gui ', game.gui);
             
             
-            game.scene.materials.greenMat = new BABYLON.StandardMaterial("greenMat", game.scene);
-            game.scene.materials.greenMat.emissiveColor = new BABYLON.Color3(158/255, 210/255, 162/255);                
-            game.scene.materials.blueMat = new BABYLON.StandardMaterial("blueMat", game.scene);
-            game.scene.materials.blueMat.emissiveColor = new BABYLON.Color3(219/255, 230/255, 151/255);        
+            game.scene.materials.greenMat = new BABYLON.StandardMaterial("greenMat", game.scene); // THIS IS TEAL GREEN
+            // game.scene.materials.greenMat.emissiveColor = new BABYLON.Color3(158/255, 210/255, 162/255);     
+            game.scene.materials.greenMat.emissiveColor = desaturate(new BABYLON.Color3(0.16, 0.46, 0.42));
+
+            
+            game.scene.materials.blueMat = new BABYLON.StandardMaterial("blueMat", game.scene); // THIS IS PINK
+            // game.scene.materials.blueMat.emissiveColor = new BABYLON.Color3(219/255, 230/255, 151/255);  
+            game.scene.materials.blueMat.emissiveColor = desaturate(new BABYLON.Color3(0.90, 0.19, 0.49));
+             
             game.scene.materials.blackMat = new BABYLON.StandardMaterial("blackMat", game.scene);
-            game.scene.materials.blackMat.diffuseColor = new BABYLON.Color3(0/255, 0/255, 0/255);
+            game.scene.materials.blackMat.diffuseColor = new BABYLON.Color3(28/255, 28/255, 28/255);
+
             game.scene.materials.whiteMat = new BABYLON.StandardMaterial("whiteMat", game.scene);
-            game.scene.materials.whiteMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+            // game.scene.materials.whiteMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+            game.scene.materials.whiteMat.emissiveColor = new BABYLON.Color3(0.97, 0.96, 0.91);
+
             game.scene.materials.purpleMat = new BABYLON.StandardMaterial("purpleMat", game.scene);
-            game.scene.materials.purpleMat.emissiveColor = new BABYLON.Color3(144/255, 204/255, 212/255);
+            // game.scene.materials.purpleMat.emissiveColor = new BABYLON.Color3(144/255, 204/255, 212/255);
+            game.scene.materials.purpleMat.emissiveColor = desaturate(new BABYLON.Color3(0.88, 0.64, 0.19));
+
             game.scene.materials.greyMat = new BABYLON.StandardMaterial("greyMat", game.scene);
-            game.scene.materials.greyMat.emissiveColor = new BABYLON.Color3(90/255, 99/255, 111/255);
+            // game.scene.materials.greyMat.emissiveColor = new BABYLON.Color3(90/255, 99/255, 111/255);
+            game.scene.materials.greyMat.emissiveColor = new BABYLON.Color3(0.82, 0.23, 0.14);;
+
             game.scene.materials.redMat = game.scene.materials.purpleMat;
             
             const pbr = new BABYLON.PBRMaterial("pbr", game.scene);
@@ -214,7 +234,7 @@ function BabylonScene(props: {
                             game.header[i][j].paddingTop = "20px";
                             game.header[i][j].fontFamily = "monospace";
                             game.header[i][j].fontSizeInPixels = 11;
-                            game.header[i][j].color = "rgba(255,255,255,0.78)";
+                            game.header[i][j].color = "rgba(245,245,245,0.78)";
                             // console.log('WHAT IS KNOB FOR THIS EFFECT?: ', visibleFXKnobs[effectsIndex])
                             // create a slider for each knob
                             const slid = new GUI.Slider();
@@ -293,8 +313,8 @@ function BabylonScene(props: {
                                     // IF THERE ARE
                                     newMeshes[0].alwaysSelectAsActiveMesh = false;  // Reduce processing overhead
                                     newMeshes[0].doNotSyncBoundingInfo = true;  // Disable bounding box sync if unnecessary
-                                    newMeshes[0].position.y = 5.5 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
-                                    newMeshes[0].position.x = 15 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
+                                    newMeshes[0].position.y = 6 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
+                                    newMeshes[0].position.x = 19.5 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
                                     // newMeshes[0].position.y = 7  + (i % 2) * -4;          
                                     // newMeshes[0].position.x = ((-((i) * -10)) + (j * -4)) + ((i + 1) % 2) * (10) + -16; // Add offset for alternate rows
                                     newMeshes[0].position.z = zPos;

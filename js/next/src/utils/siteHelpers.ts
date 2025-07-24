@@ -73,6 +73,7 @@ export const noteToMidi = (note: string, octave: number) => {
     const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
     for (let i = 0; i < names.length; i++) {
         if (note == names[i]) {
+            
             return (octave + 1) * 12 + i;
         }
     }

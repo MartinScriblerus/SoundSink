@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material';
 import { useEffect } from 'react';
 
 function valuetext(value: number) {
-  return `${value}°C`;
+  return `${value}`;
 }
 
 const marks = [
@@ -76,7 +76,7 @@ export default function DiscreteSlider(props: SliderProps) {
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'rgba(255,255,255,0.78)'}}
+                    sx={{color: 'rgba(245,245,245,0.78)'}}
                     onChange={handleOsc1RateUpdate}
                     marks={marks}
                     min={1}
@@ -98,7 +98,7 @@ export default function DiscreteSlider(props: SliderProps) {
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'rgba(255,255,255,0.78)'}}
+                    sx={{color: 'rgba(245,245,245,0.78)'}}
                     onChange={handleOsc2RateUpdate}
                     marks={marks}
                     min={1}
@@ -120,7 +120,7 @@ export default function DiscreteSlider(props: SliderProps) {
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'rgba(255,255,255,0.78)'}}
+                    sx={{color: 'rgba(245,245,245,0.78)'}}
                     onChange={handleStkRateUpdate}
                     marks={marks}
                     min={1}
@@ -141,7 +141,7 @@ export default function DiscreteSlider(props: SliderProps) {
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'rgba(255,255,255,0.78)'}}
+                    sx={{color: 'rgba(245,245,245,0.78)'}}
                     onChange={handleSamplerRateUpdate}
                     marks={marks}
                     min={1}
@@ -163,7 +163,7 @@ export default function DiscreteSlider(props: SliderProps) {
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
-                    sx={{color: 'rgba(255,255,255,0.78)'}}
+                    sx={{color: 'rgba(245,245,245,0.78)'}}
                     onChange={handleAudioInRateUpdate}
                     marks={marks}
                     min={1}
@@ -173,7 +173,6 @@ export default function DiscreteSlider(props: SliderProps) {
         :
             <></>
     }
-        {/* </Box> */}
     </Box>
   );
 }

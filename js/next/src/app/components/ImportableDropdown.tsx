@@ -1,4 +1,4 @@
-import { ROYALBLUE } from "@/utils/constants";
+import { PALE_BLUE } from "@/utils/constants";
 import { Box, FormControl, Input } from "@mui/material";
 import React, {useRef, useState, useMemo} from "react";
 
@@ -60,14 +60,14 @@ const ImportableDropdown = (
 
     return (
         <Box sx={{ flexDirection: 'row', outline: 'none', position: 'relative' }}>
-        <FormControl sx={{ width: '180px', color: 'rgba(255,255,255,0.78)' }}>
+        <FormControl sx={{ width: '180px', color: 'rgba(245,245,245,0.78)' }}>
           <div
             // ref={selectRef}
             style={{
-              background: 'rgba(0,0,0,0.3)',
+              background: 'rgba(28,28,28,0.3)',
               border: '1px solid #9e9e9e',
               padding: '8px',
-              color: 'rgba(255,255,255,0.78)',
+              color: 'rgba(245,245,245,0.78)',
               cursor: 'pointer',
               fontFamily: 'monospace',
               fontSize: '12px',
@@ -91,8 +91,8 @@ const ImportableDropdown = (
                 width: '100%',
                 maxHeight: '300px',
                 overflowY: 'auto',
-                backgroundColor: ROYALBLUE,
-                color: 'rgba(255,255,255,0.78)',
+                backgroundColor: PALE_BLUE,
+                color: 'rgba(245,245,245,0.78)',
                 zIndex: 9999,
               }}
             >
@@ -107,8 +107,8 @@ const ImportableDropdown = (
                   fontFamily: 'monospace',
                   fontSize: '12px',
                   marginBottom: '8px',
-                  background: 'rgba(0,0,0,1)',
-                  color: 'rgba(255,255,255,0.78)',
+                  background: 'rgba(28,28,28,1)',
+                  color: 'rgba(245,245,245,0.78)',
                 }}
               />
               {/* Dropdown Options */}
@@ -117,11 +117,11 @@ const ImportableDropdown = (
                   key={option.value}
                   onClick={() => handleSelect(option)}
                   style={{
-                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                    borderTop: '1px solid rgba(245,245,245,0.4)',
                     padding: '5px',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
-                    background: ROYALBLUE,
+                    background: PALE_BLUE,
                   }}
                 >
                   {option.label}

@@ -20,6 +20,7 @@ const InsetCheckboxDropdown = ({
   const [optionsHook, setOptionsHook] = useState<any>([]);
 
   const handleChange = (selected: any) => {
+    console.log("$$ selected files: ", selected);
     handleLatestSamplesFinal(selected);
     setSelectedOptions(selected);
   };
@@ -49,10 +50,11 @@ const InsetCheckboxDropdown = ({
         options.options.push({ value: f, label: f });
       }
     });
+    // console.log("^^ file options: ", options);
     setOptionsHook(options.options);
 
     const preSelOpts = fileNumsPreselected && Array.from(fileNumsPreselected).length > 0 && Array.from(fileNumsPreselected).map((i: any) => options.options[i]);
-    setSelectedOptions(preSelOpts);
+    preSelOpts &&  preSelOpts.length && setSelectedOptions(preSelOpts);
   }, [files, files.length, fileNumsPreselected])
 
   return (

@@ -215,7 +215,7 @@ const theme = useTheme();
         width={"100%"} 
         height={height} 
         style={{
-          background: 'rgba(0,0,0,0.78)', 
+          background: 'rgba(28,28,28,0.78)', 
           minHeight: "100%",  
           flexDirection: "row-reverse", 
           overflowX: "auto"}}>

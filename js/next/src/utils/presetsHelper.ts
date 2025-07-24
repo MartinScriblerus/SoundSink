@@ -671,7 +671,7 @@ export const getFX1Preset = (fxVal: string) => {
         })
     }
     else {
-        alert('ooof in presets helper')
+        console.log('ooof in presets helper')
         // console.log('in the else of PresetsHelper');
         // theFX1Fx.push({
         //     presets: {},

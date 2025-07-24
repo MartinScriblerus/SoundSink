@@ -1,5 +1,6 @@
+import { flatToSharp } from '@/utils/chuckHelper';
 import { Box } from '@mui/material';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 interface Props {
     chuckHook: any;
@@ -10,8 +11,9 @@ interface Props {
     noteOnPlay: (midiNote: number, midiVelocity: number, midiHz?: number) => any;
     noteOffPlay: (midiNote: number) => any;
     compare: (a: any, b: any) => number;
+    noteBuilderFocus?: string;
     notesAddedDetails: any;
-    updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
+    // updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
     mingusKeyboardData: any;
     mingusChordsData: any;
 };
@@ -25,8 +27,9 @@ const Keyboard = ({
     noteOnPlay,
     noteOffPlay,
     compare,
+    noteBuilderFocus,
     notesAddedDetails,
-    updateKeyScaleChord,
+    // updateKeyScaleChord,
     mingusKeyboardData,
     mingusChordsData
 }: Props) => {
@@ -36,7 +39,11 @@ const Keyboard = ({
 
     useEffect(() => {
         if (notesAddedDetails && notesAddedDetails.length > 0) {
-            addedDetails.current = notesAddedDetails;
+            console.log("NOTES ADDED DETAILS??? : ", notesAddedDetails);
+            const noDupesAddedDetails: any = Array.from(
+                new Map(notesAddedDetails.map((note: any) => [note.midiNote, note])).values()
+              );
+            addedDetails.current = noDupesAddedDetails;
         }
     }, [notesAddedDetails]);
 
@@ -44,32 +51,30 @@ const Keyboard = ({
     //     setKeysToDisplay([]);
     // }, [mingusKeyboardData])
 
-    useEffect(() => {
 
-        const tryPlayChuckNote = (e: any) => {
-            e.preventDefault();
+    const tryPlayChuckNote = useCallback((e: any) => {
+        e.preventDefault();
     
-            const removeHyphen = e.target.id.replace('-', '');
-            const convertPoundTheNote = removeHyphen.replace('♯', '#');
-            console.log("A D D E D * D E T A I L S ! ", addedDetails);
-            addedDetails.current && addedDetails.current.length > 0 &&
-            addedDetails.current.forEach(async (d: any) => {
-                // console.log("CAN WE PLAY CHUCK NOTE??: ", d, "convertPoundTheNote ", convertPoundTheNote);
-                if (convertPoundTheNote === d.name) {
-                    console.log("TRYING TO PLAY CHUCK NOTE: ", d);
-                    noteOnPlay(d.midiNote, d.midiHz, d.midiHz); 
-                }
-                noteOffPlay(d.midiNote);
-            });
-        };
+        const removeHyphen = e.target.id.replace('-', '');
+        const convertPoundTheNote = removeHyphen.replace('♯', '#');
+    
+        // console.log("A D D E D * D E T A I L S ! ", addedDetails.current.length, addedDetails.current);
+    
+        const match:any = Array.from(addedDetails.current).find((d: any) => convertPoundTheNote === d.name);
+        if (match) {
+            // console.log("about to noteOnPlay... CHUCK NOTE match: ", match);
+            noteOnPlay(match.midiNote, match.midiHz, match.midiHz);
+        }
+    }, [addedDetails, noteOnPlay]);
 
 
+    useEffect(() => {
 
         const createKeys = async () => {
             if (keysReady) {
                 return;
             }
-            console.log("HEYA TEST UPDATE NOW???!!!*** ", updateKeysScale);
+
             const storedNamesUnparsed = localStorage.getItem('keyboard');
             const storedNames = storedNamesUnparsed ? JSON.parse(storedNamesUnparsed) : {};
 
@@ -85,8 +90,6 @@ const Keyboard = ({
                         organizeRows(i, note);
                     });
                 }
-
-                console.log("@@@#### MINGUS KEYBOARD DATA: ", mingusKeyboardData && mingusKeyboardData.length > 0 && [...mingusKeyboardData[0], ...mingusKeyboardData[0]]);
                 
                 const octave: any = i && (
                     <span id={`octSpanWrapper-${i}`} key={`octSpanWrapper-${i}`}>
@@ -108,9 +111,9 @@ const Keyboard = ({
                         <li id={`F♯-${i}`} key={`F♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`F♯${i}`}</li>
                         <li id={`G-${i}`} key={`G-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset">{`G${i}`}</li>
                         <li id={`G♯-${i}`} key={`G♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`G♯${i}`}</li>
-                        <li id={`A-${i + 1}`} key={`A-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset">{`A${i + 1}`}</li>
-                        <li id={`A♯-${i + 1}`} key={`A♯-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`A♯${i + 1}`}</li>
-                        <li id={`B-${i + 1}`} key={`B-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset half">{`B${i + 1}`}</li>
+                        <li id={`A-${i}`} key={`A-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset">{`A${i}`}</li>
+                        <li id={`A♯-${i}`} key={`A♯-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`A♯${i}`}</li>
+                        <li id={`B-${i}`} key={`B-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset half">{`B${i}`}</li>
                     </span>
                 );
 
@@ -130,46 +133,20 @@ const Keyboard = ({
     }, [
         chuckHook,
         keysToDisplay.length,
-        keysReady,compare,
-        noteOnPlay,
-        noteOffPlay,
+        keysReady,
+        compare,
+        // noteOnPlay,
+        // noteOffPlay,
+        updateKeysScale,
+        mingusKeyboardData,
         organizeRows,
-        organizeLocalStorageRows
+        organizeLocalStorageRows,
+        tryPlayChuckNote,
     ]);
 
-    const flatToSharp = (oldKeyId: string) => {
-
-        let newKeyId;
-
-        if (oldKeyId.includes('b')) {
-            if (oldKeyId.includes('A')) {
-               newKeyId = 'G#'; 
-            } else if (oldKeyId.includes('B')) {
-                newKeyId = 'A#';
-            } else if (oldKeyId.includes('D')) {
-                newKeyId = 'C#';
-            } else if (oldKeyId.includes('E')) {
-                newKeyId = 'D#';
-            } else if (oldKeyId.includes('G')) {
-                newKeyId = 'F#';
-            } else if (oldKeyId) {
-                newKeyId = oldKeyId;
-                if (oldKeyId !== "F" && oldKeyId !== "C") {
-                    console.log("what is this key?? ", oldKeyId);
-                }
-            }        
-            console.log("FLAT TO SHARP: ", oldKeyId, "/// ", newKeyId);
-        } else {
-            newKeyId = oldKeyId;
-        }
-
-
-        return newKeyId;
-    };
-
     useEffect(() => {
-        console.log("@@@ MINGUS KEYBOARD DATA: ", mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]);
-        console.log("@@@ MINGUS CHORDS DATA: ", mingusChordsData);
+        // console.log("@@@ MINGUS KEYBOARD DATA: ", mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]);
+        // console.log("@@@ MINGUS CHORDS DATA: ", mingusChordsData && typeof mingusChordsData === "string" ? JSON.parse(mingusChordsData) : mingusChordsData);
 
         if (mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]) {
             const allKeyz = document.querySelectorAll(`.vizKey`);
@@ -178,7 +155,7 @@ const Keyboard = ({
             allKeyz.forEach((key: any) => {
                 normalizedKeyId = key.id;
                 key.classList.remove('activeVizKey');
-                console.log("FUQIN KEY!!! ", key);
+                // console.log("FUQIN KEY!!! ", key);
                 normalizedKeyId = flatToSharp(key.id);
 
                 const hasMatch = normalizedKeyId && mingusKeyboardData.data[0].map((i: any) => i && i.toLowerCase()).indexOf(normalizedKeyId[0].toLowerCase())
@@ -195,6 +172,8 @@ const Keyboard = ({
                     key.classList.add('activeVizKey');
                 }
             });
+
+            // console.log("THIS IS A SANITY CHECK ON MINGUS DATA IN updateKeysScale: ", mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]);
 
             setUpdateKeysScale(mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]);
         }

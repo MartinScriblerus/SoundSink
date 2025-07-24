@@ -96,7 +96,6 @@
 //             top: '54px',
 //             height: "calc(100% - 16rem)",
 //             textAlign: "center",
-//             background: "rgba(0,0,0,0.7)",
 //             color: theme.palette.black,
 //             position: "absolute",
 //             zIndex: "1",

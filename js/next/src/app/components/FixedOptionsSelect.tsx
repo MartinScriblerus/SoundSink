@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { STKOption, stkOptions } from '../../utils/fixedOptionsDropdownData';
 
-import { NAVY, PEACH, ROYALBLUE } from '@/utils/constants';
+import { PALE_BLUE, RUSTY_ORANGE } from '@/utils/constants';
 import { Box } from '@mui/material';
 
 type Props = {
@@ -58,8 +58,8 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
                         width: '100%',
                         maxHeight: '450px',
                         overflowY: 'auto',
-                        background: 'rgba(0,0,0,0.78)',
-                        color: 'rgba(255,255,255,0.78)',
+                        background: 'rgba(28,28,28,0.78)',
+                        color: 'rgba(245,245,245,0.78)',
                         fontFamily: 'monospace',
                         fontSize: '12px',
                         listStyle: 'none',
@@ -72,10 +72,10 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
                         {stkOptions.map((option) => (
                             <li key={option.value} onClick={() => handleSelect(option)}
                                 style={{
-                                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                                    borderTop: '1px solid rgba(245,245,245,0.4)',
                                     padding: '5px',
                                     cursor: 'pointer',
-                                    background: stkValues?.some((v) => v.value === option.value) ? PEACH : ROYALBLUE,
+                                    background: stkValues?.some((v) => v.value === option.value) ? RUSTY_ORANGE : PALE_BLUE,
                                 }}>
                                 {option.label}
                             </li>

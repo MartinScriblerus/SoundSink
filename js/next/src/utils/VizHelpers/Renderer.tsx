@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { InteractionData } from "./Heatmap";
-import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, useTheme } from "@mui/material";
+import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, Slider, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
@@ -12,6 +12,12 @@ import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
 import { Tune } from "@/tune";
 import MingusPopup from "@/app/components/MingusPopup";
 import InstrumentsAndMicrotones from "@/app/components/InstrumentsAndMicrotones";
+import GenericRadioButtons from "@/app/components/GenericRadioButtons";
+import ArpSpeedSliders from "@/app/components/ArpSpeedSliders";
+import { valuetext } from "../knobsHelper";
+import NoteBuilderToggle from "@/app/components/NoteBuilderToggle";
+import { masterPatternsRef } from "@/app/state/refs";
+import VelocityLengthSliders from "@/app/components/VelocityLengthSliders";
 
 
 
@@ -22,6 +28,7 @@ interface CellData {
   notesHz: number[] | any,
   velocity: number[] | any,
   subdivisions: number;
+  length: number[] | any;
   on: boolean;
   xVal?: number | null;
   yVal?: number | null;
@@ -63,9 +70,7 @@ type RendererProps = {
   ) => void;
   mTFreqs:number[];
   mTMidiNums:number[];
-  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
-  testChord: () => void;
-  testScale: () => void;
+  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any, f: any, g: any) => void;
   userInteractionUpdatedScore: (x: number) => void;
   handleAssignPatternNumber: (e: any) => void;
   doAutoAssignPatternNumber: number;
@@ -91,6 +96,23 @@ type RendererProps = {
   mingusKeyboardData: any;
   mingusChordsData: any;
   updateMingusData: (data: any) => void;
+  handleChangeNotesAscending: (order: string) => void;
+  mTNames: string[];
+  fxRadioValue: string;
+
+  handleOsc1RateUpdate: (val: any) => void;
+  handleOsc2RateUpdate: (val: any) => void;
+  handleMasterFastestRate: (val: any) => void;
+  handleStkRateUpdate: (val: any) => void;
+  handleSamplerRateUpdate: (val: any) => void;
+  handleAudioInRateUpdate: (val: any) => void;
+  currentNoteVals: any;
+  vizSource: string;
+  noteBuilderFocus: string;
+  handleNoteBuilder: (focus: string) => void; 
+  exitEditMode: () => void;
+  handleNoteLengthUpdate: (e: any, cellData: any) => void;
+  handleNoteVelocityUpdate: (e: any, cellData: any) => void;
 };
 
 export const Renderer = ({
@@ -120,8 +142,6 @@ export const Renderer = ({
   mTFreqs,
   mTMidiNums,
   updateKeyScaleChord,
-  testChord,
-  testScale,
   userInteractionUpdatedScore,
   handleAssignPatternNumber,
   doAutoAssignPatternNumber,
@@ -139,41 +159,54 @@ export const Renderer = ({
   mingusKeyboardData,
   mingusChordsData,
   updateMingusData,
+  handleChangeNotesAscending,
+  mTNames,
+  fxRadioValue,
+  handleOsc1RateUpdate,
+  handleOsc2RateUpdate,
+  handleMasterFastestRate,
+  handleStkRateUpdate,
+  handleSamplerRateUpdate,
+  handleAudioInRateUpdate,
+  currentNoteVals,
+  vizSource,
+  noteBuilderFocus,
+  handleNoteBuilder,
+  exitEditMode,
+  handleNoteLengthUpdate,
+  handleNoteVelocityUpdate
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [showPatternEditorPopup, setShowPatternEditorPopup] = useState<boolean>(false);
   const [wavesurfer, setWavesurfer] = useState<any>(null)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
-
   const theme = useTheme();
-
   const containerRef = useRef<any>();
-
   const currentXVal = useRef<number>(0);
   const currentYVal = useRef<number>(0);
-
   const surferBlob = useRef<any>();
-
   const cellData = useRef<CellData[]>();
   const [instrument, setInstrument] = useState<string>('');
   // The bounds (=area inside the axis) is calculated by substracting the margins
   const [boundsWidth, setBoundsWidth] = useState<number>(width - MARGIN.right - MARGIN.left || 0);
   const [boundsHeight, setBoundsHeight] = useState<number>(height - MARGIN.top - MARGIN.bottom || 0);
-
   const allYGroups = useMemo(() => [...new Set(data.map((d) => d.y))], [data]);
   const allXGroups = useMemo(() => [...new Set(data.map((d) => d.x))], [data]);
-
   const [min = 0, max = 0] = d3.extent(data.map((d) => d.value)); // extent can return [undefined, undefined], default to [0,0] to fix types
 
+  const transposeValue = useRef<number>(0);
+  const transposeMax = 12;
+
   useEffect(() => {
+    console.log("YO MT FREQS!!! ", mTFreqs)
     if (width > 0 && height > 0) {
       width > 0 && width !== boundsWidth && setBoundsWidth(width - MARGIN.right - MARGIN.left);
       height > 0 && height !== boundsHeight && setBoundsHeight(height - MARGIN.top - MARGIN.bottom);
     }
     return () => {
     };
-  }, [width, height, boundsHeight, boundsWidth]);
+  }, [width, height, boundsHeight, boundsWidth, mTFreqs]);
 
   const xScale = useMemo(() => {
     return d3
@@ -197,6 +230,8 @@ export const Renderer = ({
   //   .scaleSequential()
   //   .interpolator(d3.interpolateCool)
   //   .domain([min, max]);
+
+  // THE X AND Y HERE MAP ONTO THE X AND Y AXIS OF THE HEATMAP
 
   // Build the rectangles
   const allShapes = data.map((d, i) => {
@@ -228,7 +263,7 @@ export const Renderer = ({
 
     const triggerEditPattern = async (e: any, num: any) => {
       const el: any = Object.values(e.target)[1];
-      // console.log('WTF EL??? ', el);
+      console.log('WTF EL??? ', el);
 
       inPatternEditMode(true);
 
@@ -260,7 +295,7 @@ export const Renderer = ({
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
       <React.Fragment key={`rectFillsWrapper_${d.x}_${d.y}`}>
-        {masterPatternsHashHook[`${d.y}`][`${d.x}`] &&
+        {masterPatternsHashHook && masterPatternsHashHook[`${d.y}`] && masterPatternsHashHook[`${d.y}`][`${d.x}`] &&
           Array.from(
             {
               length: masterPatternsHashHook[`${d.y}`][`${d.x}`].subdivisions
@@ -271,10 +306,12 @@ export const Renderer = ({
             }
           ).map(
             (i, idx) => {
+              // console.log("** WHAT IS THIS SHIT? ", d.x, d.y, currentBeatCountToDisplay, currentNumerCountColToDisplay)
               // const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
               return (
                 <rect
-                  key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
+                  // key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
+                  key={`main_cell_${d.x}_${d.y}`}
                   r={4}
                   id={`fill_${d.x}_${d.y}`}
                   x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
@@ -298,14 +335,14 @@ export const Renderer = ({
                               PALE_BLUE 
                             : 
                               RUSTY_ORANGE}
-                  stroke={'rgba(255,255,255,0.78)'}
+                  stroke={'rgba(245,245,245,0.78)'}
                   onClick={(e: any) => triggerEditPattern(e, d.x)}
                   onMouseEnter={(e) => {
                     setHoveredCell({
                       xLabel: d.x,
                       yLabel: d.y,
-                      xPos: x + xScale.bandwidth() + MARGIN.left,
-                      yPos: y + xScale.bandwidth() / 2 + MARGIN.top,
+                      xPos: x,
+                      yPos: y,
                       value: Math.round(d.value * 100) / 100,
                       instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
                     });
@@ -371,6 +408,8 @@ export const Renderer = ({
   const handleCloseEditorPopup = () => {
     setShowPatternEditorPopup(false);
     rebuildHeatmap();
+    exitEditMode();
+
   }
 
   const handleFillEdit = (e: any) => {
@@ -390,30 +429,38 @@ export const Renderer = ({
   const subdivisionCount = cellSubdivisions;
 
   function handleLatestSamplesFinal(selected: any) {
-    console.log("WHAT IS THE FILE NAME? ", selected);
-    handleLatestSamples(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
-    userInteractionUpdatedScore(masterPatternsHashHook);
+    console.log("WHAT IS THE FILE NAME? ", currentXVal.current, currentYVal.current, selected);
+    handleLatestSamples(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current - 1);
+    // userInteractionUpdatedScore(masterPatternsHashHook);
   }
 
   function handleLatestNotesFinal (selected: any) {
     console.log("WHAT ARE THE NOTES? ", selected);
+    console.log("CAN THESE GO IN CELL DATA")
     handleLatestNotes(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
   };
 
   function getFileNumsPreselected() {
     const getNumsAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums);
-    console.log("WHAT ARE THE FILE NUMBERS ACROSS GRID? ", getNumsAcrossGrid);
+    // console.log("WHAT ARE THE FILE NUMBERS ACROSS GRID? ", getNumsAcrossGrid);
     const fileNumsPreselected = new Set(getNumsAcrossGrid);
-    console.log("WHAT ARE THE FILE NUMBERS PRESELECTED? ", fileNumsPreselected);
+    // console.log("WHAT ARE THE FILE NUMBERS PRESELECTED? ", fileNumsPreselected);
+    // console.log("OOOF ", fileNumsPreselected);
+    // console.log("AAAF ", currentXVal.current, currentYVal.current, masterPatternsRef.current[currentXVal.current][currentYVal.current])
+    
     return fileNumsPreselected;
   }
 
   function getNotesPreselected() {
-    console.log("JUST IN CASE FUQIN SANITY: ", masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`]);
+    //console.log("JUST IN CASE FUQIN SANITY: ", masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`]);
     const getNotesAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].note);
-    console.log("WHAT ARE THE NOTE NUMBERS ACROSS GRID? ", getNotesAcrossGrid);
+    const getNotesRef = Object.values(masterPatternsRef.current[`${currentYVal.current}`][`${currentXVal.current}`].note)
+    
+    // console.log("TEST GET NOTES REF??? ", getNotesRef);
+    
+    //console.log("WHAT ARE THE NOTE NUMBERS ACROSS GRID? ", masterPatternsHashHook);
     const noteNumsPreselected = new Set(getNotesAcrossGrid);
-    console.log("WHAT ARE THE NOTE NUMBERS PRESELECTED? ", noteNumsPreselected);
+    //console.log("WHAT ARE THE NOTE NUMBERS PRESELECTED? ", noteNumsPreselected);
     return noteNumsPreselected;
   }
 
@@ -421,6 +468,14 @@ export const Renderer = ({
 
   // mingusChordsData && mingusChordsData.length > 0 && console.log("AYAYAY MingusChordsData ", JSON.parse(mingusChordsData));
   
+  const handleTransposeUpdate = (e: any) => { 
+    console.log("WHAT IS THE TRANSPOSE VALUE? ", e.target.value);
+  };
+
+
+
+  // console.log("MTNAMES??? ", mTNames);
+
   return (
     <Box
       key={`outerbox__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
@@ -430,279 +485,293 @@ export const Renderer = ({
         flexDirection: "row",
         textAlign: "center",
         justifyContent: "center",
-        alignItems: "center",
+        // alignItems: "center",
       }}
     >
       {showPatternEditorPopup && (
 
-        <PortalCenterModal onClose={()=>handleCloseEditorPopup}>
+        // <PortalCenterModal onClose={()=>handleCloseEditorPopup}>
           <Box
             key={`patternEditorPopupCloseButtonWrapper__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
             sx={{
               display: "flex",
               flexDirection: "column",
-              background: 'rgba(0,0,0,0.78)',
+              background: 'rgba(28,28,28,0.78)',
               borderRadius: '8px',
             }}>
-            <Box 
-              key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+
+            <Box>
+              {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[0].toString()}
+              {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[2].toString()}
+            </Box>
+
+            <Box
+              key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
               sx={{
-                textAlign: 'right',
-                justifyContent: "stretch",
-                alignItems: "stretch",
                 display: "flex",
-                flexDirection: "row-reverse",
-                width: "100%",
-                padding: "0",
-                margin: "0",
-                cursor: "pointer",
+                flexDirection: "column",
+                fontFamily: 'monospace',
+                fontWeight: "100",
+                // marginLeft: "32px",                
+                textAlign: 'left',
+                borderRadius: '5px',
+                padding: '4px',
+                width: '100%',
+                // maxWidth: '320px',
+                color: 'rgba(245,245,245,0.78)',
+
               }}
             >
-              <CloseIcon
-                sx={{
-                  zIndex: '9999',
-                  display: "flex",
-                  color: 'rgba(255,255,255,0.78)',
-                  textAlign: 'right',
-                  // width: '100%',
-                }}
-                key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                onClick={handleCloseEditorPopup}
-              />
-            </Box>
-            <Box>
-            {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[0].toString()}
-            {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[2].toString()}
-            </Box>
-            <Box
-                key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  fontFamily: 'monospace',
-                  fontWeight: '100',
-                  // marginRight: '100px',
-                  
-                  textAlign: 'left',
-                  minWidth: '600px',
-                  // border: 'solid 0.5px rgb(175, 240, 91)',
-                  borderRadius: '5px',
-                  padding: '4px',
-                  width: '100%',
-                  // margin: '8px',
-                  color: 'rgba(255,255,255,0.78)',
-
-                }}
-              >
                 <Box 
                   style={{
                     fontFamily: 'monospace',
                     fontWeight: '100',
-                    color: 'rgba(255,255,255,0.78)',
+                    color: 'rgba(245,245,245,0.78)',
                     fontSize: '22px',
                     paddingLeft: '8px',
                     width: '100%',
                     paddingTop: '8px',
                     paddingBottom: '8px',
-                    background: 'rgba(255,255,255,0.078)',
+                    background: 'rgba(245,245,245,0.078)',
                     display: 'inline-block',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-           <span style={{
-            marginRight: "32px",
+                  <span style={{
+                    marginRight: "12px",
 
-           }}>
+                  }}>
                     Cell: {
                       `${currentXVal.current} | ${currentYVal.current}`
                     }  
-           </span>  
+                  </span>  
                   <Box 
                     sx={{
                       display: "inline-flex",
                       flexDirection: "row",
                       justifyContent: "stretch",
                       alignItems: "center",
-                      width: "50%",
-                      paddingLeft: '8px',
                       paddingTop: "8px",
                       fontSize: '16px',
-
                       borderRadius: '5px',
-                      // background: 'rgba(0,0,0,0.78)',
                       blur: "8px",
                     }}
                   >
-                    Subdivisions: <SubdivisionsPicker
+                    Subdivs: <SubdivisionsPicker
                       xVal={currentXVal.current}
                       yVal={currentYVal.current}
                       masterPatternsHashHook={masterPatternsHashHook}
                       handleChangeCellSubdivisions={handleChangeCellSubdivisions}
                       cellSubdivisions={cellSubdivisions}
                     />
+                    <Box 
+                      key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                      sx={{
+                        textAlign: 'right',
+                        justifyContent: "stretch",
+                        alignItems: "stretch",
+                        display: "flex",
+                        flexDirection: "row-reverse",
+                        width: "100%",
+                        padding: "0",
+                        margin: "0",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <CloseIcon
+                        sx={{
+                          zIndex: '9999',
+                          display: "flex",
+                          color: 'rgba(245,245,245,0.78)',
+                          textAlign: 'right',
+                          // width: '100%',
+                        }}
+                        key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+                        onClick={handleCloseEditorPopup}
+                      />
+                    </Box>
                   </Box>
                 </Box>
 
+                {fxRadioValue && fxRadioValue.toLowerCase().includes("sample") && (           
+                <Box 
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    // justifyContent: "space-between",
+                    // alignItems: "center",
+                    // width: "50%",
+                    alignItems: "top",
+                    border: 'solid 1px rgba(245,245,245,0.78)',
+                    borderRadius: '5px',
+                    padding: '8px',
+                    // maxWidth: '320px',
+                  }}
+                >        
                   <Box
                     sx={{
                       display: "inline-flex",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                  
+                      flexDirection: "column",
+                      justifyContent: "stretch",
+                      alignItems: "left",
                       width: "100%",
-                      alignContent: "top",
-                      padding: "8px",
-                      gap: "8px",
-                      alignItems: "top"
+                      height: "fit-content",
                     }}
                   >
-                    <Box 
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        // alignItems: "center",
-                        width: "50%",
-                        alignItems: "top",
-                        border: 'solid 1px rgba(255,255,255,0.78)',
-                        borderRadius: '5px',
-                        padding: '8px',
-                      }}
-                    >        
-                      <Box
-                        sx={{
-                          display: "inline-flex",
-                          flexDirection: "column",
-                          justifyContent: "stretch",
-                          alignItems: "left",
-                          width: "100%",
-                        }}
-                      >
-                        <span
-                          style={{
-                            paddingTop: "4px",
-                            paddingBottom: "8px",
-                          }}
-                        >
-                          Samples:
-                        </span>
-                        <InsetCheckboxDropdown 
-                          files={new Set(filesToProcess.map((f: any) => f.filename))} 
-                          handleLatestSamplesFinal={handleLatestSamplesFinal} 
-                          fileNumsPreselected={getFileNumsPreselected()} />
-                      </Box>
-              
-                        <FormControl>
-                          {/* <FormLabel id="demo-radio-buttons-group-label">Assignment</FormLabel> */}
-                          <RadioGroup
-                            aria-labelledby="demo-radio-buttons-group-label"
-                            value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}
-                            name="radio-buttons-group"
-                            onChange={handleAssignPatternNumber}
-                          >
-                            <FormControlLabel value="0" control={<Radio />} label="Unique" />
-                            <FormControlLabel value="1" control={<Radio />} label="Measure Count" />
-                            <FormControlLabel value="2" control={<Radio />} label="Beat Count" />
-                            <FormControlLabel value="3" control={<Radio />} label="Alternate Beats" />
-                            <FormControlLabel value="4" control={<Radio />} label="Every Beat" />
-                          </RadioGroup>
-                        </FormControl>
-                    
-                    </Box>
-                    
-                    <Box 
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        width: "50%",
-                        border: 'solid 1px rgba(255,255,255,0.78)',
-                        borderRadius: '5px',
-                        padding: '8px',
+                    <span
+                      style={{
+                        paddingTop: "4px",
+                        paddingBottom: "8px",
                       }}
                     >
-
-
+                      {/* Samples: */}
                       
-
-                      <Box
+                    </span>
+                    <InsetCheckboxDropdown 
+                      files={new Set(filesToProcess.map((f: any) => f.filename))} 
+                      handleLatestSamplesFinal={handleLatestSamplesFinal} 
+                      fileNumsPreselected={getFileNumsPreselected()} />
+                  </Box>
+          
+                    <FormControl>
+                      {/* <FormLabel>Repeats</FormLabel> */}
+                      <RadioGroup
+                        aria-labelledby="demo-radio-buttons-group-label"
+                        value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}
+                        name="radio-buttons-group"
+                        onChange={handleAssignPatternNumber}
                         sx={{
-                          display: "inline-flex",
-                          flexDirection: "column",
-                          justifyContent: "stretch",
-                          alignItems: "left",
-                          width: "100%",
+                          display: "flex",
+                          flexDirection: "row", 
                         }}
                       >
-                        <span
-                          style={{
-                            paddingTop: "4px",
-                            paddingBottom: "8px",
-                          }}
-                        >
-                          Notes:
-                        </span>          
-                        {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
-                        (<span key={`notesDropdown_${mTFreqs}`}>
-                          ???? {mTFreqs.length}
-                          <InsetNotesDropdown 
-                            notes={mTFreqs} 
-                            handleLatestNotesFinal={handleLatestNotesFinal} 
-                            // notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
-                            notesPreselected={getNotesPreselected()}
-                          />
-                        </span>)}
-
-                      </Box>
-                      <Box sx={{
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        alignItems: "top",
-       
-                      }}>
-                        <MingusPopup 
-                          updateKeyScaleChord={updateKeyScaleChord}
-                          testChord={testChord}
-                          testScale={testScale}
-                        />  
-                          <InstrumentsAndMicrotones
-                              tune={tune}
-                              currentMicroTonalScale={currentMicroTonalScale}
-                              setFxKnobsCount={setFxKnobsCount}
-                              doUpdateBabylonKey={doUpdateBabylonKey}
-                              getSTK1Preset={getSTK1Preset}   
-                              updateMicroTonalScale={updateMicroTonalScale}                                   
-                          />
-                      </Box>
-
-                      {/* <MingusPopup 
-                          updateKeyScaleChord={updateKeyScaleChord}
-                          testChord={testChord}
-                          testScale={testScale}
-                      />   */}
-
-
-                    </Box>
+                        <FormControlLabel value="0" control={<Radio />} label="0" />
+                        <FormControlLabel value="1" control={<Radio />} label="2" />
+                        <FormControlLabel value="2" control={<Radio />} label="4" />
+                        <FormControlLabel value="3" control={<Radio />} label="8" />
+                        <FormControlLabel value="4" control={<Radio />} label="16" />
+                      </RadioGroup>
+                    </FormControl>
+                    <Slider
+                        aria-label="TransposeSlider"
+                        value={transposeValue.current}
+                        getAriaValueText={valuetext}
+                        valueLabelDisplay="auto"
+                        step={null}
+                        sx={{color: 'rgba(245,245,245,0.78)'}}
+                        onChange={handleTransposeUpdate}
+                        // marks={marks}
+                        min={1}
+                        max={transposeMax}
+                        color="secondary"
+                    />
+                </Box>)}
+      
+                {fxRadioValue && fxRadioValue.toLowerCase().includes("osc") && (          
+                <Box 
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    // width: "50%",
+                    border: 'solid 1px rgba(245,245,245,0.78)',
+                    borderRadius: '5px',
+                    padding: '8px',
+                    height: "100% !important",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      flexDirection: "column",
+                      justifyContent: "stretch",
+                      alignItems: "left",
+                      width: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        paddingTop: "4px",
+                        paddingBottom: "8px",
+                        display: "inline-flex",
+                        flexDirection: "row",
+                      }}
+                    >
+                      {/* Notes: */}
+                      {/* <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} /> */}
+                    </span>          
+                    {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
+                    (<Box sx={{
+                      display: "grid",
+                      // flexDirection: "row",
+                      gridTemplateColumns: "2fr 1fr",
+                      width: "100%",
+                    }}>
+                      <span key={`notesDropdown_${mTFreqs}`}>
+                        <InsetNotesDropdown 
+                          // notes={mTFreqs} 
+                          notes={mTNames} 
+                          handleLatestNotesFinal={handleLatestNotesFinal} 
+                          // notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
+                          notesPreselected={getNotesPreselected()}
+                        />
+                      </span>                          
+                      <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
+                    </Box>)}
+                    <VelocityLengthSliders 
+                      handleNoteLengthUpdate={handleNoteLengthUpdate}
+                      handleNoteVelocityUpdate={handleNoteVelocityUpdate}
+                      cellData={cellData.current}
+                    />
                   </Box>
+                  <Box sx={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    alignItems: "top",
+                  }}>
+                    <NoteBuilderToggle 
+                        noteBuilderFocus={noteBuilderFocus}
+                        handleNoteBuilderToggle={handleNoteBuilder}
+                    />                        
+                    <MingusPopup 
+                      updateKeyScaleChord={updateKeyScaleChord}
+                      noteBuilderFocus={noteBuilderFocus}
 
-              <Box 
-                key={`testanotherwrapperkey_${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                sx={{
-                  display: "flex", 
-                  flexDirection: "row",
-                  width: "calc(100% - 200px)",
-                  height: "100%",
-                  position: "relative",
-                  boxSizing: "border-box"
-                }}
-              >
-              </Box>
+                      tune={tune}
+                      currentMicroTonalScale={currentMicroTonalScale}
+                      setFxKnobsCount={setFxKnobsCount}
+                      doUpdateBabylonKey={doUpdateBabylonKey}
+                      getSTK1Preset={getSTK1Preset}   
+                      updateMicroTonalScale={updateMicroTonalScale}  
+                    />  
+                  </Box>
+                </Box>)}
             </Box>
           </Box>
-        </PortalCenterModal>
       )}
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          padding: "8px",
+        }}
+      >
+      <ArpSpeedSliders 
+        handleOsc1RateUpdate={handleOsc1RateUpdate} 
+        handleOsc2RateUpdate={handleOsc2RateUpdate}
+        handleMasterFastestRate={handleMasterFastestRate}
+        handleStkRateUpdate={handleStkRateUpdate} 
+        handleSamplerRateUpdate={handleSamplerRateUpdate} 
+        handleAudioInRateUpdate={handleAudioInRateUpdate}
+        filesToProcess={filesToProcess}
+        currentNoteVals={currentNoteVals}
+        vizSource={vizSource}
+      />  
+
       {width && height && boundsWidth && boundsHeight && <svg
         key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
         width={width || 0}
@@ -723,6 +792,7 @@ export const Renderer = ({
           {yLabels}
         </g>
       </svg>}
+      </Box>
     </Box>
   );
 };

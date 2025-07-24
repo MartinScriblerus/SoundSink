@@ -39,7 +39,7 @@ const CheckedFXRadioBtns = (props: Props) => {
                         checkedEffectsListHook && checkedEffectsListHook.length > 0 && checkedEffectsListHook.forEach((cFX: any) => {
                             <FormControlLabel 
                             key={`${cFX}_fx_radio_btn`}
-                                sx={{color: 'rgba(255,255,255,0.78)'}}
+                                sx={{color: 'rgba(245,245,245,0.78)'}}
                                 value={`${cFX}`} 
                                 control={<Radio />} 
                                 label={`YOO${cFX}`} />

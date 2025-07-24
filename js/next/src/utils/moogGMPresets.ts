@@ -100,7 +100,7 @@ const moogGMPresets = {
     adsrAttack: {
         name: "adsrAttack",
         label: "Attack",
-        value: 0.1,
+        value: 0.12,
         min: 0.0,
         max: 1.0,
         fxType: "default",
@@ -109,7 +109,7 @@ const moogGMPresets = {
     adsrDecay: {
         name: "adsrDecay",
         label: "Decay",
-        value: 0.1,
+        value: 0.25,
         min: 0.0,
         max: 1.0,
         fxType: "default",
@@ -118,7 +118,7 @@ const moogGMPresets = {
     adsrSustain: {
         name: "adsrSustain",
         label: "Sustain",
-        value: 0.1, // should this be a float?
+        value: 0.01, // should this be a float?
         min: 0.0,
         max: 1.0,
         fxType: "default",
@@ -127,7 +127,7 @@ const moogGMPresets = {
     adsrRelease: {
         name: "adsrRelease",
         label: "Release",
-        value: 0.1,
+        value: 0.01,
         min: 0.0,
         max: 1.0,
         fxType: "default",
@@ -136,7 +136,7 @@ const moogGMPresets = {
     limiterAttack: {
         name: "limiterAttack",
         label: "Limit Attack",
-        value: 0,
+        value: 50,
         min: 0,
         max: 100,
         fxType: "default",
@@ -154,7 +154,7 @@ const moogGMPresets = {
     lfoFreq: {
         name: "lfoFreq",
         label: "Lfo Freq",
-        value: 0,
+        value: 440,
         min: 0,
         max: 1000,
         fxType: "default",

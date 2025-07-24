@@ -493,3 +493,113 @@ export const spectacleDefault = {
     },
 };
 
+export const getChord = (label: string, chords: any) => {
+    console.log("label?? ", label);
+    console.log("chords?? ", chords);
+    const theChord = [];
+    if (label === 'Major Triad') {
+        theChord.push(...chords.I.MAJOR[0]);
+    } else if (label === 'Minor Triad') {
+        theChord.push(...chords.I.MINOR);
+    } else if (label === 'Augmented Triad') {
+        theChord.push(...chords.I.AUGMENTED);
+    } else if (label === 'Diminished Triad') {
+        theChord.push(...chords.I.DIMINISHED);
+    } 
+    else if (label === 'Hendrix Chord') {
+        theChord.push(...chords.I.CHORD_HENDRIX);
+    }
+
+    // else if (label === 'Inversion 1') {
+    //     theChord.push(...chords.I.INVERSION_1[0]);
+    // } else if (label === 'Inversion 2') {
+    //     theChord.push(...chords.I.INVERSION_2[0]);
+    // } else if (label === 'Inversion 3') {
+    //     theChord.push(...chords.I.INVERSION_3[0]);
+    // }
+
+    // else if (label === 'Suspended Triad') {
+    //     theChord.push(...chords.I.SUSPENDED_TRIAD[0]);
+    // } 
+    else if (label === 'Suspended Second Triad') {
+        theChord.push(...chords.I.SUSPENDED_SECOND_TRIAD);
+    } else if (label === 'Suspended Fourth Triad') {
+        theChord.push(...chords.I.SUSPENDED_FOURTH_TRIAD);
+    } else if (label === 'Suspended Fourth Ninth') {
+        theChord.push(...chords.I.SUSPENDED_FOURTH_NINTH);
+    } else if (label === 'Suspended Seventh') {
+        theChord.push(...chords.I.SUSPENDED_SEVENTH);
+    } else if (label === 'Minor Second') {
+        theChord.push(...chords.I.MIN_SECOND);
+    } else if (label === 'Minor Third') {
+        theChord.push(...chords.I.MIN_THIRD);
+    } else if (label === 'Major Fourth') {
+        theChord.push(...chords.I.MAJ_FOURTH);
+    } else if (label === 'Perfect Fourth') {
+        theChord.push(...chords.I.PERFECT_FOURTH);
+    } else if (label === 'Major Fifth') {
+        theChord.push(...chords.I.MAJ_FIFTH);
+    } else if (label === 'Minor Fifth') {
+        theChord.push(...chords.I.MIN_FIFTH);
+    } else if (label === 'Perfect Fifth') {
+        theChord.push(...chords.I.PERFECT_FIFTH);
+    } else if (label === 'Major Sixth') {
+        theChord.push(...chords.I.MAJ_SIXTH);
+    } else if (label === 'Dominant Sixth') {
+        theChord.push(...chords.I.DOMINANT_SIXTH);
+    } else if (label === 'Sixth Ninth') {
+        theChord.push(...chords.I.SIXTH_NINTH);
+    } else if (label === 'Minor Sixth') {
+        theChord.push(...chords.I.MIN_SIXTH);
+    } else if (label === 'Major Seventh') {
+        theChord.push(...chords.I.MAJ_SEVENTH);
+    } else if (label === 'Minor Seventh') {
+        theChord.push(...chords.I.MIN_SEVENTH);
+    } else if (label === 'Augmented Major Seventh') {
+        theChord.push(...chords.I.AUGMENTED_MAJ_SEVENTH);
+    } else if (label === 'Augmented Minor Seventh') {
+        theChord.push(...chords.I.AUGMENTED_MIN_SEVENTH);
+    } else if (label === 'Half Diminished Seventh') {
+        theChord.push(...chords.I.HALF_DIMINISHED_SEVENTH);
+    } else if (label === 'Dominant Sixth') {  
+        theChord.push(...chords.I.DOMINANT_SIXTH);
+    } else if (label === 'Augmented Major Seventh') {
+        theChord.push(...chords.I.AUGMENTED_MAJ_SEVENTH);
+    } else if (label === 'Augmented Minor Seventh') {
+        theChord.push(...chords.I.AUGMENTED_MIN_SEVENTH);
+    } else if (label === 'Lydian Dominant Seventh') {
+        theChord.push(...chords.I.LYDIAN_DOMINANT_SEVENTH);
+    // } else if (label === 'Sixth Ninth') {
+    //     theChord.push(...chords.I.SIXTH_NINTH[0]);
+    } else if (label === 'Major Ninth') {
+        theChord.push(...chords.I.MAJOR_NINTH);
+    } else if (label === 'Minor Ninth') {
+        theChord.push(...chords.I.MINOR_NINTH);
+    } else if (label === 'Dominant Ninth') {
+        theChord.push(...chords.I.DOMINANT_NINTH);
+    } else if (label === 'Dominant Sharp Ninth') {
+        theChord.push(...chords.I.DOMINANT_SHARP_NINTH);
+    } else if (label === 'Dominant Flat Ninth') {
+        theChord.push(...chords.I.DOMINANT_FLAT_NINTH);
+    } else if (label === 'Major Eleventh') {
+        theChord.push(...chords.I.MAJOR_ELEVENTH);
+    } else if (label === 'Major Thirteenth') {
+        theChord.push(...chords.I.MAJOR_THIRTEENTH);
+    } else if (label === 'Minor Thirteenth') {
+        theChord.push(...chords.I.MINOR_THIRTEENTH);
+    } else if (label === 'Dominant Thirteenth') {
+        theChord.push(...chords.I.DOMINANT_THIRTEENTH);
+    } 
+    else {}
+    return theChord;
+}
+
+export function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+

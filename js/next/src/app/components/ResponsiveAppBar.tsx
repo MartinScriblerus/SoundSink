@@ -100,7 +100,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
   };
 
   return (
-    <Box sx={{ height: "64px", borderBottom: "solid 0.5px rgba(255,255,255,0.78)" }}>
+    <Box sx={{ height: "64px", borderBottom: chuckHook ? "solid 1px #ff6a00" : "transparent" }}>
       <Box 
         sx={{ 
           minHeight: '54px !important', 
@@ -134,7 +134,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                       <Box
                         className="countWrapper"
                         sx={{
-                            color: "rgba(255,255,255,0.78)",
+                            color: "rgba(245,245,245,0.78)",
                             position: "relative",
                             pointerEvents: "none",
                             display: "flex",
@@ -167,8 +167,10 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             display: "flex", 
             flexDirection: "row", 
             position: "absolute", 
-            right: "96px", 
-            marginRight: "8px"
+            // right: "96px", 
+            right: "0px",
+            marginRight: "8px",
+            padding: "4px",
           }}>
           {/* RECORD */}
           <Box sx={{ 
@@ -183,9 +185,9 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               {chuckHook && (
                 <Button
                 sx={{
-                  border:'rgba(255,255,255,0.78)',
-                  backgroundColor: chuckHook && 'rgba(0,0,0,0.78)',
-                  color: 'rgba(255,255,255,0.78)',
+                  border:'rgba(245,245,245,0.78)',
+                  backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
+                  color: 'rgba(245,245,245,0.78)',
                   height: '48px',
               
                   width: '100px',
@@ -196,7 +198,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                   pointerEvents: "auto",
                   cursor: "pointer",
                   '&:hover': {
-                    color: 'rgba(255,255,255,0.78)',
+                    color: 'rgba(245,245,245,0.78)',
                     background: RUSTY_ORANGE,
                   }
                 }}
@@ -220,9 +222,9 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           {chuckHook && (
             <Button
               sx={{
-                border:'rgba(255,255,255,0.78)',
-                backgroundColor: chuckHook && 'rgba(0,0,0,0.78)',
-                color: 'rgba(255,255,255,0.78)',
+                border:'rgba(245,245,245,0.78)',
+                backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
+                color: 'rgba(245,245,245,0.78)',
                 height: '48px',
             
                 width: '100px',
@@ -233,7 +235,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 pointerEvents: "auto",
                 cursor: "pointer",
                 '&:hover': {
-                  color: 'rgba(255,255,255,0.78)',
+                  color: 'rgba(245,245,245,0.78)',
                   background: FOREST_GREEN,
                   // border: `1px solid ${theme.palette.black}`,
                 }
@@ -257,9 +259,9 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             {chuckHook && (
               <Button
                 sx={{
-                  color: 'rgba(255,255,255,0.78)',
-                  border: `solid 1px rgba(0,0,0,0.78)`,
-                  backgroundColor: 'rgba(0,0,0,0.78)',
+                  color: 'rgba(245,245,245,0.78)',
+                  border: `solid 1px rgba(28,28,28,0.78)`,
+                  backgroundColor: 'rgba(28,28,28,0.78)',
                   height: '48px',
                   width: '100px',
                   marginRight: '8px',
@@ -268,7 +270,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                   pointerEvents: 'auto',
                   cursor: 'pointer',
                   '&:hover': {
-                    color: 'rgba(255,255,255,0.78)',
+                    color: 'rgba(245,245,245,0.78)',
                     background: PALE_BLUE,
                     // border: `1.5px solid ${theme.palette.black}`,
                   }
@@ -284,7 +286,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           </Box>
         </Box>
         </Box>
-        <GenericToggle 
+        {/* <GenericToggle 
           handleSwitchToggle={handleSwitchToggle}
           programIsOn={programIsOn}
           handleToggleArpeggiator={handleToggleArpeggiator}
@@ -341,7 +343,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             </MenuItem>
           ))}
           </Menu>
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   );

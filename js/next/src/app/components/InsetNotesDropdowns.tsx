@@ -1,70 +1,65 @@
 import React, { useEffect, useState } from 'react';
-import Select, { GroupBase, StylesConfig } from 'react-select';
+import Select, { StylesConfig } from 'react-select';
 
-const options: any =
-    {
-      label: 'All Samples',
-      options: new Array(),
-    };
+type NoteOption = { value: string; label: string };
 
-const InsetNotesDropdown = ({
+interface Props {
+  notes: string[];
+  handleLatestNotesFinal: (selected: NoteOption[]) => void;
+  notesPreselected: any; // assumed to be indices of `notes`
+}
+
+const InsetNotesDropdown: React.FC<Props> = ({
   notes,
   handleLatestNotesFinal,
   notesPreselected,
-}: {
-  notes: any;
-  handleLatestNotesFinal: (x: any) => void;
-  notesPreselected: any;
 }) => {
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const [optionsHook, setOptionsHook] = useState<any>([]);
+  const [selectedOptions, setSelectedOptions] = useState<NoteOption[]>([]);
+  const [optionsHook, setOptionsHook] = useState<NoteOption[]>([]);
 
   const handleChange = (selected: any) => {
     handleLatestNotesFinal(selected);
-    console.log("selected notes????: ", selected);
     setSelectedOptions(selected);
   };
 
-  const colorStyles: StylesConfig<any, true> = {
+  const colorStyles: StylesConfig<NoteOption, true> = {
     control: (styles) => ({ ...styles, backgroundColor: 'white' }),
-    option: (styles, { data, isDisabled, isFocused, isSelected }) => {
-      return {
-        ...styles,
-        backgroundColor: 'white',
-        color: 'black',
-        cursor: isDisabled ? 'not-allowed' : 'default',
-        ':hover': {
-          backgroundColor: 'lightgray',
-        },
-        ':active': {
-          ...styles[':active'],
-          backgroundColor: 'green'
-        },
-      };
-    }
+    option: (styles, { isDisabled }) => ({
+      ...styles,
+      backgroundColor: 'white',
+      color: 'black',
+      minWidth: '180px',
+      cursor: isDisabled ? 'not-allowed' : 'default',
+      ':hover': { backgroundColor: 'lightgray' },
+      ':active': { backgroundColor: 'green' },
+    }),
   };
 
   useEffect(() => {
-    notes.forEach((f: any) => {
-      if (options.options && options.options.map((o: any) => o.value).indexOf(f) === -1) {
-        options.options.push({ value: f, label: f });
-      }
-    });
-    console.log("FUQIN notes options: ", options);
-    setOptionsHook(options.options);
+    const options = notes.map((note) => ({
+      value: note,
+      label: note,
+    }));
 
-    const preSelOpts = notesPreselected && Array.from(notesPreselected).length > 0 && Array.from(notesPreselected).map((i: any) => options.options[i]);
-    setSelectedOptions(preSelOpts);
-  }, [notes, notes.length, notesPreselected])
+    console.log("^^ NOTE options: ", options);
+    setOptionsHook(options);
+
+    if (Array.isArray(notesPreselected)) {
+      const preSelected = notesPreselected
+        .map((i) => options[i])
+        .filter(Boolean);
+      preSelected.length < 1 && setSelectedOptions(preSelected);
+    }
+  }, [notes, notesPreselected]);
 
   return (
-    <>{optionsHook && <Select
+    <Select
       isMulti
       options={optionsHook}
       onChange={handleChange}
       value={selectedOptions}
       styles={colorStyles}
-    />}</>
+    />
   );
 };
 

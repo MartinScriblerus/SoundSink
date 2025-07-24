@@ -196,7 +196,7 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
                 const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                 const textBlock = new BABYLON.GUI.TextBlock();
                 textBlock.text = noteName;
-                textBlock.color = 'rgba(255,255,255,0.78)';
+                textBlock.color = 'rgba(245,245,245,0.78)';
                 textBlock.fontSize = 100;
                 advancedTexture.addControl(textBlock);
 
