@@ -160,7 +160,7 @@ export default function InitializationComponent() {
 
     const [fxKnobsCount, setFxKnobsCount] = useState<number>(0);
     const [fXChainKey, setFXChainKey] = useState<string>('');
-    const [needsUpdate, setNeedsUpdate] = useState<boolean>(false);
+
     const [chuckUpdateNeeded, setChuckUpdateNeeded] = useState(false);
     const [bpm, setBpm] = useState<number>(120.00);
     const [beatsNumerator, setBeatsNumerator] = useState(4);
@@ -206,6 +206,7 @@ export default function InitializationComponent() {
     const [masterPatternsHashUpdated, setPatternsHashUpdated] = useState<boolean>(false);
     const [mTFreqs, setMTFreqs] = useState<any>([]);
     const [mTNames, setMTNames] = useState<any>([]);
+    const [currentSelectedCell, setCurrentSelectedCell] = useState<any>({ x: 0, y: 0 });
     
     const [notes, setNotes] = useState<Note[]>([]);
     const [mTMidiNums, setMTMidiNums] = useState<any>([]);
@@ -293,11 +294,13 @@ export default function InitializationComponent() {
     const noteOnPlay = useCallback(
         async (theMidiNum: number, theMidiVelocity: number, theMidiHz?: any) => {
           await chuckRef.current;
+
+          console.log("hello!");
           currNotesHash.current[`${theMidiNum}`] = [theMidiNum, theMidiVelocity];
           currNotes.current = Object.values(currNotesHash.current)
             .map((i: any) => i[0])
             .filter((i: any) => i);
-      
+
           currNotes.current.forEach((note: any) => triggerNote(note));
         },
         // [chuckRef, currNotesHash, currNotes] // Only if these are not refs!
@@ -408,17 +411,23 @@ export default function InitializationComponent() {
                 step,
                 color: 'blue',
 
+                colorR: 0/255,
+                colorG: 168/255,
+                colorB: 168/255,
+                colorA: 1.0,
+                colorIntensity: 0,
+
                 // SAFE DEFAULTS — keep cells editable:
                 // *** SHOULDN'T NOTE AND NOTEHZ BE SWAPPED???? 
-                note: mTFreqs[step] !== undefined ? mTFreqs[step] : 440.0,
-                noteHz: mTMidiNums[step] !== undefined ? mTMidiNums[step] : 69,
-                noteName: mTNames[step] || 'A4',
+                noteHz: mTFreqs[step] !== undefined ? [mTFreqs[step]] : [9999.0],
+                note: mTMidiNums[step] !== undefined ? [mTMidiNums[step]] : [69.0], // [69.0],
+                noteName: mTNames[step] ? [mTNames[step].filter((i: any) => i)] : [''],
                 fileNums: [],
-                length: '1/16',
+                length: 1/16,
                 velocity: 0.9,
                 midiInfo: {
                     noteOnLength: 1000,
-                    pitch: mTMidiNums[step] !== undefined ? mTMidiNums[step] : 69,
+                    pitch: mTMidiNums[step] !== undefined ? mTMidiNums[step] : 69.0,
                     velocity: 0.9,
                 },
                 subdivisions: 1
@@ -631,13 +640,23 @@ export default function InitializationComponent() {
     const handleNoteLengthUpdate = (e: any, cellData: any) => {
         console.log("NOTE LENGTH UPDATE: ", e && e.target && e.target.value);
         console.log("CELL DATA NOTE LEN ", cellData);
-        console.log("MASTER PATTERNS REF: ", masterPatternsRef.current);
+        console.log("MASTER PATTERNS REF: ", masterPatternsRef.current[cellData.yVal][cellData.xVal]);
+        if (masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
+            masterPatternsRef.current[cellData.yVal][cellData.xVal].length = e.target.value;
+            setPatternsHashHook(masterPatternsRef.current);
+            setPatternsHashUpdated(true);
+        }
     };
 
     const handleNoteVelocityUpdate = (e: any, cellData: any) => {
         console.log("NOTE VELOCITY UPDATE: ", e && e.target && e.target.value);
         console.log("CELL DATA NOTE VEL ", cellData);
         console.log("MASTER PATTERNS REF: ", masterPatternsRef.current);
+        if (masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
+            masterPatternsRef.current[cellData.yVal][cellData.xVal].velocity = e.target.value;
+            setPatternsHashHook(masterPatternsRef.current);
+            setPatternsHashUpdated(true);
+        }
     };
 
     const onSubmit = async (files: any) => {
@@ -781,7 +800,7 @@ export default function InitializationComponent() {
                     Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i])
 
             setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
-            setNeedsUpdate(true);
+
         }
         if (initialNodes.current && initialEdges.current) {
             setInitialNodesHook(initialNodes.current.filter((i: any) => i));
@@ -942,30 +961,30 @@ export default function InitializationComponent() {
     const genericFXToString = (sources: Sources) => {
         console.log("S O U R C E S: ", sources);
 
-        if (
-            universalSources.current && 
-            universalSources.current.stk1.instruments
-        ) {
-            console.log("*S R C s: ", Object.values(Object.values(universalSources.current.stk1.instruments).filter((i: any) => i.On).map(i => [i.Type, i.VarName, i.presets.map((i: any) => [i.name, i.value])])));
-        }
+        // if (
+        //     universalSources.current && 
+        //     universalSources.current.stk1.instruments
+        // ) {
+        //     console.log("*S R C s: ", Object.values(Object.values(universalSources.current.stk1.instruments).filter((i: any) => i.On).map(i => [i.Type, i.VarName, i.presets.map((i: any) => [i.name, i.value])])));
+        // }
 
-        if (sources && Object.keys(sources).length > 0 && sources.osc1) {
-            console.log("!@!@!@!@ ",  Object.values(sources.osc1.effects).filter((i: any) => i.On).map(i => i));
-            const osc1NewVals = Object.values(sources.osc1.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
+        // if (sources && Object.keys(sources).length > 0 && sources.osc1) {
+        //     console.log("!@!@!@!@ ",  Object.values(sources.osc1.effects).filter((i: any) => i.On).map(i => i));
+        //     const osc1NewVals = Object.values(sources.osc1.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
 
-            osc1NewVals && osc1NewVals.length > 0 && osc1NewVals.map((i: any) => {
-                const effectPart = i[1];
-                const effectNom = `${i[1]}_osc1`;
-                i[2].map((preset: any) => {
-                    const presetName = preset[0];
-                });
+        //     osc1NewVals && osc1NewVals.length > 0 && osc1NewVals.map((i: any) => {
+        //         const effectPart = i[1];
+        //         const effectNom = `${i[1]}_osc1`;
+        //         i[2].map((preset: any) => {
+        //             const presetName = preset[0];
+        //         });
 
-            });
-            const osc2NewVals = Object.values(sources.osc2.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-            const stkNewVals = Object.values(sources.stk1.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-            const samplerNewVals = Object.values(sources.sampler.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-            const audioInNewVals = Object.values(sources.audioin.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-        }
+        //     });
+        //     const osc2NewVals = Object.values(sources.osc2.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
+        //     const stkNewVals = Object.values(sources.stk1.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
+        //     const samplerNewVals = Object.values(sources.sampler.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
+        //     const audioInNewVals = Object.values(sources.audioin.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
+        // }
 
         if (!sources) return;
 
@@ -1351,6 +1370,7 @@ export default function InitializationComponent() {
 
     const clickHeatmapCell = (x: number, y: number) => {
         currentHeatmapXY.current = { x, y };
+        setCurrentSelectedCell({ x, y });
     };
 
 
@@ -1697,15 +1717,82 @@ export default function InitializationComponent() {
             chuckRef.current.runCode(newChuckCode.current);
   
             console.log("HERE IS CHUCK CODE: ", newChuckCode.current);
+
+            
+
+            // THIS BLOCK IS CAUSING RED ERROR (BUT ALSO WORKS!!!)
+            // FIX THIS & MOVE OTHER 3 HERE...
+            chuckHook &&
+            chuckRef.current &&
+            masterPatternsRef.current &&
+            Object.values(masterPatternsRef.current).length > 0 &&
+            await chuckRef.current.setFloatArray(
+                "midiNotesArray",
+                Object.values(masterPatternsRef.current).map((i: any) => 
+                    Object.values(i).map(
+                        (j:any) => 
+                            Object.values(j).map(
+                                (h: any) => Number(h) * 1.0
+                            )[8]   
+                    )
+                ).flat()
+            );
+
+            chuckHook &&
+            chuckRef.current &&
+            masterPatternsRef.current &&
+            Object.values(masterPatternsRef.current).length > 0 &&
+            await chuckRef.current.setFloatArray(
+                "midiFreqsArray",
+                Object.values(masterPatternsRef.current).map((i: any) => 
+                    Object.values(i).map(
+                        (j:any) => 
+                            Object.values(j).map(
+                                (h: any) => Number(h) * 1.0
+                            )[9]   
+                    )
+                ).flat()
+            );
+
+            chuckHook &&
+            chuckRef.current &&
+            masterPatternsRef.current &&
+            Object.values(masterPatternsRef.current).length > 0 &&
+            await chuckRef.current.setFloatArray(
+                "midiLengthsArray",
+                Object.values(masterPatternsRef.current).map((i: any) => 
+                    Object.values(i).map(
+                        (j:any) => 
+                            Object.values(j).map(
+                                (h: any) => Number(h) * 1.0
+                            )[12]   
+                    )
+                ).flat()
+            );
+
+            chuckHook &&
+            chuckRef.current &&
+            masterPatternsRef.current &&
+            Object.values(masterPatternsRef.current).length > 0 &&
+            await chuckRef.current.setFloatArray(
+                "midiVelocitiesArray",
+                Object.values(masterPatternsRef.current).map((i: any) => 
+                    Object.values(i).map(
+                        (j:any) => 
+                            Object.values(j).map(
+                                (h: any) => Number(h) * 1.0
+                            )[13]   
+                    )
+                ).flat()
+            );
+
         } else {
             alert("NO aChuck!");
             console.log("NO aChuck!");
         }
     }
 
-    useEffect(() => {
-        console.log("We should update chuck now...");
-    }, [needsUpdate])
+
 
     // AUDIO IN
     // ========================================================
@@ -1754,7 +1841,7 @@ export default function InitializationComponent() {
 
 
     const handleMingusKeyboardData = useCallback((data: any) => {
-        console.log("MINGUS KEYBOARD DATA *** : ", data);
+        // console.log("MINGUS KEYBOARD DATA *** : ", data);
       
         const microtones = finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b);
         const formattedMicrotones = microtones.length > 0
@@ -1815,7 +1902,7 @@ export default function InitializationComponent() {
                     'Content-Type': 'application/json'
                 }
             }).then(({ data }) => {
-                console.log("TEST SCALES HERE 1# ", data);
+                // console.log("TEST SCALES HERE 1# ", data);
                 setScaleHook([Object.values(data)[0], Object.values(data)[2]]);
                 setInvertedScaleHook([Object.values(data)[1], Object.values(data)[3]]);
                 if (noteBuilderFoc === "scale" && showNotesOrder === "asc") {
@@ -2025,7 +2112,7 @@ export default function InitializationComponent() {
 
         setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
         updateCurrentFXScreen(setFxKnobsCount, doUpdateBabylonKey, babylonKeyRef.current);
-        setNeedsUpdate(true);
+
     };
 
 
@@ -2136,6 +2223,11 @@ export default function InitializationComponent() {
                         console.log("SHREDCOUNT ", message)
                     }
 
+                    // if (message.includes("PROGRAMMATIC")) {
+                    //     console.log("PLAYING PROGRAMMATIC NOTE", message);
+                    // }
+            // console.log("CHUCK MESSAGE: ", message);     
+                    
                     // THIS SHOULD BE CHECKING THE ADSR...
                     // if (message.includes("ADSR")) {
                     //     console.log("ADSR MESSAGE: ", message)
@@ -2181,6 +2273,8 @@ export default function InitializationComponent() {
         xVal: number,
         yVal: number
     ) => {
+
+        // ***1 HANDLE TABLE AND DROPDOWN VISUAL UPDATES HERE... 
 
         const indices = fileNames.map((fileName: string) => filesToProcess.current.map((i: any) => i.filename).indexOf(fileName));
 
@@ -2230,8 +2324,13 @@ export default function InitializationComponent() {
         yVal: number
     ) => {
         masterPatternsRef.current[yVal] =  masterPatternsRef.current[yVal] || {}; 
-        masterPatternsRef.current[yVal][xVal].notes = notes;
-        setPatternsHashHook(masterPatternsRef.current);
+        notes.forEach((n: any) => {
+            if (masterPatternsRef.current[yVal][xVal].noteName.indexOf(n) === -1) {
+                masterPatternsRef.current[yVal][xVal].noteName.push(n);
+                setPatternsHashHook(masterPatternsRef.current);
+            }
+        })
+
         if (noteBuilderFocus.includes("chord")) {
             setMTNames([...keyScaleChord.chord]);
         } else if (noteBuilderFocus.includes("scale")) {
@@ -2276,7 +2375,7 @@ export default function InitializationComponent() {
                 setFxKnobsCount,
                 doUpdateBabylonKey,
                 babylonKeyRef.current, );
-            setNeedsUpdate(true);
+   
             return;
         }
         const getSTKVal: any = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value);
@@ -2589,7 +2688,7 @@ export default function InitializationComponent() {
                                                 setFxKnobsCount={setFxKnobsCount}
                                                 doUpdateBabylonKey={doUpdateBabylonKey}
                                                 babylonKey={babylonKeyRef.current}
-                                                setNeedsUpdate={setNeedsUpdate}
+                                                // setNeedsUpdate={setNeedsUpdate}
                                                 currentScreen={currentScreen}
                                                 currentFX={currentFX}
                                                 currentStkTypeVar={currentStkTypeVar}
@@ -2607,6 +2706,9 @@ export default function InitializationComponent() {
                                                 handleNoteBuilder={handleNoteBuilder}
                                                 handleNoteLengthUpdate={handleNoteLengthUpdate}
                                                 handleNoteVelocityUpdate={handleNoteVelocityUpdate}
+                                                currentSelectedCell={currentSelectedCell}
+                                                octaveMax={selectedChordScaleOctaveRange.octaveMax}
+                                                octaveMin={selectedChordScaleOctaveRange.octaveMin}
                                             />
                                         </Box>
                                     </Box>
@@ -2675,8 +2777,8 @@ export default function InitializationComponent() {
                                                 bpm={bpm}
                                                 handleUpdateSliderVal={handleUpdateSliderVal}
                                                 fxKnobsCount={fxKnobsCount}
-                                                needsUpdate={needsUpdate}
-                                                handleResetNeedsUpdate={() => setNeedsUpdate(false)}
+                           
+
                                                 effects={currentFX.current}
                                                 visibleFXKnobs={visibleFXKnobs.current}
                                                 chuckUpdateNeeded={chuckUpdateNeeded}
@@ -2822,3 +2924,7 @@ export default function InitializationComponent() {
         </Box>
     )
 };
+function async(arg0: (theMidiNum: number, theMidiVelocity: number, theMidiHz?: any) => void): any {
+    throw new Error('Function not implemented.');
+}
+

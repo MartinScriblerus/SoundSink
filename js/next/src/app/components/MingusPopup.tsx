@@ -459,7 +459,7 @@ const MingusPopup = ({
                 style={{ 
                     width: '100%', 
                     display: 'flex', 
-                    flexDirection: 'column', 
+                    flexDirection: 'row', 
                     alignItems: 'center', 
                     padding: '0px !important', 
                     margin: '0px !important', 
@@ -469,7 +469,7 @@ const MingusPopup = ({
             >
                 <FormControl sx={{ 
                     // width: '60px', 
-                    width: '100%',
+                    width: '50%',
                     color: 'rgba(245,245,245,0.78)', 
                     position: 'relative',
                     cursor: 'pointer',
@@ -486,7 +486,7 @@ const MingusPopup = ({
                 onClick={() => setIsKeySelectOpen(!isKeySelectOpen)}
                 ><span style={{
                     pointerEvents:"none",
-                    width: "100%",
+                    width: "50%",
                     paddingTop: '8px',
                     paddingBottom: '8px',
                 }}>Key:</span>
@@ -546,7 +546,7 @@ const MingusPopup = ({
                 {noteBuilderFocus && noteBuilderFocus.toLowerCase() === "chord" && <FormControl 
                     sx={{ 
                         // width: '60px', 
-                        width: '100%',
+                        width: '50%',
                         display: 'inline-flex',
                         flexDirection: 'row',
                         color: 'rgba(245,245,245,0.78)', 
@@ -563,7 +563,7 @@ const MingusPopup = ({
                     onClick={() => setIsChordSelectOpen(!isChordSelectOpen)}
                 ><span style={{
                         pointerEvents: "none",
-                        width: "100%",
+                        width: "50%",
                 }}>Chordz:</span>
                     <div
                         ref={selectChordRef}

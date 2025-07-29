@@ -87,7 +87,7 @@ export default function DiscreteSlider(props: SliderProps) {
         :
             <></>
         }
-                {
+        {
         vizSource && vizSource.includes("osc2") 
         ?
             <Box className={'pattern-rate-title'}>

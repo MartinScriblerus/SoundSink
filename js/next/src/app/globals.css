@@ -967,3 +967,9 @@ ul {
   color: white !important;
   /* background-color: rgba(0,0,255,0.1) !important; */
 }
+
+.note-len-title {
+  width: 46%;
+  padding-left: 2%;
+  padding-right: 2%;
+}

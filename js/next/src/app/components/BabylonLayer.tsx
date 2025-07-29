@@ -21,8 +21,7 @@ function BabylonScene(props: {
     currentBeatCountToDisplay: number | any,
     handleUpdateSliderVal: (x:string, index: number, value: any) => void,
     fxKnobsCount: number,
-    needsUpdate: boolean,
-    handleResetNeedsUpdate: () => void,
+
     effects: any,
     visibleFXKnobs: any,
     chuckUpdateNeeded: boolean; 
@@ -42,8 +41,8 @@ function BabylonScene(props: {
         currentBeatCountToDisplay,
         handleUpdateSliderVal, 
         fxKnobsCount,
-        needsUpdate, 
-        handleResetNeedsUpdate,
+
+
         visibleFXKnobs, 
         // handleTurnKnob, 
         chuckHook,
@@ -60,13 +59,7 @@ function BabylonScene(props: {
 
     const [babylonGameHook, setBabylonGameHook] = useState<any>('');
 
-    useEffect(() => {
-        if (needsUpdate) {
-            //console.log("################################ WE CAN UPDATE")
-            setBabylonGameHook('ready');
-            handleResetNeedsUpdate();
-        }
-    }, [needsUpdate, handleResetNeedsUpdate])
+
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 

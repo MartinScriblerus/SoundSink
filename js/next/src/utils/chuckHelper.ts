@@ -55,11 +55,13 @@ export const getChuckCode = (
 
     console.log("CHECK SIGNAL CHAIN, EFFECTS READOUTS, and STK SETUP: ", signalChain, signalChainSTK, valuesReadout, valuesReadoutSTK, activeSTKDeclarations, activeSTKSettings);
  
-console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
+    console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
 
     console.log("MASTERPATTERNSREF IN CHUCK HELPER: ", Object.values(masterPatternsRef.current));
 
     console.log("MASTERFASTEST RATE: ", masterFastestRate);
+
+    
 
     const beatInMilliseconds = ((60000 / bpm));
 
@@ -105,6 +107,12 @@ console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
     bpm => float bpmInit;
     global float testNotesArr[0];
     global float chuckNotesOff[0];
+
+    global float midiNotesArray[0];
+    global float midiFreqsArray[0];
+    global float midiLengthsArray[0];
+    global float midiVelocitiesArray[0];
+
 
     global float moogGMDefaults[0]; 
     global float effectsDefaults[0];  
@@ -648,6 +656,30 @@ console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
         // }
     }
 
+
+
+
+    fun void playProgrammaticNote(int tickCount) {
+
+        // <<< "PLAYING PROGRAMMATIC NOTE AT TICK",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i).map((j:any) => Object.keys(j).toString())) }" >>>;
+        // for (0 => int i; i < midiNotesArray.size(); i++) {
+            midiNotesArray[tickCount] => float midiNotesToPlay;
+            midiFreqsArray[tickCount] => float midiFreqsToPlay;
+            midiLengthsArray[tickCount] => float midiLengthsToPlay;
+            midiVelocitiesArray[tickCount] => float midiVelocitiesToPlay;
+            midiFreqsToPlay => voice[0].keyOn;
+
+            midiLengthsToPlay * (beat * numeratorSignature) => now;
+
+            1 => voice[0].keyOff;
+
+            <<< "PLAYING PROGRAMMATIC NOTE AT TICK", midiNotesToPlay, midiFreqsToPlay, midiLengthsToPlay, midiVelocitiesToPlay, (midiLengthsToPlay * (beat * numeratorSignature) ) >>>;
+        // }
+    }
+
+
+
+
     fun void handlerPlayNote(Event playANote) {
         playANote => now;
 
@@ -714,11 +746,11 @@ console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
         }
     }
 
-
+    
 
     // // SAMPLER
     // ////////////////////////////////////////////////////////////////
-    fun void handlePlayDrumMeasure(int tickCount) {
+    fun void handlePlayDrumMeasure(int recurringTickCount) {
 
         ((fastestTickCounter % (numeratorSignature * denominatorSignature)) + 1) % fastestRateUpdate => int masterTick;
 
@@ -726,14 +758,6 @@ console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
 
         ${Object.values(valuesReadoutSampler).map((value: any) => value).join(' ')}
         
-        int recurringTickCount;
-        if (tickCount > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
-            tickCount % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
-        } else {
-            tickCount => recurringTickCount;
-        }
-
-
 
         if (recurringTickCount >= filesArr.size()) return;
 
@@ -826,7 +850,7 @@ console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
             // Std.ftoi(moogGMDefaults["lfoFreq"]) => lfoFreqDefault;
             
             moogGMDefaults["noise"] => voice[i].noise;
-            0.6 / numVoices => voice[i].gain;
+            0.5 / numVoices => voice[i].gain;
         }
         ///////////////////////////////////////////////////
 
@@ -861,8 +885,14 @@ console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
 
         // configureADSR(adsr, ( beat ), atkKnob, decKnob, susKnob, relKnob);
 
+        int recurringTickCount;
+        if (fastestTickCounter > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
+            fastestTickCounter % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
+        } else {
+            fastestTickCounter => recurringTickCount;
+        }
 
-
+        spork ~ playProgrammaticNote(recurringTickCount);
         <<< "SHREDCOUNT: ", Machine.numShreds() >>>;
 
         if (now >= startTimeMeasureLoop + step) {
@@ -870,12 +900,14 @@ console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
             <<< "TICK:", fastestTickCounter >>>;
             // if (fastestTickCounter % ${numeratorSignature} == 1) {
                 tickCounter + 1 => tickCounter;
-                spork ~ handlePlayDrumMeasure(fastestTickCounter);
+                spork ~ handlePlayDrumMeasure(recurringTickCount);
             // }    
             fastestTickCounter + 1 => fastestTickCounter;                     
             // step => now;     
 
-        }
+        } 
+        
+
         // if (now >= startTimeMeasureLoop + ( beat / ${masterFastestRate * numeratorSignature} )) {
         //     tickCounter + 1 => tickCounter;
         //     tickCounter % ${denominatorSignature} => int numerCount;

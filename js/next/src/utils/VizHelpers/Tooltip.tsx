@@ -34,16 +34,16 @@ export const Tooltip = ({
         // zIndex: !isInPatternEditMode ? 9999 : 1,
         left: -80,
         pointerEvents: "none",
-        // background: !isInPatternEditMode ? "blue" : "purple",
       }}
     >
       <div
         style={{
           position: "absolute",
-          left: "350px",
+          left: "464px",
           //left: interactionData.xPos * .7 : 200 + (parseInt(interactionData.xLabel) * 5),
           // top: interactionData.yPos * 1,
-          top: 140,
+          width: 200,
+          top: 180,
           background: "rgba(0, 0, 0, 0.78)",
         }}
       >

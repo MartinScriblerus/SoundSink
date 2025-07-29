@@ -16,7 +16,7 @@
 
 'use client';
 import { createTheme } from '@mui/material/styles';
-import { CREAM_WHITE, FOREST_GREEN, MATTE_BLACK, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE, STEEL_GRAY } from './utils/constants';
+import { CREAM_WHITE, FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE, STEEL_GRAY } from './utils/constants';
 
 
 const theme = createTheme({
@@ -28,7 +28,7 @@ const theme = createTheme({
     primaryB: MUTED_OLIVE,
     secondaryA: PALE_BLUE,
     secondaryB: RUSTY_ORANGE,
-    black: MATTE_BLACK,
+    black: '#000000',
     white: CREAM_WHITE,
     gray: STEEL_GRAY,
 },

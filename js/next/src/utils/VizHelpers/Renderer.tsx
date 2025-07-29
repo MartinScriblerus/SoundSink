@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { InteractionData } from "./Heatmap";
-import { Box, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, Slider, useTheme } from "@mui/material";
+import { Box, Slider, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
@@ -18,6 +18,7 @@ import { valuetext } from "../knobsHelper";
 import NoteBuilderToggle from "@/app/components/NoteBuilderToggle";
 import { masterPatternsRef } from "@/app/state/refs";
 import VelocityLengthSliders from "@/app/components/VelocityLengthSliders";
+import StepRadioButtons from "@/app/components/StepRadioButtons";
 
 
 
@@ -82,7 +83,7 @@ type RendererProps = {
   doUpdateBabylonKey: any;
   // setBabylonKey={setBabylonKey}
   babylonKey: string;
-  setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  // setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
   currentScreen: React.MutableRefObject<string>;
   currentFX: React.MutableRefObject<any>;
   currentStkTypeVar: React.MutableRefObject<string>;
@@ -113,6 +114,9 @@ type RendererProps = {
   exitEditMode: () => void;
   handleNoteLengthUpdate: (e: any, cellData: any) => void;
   handleNoteVelocityUpdate: (e: any, cellData: any) => void;
+  currentSelectedCell: { x: number; y: number };
+  octaveMax: number;
+  octaveMin: number;
 };
 
 export const Renderer = ({
@@ -174,7 +178,10 @@ export const Renderer = ({
   handleNoteBuilder,
   exitEditMode,
   handleNoteLengthUpdate,
-  handleNoteVelocityUpdate
+  handleNoteVelocityUpdate,
+  currentSelectedCell,
+  octaveMax,
+  octaveMin
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -263,7 +270,6 @@ export const Renderer = ({
 
     const triggerEditPattern = async (e: any, num: any) => {
       const el: any = Object.values(e.target)[1];
-      console.log('WTF EL??? ', el);
 
       inPatternEditMode(true);
 
@@ -292,6 +298,8 @@ export const Renderer = ({
       }
     }
 
+    const patOptions = [0,2,4,8,16];
+
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
       <React.Fragment key={`rectFillsWrapper_${d.x}_${d.y}`}>
@@ -309,50 +317,112 @@ export const Renderer = ({
               // console.log("** WHAT IS THIS SHIT? ", d.x, d.y, currentBeatCountToDisplay, currentNumerCountColToDisplay)
               // const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
               return (
-                <rect
-                  // key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
-                  key={`main_cell_${d.x}_${d.y}`}
-                  r={4}
-                  id={`fill_${d.x}_${d.y}`}
-                  x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
-                  y={yScale(d.y)}
-                  width={
-                    (xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions)
-                        }
-                        height={yScale.bandwidth()}
-                        opacity={1}
-                        fill={
-                       currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y)
-                       ?
-                          RUSTY_ORANGE  
-                       :   
-                          currentBeatCountToDisplay === Number(d.x)
-                          ?
-                            FOREST_GREEN
-                          :
-                            (Number(d.y) > 0) 
-                            ? 
-                              PALE_BLUE 
-                            : 
-                              RUSTY_ORANGE}
-                  stroke={'rgba(245,245,245,0.78)'}
-                  onClick={(e: any) => triggerEditPattern(e, d.x)}
-                  onMouseEnter={(e) => {
-                    setHoveredCell({
-                      xLabel: d.x,
-                      yLabel: d.y,
-                      xPos: x,
-                      yPos: y,
-                      value: Math.round(d.value * 100) / 100,
-                      instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
-                    });
-                  }}
-                  onMouseLeave={() => setHoveredCell(null)}
-                  cursor="pointer"
-                  style={{ zIndex: 1, pointerEvents: "auto" }}
-                > 
-                  <text>{d.x} {d.y}</text>
-                </rect>
+                <React.Fragment key={`overlay_note_${idx}_${d.x}_${d.y}`}>
+                  <rect
+                    width={(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * currentNumerCountColToDisplay)}
+                    height={yScale.bandwidth() / 3}
+                    key={`main_cell_noteEl_${d.x}_${d.y}`}
+                    r={4}
+                    opacity={1}
+                    fill={MUTED_OLIVE}
+                    id={`fill_noteEl_${d.x}_${d.y}`}
+                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
+                    y={yScale(d.y)}
+                    style={{
+                      background: MUTED_OLIVE, 
+                      zIndex: 9999,
+                      width:`${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * 12)}px`,
+                    }}
+                    >
+                  </rect>
+
+                  <rect
+                    width={(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * currentNumerCountColToDisplay)}
+                    height={yScale.bandwidth() / 3}
+                    key={`main_cell_sampleEl_${d.x}_${d.y}`}
+                    r={4}
+                    opacity={1}
+                    fill={PALE_BLUE}
+                    id={`fill_sampleEl_${d.x}_${d.y}`}
+                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
+                    y={(yScale(d.y) || 0) + yScale.bandwidth() / 3}
+                    style={{
+                      background: PALE_BLUE, 
+                      zIndex: 9999,
+                      width:`${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * 12)}px`,
+                    }}
+                    >
+                  </rect>
+
+                    <text
+                      x={x! + 2}
+                      y={y! + 10 + idx * 10}
+                      key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text1_${d.x}_${d.y}`}
+                      fontSize={8}
+                      fill={'white'}
+                    >{masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}</text>
+
+                    <text
+                      x={x! + 2}
+                      y={y! + 10 + idx * 10  + yScale.bandwidth() / 3}
+                      key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text2_${d.x}_${d.y}`}
+                      fontSize={8}
+                      fill={'white'}
+                    >{1 / masterPatternsHashHook[`${d.y}`][`${d.x}`].length}</text>
+         
+                  <rect
+                    // key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
+                    key={`main_cell_${d.x}_${d.y}`}
+                    r={4}
+                    id={`fill_${d.x}_${d.y}`}
+                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
+                    y={yScale(d.y)}
+                    width={
+                      (xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions)
+                    }
+                    height={yScale.bandwidth()}
+                    opacity={
+                      (patOptions[doAutoAssignPatternNumber] > 0 && ((16 * (Number(d.y) - 1) + Number(d.x)) - (16 * currentSelectedCell.y + currentSelectedCell.x)) % (16 / patOptions[doAutoAssignPatternNumber]) === 0) ||
+                      (patOptions[doAutoAssignPatternNumber] === 0 && currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y)) 
+                      ? 
+                        1 
+                      :
+                        0.5 
+                    }
+                    fill={
+                        //  currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y)
+                        currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y) 
+                        ?
+                            RUSTY_ORANGE  
+                        :   
+                            currentBeatCountToDisplay === Number(d.x)
+                            ?
+                              FOREST_GREEN
+                            :
+                              (Number(d.y) > 0) 
+                              ? 
+                                PALE_BLUE 
+                              : 
+                                RUSTY_ORANGE}
+                    stroke={'rgba(245,245,245,0.78)'}
+                    onClick={(e: any) => triggerEditPattern(e, d.x)}
+                    onMouseEnter={(e) => {
+                      setHoveredCell({
+                        xLabel: d.x,
+                        yLabel: d.y,
+                        xPos: x,
+                        yPos: y,
+                        value: Math.round(d.value * 100) / 100,
+                        instrument: d.y && getInstrumentName(parseInt(d.y)) || "None",
+                      });
+                    }}
+                    onMouseLeave={() => setHoveredCell(null)}
+                    cursor="pointer"
+                    style={{ zIndex: 1, pointerEvents: "auto" }}
+                  > 
+                    <text>{d.x} {d.y}</text>
+                  </rect>
+                </React.Fragment>
               )
             }
           )
@@ -452,16 +522,21 @@ export const Renderer = ({
   }
 
   function getNotesPreselected() {
-    //console.log("JUST IN CASE FUQIN SANITY: ", masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`]);
-    const getNotesAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].note);
-    const getNotesRef = Object.values(masterPatternsRef.current[`${currentYVal.current}`][`${currentXVal.current}`].note)
+    // const getNotesAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].note);
+    // const getNotesRef = Object.values(masterPatternsRef.current[`${currentYVal.current}`][`${currentXVal.current}`].note)
     
-    // console.log("TEST GET NOTES REF??? ", getNotesRef);
-    
-    //console.log("WHAT ARE THE NOTE NUMBERS ACROSS GRID? ", masterPatternsHashHook);
-    const noteNumsPreselected = new Set(getNotesAcrossGrid);
-    //console.log("WHAT ARE THE NOTE NUMBERS PRESELECTED? ", noteNumsPreselected);
-    return noteNumsPreselected;
+    // const noteNumsPreselected = new Set(getNotesAcrossGrid);
+    // console.log("JUST IN CASE FUQIN SANITY: ", masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`]);
+    // console.log("JUST IN CASE ARG SANITY ", getNotesRef);
+
+    const notesObj = {
+      notesMidi: Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].note),
+      notesHz: Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].noteHz),
+      notesNames: Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].noteName).filter((i: any) => i),
+    }
+
+    // return noteNumsPreselected;
+    return notesObj;
   }
 
   // console.log("AYAYAY MingusKeyboardsData ", mingusKeyboardData.data);
@@ -472,9 +547,6 @@ export const Renderer = ({
     console.log("WHAT IS THE TRANSPOSE VALUE? ", e.target.value);
   };
 
-
-
-  // console.log("MTNAMES??? ", mTNames);
 
   return (
     <Box
@@ -627,31 +699,18 @@ export const Renderer = ({
                       {/* Samples: */}
                       
                     </span>
-                    <InsetCheckboxDropdown 
+                    <InsetCheckboxDropdown
+                      key={`${currentSelectedCell.x}_${currentSelectedCell.y}_files`} 
                       files={new Set(filesToProcess.map((f: any) => f.filename))} 
                       handleLatestSamplesFinal={handleLatestSamplesFinal} 
                       fileNumsPreselected={getFileNumsPreselected()} />
                   </Box>
           
-                    <FormControl>
-                      {/* <FormLabel>Repeats</FormLabel> */}
-                      <RadioGroup
-                        aria-labelledby="demo-radio-buttons-group-label"
-                        value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}
-                        name="radio-buttons-group"
-                        onChange={handleAssignPatternNumber}
-                        sx={{
-                          display: "flex",
-                          flexDirection: "row", 
-                        }}
-                      >
-                        <FormControlLabel value="0" control={<Radio />} label="0" />
-                        <FormControlLabel value="1" control={<Radio />} label="2" />
-                        <FormControlLabel value="2" control={<Radio />} label="4" />
-                        <FormControlLabel value="3" control={<Radio />} label="8" />
-                        <FormControlLabel value="4" control={<Radio />} label="16" />
-                      </RadioGroup>
-                    </FormControl>
+                    <StepRadioButtons 
+                      doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+                      handleAssignPatternNumber={handleAssignPatternNumber}
+                    />
+
                     <Slider
                         aria-label="TransposeSlider"
                         value={transposeValue.current}
@@ -709,16 +768,23 @@ export const Renderer = ({
                       width: "100%",
                     }}>
                       <span key={`notesDropdown_${mTFreqs}`}>
-                        <InsetNotesDropdown 
+                        <InsetNotesDropdown
+                          key={`${currentSelectedCell.x}_${currentSelectedCell.y}_notes`}  
                           // notes={mTFreqs} 
                           notes={mTNames} 
                           handleLatestNotesFinal={handleLatestNotesFinal} 
                           // notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
                           notesPreselected={getNotesPreselected()}
+                          max={octaveMax}
+                          min={octaveMin}
                         />
                       </span>                          
                       <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
                     </Box>)}
+                    <StepRadioButtons 
+                      doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+                      handleAssignPatternNumber={handleAssignPatternNumber}
+                    />
                     <VelocityLengthSliders 
                       handleNoteLengthUpdate={handleNoteLengthUpdate}
                       handleNoteVelocityUpdate={handleNoteVelocityUpdate}

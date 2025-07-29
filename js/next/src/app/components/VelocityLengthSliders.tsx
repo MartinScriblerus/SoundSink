@@ -60,31 +60,35 @@ const VelocityLengthSliders = (props: VelocityLengthSlidersProps) => {
 
     const { handleNoteLengthUpdate, handleNoteVelocityUpdate, cellData } = props;
 
+    const [noteLengthValue, setNoteLengthValue] = useState<number>(3);
+    const [noteVelocityValue, setNoteVelocityValue] = useState<number>(0.5);
+
     useEffect(() => {
         if (cellData) {
             console.log("Cell Data Updated in Velocity Length Sliders: ", cellData);
         }
     }, [cellData]);
 
-    const handleNoteLengthUpdateLocal = (e: any) => {
+    const handleNoteLengthUpdateLocal = (e: any, newValue: number | number[]) => {
+        setNoteLengthValue(newValue as number);
         handleNoteLengthUpdate(e, cellData);
     }
 
-    const handleNoteVelocityUpdateLocal = (e: any) => {
+    const handleNoteVelocityUpdateLocal = (e: any, newValue: number | number[]) => {
+        setNoteVelocityValue(newValue as number);
         handleNoteVelocityUpdate(e, cellData);
     }
 
     return (
         <Box sx={{ 
             padding: '4px', 
-    
+            display: 'flex',
+            flexDirection: 'row',
         }}>
-            <Box className={'note-len-title'}
-            >
-                {/* Length:  */}
+            <Box className={'note-len-title'}>
                 <Slider
                     aria-label="Note Length"
-                    value={lenVals[3]}
+                    value={noteLengthValue}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     step={null}
@@ -98,12 +102,12 @@ const VelocityLengthSliders = (props: VelocityLengthSlidersProps) => {
                     max={9}
                 />
             </Box>
-                        <Box className={'note-len-title'}
+            <Box className={'note-len-title'}
             >
                 {/* Velocity:  */}
                 <Slider
                     aria-label="Note Velocity"
-                    value={0.5}
+                    value={noteVelocityValue}
                     getAriaValueText={valuetext}
                     valueLabelDisplay="auto"
                     sx={{

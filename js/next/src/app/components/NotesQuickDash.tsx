@@ -70,7 +70,7 @@ type QuickDashProps = {
     doUpdateBabylonKey: any;
     // setBabylonKey={setBabylonKey}
     babylonKey: string;
-    setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+    // setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
     currentScreen: React.MutableRefObject<string>;
     currentFX: React.MutableRefObject<any>;
     currentStkTypeVar: React.MutableRefObject<string>;
@@ -93,6 +93,9 @@ type QuickDashProps = {
     handleNoteBuilder: (focus: string) => void;
     handleNoteLengthUpdate: (e: any, cellData: any) => void;
     handleNoteVelocityUpdate: (e: any, cellData: any) => void;
+    currentSelectedCell: { x: number; y: number };
+    octaveMax: number;
+    octaveMin: number;
 }
 
 const NotesQuickDash = (props:QuickDashProps) => {
@@ -147,7 +150,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
         doUpdateBabylonKey,
         // setBabylonKey,
         babylonKey,
-        setNeedsUpdate,
+        // setNeedsUpdate,
         currentScreen,
         currentFX,
         currentStkTypeVar,
@@ -167,6 +170,9 @@ const NotesQuickDash = (props:QuickDashProps) => {
         handleNoteBuilder,
         handleNoteLengthUpdate,
         handleNoteVelocityUpdate,
+        currentSelectedCell,
+        octaveMax,
+        octaveMin,
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
@@ -292,7 +298,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             doUpdateBabylonKey={doUpdateBabylonKey}
                             // setBabylonKey={setBabylonKey}
                             babylonKey={babylonKey}
-                            setNeedsUpdate={setNeedsUpdate}
+                            // setNeedsUpdate={setNeedsUpdate}
                             currentScreen={currentScreen}
                             currentFX={currentFX}
                             currentStkTypeVar={currentStkTypeVar}
@@ -314,6 +320,9 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             exitEditMode={exitEditMode}
                             handleNoteLengthUpdate={handleNoteLengthUpdate}
                             handleNoteVelocityUpdate={handleNoteVelocityUpdate}
+                            currentSelectedCell={currentSelectedCell}
+                            octaveMax={octaveMax}
+                            octaveMin={octaveMin}
                         />
                     }
                 </Box>

@@ -73,7 +73,7 @@ type HeatmapProps = {
   doUpdateBabylonKey: any;
   // setBabylonKey={setBabylonKey}
   babylonKey: string;
-  setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+  // setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
   currentScreen: React.MutableRefObject<string>;
   currentFX: React.MutableRefObject<any>;
   currentStkTypeVar: React.MutableRefObject<string>;
@@ -93,6 +93,9 @@ type HeatmapProps = {
   exitEditMode: () => void;
   handleNoteLengthUpdate: (e: any, cellData: any) => void;
   handleNoteVelocityUpdate: (e: any, cellData: any) => void;
+  currentSelectedCell: { x: number; y: number };
+  octaveMax: number;
+  octaveMin: number;
 };
 
 export type InteractionData = {
@@ -157,7 +160,7 @@ export const Heatmap = ({
   doUpdateBabylonKey,
   // setBabylonKey,
   babylonKey,
-  setNeedsUpdate,
+  // setNeedsUpdate,
   currentScreen,
   currentFX,
   currentStkTypeVar,
@@ -177,6 +180,9 @@ export const Heatmap = ({
   exitEditMode,
   handleNoteLengthUpdate,
   handleNoteVelocityUpdate,
+  currentSelectedCell,
+  octaveMax,
+  octaveMin
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
@@ -281,7 +287,7 @@ export const Heatmap = ({
                 doUpdateBabylonKey={doUpdateBabylonKey}
                 // setBabylonKey={setBabylonKey}
                 babylonKey={babylonKey}
-                setNeedsUpdate={setNeedsUpdate}
+                // setNeedsUpdate={setNeedsUpdate}
                 currentScreen={currentScreen}
                 currentFX={currentFX}
                 currentStkTypeVar={currentStkTypeVar}
@@ -309,6 +315,9 @@ export const Heatmap = ({
                 exitEditMode={exitEditMode}
                 handleNoteLengthUpdate={handleNoteLengthUpdate}
                 handleNoteVelocityUpdate={handleNoteVelocityUpdate}
+                currentSelectedCell={currentSelectedCell}
+                octaveMax={octaveMax}
+                octaveMin={octaveMin}
               />
             }
             <Tooltip 

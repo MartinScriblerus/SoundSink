@@ -100,7 +100,7 @@ export const updateCheckedFXList = async (
 export const updateStkKnobs = (
     knobVals: STKOption[],
     setFxKnobsCount: React.Dispatch<SetStateAction<any>>,
-    setNeedsUpdate: React.Dispatch<SetStateAction<any>>,
+    // setNeedsUpdate: React.Dispatch<SetStateAction<any>>,
     getSTK1Preset: (value: string) => { type: string; var: string; presets: any[] },
     setBabylonKey: React.Dispatch<SetStateAction<any>>,
     babylonKey: string,
@@ -121,7 +121,7 @@ export const updateStkKnobs = (
                 setFxKnobsCount,
                 setBabylonKey,
                 babylonKey );
-            setNeedsUpdate(true);
+            // setNeedsUpdate(true);
             return;
         }
         currentStkTypeVar.current = (`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}#${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).var}`)

@@ -175,7 +175,7 @@ const theme = useTheme();
   
   
   const linePath = lineBuilder(isInFileMode && filesToProcess && filesToProcess.length > 0 ? filesToProcess[0].data.map((i:any) => Number(parseFloat(i))) : data);
-  console.log("WTF LINEPATH: ", linePath);
+  console.log("LINEPATH: ", linePath);
   if (!linePath) {
     return null;
   }

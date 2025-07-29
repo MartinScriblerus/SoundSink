@@ -7,12 +7,17 @@ interface Props {
   notes: string[];
   handleLatestNotesFinal: (selected: NoteOption[]) => void;
   notesPreselected: any; // assumed to be indices of `notes`
+  max: number;
+  min: number;
+  
 }
 
 const InsetNotesDropdown: React.FC<Props> = ({
   notes,
   handleLatestNotesFinal,
   notesPreselected,
+  max,
+  min
 }) => {
   const [selectedOptions, setSelectedOptions] = useState<NoteOption[]>([]);
   const [optionsHook, setOptionsHook] = useState<NoteOption[]>([]);
@@ -23,7 +28,7 @@ const InsetNotesDropdown: React.FC<Props> = ({
   };
 
   const colorStyles: StylesConfig<NoteOption, true> = {
-    control: (styles) => ({ ...styles, backgroundColor: 'white' }),
+    control: (styles) => ({ ...styles, backgroundColor: 'white', maxWidth: '320px' }),
     option: (styles, { isDisabled }) => ({
       ...styles,
       backgroundColor: 'white',
@@ -36,24 +41,31 @@ const InsetNotesDropdown: React.FC<Props> = ({
   };
 
   useEffect(() => {
-    const options = notes.map((note) => ({
-      value: note,
-      label: note,
-    }));
+    const minOctave = Number(min);
+    const maxOctave = Number(max);
 
-    console.log("^^ NOTE options: ", options);
+    const options = Array.from({ length: maxOctave - minOctave + 1 }, (_, i) => i + minOctave)
+      .flatMap((octave) =>
+        notes.map((note) => {
+          const noteWithOctave = `${note}-${octave}`;
+          return { value: noteWithOctave, label: noteWithOctave };
+        })
+      );
+
     setOptionsHook(options);
 
-    if (Array.isArray(notesPreselected)) {
-      const preSelected = notesPreselected
-        .map((i) => options[i])
-        .filter(Boolean);
-      preSelected.length < 1 && setSelectedOptions(preSelected);
+    if (Array.isArray(notesPreselected?.notesNames)) {
+      const preSelected = notesPreselected.notesNames
+        .map((name: any) => options.find((opt) => opt.value === name))
+        .filter(Boolean); // remove unmatched ones
+      setSelectedOptions(preSelected);
     }
-  }, [notes, notesPreselected]);
+  }, [notes, notesPreselected, min, max]);
+
 
   return (
     <Select
+      key={`${selectedOptions.length}_insetNotesDropdownKey`}
       isMulti
       options={optionsHook}
       onChange={handleChange}
