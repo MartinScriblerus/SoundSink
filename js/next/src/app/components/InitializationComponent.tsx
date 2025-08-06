@@ -402,37 +402,37 @@ export default function InitializationComponent() {
 
             // Loop to create each step / cell in this row
             for (let step = 0; step < totalSteps; step++) {
-            const stepKey = `${step}`;
+                const stepKey = `${step}`;
 
-            // ⚡ Only initialize cell if missing → keeps dynamic edits safe
-            if (!masterPatternsRef.current[rowKey][stepKey]) {
-                masterPatternsRef.current[rowKey][stepKey] = {
-                on: true,
-                step,
-                color: 'blue',
+                // ⚡ Only initialize cell if missing → keeps dynamic edits safe
+                if (!masterPatternsRef.current[rowKey][stepKey]) {
+                    masterPatternsRef.current[rowKey][stepKey] = {
+                        on: true,
+                        step,
+                        color: 'blue',
 
-                colorR: 0/255,
-                colorG: 168/255,
-                colorB: 168/255,
-                colorA: 1.0,
-                colorIntensity: 0,
+                        colorR: 0/255,
+                        colorG: 168/255,
+                        colorB: 168/255,
+                        colorA: 1.0,
+                        colorIntensity: 0,
 
-                // SAFE DEFAULTS — keep cells editable:
-                // *** SHOULDN'T NOTE AND NOTEHZ BE SWAPPED???? 
-                noteHz: mTFreqs[step] !== undefined ? [mTFreqs[step]] : [9999.0],
-                note: mTMidiNums[step] !== undefined ? [mTMidiNums[step]] : [69.0], // [69.0],
-                noteName: mTNames[step] ? [mTNames[step].filter((i: any) => i)] : [''],
-                fileNums: [],
-                length: 1/16,
-                velocity: 0.9,
-                midiInfo: {
-                    noteOnLength: 1000,
-                    pitch: mTMidiNums[step] !== undefined ? mTMidiNums[step] : 69.0,
-                    velocity: 0.9,
-                },
-                subdivisions: 1
-                };
-            }
+                        // SAFE DEFAULTS — keep cells editable:
+                        // *** SHOULDN'T NOTE AND NOTEHZ BE SWAPPED???? 
+                        noteHz: mTFreqs[step] !== undefined ? [mTFreqs[step]] : [0.0],
+                        note: mTMidiNums[step] !== undefined ? [mTMidiNums[step]] : [0.0], // [69.0], <<<< problem!!! these are getting read as freqs!!!!
+                        noteName: mTNames[step] ? [mTNames[step].filter((i: any) => i)] : [''],
+                        fileNums: [],
+                        length: 1/16,
+                        velocity: 0.9,
+                        midiInfo: {
+                            noteOnLength: 1000,
+                            pitch: mTMidiNums[step] !== undefined ? mTMidiNums[step] : 69.0, // 69.0,
+                            velocity: 0.9,
+                        },
+                        subdivisions: 1
+                    };
+                }
             }
         }
         // Update React state to trigger render
@@ -651,7 +651,7 @@ export default function InitializationComponent() {
     const handleNoteVelocityUpdate = (e: any, cellData: any) => {
         console.log("NOTE VELOCITY UPDATE: ", e && e.target && e.target.value);
         console.log("CELL DATA NOTE VEL ", cellData);
-        console.log("MASTER PATTERNS REF: ", masterPatternsRef.current);
+        console.log("MASTER PATTERNS REF: ", masterPatternsRef.current[cellData.yVal][cellData.xVal]);
         if (masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
             masterPatternsRef.current[cellData.yVal][cellData.xVal].velocity = e.target.value;
             setPatternsHashHook(masterPatternsRef.current);
@@ -1335,8 +1335,7 @@ export default function InitializationComponent() {
                         try {
                             chuckRef.current && await chuckRef.current.setAssociativeFloatArrayValue("moogGMDefaults", value.name, value.value);
                         } catch (e) {
-                            alert("shit err")
-                            console.log("ERR:", e)
+                            alert("ERR:" + e)
                         }
                     })();                    
                 });
@@ -1392,7 +1391,7 @@ export default function InitializationComponent() {
             const newNotesOff = [note];
             chuckRef.current && await chuckRef.current.setFloatArray("chuckNotesOff", newNotesOff);
             consistentNotes.current = consistentNotes.current.filter((i: any) => i !== note);
-            chuckRef.current && await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i:any) => Number(parseFloat(i)).toFixed(2)));
+            chuckRef.current && await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i:any) => Number(+parseFloat(i)).toFixed(2)));
             chuckRef.current && await chuckRef.current.broadcastEvent('playSingleNoteOff');
             consistentNotes.current = [];
         } catch (e) {
@@ -1733,11 +1732,22 @@ export default function InitializationComponent() {
                         (j:any) => 
                             Object.values(j).map(
                                 (h: any) => Number(h) * 1.0
-                            )[8]   
+                            )[9]   
                     )
                 ).flat()
             );
 
+
+            console.log("KRIKES 1 ", Object.values(masterPatternsRef.current).map((i: any) => 
+                Object.values(i).map(
+                    (j:any) => 
+                        Object.values(j).map(
+                            (h: any) => Number(h) * 1.0
+                        )[8]   
+                )
+            ).flat())
+
+            // THE BELOW LOOPS ARE CONTROLLING NOTES (AND PROBABLY A WHOLE LOT MORE)...
             chuckHook &&
             chuckRef.current &&
             masterPatternsRef.current &&
@@ -1749,7 +1759,7 @@ export default function InitializationComponent() {
                         (j:any) => 
                             Object.values(j).map(
                                 (h: any) => Number(h) * 1.0
-                            )[9]   
+                            )[8]   
                     )
                 ).flat()
             );
@@ -1913,7 +1923,7 @@ export default function InitializationComponent() {
                 handleMingusKeyboardData(data);
                 dataToReturn.scaleData = data;
             });
-            console.log("WHAT IS KEY / SCALE / CHORD? ", key, scale, chord);
+            // console.log("WHAT IS KEY / SCALE / CHORD? ", key, scale, chord);
         } else if (noteBuilderFoc.toLowerCase().includes("chord")) {
             axios.post(
                 `${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, 
@@ -1929,6 +1939,7 @@ export default function InitializationComponent() {
                 const chordsVal = JSON.parse(data); 
                 const gc = getChord(chordLabel, chordsVal[0].progs_nums);
                 if (gc && gc.length > 0) {
+                    
                     setMTNames(gc[0]);
                 }
                 setChordHook(chordsVal);
@@ -2074,10 +2085,10 @@ export default function InitializationComponent() {
         : msg.target.value === "desc" 
             ? mingusKeyboardData.data[1] 
             : (showNotesOrder === "microtonal") && finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b).length > 0 
-                        ? finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b).map(
-                            (i: any) => +Number(i).toFixed(2)
-                        ) 
-                        : mingusKeyboardData.data[0];
+                ? finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b).map(
+                    (i: any) => +Number(i).toFixed(2)
+                ) 
+                : mingusKeyboardData.data[0];
         setMTNames(newFreqs);
     };
 
@@ -2220,7 +2231,7 @@ export default function InitializationComponent() {
                 } else {
           
                     if (message.includes("SHREDCOUNT: ")) {
-                        console.log("SHREDCOUNT ", message)
+                        // console.log("SHREDCOUNT ", message)
                     }
 
                     // if (message.includes("PROGRAMMATIC")) {
@@ -2268,6 +2279,8 @@ export default function InitializationComponent() {
         }
     };
 
+
+
     const handleLatestSamples = (   
         fileNames: string[],
         xVal: number,
@@ -2278,6 +2291,9 @@ export default function InitializationComponent() {
 
         const indices = fileNames.map((fileName: string) => filesToProcess.current.map((i: any) => i.filename).indexOf(fileName));
 
+        const selectedCell = masterPatternsRef.current[yVal]?.[xVal];
+        const dynamicN = selectedCell?.subdivisions || 1;
+
         const assignEveryOtherReferenceNumber = xVal % 2;
 
         if (masterPatternsRef.current[yVal] && masterPatternsRef.current[yVal][xVal]) {
@@ -2287,17 +2303,32 @@ export default function InitializationComponent() {
             } else if (
                 doAutoAssignPatternNum.toString() === "1"
             ) {
-                console.log("in doAssignSampleToGrid...");
+                const selectedX = Number(currentSelectedCell.x);
+                const rowLength = numeratorSignature * masterFastestRate;  // or masterPatternsRef.current[0]?.length
+                const otherX = (selectedX + rowLength / 2) % rowLength;
+
                 for (let y1 = 0; y1 < denominatorSignature; y1++) {
-                    masterPatternsRef.current[y1][xVal].fileNums = indices;
+                    if (masterPatternsRef.current[y1]?.[selectedX]) {
+                        masterPatternsRef.current[y1][selectedX].fileNums = indices;
+                    }
+                    if (masterPatternsRef.current[y1]?.[otherX]) {
+                        masterPatternsRef.current[y1][otherX].fileNums = indices;
+                    }
                 }
             } else if (doAutoAssignPatternNum.toString() === "2" ) {
+                const selectedX = Number(currentSelectedCell.x);
+
                 for (let y1 = 0; y1 < denominatorSignature; y1++) {
                     for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                        if (x1 % numeratorSignature === 0 && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
-                            masterPatternsRef.current[y1][x1].fileNums = indices;
-                        }
-                    };
+                    const hitX = x1 % numeratorSignature;
+
+                    if (
+                        (hitX === selectedX) && // TWO hits per row
+                        masterPatternsRef.current[y1]?.[x1]
+                    ) {
+                        masterPatternsRef.current[y1][x1].fileNums = indices;
+                    }
+                    }
                 }
             } else if (doAutoAssignPatternNum.toString() === "3") {
                 for (let y1 = 0; y1 < denominatorSignature; y1++) {
@@ -2324,21 +2355,72 @@ export default function InitializationComponent() {
         yVal: number
     ) => {
         masterPatternsRef.current[yVal] =  masterPatternsRef.current[yVal] || {}; 
-        notes.forEach((n: any) => {
-            if (masterPatternsRef.current[yVal][xVal].noteName.indexOf(n) === -1) {
-                masterPatternsRef.current[yVal][xVal].noteName.push(n);
-                setPatternsHashHook(masterPatternsRef.current);
-            }
-        })
-
+        
+        masterPatternsRef.current[yVal][xVal].noteName = notes.map(n => n)
+        masterPatternsRef.current[Number(yVal) - 1][xVal].noteHz = notes.map((i: any) => {
+            console.log("KRIKES 2 i is ", i, "COULD IT BE NOTETOFREQ?????? ", noteToFreq(i.split("-")[0], Number(i.split("-")[1])))
+            return noteToFreq(i.split("-")[0], Number(i.split("-")[1]))
+        });
+        
+        masterPatternsRef.current[yVal][xVal].noteMidi = notes.map((i: any) => noteToMidi(i.split("-")[0], Number(i.split("-")[1])));
+        
         if (noteBuilderFocus.includes("chord")) {
             setMTNames([...keyScaleChord.chord]);
         } else if (noteBuilderFocus.includes("scale")) {
             setMTNames([...keyScaleChord.scale]);
         }
         console.log("WHAT IS HANDLE LATEST NOTES???  ", "X: ", xVal, "Y: ", yVal, "NOTES: ", notes, "CHORD: ", ...keyScaleChord.chord, "SCALE: ", ...keyScaleChord.scale);  
+        
+
+        notes.map((n: any) => {
+            const noteLetter = n.split("-")[0];
+            const noteOctave = n.split("-")[1];
+            const newFreq = noteToFreq(noteLetter, Number(+noteOctave));
+            const newMidi = noteToMidi(noteLetter, Number(+noteOctave));
+            setMTFreqs((prev: any) => [...prev, newFreq]);
+            setMTMidiNums((prev: any) => [...prev, newMidi]);
+        });
+
+
+        if (doAutoAssignPatternNum.toString() === "0") {
+            masterPatternsRef.current[yVal][xVal].noteName = notes;
+        } else if (
+            doAutoAssignPatternNum.toString() === "1"
+        ) {
+            for (let y1 = 0; y1 < denominatorSignature; y1++) {
+
+                for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
+                    if (((x1 === currentSelectedCell.x) || (currentSelectedCell.x + Math.floor((numeratorSignature * masterFastestRate)/2)) === x1) && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                        masterPatternsRef.current[y1 + 1][x1].noteName = notes;
+                    }
+                }
+            
+            }
+        } else if (doAutoAssignPatternNum.toString() === "2" ) {
+            for (let y1 = 0; y1 < denominatorSignature; y1++) {
+                for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
+                    if (x1  % numeratorSignature === currentSelectedCell.x && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                        masterPatternsRef.current[y1 + 1][x1].noteName = notes;
+                    }
+                };
+            }
+        } else if (doAutoAssignPatternNum.toString() === "3") {
+            for (let y1 = 0; y1 < denominatorSignature; y1++) {
+                for (let x1 =  0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
+                    if(masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) masterPatternsRef.current[y1][x1].noteName = notes;
+                };
+            }
+        } else if (doAutoAssignPatternNum.toString() === "4") {
+            for (let y1 = 0; y1 < denominatorSignature; y1++) {
+                for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1++) {
+                    if(masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) masterPatternsRef.current[y1][x1].noteName = notes;
+                };
+            }
+        } 
+        setPatternsHashHook(masterPatternsRef.current);
     };
 
+    
     const handleUpdateCheckedFXList = (e: any) => {
         updateCheckedFXList(
                 e,
@@ -2924,7 +3006,4 @@ export default function InitializationComponent() {
         </Box>
     )
 };
-function async(arg0: (theMidiNum: number, theMidiVelocity: number, theMidiHz?: any) => void): any {
-    throw new Error('Function not implemented.');
-}
 

@@ -117,6 +117,8 @@ type RendererProps = {
   currentSelectedCell: { x: number; y: number };
   octaveMax: number;
   octaveMin: number;
+  xLabels?: any;
+  yLabels?: any;
 };
 
 export const Renderer = ({
@@ -181,7 +183,9 @@ export const Renderer = ({
   handleNoteVelocityUpdate,
   currentSelectedCell,
   octaveMax,
-  octaveMin
+  octaveMin,
+  xLabels,
+  yLabels
 }: RendererProps) => {
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
@@ -216,18 +220,21 @@ export const Renderer = ({
   }, [width, height, boundsHeight, boundsWidth, mTFreqs]);
 
   const xScale = useMemo(() => {
+    
     return d3
       .scaleBand()
-      .range([0, boundsWidth + 1])
-      .domain(allXGroups)
+      .domain(xLabels.map((d: any) => d.toString()))
+      .range([0, boundsWidth])
+      // .domain(allXGroups)
       .padding(0.01);
   }, [allXGroups, boundsWidth]);
 
   const yScale = useMemo(() => {
     return d3
       .scaleBand()
+      .domain(yLabels.map((d: any) => d.toString()))
       .range([boundsHeight, 0])
-      .domain(allYGroups)
+      // .domain(allYGroups)
       .padding(0.01);
   }, [allYGroups, boundsHeight]);
 
@@ -251,6 +258,8 @@ export const Renderer = ({
 
     const getInstrumentName = (yVal: number) => {
       switch (yVal) {
+        case 0:
+          return setInstrument("Sample 1");
         case 1:
           return setInstrument("Sample 1");
         case 2:
@@ -275,7 +284,8 @@ export const Renderer = ({
 
       const isFill = el.id.includes("fill");
       const vals = !isFill ? el.id.split("_") : el.id.replace("fill_", "").split("_");
-      const xVal = Number(num) || null;
+      const xVal = Number(num);
+
       const yVal = Number(vals[1]) || null;
 
       clickHeatmapCell(xVal, yVal);
@@ -293,7 +303,7 @@ export const Renderer = ({
         document.getElementById(`fill_${xVal}_${yVal}`);
         if (elToChange && elToChange !== null && elToChange.style.fill !== "black") {
           return elToChange.style.fill = "black";
-        } else {
+        } else if (elToChange) {
           return elToChange.style.fill = FOREST_GREEN;
       }
     }
@@ -314,62 +324,65 @@ export const Renderer = ({
             }
           ).map(
             (i, idx) => {
-              // console.log("** WHAT IS THIS SHIT? ", d.x, d.y, currentBeatCountToDisplay, currentNumerCountColToDisplay)
-              // const incrementorX: number = xScale.bandwidth() / Object.values(cellData.current)[8] || 0;
               return (
                 <React.Fragment key={`overlay_note_${idx}_${d.x}_${d.y}`}>
+                  
                   <rect
-                    width={(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * currentNumerCountColToDisplay)}
+                    width={(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length * currentNumerCountColToDisplay)}
                     height={yScale.bandwidth() / 3}
                     key={`main_cell_noteEl_${d.x}_${d.y}`}
                     r={4}
                     opacity={1}
-                    fill={MUTED_OLIVE}
+                    fill={masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 ? MUTED_OLIVE : "transparent"}
                     id={`fill_noteEl_${d.x}_${d.y}`}
                     x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
                     y={yScale(d.y)}
                     style={{
                       background: MUTED_OLIVE, 
                       zIndex: 9999,
-                      width:`${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * 12)}px`,
+                      width:`${(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length * 12)}px`,
                     }}
                     >
                   </rect>
 
                   <rect
-                    width={(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * currentNumerCountColToDisplay)}
+                    width={(xScale.bandwidth() / masterPatternsHashHook[Number(d.y) - 1][d.x].subdivisions) * (masterPatternsHashHook[Number(d.y) - 1][d.x].length * currentNumerCountColToDisplay)}
                     height={yScale.bandwidth() / 3}
-                    key={`main_cell_sampleEl_${d.x}_${d.y}`}
+                    key={`main_cell_sampleEl_${d.x}_${Number(d.y) - 1}`}
                     r={4}
                     opacity={1}
-                    fill={PALE_BLUE}
-                    id={`fill_sampleEl_${d.x}_${d.y}`}
-                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
+                    fill={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums?.join().length > 0 ? PALE_BLUE : "transparent"}
+                    id={`fill_sampleEl_${d.x}_${Number(d.y) - 1}`}
+                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[Number(d.y) - 1][d.x].subdivisions)}
                     y={(yScale(d.y) || 0) + yScale.bandwidth() / 3}
                     style={{
                       background: PALE_BLUE, 
                       zIndex: 9999,
-                      width:`${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * 12)}px`,
+                      width:`${(xScale.bandwidth() / masterPatternsHashHook[Number(d.y) - 1][d.x].subdivisions) * (masterPatternsHashHook[Number(d.y) - 1][d.x].length * 12)}px`,
                     }}
                     >
                   </rect>
 
-                    <text
+                    {masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 && <text
                       x={x! + 2}
                       y={y! + 10 + idx * 10}
                       key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text1_${d.x}_${d.y}`}
                       fontSize={8}
                       fill={'white'}
-                    >{masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}</text>
+                    >{masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}</text>}
 
-                    <text
+                    {masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums?.join().length > 0 && <text
                       x={x! + 2}
                       y={y! + 10 + idx * 10  + yScale.bandwidth() / 3}
                       key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text2_${d.x}_${d.y}`}
                       fontSize={8}
                       fill={'white'}
-                    >{1 / masterPatternsHashHook[`${d.y}`][`${d.x}`].length}</text>
-         
+                    >{1 / masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].length}</text>}
+
+
+
+
+
                   <rect
                     // key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
                     key={`main_cell_${d.x}_${d.y}`}
@@ -383,14 +396,15 @@ export const Renderer = ({
                     height={yScale.bandwidth()}
                     opacity={
                       (patOptions[doAutoAssignPatternNumber] > 0 && ((16 * (Number(d.y) - 1) + Number(d.x)) - (16 * currentSelectedCell.y + currentSelectedCell.x)) % (16 / patOptions[doAutoAssignPatternNumber]) === 0) ||
-                      (patOptions[doAutoAssignPatternNumber] === 0 && currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y)) 
+                      (patOptions[doAutoAssignPatternNumber] === 0 && currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y)) ||
+                      currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y)
                       ? 
-                        1 
+                        0.8 
                       :
                         0.5 
                     }
                     fill={
-                        //  currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y)
+                        currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y) ||
                         currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y) 
                         ?
                             RUSTY_ORANGE  
@@ -431,49 +445,49 @@ export const Renderer = ({
       );
   });
   
-  const xLabels = allXGroups.map((name, i) => {
-    const x = xScale(name);
+  // const xLabels = allXGroups.map((name, i) => {
+  //   const x = xScale(name);
 
-    if (!x) {
-      return null;
-    }
+  //   if (!x) {
+  //     return null;
+  //   }
 
-    return (
-      <text
-        key={`middle_text_anchor_${i}_${x}_${name}`}
-        x={x + xScale.bandwidth() / 2}
-        y={boundsHeight + 10}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={10}
-        style={{ pointerEvents: "none" }}
-      >
-        {name}
-      </text>
-    );
-  });
+  //   return (
+  //     <text
+  //       key={`middle_text_anchor_${i}_${x}_${name}`}
+  //       x={x + xScale.bandwidth() / 2}
+  //       y={boundsHeight + 10}
+  //       textAnchor="middle"
+  //       dominantBaseline="middle"
+  //       fontSize={10}
+  //       style={{ pointerEvents: "none" }}
+  //     >
+  //       {name}
+  //     </text>
+  //   );
+  // });
 
-  const yLabels = allYGroups.map((name, i) => {
-    const y = yScale(name);
+  // const yLabels = allYGroups.map((name, i) => {
+  //   const y = yScale(name);
 
-    if (!y) {
-      return null;
-    }
+  //   if (!y) {
+  //     return null;
+  //   }
 
-    return (
-      <text
-        key={`${i}_text_middle_${y}_${name}`}
-        x={-5}
-        y={y + yScale.bandwidth() / 2}
-        textAnchor="end"
-        dominantBaseline="middle"
-        fontSize={10}
-        style={{ pointerEvents: "none" }}
-      >
-        {name}
-      </text>
-    );
-  });
+  //   return (
+  //     <text
+  //       key={`${i}_text_middle_${y}_${name}`}
+  //       x={-5}
+  //       y={y + yScale.bandwidth() / 2}
+  //       textAnchor="end"
+  //       dominantBaseline="middle"
+  //       fontSize={10}
+  //       style={{ pointerEvents: "none" }}
+  //     >
+  //       {name}
+  //     </text>
+  //   );
+  // });
 
   const handleCloseEditorPopup = () => {
     setShowPatternEditorPopup(false);
@@ -505,8 +519,9 @@ export const Renderer = ({
   }
 
   function handleLatestNotesFinal (selected: any) {
-    console.log("WHAT ARE THE NOTES? ", selected);
-    console.log("CAN THESE GO IN CELL DATA")
+    console.log("WHAT ARE THE NOTES? ", selected && selected.length > 0 ? selected : [], mTNames);
+    // const theIndex = selected && selected.length > 0 ? mTNames.indexOf(selected[0].value) : -1;
+    // console.log("WHAT IS MTNAMES??? ", theIndex);
     handleLatestNotes(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
   };
 
@@ -514,20 +529,14 @@ export const Renderer = ({
     const getNumsAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums);
     // console.log("WHAT ARE THE FILE NUMBERS ACROSS GRID? ", getNumsAcrossGrid);
     const fileNumsPreselected = new Set(getNumsAcrossGrid);
-    // console.log("WHAT ARE THE FILE NUMBERS PRESELECTED? ", fileNumsPreselected);
+    console.log("*** WHAT ARE getNumsAcrossGrid? ", getNumsAcrossGrid);
     // console.log("OOOF ", fileNumsPreselected);
-    // console.log("AAAF ", currentXVal.current, currentYVal.current, masterPatternsRef.current[currentXVal.current][currentYVal.current])
+    //console.log("AAAF ", currentXVal.current, currentYVal.current, masterPatternsRef.current[currentXVal.current][currentYVal.current])
     
     return fileNumsPreselected;
   }
 
   function getNotesPreselected() {
-    // const getNotesAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].note);
-    // const getNotesRef = Object.values(masterPatternsRef.current[`${currentYVal.current}`][`${currentXVal.current}`].note)
-    
-    // const noteNumsPreselected = new Set(getNotesAcrossGrid);
-    // console.log("JUST IN CASE FUQIN SANITY: ", masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`]);
-    // console.log("JUST IN CASE ARG SANITY ", getNotesRef);
 
     const notesObj = {
       notesMidi: Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].note),
@@ -546,7 +555,6 @@ export const Renderer = ({
   const handleTransposeUpdate = (e: any) => { 
     console.log("WHAT IS THE TRANSPOSE VALUE? ", e.target.value);
   };
-
 
   return (
     <Box
@@ -770,10 +778,8 @@ export const Renderer = ({
                       <span key={`notesDropdown_${mTFreqs}`}>
                         <InsetNotesDropdown
                           key={`${currentSelectedCell.x}_${currentSelectedCell.y}_notes`}  
-                          // notes={mTFreqs} 
                           notes={mTNames} 
                           handleLatestNotesFinal={handleLatestNotesFinal} 
-                          // notesPreselected={Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].notes || []) } 
                           notesPreselected={getNotesPreselected()}
                           max={octaveMax}
                           min={octaveMin}

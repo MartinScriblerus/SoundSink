@@ -202,7 +202,7 @@ export const Heatmap = ({
   const nCol = numeratorSignature * denominatorSignature;
   const nRow = denominatorSignature;  // if that's your row count
 
-  const xLabels = Array.from({ length: nCol }, (_, i) => i + 1);
+  const xLabels = Array.from({ length: nCol }, (_, i) => i);
   const yLabels = Array.from({ length: nRow }, (_, i) => i + 1);
 
   let heatmapData: HeatmapData = [];
@@ -318,6 +318,8 @@ export const Heatmap = ({
                 currentSelectedCell={currentSelectedCell}
                 octaveMax={octaveMax}
                 octaveMin={octaveMin}
+                xLabels={xLabels}
+                yLabels={yLabels}
               />
             }
             <Tooltip 

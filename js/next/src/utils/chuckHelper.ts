@@ -667,11 +667,13 @@ export const getChuckCode = (
             midiFreqsArray[tickCount] => float midiFreqsToPlay;
             midiLengthsArray[tickCount] => float midiLengthsToPlay;
             midiVelocitiesArray[tickCount] => float midiVelocitiesToPlay;
-            midiFreqsToPlay => voice[0].keyOn;
+            if (midiNotesToPlay != 9999.0 && midiNotesToPlay >= 0.0) {
+                midiFreqsToPlay => voice[0].keyOn;
 
-            midiLengthsToPlay * (beat * numeratorSignature) => now;
+                midiLengthsToPlay * (beat * numeratorSignature) => now;
 
-            1 => voice[0].keyOff;
+                1 => voice[0].keyOff;
+            }
 
             <<< "PLAYING PROGRAMMATIC NOTE AT TICK", midiNotesToPlay, midiFreqsToPlay, midiLengthsToPlay, midiVelocitiesToPlay, (midiLengthsToPlay * (beat * numeratorSignature) ) >>>;
         // }
@@ -795,7 +797,7 @@ export const getChuckCode = (
     spork ~ handlerFXUpdate(fxUpdate);
 
 
-    me.yield(); // <<<<< DO WE WANT THIS HERE? IF SHIT BREAKS... THIS COULD BE WHY???
+    me.yield(); 
 
 
 
@@ -881,7 +883,7 @@ export const getChuckCode = (
 
         adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
        
-        <<< "ADSR SHIT: ", durStep, durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"] >>>;
+        <<< "ADSR STUFF: ", durStep, durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"] >>>;
 
         // configureADSR(adsr, ( beat ), atkKnob, decKnob, susKnob, relKnob);
 
@@ -933,16 +935,52 @@ export const getChuckCode = (
     return newChuckCode;
 }
 
-export const noteToFreq = (note: string, octave: number): number => {
-    const names = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-    const i = names.indexOf(note.toUpperCase());
-    if (i === -1) {
-        throw new Error(`Invalid note name: ${note}`);
-    }
+// export const noteToFreq = (note: string, octave: number): number => {
+//     const names = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+//     const i = names.indexOf(note.toUpperCase());
+//     if (i === -1) {
+//         throw new Error(`Invalid note name: ${note}`);
+//     }
 
-    const midi = (octave + 1) * 12 + i; // MIDI number
-    const freq = 440 * Math.pow(2, (midi - 69) / 12); // Convert MIDI to Hz
-    return freq;
+//     const midi = (octave + 1) * 12 + i; // MIDI number
+//     const freq = 440 * Math.pow(2, (midi - 69) / 12); // Convert MIDI to Hz
+//     return freq;
+// };
+
+export const noteToFreq = (note: string, octave: number): number => {
+  const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+  // Normalize enharmonics and Unicode symbols
+  const enharmonics: Record<string, string> = {
+    "DB": "C#",
+    "EB": "D#",
+    "GB": "F#",
+    "AB": "G#",
+    "BB": "A#",
+    "C♯": "C#",
+    "D♯": "D#",
+    "F♯": "F#",
+    "G♯": "G#",
+    "A♯": "A#",
+    "C♭": "B",
+    "D♭": "C#",
+    "E♭": "D#",
+    "G♭": "F#",
+    "A♭": "G#",
+    "B♭": "A#"
+  };
+
+  const cleanNote = note.toUpperCase().replace(/♯/g, "#").replace(/♭/g, "b");
+  const normalized = enharmonics[cleanNote] || cleanNote;
+
+  const index = names.indexOf(normalized);
+  if (index === -1) {
+    throw new Error(`Invalid note name: ${note}`);
+  }
+
+  const midi = (octave + 1) * 12 + index;
+  const freq = 440 * Math.pow(2, (midi - 69) / 12);
+  return freq;
 };
 
 export const flatToSharp = (oldKeyId: string) => {
