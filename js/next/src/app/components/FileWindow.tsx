@@ -251,22 +251,14 @@ const FileWindow = (props: FileWindowProps) => {
             <Box
                 id="waveSurferContainer"
                 sx={{
-                    display: "inline-block",
+                    display: "block",
                     zIndex: 9999,
                     position: "relative",
-                    top: "300px",
-                    left: "0px",
-                    width: "calc(100% - 396px)",
-                    // justifyContent: "stretch",
                     background: "rgba(28,28,28,0.98)",
                     pointerEvents: "auto",
                     overflow: "hidden",
                 }}
             >
-                {/* <Button style={{zIndex: 9999}} onClick={onPlayPause}>
-                    {isPlaying ? 'Pause' : 'Play'}
-                </Button> */}
-
                 <Button style={{zIndex: 9999}} onClick={testAudio}>
                     Play
                 </Button>

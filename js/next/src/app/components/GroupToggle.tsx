@@ -39,8 +39,8 @@ export default function GroupToggle(props: GroupToggleProps) {
             // key={`toggleWrapper_${idx}`}
             className={`option-button-source-toggle`}
             value={`${option.toLowerCase()}`}>{
-              option.toLowerCase().includes('osc1') ? 'Poly' : 
-              option.toLowerCase().includes('osc2') ? 'Mono' :
+              option.toLowerCase().includes('osc1') ? 'Osc' : 
+              // option.toLowerCase().includes('osc2') ? 'Mono' :
               option.toLowerCase().includes('stk') ? 'Inst' :
               option.toLowerCase().includes('sampler') ? 'Samp' :
               option.toLowerCase().includes('audioin') ? 'AudioIn' : option

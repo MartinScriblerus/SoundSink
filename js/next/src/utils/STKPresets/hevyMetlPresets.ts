@@ -6,19 +6,21 @@ const hevyMetlPresets = {
         name: "controlOne",
         label: "Control One",
         value: 0.50,
-        min: 0,
-        max: 1,
+        min: 0.01,
+        max: 1.0,
         screenInterface: "knob",
         fxType: "stk",
+        type: "float",
     },
     controlTwo: { // Make sure to SET on code side (see ChucK reference)
         name: "controlTwo",
         label: "Control Two",
         value: 0.5,
-        min: 0,
-        max: 1,
+        min: 0.01,
+        max: 1.0,
         screenInterface: "knob",
         fxType: "stk",
+        type: "float",
     },
     // lfoSpeed: {
     //     name: "lfoSpeed",
@@ -46,6 +48,7 @@ const hevyMetlPresets = {
         max: 2.0,
         screenInterface: "knob",
         fxType: "stk",
+        type: "float",
     }
 };
 

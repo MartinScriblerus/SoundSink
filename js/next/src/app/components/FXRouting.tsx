@@ -15,7 +15,7 @@ interface PedalboardLink {
 
 interface PedalboardNodesObj {
   Osc1: PedalboardNode[] | [],
-  Osc2: PedalboardNode[] | [],
+  // Osc2: PedalboardNode[] | [],
   STK: PedalboardNode[] | [],
   Sampler: PedalboardNode[] | [],
   AudioIn: PedalboardNode[] | []
@@ -23,7 +23,7 @@ interface PedalboardNodesObj {
 
 interface PedalboardLinksObj {
   Osc1: PedalboardLink[] | [],
-  Osc2: PedalboardLink[] | [],
+  // Osc2: PedalboardLink[] | [],
   STK: PedalboardLink[] | [],
   Sampler: PedalboardLink[] | [],
   AudioIn: PedalboardLink[] | []
@@ -80,7 +80,7 @@ export default function FXRouting(props: FXRoutingProps) {
 
   const nodesRef = useRef<any>({
     Osc1: [],
-    Osc2: [],
+    // Osc2: [],
     STK: [],
     Sampler: [],
     AudioIn: []
@@ -88,7 +88,7 @@ export default function FXRouting(props: FXRoutingProps) {
 
   const linksRef = useRef<any>({
     Osc1: [],
-    Osc2: [],
+    // Osc2: [],
     STK: [],
     Sampler: [],
     AudioIn: []

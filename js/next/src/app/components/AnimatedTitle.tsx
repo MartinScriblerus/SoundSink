@@ -1,4 +1,4 @@
-import { CREAM_WHITE, FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from '@/utils/constants';
+import { CREAM_WHITE, RUSTY_ORANGE, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK } from '@/utils/constants';
 import { shuffleArray } from '@/utils/FXHelpers/helperDefaults';
 import { Box, Button } from '@mui/material';
 import React, {useEffect, useState} from 'react';
@@ -10,10 +10,10 @@ type AnimTitleProps = {
 export const AnimatedTitle = (props: AnimTitleProps) => {
     const { clickedBegin } = props;
     const colorOptions = [
-        PALE_BLUE,
+        PERRIWINKLE,
+        HOT_PINK,
+        GOLDEN_YELLOW,
         RUSTY_ORANGE,
-        MUTED_OLIVE,
-        FOREST_GREEN,
         CREAM_WHITE,
     ];
     const [randomizeColors, setRandomizeColors] = useState(colorOptions);

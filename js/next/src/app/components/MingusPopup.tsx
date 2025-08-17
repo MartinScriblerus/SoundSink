@@ -1,4 +1,4 @@
-import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE, STEEL_GRAY } from '@/utils/constants';
+import { RUSTY_ORANGE, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK, STEEL_GRAY } from '@/utils/constants';
 import { Box, Button, FormControl, Input } from '@mui/material';
 import React, { Dispatch, useEffect } from 'react';
 // import '../page.module.css';
@@ -228,10 +228,10 @@ const MingusPopup = ({
                 width: '100%',
                 fontSize: '12px',
                 border: () => {
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "scale" ) return `1px solid ${PALE_BLUE}`;
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "chord") return `1px solid ${RUSTY_ORANGE}`;
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "micro") return `1px solid ${MUTED_OLIVE}`;
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "midi") return `1px solid ${FOREST_GREEN}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "scale" ) return `1px solid ${PERRIWINKLE}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "chord") return `1px solid ${HOT_PINK}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "micro") return `1px solid ${GOLDEN_YELLOW}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "midi") return `1px solid ${RUSTY_ORANGE}`;
                 },
                 borderRadius: '4px',
                 padding: '0px !important',
@@ -305,7 +305,7 @@ const MingusPopup = ({
                         fontSize: '12px',
                         maxHeight: '12rem',
                         overflowY: 'auto',
-                        backgroundColor: PALE_BLUE,
+                        backgroundColor: PERRIWINKLE,
                         color: 'rgba(245,245,245,0.78)',
                         zIndex: 9999,
                         }}
@@ -337,7 +337,7 @@ const MingusPopup = ({
                                         padding: '5px',
                                         cursor: 'pointer',
                                         fontFamily: 'monospace',
-                                        background: PALE_BLUE,
+                                        background: PERRIWINKLE,
                                         color: 'rgba(245,245,245,0.78)',
                                         }}
                                     >
@@ -354,7 +354,8 @@ const MingusPopup = ({
                 <FormControl sx={{ 
                     color: 'rgba(245,245,245,0.78)', 
                     position: 'relative',
-                    border: `1px solid ${PALE_BLUE}`,
+                    // border: `1px solid ${PERRIWINKLE}`,
+                    border: 'transparent',
                     borderRadius: '4px', 
                     flexDirection: 'row',
                     justifyContent: 'center',
@@ -407,7 +408,7 @@ const MingusPopup = ({
                         width: '100%',
                         maxHeight: '12rem',
                         overflowY: 'auto',
-                        backgroundColor: PALE_BLUE,
+                        backgroundColor: PERRIWINKLE,
                         color: 'rgba(245,245,245,0.78)',
                         zIndex: 9999,
                         }}
@@ -443,7 +444,7 @@ const MingusPopup = ({
                                         padding: '5px',
                                         cursor: 'pointer',
                                         fontFamily: 'monospace',
-                                        background: PALE_BLUE,
+                                        background: PERRIWINKLE,
                                         }}
                                     >
                                         {option.label}
@@ -534,7 +535,7 @@ const MingusPopup = ({
                             padding: '5px',
                             cursor: 'pointer',
                             fontFamily: 'monospace',
-                            background: PALE_BLUE,
+                            background: PERRIWINKLE,
                             }}
                         >
                             {option}
@@ -597,7 +598,7 @@ const MingusPopup = ({
                                     width: '100%',
                                     maxHeight: '12rem',
                                     overflowY: 'auto',
-                                    backgroundColor: PALE_BLUE,
+                                    backgroundColor: PERRIWINKLE,
                                     color: 'rgba(245,245,245,0.78)',
                                     zIndex: 9999,
                                 }}
@@ -629,7 +630,7 @@ const MingusPopup = ({
                                                     padding: '5px',
                                                     cursor: 'pointer',
                                                     fontFamily: 'monospace',
-                                                    background: PALE_BLUE,
+                                                    background: PERRIWINKLE,
                                                 }}
                                             >
                                                 {option.label}
@@ -693,7 +694,7 @@ const MingusPopup = ({
                                 width: '100%',
                                 maxHeight: '12rem',
                                 overflowY: 'auto',
-                                backgroundColor: PALE_BLUE,
+                                backgroundColor: PERRIWINKLE,
                                 color: 'rgba(245,245,245,0.78)',
                                 zIndex: 9999,
                             }}
@@ -723,7 +724,7 @@ const MingusPopup = ({
                                                 padding: '5px',
                                                 cursor: 'pointer',
                                                 fontFamily: 'monospace',
-                                                background: PALE_BLUE,
+                                                background: PERRIWINKLE,
                                             }}
                                         >   
                                         {option.label}

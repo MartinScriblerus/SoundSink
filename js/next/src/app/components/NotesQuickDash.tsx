@@ -6,6 +6,7 @@ import { Heatmap } from "@/utils/VizHelpers/Heatmap";
 import { Tune } from "@/tune";
 
 type QuickDashProps = {
+    isChuckRunning: boolean;
     featuresLegendData: any[];
     universalSources: any;
     handleSourceToggle: (name: string, val: any) => void;
@@ -13,7 +14,7 @@ type QuickDashProps = {
     currentNumerCount: any;
     currentBeatSynthCount: any;
     handleOsc1RateUpdate: any;
-    handleOsc2RateUpdate: any;
+    // handleOsc2RateUpdate: any;
     handleMasterFastestRate: any;
     handleStkRateUpdate: any;
     handleSamplerRateUpdate: any;
@@ -96,17 +97,22 @@ type QuickDashProps = {
     currentSelectedCell: { x: number; y: number };
     octaveMax: number;
     octaveMin: number;
+    uploadedBlob: React.MutableRefObject<any>;
+    getMeydaData: (fileData: ArrayBuffer) => Promise<any>;
+    clickedFile: React.MutableRefObject<string | null>;
+    chuckRef: React.MutableRefObject<any>;
 }
 
 const NotesQuickDash = (props:QuickDashProps) => {
     // const theme = useTheme();
     const {
+        isChuckRunning,
         featuresLegendData, 
         vizSource,
         currentNumerCount,
         currentBeatSynthCount,
         handleOsc1RateUpdate,
-        handleOsc2RateUpdate,
+        // handleOsc2RateUpdate,
         handleMasterFastestRate,
         handleStkRateUpdate,
         handleSamplerRateUpdate,
@@ -173,6 +179,10 @@ const NotesQuickDash = (props:QuickDashProps) => {
         currentSelectedCell,
         octaveMax,
         octaveMin,
+        uploadedBlob,
+        getMeydaData,
+        clickedFile,
+        chuckRef
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
@@ -234,6 +244,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
                         // parentDivRef.current !== 0 && parentDivRef.current.getBoundingClientRect() &&
                         width && height &&
                         <Heatmap 
+                            isChuckRunning={isChuckRunning}
                             width={
                                 parentDivRef.current 
                                 ? 
@@ -251,7 +262,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             currentNumerCount={currentNumerCount}
                             currentBeatSynthCount={currentBeatSynthCount}
                             handleOsc1RateUpdate={handleOsc1RateUpdate}
-                            handleOsc2RateUpdate={handleOsc2RateUpdate} 
+                            // handleOsc2RateUpdate={handleOsc2RateUpdate} 
                             handleStkRateUpdate={handleStkRateUpdate} 
                             handleSamplerRateUpdate={handleSamplerRateUpdate} 
                             handleAudioInRateUpdate={handleAudioInRateUpdate}
@@ -323,6 +334,10 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             currentSelectedCell={currentSelectedCell}
                             octaveMax={octaveMax}
                             octaveMin={octaveMin}
+                            uploadedBlob={uploadedBlob}
+                            getMeydaData={getMeydaData}
+                            clickedFile={clickedFile}
+                            chuckRef={chuckRef}
                         />
                     }
                 </Box>

@@ -5,7 +5,7 @@ import { Box, Slider, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close"
 import React from "react";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
-import { FOREST_GREEN, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE } from "../constants";
+import { RUSTY_ORANGE, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK } from "../constants";
 import InsetCheckboxDropdown from "@/app/components/InsetCheckboxDropdowns";
 import { PortalCenterModal } from "@/app/components/PortalCenterModal";
 import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
@@ -19,10 +19,11 @@ import NoteBuilderToggle from "@/app/components/NoteBuilderToggle";
 import { masterPatternsRef } from "@/app/state/refs";
 import VelocityLengthSliders from "@/app/components/VelocityLengthSliders";
 import StepRadioButtons from "@/app/components/StepRadioButtons";
+import FileWindow from "@/app/components/FileWindow";
 
 
 
-const MARGIN = { top: 10, right: 50, bottom: 30, left: 50 };
+const MARGIN = { top: 10, right: 30, bottom: 30, left: 30 };
 
 interface CellData {
   note: number[] | any,
@@ -37,6 +38,7 @@ interface CellData {
 }
 
 type RendererProps = {
+  isChuckRunning: boolean;
   width: number;
   height: number;
   data: { x: string; y: string; value: number }[];
@@ -102,7 +104,7 @@ type RendererProps = {
   fxRadioValue: string;
 
   handleOsc1RateUpdate: (val: any) => void;
-  handleOsc2RateUpdate: (val: any) => void;
+  // handleOsc2RateUpdate: (val: any) => void;
   handleMasterFastestRate: (val: any) => void;
   handleStkRateUpdate: (val: any) => void;
   handleSamplerRateUpdate: (val: any) => void;
@@ -119,9 +121,14 @@ type RendererProps = {
   octaveMin: number;
   xLabels?: any;
   yLabels?: any;
+  uploadedBlob: React.MutableRefObject<any>;
+  getMeydaData: (fileData: ArrayBuffer) => Promise<any>;
+  clickedFile: React.MutableRefObject<string | null>;
+  chuckRef: React.MutableRefObject<any>;
 };
 
 export const Renderer = ({
+  isChuckRunning,
   width,
   height,
   data,
@@ -169,7 +176,7 @@ export const Renderer = ({
   mTNames,
   fxRadioValue,
   handleOsc1RateUpdate,
-  handleOsc2RateUpdate,
+  // handleOsc2RateUpdate,
   handleMasterFastestRate,
   handleStkRateUpdate,
   handleSamplerRateUpdate,
@@ -185,13 +192,20 @@ export const Renderer = ({
   octaveMax,
   octaveMin,
   xLabels,
-  yLabels
+  yLabels,
+  uploadedBlob,
+  getMeydaData,
+  clickedFile,
+  chuckRef
 }: RendererProps) => {
+
+  
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [showPatternEditorPopup, setShowPatternEditorPopup] = useState<boolean>(false);
-  const [wavesurfer, setWavesurfer] = useState<any>(null)
-  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  const [wavesurfer, setWavesurfer] = useState<any>(null);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [noteVelocityValue, setNoteVelocityValue] = useState<number>(0.5);
   const theme = useTheme();
   const containerRef = useRef<any>();
   const currentXVal = useRef<number>(0);
@@ -207,6 +221,7 @@ export const Renderer = ({
   const [min = 0, max = 0] = d3.extent(data.map((d) => d.value)); // extent can return [undefined, undefined], default to [0,0] to fix types
 
   const transposeValue = useRef<number>(0);
+  const transposeValueHook = useState<number>(0);
   const transposeMax = 12;
 
   useEffect(() => {
@@ -217,7 +232,7 @@ export const Renderer = ({
     }
     return () => {
     };
-  }, [width, height, boundsHeight, boundsWidth, mTFreqs]);
+  }, [width, height, boundsHeight, boundsWidth, mTFreqs, doAutoAssignPatternNumber]);
 
   const xScale = useMemo(() => {
     
@@ -238,6 +253,10 @@ export const Renderer = ({
       .padding(0.01);
   }, [allYGroups, boundsHeight]);
 
+  const handleNoteVelocityUpdateLocal = (e: any, newValue: number | number[]) => {
+    setNoteVelocityValue(newValue as number);
+    handleNoteVelocityUpdate(e, cellData);
+  }
   // ... avoid .value here. use x and y .... console.log("CHECK WHAT IS THE DATA HERE? ", data); 64 items fields of x, y, value ... z === value + 1 usually but value has weird stuff... y is 1-2-3-4
 
   // var colorScale = d3
@@ -278,6 +297,7 @@ export const Renderer = ({
     }
 
     const triggerEditPattern = async (e: any, num: any) => {
+      console.log("christ almighty ", e, num);
       const el: any = Object.values(e.target)[1];
 
       inPatternEditMode(true);
@@ -296,7 +316,7 @@ export const Renderer = ({
       cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
       yVal && getInstrumentName(yVal);
       console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", Number(yVal),Number(xVal), masterPatternsHashHook );
-      console.log("%cCELL DATA!!!!!: ", isFill, cellData.current);
+      console.log("%cCELL DATA!!!!!: ", "color: green;", isFill, cellData.current);
       setShowPatternEditorPopup(true);
       document.getElementById(`fill_${xVal}_${yVal}`);
       const elToChange: any = 
@@ -304,7 +324,7 @@ export const Renderer = ({
         if (elToChange && elToChange !== null && elToChange.style.fill !== "black") {
           return elToChange.style.fill = "black";
         } else if (elToChange) {
-          return elToChange.style.fill = FOREST_GREEN;
+          return elToChange.style.fill = RUSTY_ORANGE;
       }
     }
 
@@ -324,41 +344,43 @@ export const Renderer = ({
             }
           ).map(
             (i, idx) => {
+
               return (
                 <React.Fragment key={`overlay_note_${idx}_${d.x}_${d.y}`}>
                   
                   <rect
-                    width={(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length * currentNumerCountColToDisplay)}
+                    width={xScale.bandwidth() / (masterPatternsHashHook[`${d.y}`][d.x].subdivisions * (1/(masterPatternsHashHook[`${d.y}`][d.x].length)))}
                     height={yScale.bandwidth() / 3}
                     key={`main_cell_noteEl_${d.x}_${d.y}`}
                     r={4}
-                    opacity={1}
-                    fill={masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 ? MUTED_OLIVE : "transparent"}
+                    opacity={masterPatternsHashHook[`${d.y}`][`${d.x}`].velocity}
+                    fill={masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 ? GOLDEN_YELLOW : "transparent"}
                     id={`fill_noteEl_${d.x}_${d.y}`}
                     x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
                     y={yScale(d.y)}
-                    style={{
-                      background: MUTED_OLIVE, 
-                      zIndex: 9999,
-                      width:`${(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length * 12)}px`,
-                    }}
+                    // style={{
+                    //   background: GOLDEN_YELLOW, 
+                    //   zIndex: 9999,
+                    //   // width:`${(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length * 12)}px`,
+                    //   width: `${(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length)}`
+                    // }}
                     >
                   </rect>
 
                   <rect
                     width={(xScale.bandwidth() / masterPatternsHashHook[Number(d.y) - 1][d.x].subdivisions) * (masterPatternsHashHook[Number(d.y) - 1][d.x].length * currentNumerCountColToDisplay)}
                     height={yScale.bandwidth() / 3}
-                    key={`main_cell_sampleEl_${d.x}_${Number(d.y) - 1}`}
+                    key={`main_cell_sampleEl_${d.x}_${d.y}`}
                     r={4}
-                    opacity={1}
-                    fill={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums?.join().length > 0 ? PALE_BLUE : "transparent"}
-                    id={`fill_sampleEl_${d.x}_${Number(d.y) - 1}`}
-                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[Number(d.y) - 1][d.x].subdivisions)}
+                    opacity={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].velocity * 2}
+                    fill={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums.join().length > 0 ? PERRIWINKLE : "transparent"}
+                    id={`fill_sampleEl_${d.x}_${d.y}`}
+                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[`${Number(d.y) - 1}`][d.x].subdivisions)}
                     y={(yScale(d.y) || 0) + yScale.bandwidth() / 3}
                     style={{
-                      background: PALE_BLUE, 
+                      background: PERRIWINKLE, 
                       zIndex: 9999,
-                      width:`${(xScale.bandwidth() / masterPatternsHashHook[Number(d.y) - 1][d.x].subdivisions) * (masterPatternsHashHook[Number(d.y) - 1][d.x].length * 12)}px`,
+                      width:`${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * 12)}px`,
                     }}
                     >
                   </rect>
@@ -407,17 +429,17 @@ export const Renderer = ({
                         currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y) ||
                         currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y) 
                         ?
-                            RUSTY_ORANGE  
+                            HOT_PINK  
                         :   
                             currentBeatCountToDisplay === Number(d.x)
                             ?
-                              FOREST_GREEN
+                              RUSTY_ORANGE
                             :
                               (Number(d.y) > 0) 
                               ? 
-                                PALE_BLUE 
+                                PERRIWINKLE 
                               : 
-                                RUSTY_ORANGE}
+                                HOT_PINK}
                     stroke={'rgba(245,245,245,0.78)'}
                     onClick={(e: any) => triggerEditPattern(e, d.x)}
                     onMouseEnter={(e) => {
@@ -445,49 +467,7 @@ export const Renderer = ({
       );
   });
   
-  // const xLabels = allXGroups.map((name, i) => {
-  //   const x = xScale(name);
 
-  //   if (!x) {
-  //     return null;
-  //   }
-
-  //   return (
-  //     <text
-  //       key={`middle_text_anchor_${i}_${x}_${name}`}
-  //       x={x + xScale.bandwidth() / 2}
-  //       y={boundsHeight + 10}
-  //       textAnchor="middle"
-  //       dominantBaseline="middle"
-  //       fontSize={10}
-  //       style={{ pointerEvents: "none" }}
-  //     >
-  //       {name}
-  //     </text>
-  //   );
-  // });
-
-  // const yLabels = allYGroups.map((name, i) => {
-  //   const y = yScale(name);
-
-  //   if (!y) {
-  //     return null;
-  //   }
-
-  //   return (
-  //     <text
-  //       key={`${i}_text_middle_${y}_${name}`}
-  //       x={-5}
-  //       y={y + yScale.bandwidth() / 2}
-  //       textAnchor="end"
-  //       dominantBaseline="middle"
-  //       fontSize={10}
-  //       style={{ pointerEvents: "none" }}
-  //     >
-  //       {name}
-  //     </text>
-  //   );
-  // });
 
   const handleCloseEditorPopup = () => {
     setShowPatternEditorPopup(false);
@@ -520,19 +500,12 @@ export const Renderer = ({
 
   function handleLatestNotesFinal (selected: any) {
     console.log("WHAT ARE THE NOTES? ", selected && selected.length > 0 ? selected : [], mTNames);
-    // const theIndex = selected && selected.length > 0 ? mTNames.indexOf(selected[0].value) : -1;
-    // console.log("WHAT IS MTNAMES??? ", theIndex);
     handleLatestNotes(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
   };
 
   function getFileNumsPreselected() {
     const getNumsAcrossGrid = Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].fileNums);
-    // console.log("WHAT ARE THE FILE NUMBERS ACROSS GRID? ", getNumsAcrossGrid);
     const fileNumsPreselected = new Set(getNumsAcrossGrid);
-    console.log("*** WHAT ARE getNumsAcrossGrid? ", getNumsAcrossGrid);
-    // console.log("OOOF ", fileNumsPreselected);
-    //console.log("AAAF ", currentXVal.current, currentYVal.current, masterPatternsRef.current[currentXVal.current][currentYVal.current])
-    
     return fileNumsPreselected;
   }
 
@@ -544,14 +517,9 @@ export const Renderer = ({
       notesNames: Object.values(masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`].noteName).filter((i: any) => i),
     }
 
-    // return noteNumsPreselected;
     return notesObj;
   }
 
-  // console.log("AYAYAY MingusKeyboardsData ", mingusKeyboardData.data);
-
-  // mingusChordsData && mingusChordsData.length > 0 && console.log("AYAYAY MingusChordsData ", JSON.parse(mingusChordsData));
-  
   const handleTransposeUpdate = (e: any) => { 
     console.log("WHAT IS THE TRANSPOSE VALUE? ", e.target.value);
   };
@@ -565,21 +533,10 @@ export const Renderer = ({
         flexDirection: "row",
         textAlign: "center",
         justifyContent: "center",
-        // alignItems: "center",
       }}
     >
-      {showPatternEditorPopup && (
-
-        // <PortalCenterModal onClose={()=>handleCloseEditorPopup}>
-          <Box
-            key={`patternEditorPopupCloseButtonWrapper__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              background: 'rgba(28,28,28,0.78)',
-              borderRadius: '8px',
-            }}>
-
+      {showPatternEditorPopup && !isChuckRunning && (
+          <>
             <Box>
               {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[0].toString()}
               {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[2].toString()}
@@ -591,15 +548,8 @@ export const Renderer = ({
                 display: "flex",
                 flexDirection: "column",
                 fontFamily: 'monospace',
-                fontWeight: "100",
-                // marginLeft: "32px",                
+                fontWeight: "100",              
                 textAlign: 'left',
-                borderRadius: '5px',
-                padding: '4px',
-                width: '100%',
-                // maxWidth: '320px',
-                color: 'rgba(245,245,245,0.78)',
-
               }}
             >
                 <Box 
@@ -607,11 +557,9 @@ export const Renderer = ({
                     fontFamily: 'monospace',
                     fontWeight: '100',
                     color: 'rgba(245,245,245,0.78)',
-                    fontSize: '22px',
                     paddingLeft: '8px',
                     width: '100%',
-                    paddingTop: '8px',
-                    paddingBottom: '8px',
+                    height: '100%',
                     background: 'rgba(245,245,245,0.078)',
                     display: 'inline-block',
                     whiteSpace: 'nowrap',
@@ -644,32 +592,6 @@ export const Renderer = ({
                       handleChangeCellSubdivisions={handleChangeCellSubdivisions}
                       cellSubdivisions={cellSubdivisions}
                     />
-                    <Box 
-                      key={`wrapCloseBtn__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                      sx={{
-                        textAlign: 'right',
-                        justifyContent: "stretch",
-                        alignItems: "stretch",
-                        display: "flex",
-                        flexDirection: "row-reverse",
-                        width: "100%",
-                        padding: "0",
-                        margin: "0",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <CloseIcon
-                        sx={{
-                          zIndex: '9999',
-                          display: "flex",
-                          color: 'rgba(245,245,245,0.78)',
-                          textAlign: 'right',
-                          // width: '100%',
-                        }}
-                        key={`patternEditorPopupCloseButton__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-                        onClick={handleCloseEditorPopup}
-                      />
-                    </Box>
                   </Box>
                 </Box>
 
@@ -678,14 +600,10 @@ export const Renderer = ({
                   sx={{
                     display: "flex",
                     flexDirection: "column",
-                    // justifyContent: "space-between",
-                    // alignItems: "center",
-                    // width: "50%",
                     alignItems: "top",
-                    border: 'solid 1px rgba(245,245,245,0.78)',
-                    borderRadius: '5px',
-                    padding: '8px',
-                    // maxWidth: '320px',
+                    // border: 'solid 1px rgba(245,245,245,0.78)',
+                    // borderRadius: '5px',
+                    // padding: '8px',
                   }}
                 >        
                   <Box
@@ -705,6 +623,18 @@ export const Renderer = ({
                       }}
                     >
                       {/* Samples: */}
+                                      {
+                    uploadedBlob.current && 
+                    fxRadioValue.includes("sample") &&  // is SAMPLE source
+                    // or... TODO... is Sample AND transposing
+                    <FileWindow 
+                        uploadedBlob={uploadedBlob}
+                        // setWavesurfer={setWavesurfer}
+                        getMeydaData={getMeydaData}
+                        clickedFile={clickedFile}
+                        chuck={chuckRef.current}
+                    />
+                } 
                       
                     </span>
                     <InsetCheckboxDropdown
@@ -714,26 +644,30 @@ export const Renderer = ({
                       fileNumsPreselected={getFileNumsPreselected()} />
                   </Box>
           
+                  <Box sx={{display: "flex", flexDirecton: "row"}}>
                     <StepRadioButtons 
                       doAutoAssignPatternNumber={doAutoAssignPatternNumber}
                       handleAssignPatternNumber={handleAssignPatternNumber}
                     />
 
                     <Slider
+                        className="note-vel-title"
                         aria-label="TransposeSlider"
                         value={transposeValue.current}
                         getAriaValueText={valuetext}
                         valueLabelDisplay="auto"
-                        step={null}
+                        step={.01}
                         sx={{color: 'rgba(245,245,245,0.78)'}}
                         onChange={handleTransposeUpdate}
                         // marks={marks}
-                        min={1}
+                        min={0}
                         max={transposeMax}
                         color="secondary"
                     />
+                  </Box>
+
                 </Box>)}
-      
+     
                 {fxRadioValue && fxRadioValue.toLowerCase().includes("osc") && (          
                 <Box 
                   sx={{
@@ -772,10 +706,10 @@ export const Renderer = ({
                     (<Box sx={{
                       display: "grid",
                       // flexDirection: "row",
-                      gridTemplateColumns: "2fr 1fr",
+                      gridTemplateColumns: "1fr 1fr",
                       width: "100%",
                     }}>
-                      <span key={`notesDropdown_${mTFreqs}`}>
+                      <span style={{ padding: "0px 4px" }} key={`notesDropdown_${mTFreqs}`}>
                         <InsetNotesDropdown
                           key={`${currentSelectedCell.x}_${currentSelectedCell.y}_notes`}  
                           notes={mTNames} 
@@ -784,16 +718,37 @@ export const Renderer = ({
                           max={octaveMax}
                           min={octaveMin}
                         />
-                      </span>                          
-                      <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
+                      </span>    
+                      <span style={{ padding: "0px 4px" }} >                      
+                        <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
+                      </span>
                     </Box>)}
-                    <StepRadioButtons 
-                      doAutoAssignPatternNumber={doAutoAssignPatternNumber}
-                      handleAssignPatternNumber={handleAssignPatternNumber}
-                    />
+                    <Box sx={{display: "flex", flexDirecton: "row"}}>
+                      <StepRadioButtons 
+                        doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+                        handleAssignPatternNumber={handleAssignPatternNumber}
+                      />
+                      <Box className={'note-vel-title'}
+                      >
+                        {/* Velocity:  */}
+                        <Slider
+                            aria-label="Note Velocity"
+                            value={noteVelocityValue}
+                            getAriaValueText={valuetext}
+                            valueLabelDisplay="auto"
+                            sx={{
+                                color: 'rgba(245,245,245,0.78)',
+                                backgroundColor: 'rgba(28,28,28,0.78)'
+                            }}
+                            onChange={handleNoteVelocityUpdateLocal}
+                            step={0.01}
+                            min={0}
+                            max={1}
+                        />
+                      </Box>
+                    </Box>
                     <VelocityLengthSliders 
                       handleNoteLengthUpdate={handleNoteLengthUpdate}
-                      handleNoteVelocityUpdate={handleNoteVelocityUpdate}
                       cellData={cellData.current}
                     />
                   </Box>
@@ -822,19 +777,19 @@ export const Renderer = ({
                   </Box>
                 </Box>)}
             </Box>
-          </Box>
+          </>
       )}
 
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          padding: "8px",
+          // padding: "8px",
         }}
       >
       <ArpSpeedSliders 
         handleOsc1RateUpdate={handleOsc1RateUpdate} 
-        handleOsc2RateUpdate={handleOsc2RateUpdate}
+        // handleOsc2RateUpdate={handleOsc2RateUpdate}
         handleMasterFastestRate={handleMasterFastestRate}
         handleStkRateUpdate={handleStkRateUpdate} 
         handleSamplerRateUpdate={handleSamplerRateUpdate} 

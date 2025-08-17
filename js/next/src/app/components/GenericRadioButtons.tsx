@@ -18,7 +18,6 @@ export default function GenericRadioButtons(props: GenericRadioProps) {
         display: "inline-flex",
         flexDirection: "row !important",
         whiteSpace: "nowrap",
-        // backgroundColor: 'green', 
     }}>
       {/* <FormLabel id="demo-radio-buttons-group-label">Gender</FormLabel> */}
       <RadioGroup
@@ -26,14 +25,14 @@ export default function GenericRadioButtons(props: GenericRadioProps) {
         defaultValue="asc"
         name="radio-buttons-group"
         sx={{
-            display: "inline-flex",
+            display: "block",
             flexDirection: "row",
-            alignItems: "center",
+            alignItems: "left",
             justifyContent: "center",
             gap: 1,
-            paddingLeft: "8px",
-            paddingRight: "8px",
-            fontSize: '13px',
+            paddingLeft: "2px",
+            paddingRight: "2px",
+            fontSize: '11px',
         }}
       >
         {options && options.length > 0 && options.map((option, index) => (

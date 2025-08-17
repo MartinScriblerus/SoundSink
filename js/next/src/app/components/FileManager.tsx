@@ -1,4 +1,4 @@
-import { PALE_BLUE } from "@/utils/constants";
+import { PERRIWINKLE } from "@/utils/constants";
 import { Box, Button } from "@mui/material";
 import { Chuck } from "webchuck";
 
@@ -65,14 +65,14 @@ const FileManager = (props: FileManagerProps) => {
                             maxHeight: '40px',
                             '&:hover': {
                                 // color: theme.palette.primaryA,
-                                background: PALE_BLUE,
+                                background: PERRIWINKLE,
                             }
                         }}
                         // className="ui_SynthLayerButton"
                         onClick={handleButtonClick}
                         endIcon={<FileUploadIcon />}
                     >
-                        <>UPLOAD FILE</>
+                        <>FILE</>
                     </Button>
                 </form>
             </Box>

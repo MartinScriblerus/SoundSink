@@ -21,12 +21,12 @@ export const stkOptions: readonly STKOption[] = [
   { value: 'm', label: 'Karplus', color: 'rgb(144/255, 204/255, 212/255)' }, // presets written
   { value: 'sitar', label: 'Sitar', color: 'rgb(144/255, 204/255, 212/255)' }, // presets written
   { value: 'moog', label: 'Moog', color: 'rgb(158/255, 210/255, 162/255)'}, // preset written
-  { value: 'frenchhorn', label: 'French Horn', color: 'rgb(158/255, 210/255, 162/255)' }, // *** preset written
+  { value: 'frenchhorn', label: 'FrencHrn', color: 'rgb(158/255, 210/255, 162/255)' }, // *** preset written
   { value: 'rhodey', label: 'Rhodey', color: 'rgb(236/255, 128/255, 139/255)' }, // *** preset written
   { value: 'saxofony', label: 'Saxofony', color: 'rgb(144/255, 204/255, 212/255)' }, // preset written
   { value: 'mandolin', label: 'Mandolin', color: 'rgb(144/255, 204/255, 212/255)' }, // preset written
   { value: 'bandedWg', label: 'Banded WaveGuide', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
-  { value: 'blowbotl', label: 'Bottle', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
+  { value: 'blowbotl', label: 'BlowBtl', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
   { value: 'blowhole', label: 'BlowHole', color: 'rgb(158/255, 210/255, 162/255)' }, // preset written
   { value: 'bowed', label: 'Bowed', color: 'rgb(144/255, 204/255, 212/255)'}, // preset written
   { value: 'brass', label: 'Brass', color: 'rgb(144/255, 204/255, 212/255)' }, // preset written

@@ -33,7 +33,7 @@ const marks = [
 
 interface SliderProps {
     handleOsc1RateUpdate: (val: any) => void;
-    handleOsc2RateUpdate: (val: any) => void;
+    // handleOsc2RateUpdate: (val: any) => void;
     handleMasterFastestRate: (val: any) => void;
     handleStkRateUpdate: (val: any) => void;
     handleSamplerRateUpdate: (val: any) => void;
@@ -47,7 +47,7 @@ export default function DiscreteSlider(props: SliderProps) {
     const theme = useTheme();
     const {
         handleOsc1RateUpdate,
-        handleOsc2RateUpdate,
+        // handleOsc2RateUpdate,
         handleMasterFastestRate, 
         handleStkRateUpdate, 
         handleSamplerRateUpdate, 
@@ -69,7 +69,7 @@ export default function DiscreteSlider(props: SliderProps) {
         vizSource && vizSource.includes("osc1") 
         ?
             <Box className={'pattern-rate-title'}>
-                Oscillator (Poly):
+                Oscillator:
                 <Slider
                     aria-label="OscRate"
                     value={currentNoteVals.osc1[0]}
@@ -87,7 +87,7 @@ export default function DiscreteSlider(props: SliderProps) {
         :
             <></>
         }
-        {
+        {/* {
         vizSource && vizSource.includes("osc2") 
         ?
             <Box className={'pattern-rate-title'}>
@@ -108,7 +108,7 @@ export default function DiscreteSlider(props: SliderProps) {
             </Box>
         :
             <></>
-        }
+        } */}
         {
         vizSource && vizSource.includes("stk") 
         ?

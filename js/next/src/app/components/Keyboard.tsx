@@ -29,7 +29,6 @@ const Keyboard = ({
     compare,
     noteBuilderFocus,
     notesAddedDetails,
-    // updateKeyScaleChord,
     mingusKeyboardData,
     mingusChordsData
 }: Props) => {
@@ -46,10 +45,6 @@ const Keyboard = ({
             addedDetails.current = noDupesAddedDetails;
         }
     }, [notesAddedDetails]);
-
-    // useEffect(() => {
-    //     setKeysToDisplay([]);
-    // }, [mingusKeyboardData])
 
 
     const tryPlayChuckNote = useCallback((e: any) => {
@@ -135,8 +130,6 @@ const Keyboard = ({
         keysToDisplay.length,
         keysReady,
         compare,
-        // noteOnPlay,
-        // noteOffPlay,
         updateKeysScale,
         mingusKeyboardData,
         organizeRows,
@@ -150,12 +143,10 @@ const Keyboard = ({
 
         if (mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]) {
             const allKeyz = document.querySelectorAll(`.vizKey`);
-            // console.log("ALLKYZ ", allKeyz);
             let normalizedKeyId: any;
             allKeyz.forEach((key: any) => {
                 normalizedKeyId = key.id;
                 key.classList.remove('activeVizKey');
-                // console.log("FUQIN KEY!!! ", key);
                 normalizedKeyId = flatToSharp(key.id);
 
                 const hasMatch = normalizedKeyId && mingusKeyboardData.data[0].map((i: any) => i && i.toLowerCase()).indexOf(normalizedKeyId[0].toLowerCase())
@@ -172,8 +163,6 @@ const Keyboard = ({
                     key.classList.add('activeVizKey');
                 }
             });
-
-            // console.log("THIS IS A SANITY CHECK ON MINGUS DATA IN updateKeysScale: ", mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]);
 
             setUpdateKeysScale(mingusKeyboardData && mingusKeyboardData.data && mingusKeyboardData.data[0]);
         }

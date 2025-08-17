@@ -6,11 +6,12 @@ import ArpSpeedSliders from "@/app/components/ArpSpeedSliders";
 import { Tune } from "@/tune";
 
 type HeatmapProps = {
+  isChuckRunning: boolean; 
   width: number;
   height: number;
   currentNumerCount: number;
   handleOsc1RateUpdate: (val: any) => void;
-  handleOsc2RateUpdate: (val: any) => void;
+  // handleOsc2RateUpdate: (val: any) => void;
   handleMasterFastestRate: (val: any) => void;
   handleStkRateUpdate: (val: any) => void;
   handleSamplerRateUpdate: (val: any) => void;
@@ -96,6 +97,10 @@ type HeatmapProps = {
   currentSelectedCell: { x: number; y: number };
   octaveMax: number;
   octaveMin: number;
+  uploadedBlob: React.MutableRefObject<any>;
+  getMeydaData: (fileData: ArrayBuffer) => Promise<any>;
+  clickedFile: React.MutableRefObject<string | null>;
+  chuckRef: React.MutableRefObject<any>;
 };
 
 export type InteractionData = {
@@ -107,7 +112,8 @@ export type InteractionData = {
   instrument: string;
 };
 
-export const Heatmap = ({ 
+export const Heatmap = ({
+  isChuckRunning,
   width, 
   height, 
   currentBeatSynthCount,
@@ -115,7 +121,7 @@ export const Heatmap = ({
   currentNoteVals,
   filesToProcess,
   handleOsc1RateUpdate,
-  handleOsc2RateUpdate,
+  // handleOsc2RateUpdate,
   handleMasterFastestRate,
   handleStkRateUpdate,
   handleSamplerRateUpdate,
@@ -182,21 +188,21 @@ export const Heatmap = ({
   handleNoteVelocityUpdate,
   currentSelectedCell,
   octaveMax,
-  octaveMin
+  octaveMin,
+  uploadedBlob,
+  getMeydaData,
+  clickedFile,
+  chuckRef
 }: HeatmapProps) => {
   const [hoveredCell, setHoveredCell] = useState<InteractionData | null>(null);
   const [doRebuildHeatmap, setDoRebuildHeatmap] = useState<boolean>(false);
 
   const theme = useTheme();
 
-    
   useEffect(() => {
     setDoRebuildHeatmap(true);
   }, [doRebuildHeatmap]);
 
-
-
-  
   type HeatmapData = { x: string; y: string; value: number }[];
     
   const nCol = numeratorSignature * denominatorSignature;
@@ -221,29 +227,7 @@ export const Heatmap = ({
     setDoRebuildHeatmap(true);
   }
 
-  // console.log("ARRRR ", masterPatternsHashHook);
-
-  // THE X AND Y OF HEATMAP DATA CORRESPOND TO THE X AND Y AXIS # OF THE HEATMAP
-  // console.log("UGGG ", heatmapData);
-
-
   return (
-    <Box sx={{ 
-      left: '0',
-      right: '0',
-      zIndex: '40',
-      textAlign: 'center',
-      justifyContent: 'center',
-      alignSelf: 'stretch',
-      height: '100%',
-      width: '100%',
-    }}>
-
-      <Box sx={{
-        width:'100%',
-        justifyContent: 'center',
-      }}>
-
         <Box sx={{
           display: 'flex',
           flexDirection: 'row',
@@ -251,6 +235,7 @@ export const Heatmap = ({
         }}>
             {
               <Renderer
+                isChuckRunning={isChuckRunning}
                 width={400}
                 height={270}
                 data={heatmapData}
@@ -303,7 +288,7 @@ export const Heatmap = ({
                 mTNames={mTNames}
                 fxRadioValue={fxRadioValue}
                 handleOsc1RateUpdate={handleOsc1RateUpdate} 
-                handleOsc2RateUpdate={handleOsc2RateUpdate}
+                // handleOsc2RateUpdate={handleOsc2RateUpdate}
                 handleMasterFastestRate={handleMasterFastestRate}
                 handleStkRateUpdate={handleStkRateUpdate} 
                 handleSamplerRateUpdate={handleSamplerRateUpdate} 
@@ -320,6 +305,10 @@ export const Heatmap = ({
                 octaveMin={octaveMin}
                 xLabels={xLabels}
                 yLabels={yLabels}
+                uploadedBlob={uploadedBlob}
+                getMeydaData={getMeydaData}
+                clickedFile={clickedFile}
+                chuckRef={chuckRef}
               />
             }
             <Tooltip 
@@ -331,7 +320,5 @@ export const Heatmap = ({
             />
 
         </Box>
-      </Box>
-    </Box>
   );
 };

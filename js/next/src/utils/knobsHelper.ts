@@ -52,9 +52,7 @@ export const updateCheckedFXList = async (
     fxRadioValue: string,
     ) => {
 
-    console.log("CHECK E ", e.target.id);
-
-    currentEffectType.current = e.target.id && e.target.id;
+    currentEffectType.current = e.target.id ? e.target.id : e.target.value;
 
     if (checkedFXList.current.indexOf(e.target.value) === -1) {
         checkedFXList.current.push(e.target.value);

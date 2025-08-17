@@ -18,6 +18,7 @@ const voicFormPresets = {
         max: 127,
         screenInterface: "intSpinner",
         fxType: "stk",
+        type: "int",
     },
     // speak: {
     //     name: "speak",
@@ -50,19 +51,21 @@ const voicFormPresets = {
         name: "vibratoGain",
         label: "Vibr Gain",
         value: 0.4,
-        min: 0,
-        max: 1,
+        min: 0.01,
+        max: 1.0,
         screenInterface: "knob",
         fxType: "stk",
+        type: "float",
     },
     gain: {
         name: "gain",
         label: "Gain",
         value: 0.8,
-        min: 0,
-        max: 1,
+        min: 0.01,
+        max: 1.0,
         screenInterface: "knob",
         fxType: "stk",
+        type: "float",
     },
 };
 

@@ -40,20 +40,24 @@ export const getChuckCode = (
     hid: HID | null,
 ) => {
 
-    console.log("HID? ", hid);
+    // console.log("HID? ", hid);
     console.log("JUST PRIOR TO CHUCK HERE IS selectedChordScaleOctaveRange: ", selectedChordScaleOctaveRange);
-    console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs);
-    console.log("MAX MINNING! ", maxMinFreq, mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) )
-    console.log("JUST PRIOR TO CHUCK HERE IS isTestingChord: ", isTestingChord);
+    
+
+    // ** WHY IS MTFREQ NEEDED???  These 2 seem fine but they also don't arrange freq data in object-like manner needed by sequencer... 
+    // console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs);
+    // console.log("MAX MINNING! ", maxMinFreq, mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) )
+
+    
     console.log("MASTER FASTEST RATE IS ", masterFastestRate);
     console.log("HEY_YO FILES ARRAY! ", filesArray);
 
     // console.log("COULD THIS BE??? ",  Object.values(masterPatternsRef.current).map((i: any) => i.note))
     
-    console.log("SANITY NOTESHOLDER: ", notesHolder);
-    console.log("GARRRR ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note )));
+    console.log("SANITY NOTESHOLDER: ", notesHolder.current);
+    // console.log("GARRRR ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note )));
 
-    console.log("CHECK SIGNAL CHAIN, EFFECTS READOUTS, and STK SETUP: ", signalChain, signalChainSTK, valuesReadout, valuesReadoutSTK, activeSTKDeclarations, activeSTKSettings);
+    // console.log("CHECK SIGNAL CHAIN, EFFECTS READOUTS, and STK SETUP: ", signalChain, signalChainSTK, valuesReadout, valuesReadoutSTK, activeSTKDeclarations, activeSTKSettings);
  
     console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
 
@@ -67,6 +71,7 @@ export const getChuckCode = (
 
     console.log("BEAT LENGTH IN MILLISECONDS >>> ", beatInMilliseconds);
 
+    
     type NoteEvent = {
         freq: number;
         startTime: number; // in beats or seconds
@@ -88,6 +93,26 @@ export const getChuckCode = (
     // const masterPatternsStr = JSON.stringify(masterPatternsObj);
     console.log("MASTER PATTERNS OBJ ", masterPatternsObj);
 
+
+
+    console.log("OH MAN -- STK TO FIX: ", 
+        Object.values(valuesReadout).map((value: any) => value).join(' '),
+        Object.values(valuesReadoutSampler).map((value: any) => value).join(' '),
+        Object.values(valuesReadoutSTK).map((value: any) => value).join(' '),
+        Object.values(valuesReadoutAudioIn).map((value: any) => value).join(' ')
+    );
+
+
+
+
+
+
+
+
+
+
+
+
     const newChuckCode = `
     
     "" => global string currentSrc;
@@ -103,6 +128,7 @@ export const getChuckCode = (
     global Event startMeasure;
     global Event playAudioIn;
     global Event fxUpdate;
+    global Event stkInstFxUpdate;
     global float bpm; 
     bpm => float bpmInit;
     global float testNotesArr[0];
@@ -118,7 +144,10 @@ export const getChuckCode = (
     global float effectsDefaults[0];  
     global float stkEffectsDefaults[0];  
     global int allFXDynamicInts[0];
+    global int allSTKFXDynamicInts[0];
+    global int stkInstsInUse;
     global float allFXDynamicFloats[0];
+    global float allSTKFXDynamicFloats[0];
 
     ${signalChainDeclarations.map((value: any) => value).join(' ')}
     ${signalChainSamplerDeclarations.map((value: any) => value).join(' ')}
@@ -222,10 +251,7 @@ export const getChuckCode = (
         buffers[4].samples() => buffers[4].pos;
     }
 
-    float atkKnob;
-    float decKnob;
-    float susKnob;
-    float relKnob;
+
 
     6.0 => float lfoFreqDefault;
 
@@ -274,9 +300,9 @@ export const getChuckCode = (
         // 0.8 => limiter.thresh; // can we hardcode these???
         
         // rethink volume when creating a master panel....
-        0.56 => saw1.gain => saw2.gain;
-        0.86 => tri1.gain => tri2.gain;
-        0.56 => sqr1.gain => sqr2.gain;
+        0.10 => saw1.gain => saw2.gain;
+        0.10 => tri1.gain => tri2.gain;
+        0.10 => sqr1.gain => sqr2.gain;
 
         // ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
         // filterCutoff => lpf.freq;
@@ -306,15 +332,14 @@ export const getChuckCode = (
         fun void keyOn(float noteNumber)
         {
             <<< "CALLED KEYON WITH ", noteNumber >>>;
+    
             Std.mtof(offset + Std.ftom(noteNumber)) => SetOsc1Freq;
             Std.mtof(offset + Std.ftom(noteNumber) + oscOffset) - osc2Detune => SetOsc2Freq;
             // Std.mtof(offset + noteNumber) => SetOsc1Freq;
             // Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
 
             
-            // <<< "ADSR YO!!!: ",  moogGMDefaults["adsrAttack"], moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], moogGMDefaults["adsrRelease"] >>>;            // 1 => adsr.keyOn;
-            
-            adsr.keyOn(1);             
+            1 => adsr.keyOn;             
             spork ~ filterEnvelope();
             // me.yield();
         }
@@ -446,14 +471,10 @@ export const getChuckCode = (
 
                 (adsr.attackTime() + adsr.decayTime()) => dur hold;
                 hold => now;
-                
-                // <<< "ADSR IN HERE >>> ", adsr.state(), adsr.value(), adsr.attackTime(), adsr.decayTime(), adsr.sustainLevel(), adsr.releaseTime() >>>;                      
+                                    
                 adsr.keyOff();
                 adsr.releaseTime() => now;
-                // 10::ms => now;
-                1 => adsr.keyOff;
-                
-                me.yield();
+                3::ms => now;
             }
         }
 
@@ -595,46 +616,46 @@ export const getChuckCode = (
     }
 
     fun void handlerPlaySingleNote(Event playSingleNote) {
-        playSingleNote => now;
-        while (true) {
-            playSingleNote => now;
+        // playSingleNote => now;
+        // while (true) {
+        //     playSingleNote => now;
       
-            // string keys[0];
-            // allFXDynamicInts.getKeys(keys);
-            // for( auto key : keys )
-            // {
-            //     <<< "KEY_VAL2", key, allFXDynamicInts[key] >>>;
+        //     // string keys[0];
+        //     // allFXDynamicInts.getKeys(keys);
+        //     // for( auto key : keys )
+        //     // {
+        //     //     <<< "KEY_VAL2", key, allFXDynamicInts[key] >>>;
 
-            // }
+        //     // }
 
-            beat => dur durStep;
-            adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
+        //     beat => dur durStep;
+        //     adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
 
 
-            if (testNotesArr.size() > 0) { 
+        //     if (testNotesArr.size() > 0) { 
                 
-                for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+        //         for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
  
-                    if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0) {
-                        adsr.keyOn(1);
-                        testNotesArr[j] => voice[j].keyOn;
-                    } 
-                    // voice[j].keyOff(1);
-                }
+        //             if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0) {
+        //                 adsr.keyOn(1);
+        //                 testNotesArr[j] => voice[j].keyOn;
+        //             } 
+        //             // voice[j].keyOff(1);
+        //         }
 
-                beat => now;
+        //         beat => now;
                 
-                for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
-                    for (0 => int k; k < chuckNotesOff.size(); k++) {
-                        if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0 && chuckNotesOff[k] == testNotesArr[j]) {
-                            voice[j].keyOff(1);
-                        }
-                    }
-                }
-                [9999.0] @=> testNotesArr;
-                me.yield();
-            }
-        }
+        //         for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+        //             for (0 => int k; k < chuckNotesOff.size(); k++) {
+        //                 if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0 && chuckNotesOff[k] == testNotesArr[j]) {
+        //                     voice[j].keyOff(1);
+        //                 }
+        //             }
+        //         }
+        //         [9999.0] @=> testNotesArr;
+        //         me.yield();
+        //     }
+        // }
     }
 
     fun void handlerFXUpdate(Event fxUpdatez) {
@@ -659,7 +680,7 @@ export const getChuckCode = (
 
 
 
-    fun void playProgrammaticNote(int tickCount) {
+    fun void playProgrammaticNote(int tickCount, float noteLength) {
 
         // <<< "PLAYING PROGRAMMATIC NOTE AT TICK",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i).map((j:any) => Object.keys(j).toString())) }" >>>;
         // for (0 => int i; i < midiNotesArray.size(); i++) {
@@ -667,18 +688,44 @@ export const getChuckCode = (
             midiFreqsArray[tickCount] => float midiFreqsToPlay;
             midiLengthsArray[tickCount] => float midiLengthsToPlay;
             midiVelocitiesArray[tickCount] => float midiVelocitiesToPlay;
-            if (midiNotesToPlay != 9999.0 && midiNotesToPlay >= 0.0) {
+            
+            if (midiNotesToPlay != 9999.0 && midiFreqsToPlay > 0.0) {
+                // adsr.keyOn(1);
                 midiFreqsToPlay => voice[0].keyOn;
 
-                midiLengthsToPlay * (beat * numeratorSignature) => now;
-
+                // midiLengthsToPlay * (beat * numeratorSignature) => now;
+                midiLengthsToPlay * (beat) => now;
                 1 => voice[0].keyOff;
             }
 
-            <<< "PLAYING PROGRAMMATIC NOTE AT TICK", midiNotesToPlay, midiFreqsToPlay, midiLengthsToPlay, midiVelocitiesToPlay, (midiLengthsToPlay * (beat * numeratorSignature) ) >>>;
+            // <<< "PLAYING PROGRAMMATIC NOTE AT TICK", tickCount, midiNotesToPlay, midiFreqsToPlay, midiLengthsToPlay, midiVelocitiesToPlay, (midiLengthsToPlay * (beat * numeratorSignature) ), midiLengthsArray.size() >>>;
         // }
     }
 
+    voice[numVoices - 1] => STK_EffectsChain stk_FxChain => Dyno stk1_Dyno => dac;
+    ${activeSTKDeclarations}
+
+    fun void handlerPlaySTK1(
+        int tickCount, float noteLength
+        // Event playASTK
+    ) {
+        // while (true) {
+            // playASTK => now;
+            midiNotesArray[tickCount] => float midiNotesToPlay;
+            midiFreqsArray[tickCount] => float midiFreqsToPlay;
+            midiLengthsArray[tickCount] => float midiLengthsToPlay;
+            midiVelocitiesArray[tickCount] => float midiVelocitiesToPlay;
+            
+            [midiFreqsToPlay] @=> float allFreqs[];
+            for (0 => int stk_f; stk_f < allFreqs.size() && stk_f < numVoices; stk_f++) {
+                ${activeSTKSettings}
+                ${activeSTKPlayOn}
+                beat => now;
+                ${activeSTKPlayOff}
+            }
+        //     me.yield();
+        // }
+    }
 
 
 
@@ -704,20 +751,19 @@ export const getChuckCode = (
             }
 
 
-            playANote => now;
-            [${
-                // mTFreqs && mTFreqs.length > 0 ? mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) : 9999.0
-                mTFreqs && mTFreqs.length > 0 ? mTFreqs : '9999.0'
-            }] @=> float notesArr[];
+            
+            // *** TURN BACK ON LINE BELOW (AUG 15 2025)???
+            // playANote => now;
+
             // <<< "NOTES_ARR ", notesArr.string() >>>; 
 
             for (0 => int j; j < notesArr.size() && j < numVoices; j++) {
  
                 if (notesArr[j] > 0.00 && notesArr[j] != 9999.0) {
-                    notesArr[j] => voice[j].keyOn;
-                    if (arpeggiatorOn == 1) {
-                        beat => now;
-                    }
+                    // notesArr[j] => voice[j].keyOn;
+                    // if (arpeggiatorOn == 1) {
+                    //     beat => now;
+                    // }
                     // voice[j].keyOff(1);
                 }
             }
@@ -728,25 +774,7 @@ export const getChuckCode = (
         }         
     }
 
-    voice[numVoices - 1] => STK_EffectsChain stk_FxChain => Dyno stk1_Dyno => dac;
-    ${activeSTKDeclarations}
 
-    fun void handlerPlaySTK1(Event playASTK) {
-        while (true) {
-            playASTK => now;
-
-            [${mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq).length > 0 ? 
-                mTFreqs.filter((f: any) => f >= maxMinFreq.minFreq && f <= maxMinFreq.maxFreq) : 9999.3
-            }] @=> float allFreqs[];
-            for (0 => int stk_f; stk_f < allFreqs.size() && stk_f < numVoices; stk_f++) {
-                ${activeSTKSettings}
-                ${activeSTKPlayOn}
-                beat => now;
-                ${activeSTKPlayOff}
-            }
-            me.yield();
-        }
-    }
 
     
 
@@ -790,31 +818,20 @@ export const getChuckCode = (
     now => time startTimeMeasureLoop;
     beat / fastestRateUpdate => dur step; 
 
-    spork ~ handlerPlayNote(playNote);
-    spork ~ handlerPlaySingleNote(playSingleNote);
-    spork ~ handlerPlaySingleNoteOff(playSingleNoteOff);
-    spork ~ handlerPlaySTK1(playSTK);
+    // spork ~ handlerPlayNote(playNote);
+    // spork ~ handlerPlaySingleNote(playSingleNote);
+    // spork ~ handlerPlaySingleNoteOff(playSingleNoteOff);
+    // spork ~ handlerPlaySTK1(playSTK);
     spork ~ handlerFXUpdate(fxUpdate);
+    // if (stkInstsInUse > 0) {
+    
+    // }
 
 
     me.yield(); 
 
 
 
-
-
-
-
-
-    
-    // fun void configureADSR(ADSR adsr, dur dur, float atkRatio, float decRatio, float sus, float relRatio) {
-    //     dur * atkRatio => adsr.attackTime;
-    //     dur * decRatio => adsr.decayTime;
-    //     sus => adsr.sustainLevel;
-    //     dur * relRatio => adsr.releaseTime;
-
-    //     <<< "ADSR READOUT: ", dur * atkRatio, dur * decRatio, sus, dur * relRatio >>>;
-    // }
 
 
 
@@ -830,10 +847,16 @@ export const getChuckCode = (
         // for (0 => int i; i < testNotesArr.size(); i++) {
         for (0 => int i; i < 1; i++) {
         
-            moogGMDefaults["adsrAttack"] => atkKnob;
-            moogGMDefaults["adsrDecay"] => decKnob;
-            moogGMDefaults["adsrSustain"] => susKnob;
-            moogGMDefaults["adsrRelease"] => relKnob;
+
+
+            beat * numeratorSignature => dur durStep;
+            
+            0.07 / numVoices => voice[i].gain;
+            // 1.0 => adsr.gain;
+
+            adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
+
+            0.8 => adsr.gain;
 
             moogGMDefaults["cutoff"] => voice[i].cutoff;
             moogGMDefaults["rez"] => voice[i].rez;
@@ -852,7 +875,7 @@ export const getChuckCode = (
             // Std.ftoi(moogGMDefaults["lfoFreq"]) => lfoFreqDefault;
             
             moogGMDefaults["noise"] => voice[i].noise;
-            0.5 / numVoices => voice[i].gain;
+            // 0.3 / numVoices => voice[i].gain;
         }
         ///////////////////////////////////////////////////
 
@@ -863,29 +886,12 @@ export const getChuckCode = (
 
 
 
+        // beat => dur durStep;
 
-
-        atkKnob + decKnob + relKnob => float total;
-        if (total == 0.0) {
-            0.33 => atkKnob;
-            0.33 => decKnob;
-            0.34 => relKnob;
-        } else {
-            atkKnob / total => atkKnob;
-            decKnob / total => decKnob;
-            relKnob / total => relKnob;
-        }
-
-
-
-        // ( beat / ${masterFastestRate } ) => dur durStep;
-        beat => dur durStep;
-
-        adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
+        // adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
        
-        <<< "ADSR STUFF: ", durStep, durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"] >>>;
+        // <<< "ADSR STUFF: ", durStep, durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"] >>>;
 
-        // configureADSR(adsr, ( beat ), atkKnob, decKnob, susKnob, relKnob);
 
         int recurringTickCount;
         if (fastestTickCounter > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
@@ -893,19 +899,22 @@ export const getChuckCode = (
         } else {
             fastestTickCounter => recurringTickCount;
         }
-
-        spork ~ playProgrammaticNote(recurringTickCount);
         <<< "SHREDCOUNT: ", Machine.numShreds() >>>;
+ 
 
         if (now >= startTimeMeasureLoop + step) {
             
             <<< "TICK:", fastestTickCounter >>>;
-            // if (fastestTickCounter % ${numeratorSignature} == 1) {
-                tickCounter + 1 => tickCounter;
-                spork ~ handlePlayDrumMeasure(recurringTickCount);
-            // }    
+       
+            tickCounter + 1 => tickCounter;
+            if (midiLengthsArray.size() > 0) {
+                spork ~ playProgrammaticNote(recurringTickCount, midiLengthsArray[recurringTickCount] );    
+                spork ~ handlerPlaySTK1(recurringTickCount, midiLengthsArray[recurringTickCount]);
+            }
+            spork ~ handlePlayDrumMeasure(recurringTickCount);
+  
             fastestTickCounter + 1 => fastestTickCounter;                     
-            // step => now;     
+            step => now;     
 
         } 
         
@@ -979,7 +988,7 @@ export const noteToFreq = (note: string, octave: number): number => {
   }
 
   const midi = (octave + 1) * 12 + index;
-  const freq = 440 * Math.pow(2, (midi - 69) / 12);
+  const freq = 440.0 * Math.pow(2, (midi - 69) / 12);
   return freq;
 };
 
