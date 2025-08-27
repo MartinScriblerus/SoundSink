@@ -140,6 +140,8 @@ export const getChuckCode = (
     global float midiVelocitiesArray[0];
 
 
+
+
     global float moogGMDefaults[0]; 
     global float effectsDefaults[0];  
     global float stkEffectsDefaults[0];  
@@ -148,6 +150,8 @@ export const getChuckCode = (
     global int stkInstsInUse;
     global float allFXDynamicFloats[0];
     global float allSTKFXDynamicFloats[0];
+
+    ${beatInMilliseconds} => global float beatMS; 
 
     ${signalChainDeclarations.map((value: any) => value).join(' ')}
     ${signalChainSamplerDeclarations.map((value: any) => value).join(' ')}
@@ -178,20 +182,23 @@ export const getChuckCode = (
     beatInt / 1000 => float beatSeconds;
     beatSeconds :: second => dur quarterNote;
 
-    <<< "TICK TIMER: ", beatSeconds >>>;
+    <<< "TICK TIMER: ", beatSeconds * 1000 >>>;
 
     ${numeratorSignature.toFixed(2)} / denominatorSignature => float beatFactor;
     // quarterNote * beatFactor => dur adjustedBeat;
     quarterNote * beatFactor => dur adjustedBeat;
     adjustedBeat => dur beat;
 
+    <<< "TICK TIMER ADJUSTED: ", beat >>>;
+
     // beat * numeratorSignature => dur whole;
     // whole * denominatorSignature => dur measure;
     beat * numeratorSignature => dur whole;
+    <<< "TICK TIMER WHOLE: ", whole >>>;
     whole => dur measure;
 
     // Number of voices for polyphony
-    8 => global int numVoices;
+    1 => global int numVoices;
     global float NOTES_SET[0];
     ${currentNoteVals.osc1[0]} => global int fastestRateUpdate;
 
@@ -300,9 +307,9 @@ export const getChuckCode = (
         // 0.8 => limiter.thresh; // can we hardcode these???
         
         // rethink volume when creating a master panel....
-        0.10 => saw1.gain => saw2.gain;
-        0.10 => tri1.gain => tri2.gain;
-        0.10 => sqr1.gain => sqr2.gain;
+        0.18 => saw1.gain => saw2.gain;
+        0.18 => tri1.gain => tri2.gain;
+        0.18 => sqr1.gain => sqr2.gain;
 
         // ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
         // filterCutoff => lpf.freq;
@@ -474,7 +481,6 @@ export const getChuckCode = (
                                     
                 adsr.keyOff();
                 adsr.releaseTime() => now;
-                3::ms => now;
             }
         }
 
@@ -683,7 +689,7 @@ export const getChuckCode = (
     fun void playProgrammaticNote(int tickCount, float noteLength) {
 
         // <<< "PLAYING PROGRAMMATIC NOTE AT TICK",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i).map((j:any) => Object.keys(j).toString())) }" >>>;
-        // for (0 => int i; i < midiNotesArray.size(); i++) {
+        for (0 => int i; i < numVoices; i++) {
             midiNotesArray[tickCount] => float midiNotesToPlay;
             midiFreqsArray[tickCount] => float midiFreqsToPlay;
             midiLengthsArray[tickCount] => float midiLengthsToPlay;
@@ -691,15 +697,17 @@ export const getChuckCode = (
             
             if (midiNotesToPlay != 9999.0 && midiFreqsToPlay > 0.0) {
                 // adsr.keyOn(1);
-                midiFreqsToPlay => voice[0].keyOn;
+                midiFreqsToPlay => voice[i].keyOn;
 
                 // midiLengthsToPlay * (beat * numeratorSignature) => now;
-                midiLengthsToPlay * (beat) => now;
-                1 => voice[0].keyOff;
+                <<< "PROGLEN: ", noteLength, (beatMS) >>>;
+                // noteLength * (beat) => now;
+                (beatMS * noteLength)::ms => now;
+                1 => voice[i].keyOff;
             }
 
             // <<< "PLAYING PROGRAMMATIC NOTE AT TICK", tickCount, midiNotesToPlay, midiFreqsToPlay, midiLengthsToPlay, midiVelocitiesToPlay, (midiLengthsToPlay * (beat * numeratorSignature) ), midiLengthsArray.size() >>>;
-        // }
+        }
     }
 
     voice[numVoices - 1] => STK_EffectsChain stk_FxChain => Dyno stk1_Dyno => dac;
@@ -849,14 +857,16 @@ export const getChuckCode = (
         
 
 
-            beat * numeratorSignature => dur durStep;
+            (beatMS)::ms => dur durStep;
             
-            0.07 / numVoices => voice[i].gain;
+            <<< "DURSTEPTEST: ", beatMS >>>;
+
+            0.15 / numVoices => voice[i].gain;
             // 1.0 => adsr.gain;
 
             adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
 
-            0.8 => adsr.gain;
+            0.9 => adsr.gain;
 
             moogGMDefaults["cutoff"] => voice[i].cutoff;
             moogGMDefaults["rez"] => voice[i].rez;

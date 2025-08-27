@@ -91,7 +91,8 @@ useEffect(() => {
         flexDirection: 'row', 
         width: '100%', 
         outline: 'none', 
-        position: 'relative' 
+        position: 'relative',
+        zIndex: 9999, 
       }}
     >
       <FormControl sx={{ width: '100%', color: 'rgba(245,245,245,0.78)' }}>
@@ -110,11 +111,11 @@ useEffect(() => {
             // minWidth: '180px',
             justifyContent: 'center',
             alignItems: 'left',
-            textAlign: 'left'
+            textAlign: 'left',
           }}
           onClick={() => setIsOpen(!isOpen)}
         >
-          Microtonal: {currentMicroTonalScale.label ? currentMicroTonalScale.label : 'Select...'}
+          Microtonal: {currentMicroTonalScale.label ? currentMicroTonalScale.label : '...'}
         </div>
         {isOpen && (
           <div
@@ -141,7 +142,8 @@ useEffect(() => {
               padding: 0,
               margin: 0,
               zIndex: 99999,
-              left: '140px',
+              // left: '140px',
+              left: '-208px',
               top: '-128px',
             }}
           >

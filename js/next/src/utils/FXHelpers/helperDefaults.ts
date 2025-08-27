@@ -17,48 +17,48 @@ export const lenMarks = [
     //     value: 0,
     //     label: '1/128',
     // },
+    // {
+    //     value: 0,
+    //     label: '1/64',
+    // },
+    // {
+    //     value: 1,
+    //     label: '1/32',
+    // },
     {
         value: 0,
-        label: '1/64',
-    },
-    {
-        value: 1,
-        label: '1/32',
-    },
-    {
-        value: 2,
         label: '1/16',
     },
     {
-        value: 3,
+        value: 1,
         label: '1/8',
     },
     {
-        value: 4,
+        value: 2,
         label: '1/4',
     },
     {
-        value: 5,
+        value: 3,
         label: '1/2',
     },
     {
-        value: 6,
+        value: 4,
         label: '1',
     },
     {
-        value: 7,
+        value: 5,
         label: '2',
     },
     {
-        value: 8,
+        value: 6,
         label: '4',
     },
     {
-        value: 9,
+        value: 7,
         label: '8',
     },
     {
-        value: 10,
+        value: 8,
         label: '16',
     }
 ];

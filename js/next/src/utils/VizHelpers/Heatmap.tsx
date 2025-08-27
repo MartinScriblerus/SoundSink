@@ -237,7 +237,7 @@ export const Heatmap = ({
               <Renderer
                 isChuckRunning={isChuckRunning}
                 width={400}
-                height={270}
+                height={200}
                 data={heatmapData}
                 setHoveredCell={setHoveredCell}
                 editPattern={editPattern}

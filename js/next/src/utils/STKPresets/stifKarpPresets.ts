@@ -35,7 +35,7 @@ const stifKarpPresets = {
     pluck: {
         name: "pluck",
         label: "Pluck",
-        value: 0.15,
+        value: 1.0,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",

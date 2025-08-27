@@ -223,7 +223,7 @@ const FileWindow = (props: FileWindowProps) => {
     }
     
     const onPlayPause = () => {
-        console.log("YOOO!!! ", wavesurferRef.current);
+        console.log("wavesurfer ref current: ", wavesurferRef.current);
         wavesurferRef.current && wavesurferRef.current.playPause()
     }
     
@@ -236,7 +236,7 @@ const FileWindow = (props: FileWindowProps) => {
     useEffect(() => {
         if (!clickedFile) return;
         const theFile: any = Object.values(clickedFile).map((i:any) => i[0]);
-        console.log("CLICKED FILE!!!: ", theFile);
+        console.log("clicked file: ", theFile);
         theFile && fetch(theFile)
             .then(response => response.arrayBuffer())
             .then(buffer => {

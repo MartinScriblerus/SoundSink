@@ -5,7 +5,7 @@ const moogPresets = {
     filterQ: {
         name: "filterQ",
         label: "Filter Q",
-        value: 0.50,
+        value: 0.8,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -25,7 +25,7 @@ const moogPresets = {
     vibratoFreq: {
         name: "vibratoFreq",
         label: "Vibr Freq",
-        value: 220,
+        value: 660,
         min: 0,
         max: 1000,
         screenInterface: "knob",
@@ -35,7 +35,7 @@ const moogPresets = {
     vibratoGain: {
         name: "vibratoGain",
         label: "Vibr Gain",
-        value: 0.2,
+        value: 0.14,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -45,7 +45,7 @@ const moogPresets = {
     afterTouch: {
         name: "afterTouch",
         label: "Aftertouch",
-        value: 0.7,
+        value: 0.5,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -56,7 +56,7 @@ const moogPresets = {
     lfoSpeed: {
         name: "lfoSpeed",
         label: "LFO Speed",
-        value: 0.0,
+        value: 0.31,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -66,7 +66,7 @@ const moogPresets = {
     lfoDepth: {
         name: "lfoDepth",
         label: "LFO Depth",
-        value: 0.0,
+        value: 0.35,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -76,7 +76,7 @@ const moogPresets = {
     modSpeed: {
         name: "modSpeed",
         label: "Mod Speed",
-        value: 0.0,
+        value: 0.20,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -86,7 +86,7 @@ const moogPresets = {
     modDepth: {
         name: "modDepth",
         label: "Mod Depth",
-        value: 0.0,
+        value: 0.09,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -96,7 +96,7 @@ const moogPresets = {
     gain: {
         name: "gain",
         label: "Gain",
-        value: 0.8,
+        value: 0.1845,
         min: 0.01,
         max: 2.0,
         screenInterface: "knob",

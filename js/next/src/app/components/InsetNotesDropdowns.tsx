@@ -1,3 +1,5 @@
+import { RUSTY_ORANGE } from '@/utils/constants';
+import { Box, FormControl, FormLabel, InputLabel } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import Select, { StylesConfig } from 'react-select';
 
@@ -34,6 +36,14 @@ const InsetNotesDropdown: React.FC<Props> = ({
       backgroundColor: 'white',
       color: 'black',
       minWidth: '180px',
+      display: 'flex',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      position: 'relative',
+      padding: '4px',
+      margin: '4px',
+      paddingLeft: '8px',
+      paddingRight: '8px',
       cursor: isDisabled ? 'not-allowed' : 'default',
       ':hover': { backgroundColor: 'lightgray' },
       ':active': { backgroundColor: 'green' },
@@ -64,14 +74,77 @@ const InsetNotesDropdown: React.FC<Props> = ({
 
 
   return (
-    <Select
-      key={`${selectedOptions.length}_insetNotesDropdownKey`}
-      isMulti
-      options={optionsHook}
-      onChange={handleChange}
-      value={selectedOptions}
-      styles={colorStyles}
-    />
+  <FormControl
+    fullWidth
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      position: 'relative',
+      px: 1, // shorthand for paddingLeft/paddingRight
+      m: 0.5,
+    }}
+  >
+    <FormLabel
+      sx={{
+        color: 'rgba(245,245,245,0.78)',
+        fontSize: '11px',
+        px: 1,
+        mb: 0.5, // spacing between label and select
+      }}
+      id="notes-input-select-label"
+    >
+      Notes (in Active Cell)
+    </FormLabel>
+
+    <Box sx={{ height: 40 }}>
+      <Select
+        key={`${selectedOptions.length}_insetNotesDropdownKey`}
+        isMulti
+        options={optionsHook}
+        onChange={handleChange}
+        value={selectedOptions}
+        styles={{
+          ...colorStyles,
+          control: (base, state) => ({
+            ...base,
+            minHeight: 'unset',
+            height: '100%',
+            boxShadow: state.isFocused ? '0 0 0 1px #90caf9' : base.boxShadow,
+          }),
+          valueContainer: (base) => ({
+            ...base,
+            height: '100%',
+            padding: '0 4px',
+          }),
+          input: (base) => ({
+            ...base,
+            margin: 0,
+            padding: 0,
+            width: '240px',
+          }),
+          option: (base, state) => ({
+            ...base,
+            textAlign: 'left',  
+            paddingLeft: '8px',
+            color: state.isSelected ? 'white' : 'black',
+          }),
+          singleValue: (base) => ({
+            ...base,
+            textAlign: 'left',
+          }),
+          multiValueLabel: (base) => ({
+            ...base,
+            textAlign: 'left',
+          }),
+          placeholder: (base) => ({
+            ...base,
+            textAlign: 'left',
+          }),
+        }}
+      />
+    </Box>
+  </FormControl>
   );
 };
 

@@ -49,7 +49,7 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
                 document.removeEventListener('mousedown', handleClickOutside);
             };
         }
-      }, [isOpen]);
+    }, [isOpen]);
 
 
     useEffect(() => {

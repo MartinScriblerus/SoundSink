@@ -306,8 +306,8 @@ function BabylonScene(props: {
                                     // IF THERE ARE
                                     newMeshes[0].alwaysSelectAsActiveMesh = false;  // Reduce processing overhead
                                     newMeshes[0].doNotSyncBoundingInfo = true;  // Disable bounding box sync if unnecessary
-                                    newMeshes[0].position.y = 7 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
-                                    newMeshes[0].position.x = 20.0 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
+                                    newMeshes[0].position.y = 7.2 + ((-((i % squareRoot) / 2)) + (i % squareRoot) * -3);
+                                    newMeshes[0].position.x = 18.7 + ((-((j % squareRoot) / 2)) + (j % squareRoot) * -3.0);
                                     // newMeshes[0].position.y = 7  + (i % 2) * -4;          
                                     // newMeshes[0].position.x = ((-((i) * -10)) + (j * -4)) + ((i + 1) % 2) * (10) + -16; // Add offset for alternate rows
                                     newMeshes[0].position.z = zPos;

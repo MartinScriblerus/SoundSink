@@ -28,11 +28,11 @@ export const Tooltip = ({
         height,
         position: "absolute",
         // top: 140,
-              top: 240,
+        top: 240,
         fontFamily: "monospace",
         // left: !isInPatternEditMode ? -80 : 20,
         // zIndex: !isInPatternEditMode ? 9999 : 1,
-        left: -80,
+        left: -220,
         pointerEvents: "none",
       }}
     >
@@ -43,7 +43,7 @@ export const Tooltip = ({
           //left: interactionData.xPos * .7 : 200 + (parseInt(interactionData.xLabel) * 5),
           // top: interactionData.yPos * 1,
           width: 200,
-          top: 180,
+          top: 40,
           background: "rgba(0, 0, 0, 0.78)",
         }}
       >

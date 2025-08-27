@@ -16,10 +16,19 @@ export default function GenericRadioButtons(props: GenericRadioProps) {
   return (
     <FormControl sx={{
         display: "inline-flex",
-        flexDirection: "row !important",
+        flexDirection: "column",
         whiteSpace: "nowrap",
+        width: "none"
     }}>
-      {/* <FormLabel id="demo-radio-buttons-group-label">Gender</FormLabel> */}
+      <FormLabel
+        sx={{
+            color: 'rgba(245,245,245,0.78)',
+            fontSize: '11px',
+            paddingLeft: '8px',
+            paddingRight: '8px',
+        }}
+        id="scale-direction-select-label"
+      >Scale Direction</FormLabel>
       <RadioGroup
         aria-labelledby="demo-radio-buttons-group-label"
         defaultValue="asc"

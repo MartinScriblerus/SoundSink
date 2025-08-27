@@ -1,4 +1,4 @@
-import { FormControl, FormControlLabel, Radio, RadioGroup } from "@mui/material"
+import { FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material"
 
 type StepRadioBtnProps = {
     doAutoAssignPatternNumber: number | null;
@@ -7,8 +7,20 @@ type StepRadioBtnProps = {
 const StepRadioButtons = (props: StepRadioBtnProps) => {
     const { doAutoAssignPatternNumber, handleAssignPatternNumber } = props;
     return (
-                            <FormControl>
-                              {/* <FormLabel>Repeats</FormLabel> */}
+                            <FormControl
+                              sx={{
+                                width: "fit-content !important",
+                              }}
+                            >
+                              <FormLabel
+                                sx={{
+                                    color: 'rgba(245,245,245,0.78)',
+                                    fontSize: '11px',
+                                    paddingLeft: '8px',
+                                    paddingRight: '8px',
+                                }}
+                                id="repeats-select-label"
+                              >Sequence Patterns</FormLabel>
                               <RadioGroup
                                 aria-labelledby="demo-radio-buttons-group-label"
                                 value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}

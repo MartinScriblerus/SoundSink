@@ -27,11 +27,15 @@ export default function NoteBuilderToggle(props: NoteBuilderToggleProps) {
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
-        padding: '8px',
+        // padding: '8px',
+        paddingBottom: '4px',
     }}>
         <ToggleButtonGroup
             id="toggleNoteBuilderGroup"
             key={`toggleNoteBuilderWrapper_${noteBuilderFocus}`}
+            sx={{
+              maxHeight: "32px"
+            }}
             value={alignment}
             exclusive
             onChange={handleChange}

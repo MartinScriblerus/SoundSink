@@ -5,7 +5,7 @@ const frencHrnPresets = {
     controlOne: {
         name: "controlOne",
         label: "Mod Index",
-        value: 0.2,
+        value: 0.87,
         min: 0.01,
         max: 2.0,
         screenInterface: "knob",
@@ -15,7 +15,7 @@ const frencHrnPresets = {
     controlTwo: {
         name: "controlTwo",
         label: "Mod Crossfade",
-        value: 1.0,
+        value: 1.4,
         min: 0.01,
         max: 4.0,
         screenInterface: "knob",
@@ -25,7 +25,7 @@ const frencHrnPresets = {
     lfoSpeed: {
         name: "lfoSpeed",
         label: "LFO Rate",
-        value: 0.01,
+        value: 0.2,
         min: 0.01,
         max: 1.0,
         screenInterface: "knob",
@@ -35,7 +35,7 @@ const frencHrnPresets = {
     lfoDepth: {
         name: "lfoDepth",
         label: "LFO Depth",
-        value: 0.7,
+        value: 1.7,
         min: 0.01,
         max: 2.0,
         screenInterface: "knob",
@@ -45,7 +45,7 @@ const frencHrnPresets = {
     gain: {
         name: "gain",
         label: "Gain",
-        value: 0.3,
+        value: 1.0,
         min: 0.01,
         max: 2.0,
         screenInterface: "knob",

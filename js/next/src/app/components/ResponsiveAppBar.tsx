@@ -121,7 +121,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             {chuckHook && (
               <Button
               sx={{
-                border:'rgba(245,245,245,0.78)',
+                border: `solid 1px ${HOT_PINK}`,
                 backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
                 color: 'rgba(245,245,245,0.78)',
                 height: '48px',
@@ -158,13 +158,14 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
         {chuckHook && (
           <Button
             sx={{
-              border:'rgba(245,245,245,0.78)',
+              // border:'rgba(245,245,245,0.78)',
               backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
               color: 'rgba(245,245,245,0.78)',
               height: '48px',
           
              // width: '100px',
               //marginBottom: '4px',
+              border: `1px solid ${PERRIWINKLE}`,
               minHeight: '48px',
               display: "flex",
               zIndex: '99',
@@ -172,7 +173,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               cursor: "pointer",
               '&:hover': {
                 color: 'rgba(245,245,245,0.78)',
-                background: RUSTY_ORANGE,
+                background: PERRIWINKLE,
                 // border: `1px solid ${theme.palette.black}`,
               }
             }}
@@ -196,18 +197,19 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             <Button
               sx={{
                 color: 'rgba(245,245,245,0.78)',
-                border: `solid 1px rgba(28,28,28,0.78)`,
-                backgroundColor: 'rgba(28,28,28,0.78)',
+                // border: `solid 1px rgba(28,28,28,0.78)`,
+                backgroundColor: 'rgba(5, 2, 2, 0.78)',
                 height: '48px',
                 //width: '100px',
                 //marginRight: '8px',
+                border: `solid 1px ${RUSTY_ORANGE}`,
                 display: 'flex',
                 zIndex: '99',
                 pointerEvents: 'auto',
                 cursor: 'pointer',
                 '&:hover': {
                   color: 'rgba(245,245,245,0.78)',
-                  background: PERRIWINKLE,
+                  background: RUSTY_ORANGE,
                   // border: `1.5px solid ${theme.palette.black}`,
                 }
               }}

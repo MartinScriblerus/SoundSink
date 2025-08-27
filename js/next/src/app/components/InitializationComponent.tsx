@@ -36,7 +36,7 @@ import { initialEdgesDefaults, initialNodesDefaults } from '@/utils/FXHelpers/pe
 import setupAudioWorklet from '../../audio/setupAudioWorklet';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import setupAudioAnalysisWorklet from '../../audio/setupAudioAnalysisWorklet';
-import { HOT_PINK, PERRIWINKLE, RUSTY_ORANGE } from '@/utils/constants';
+import { GOLDEN_YELLOW, HOT_PINK, PERRIWINKLE, RUSTY_ORANGE } from '@/utils/constants';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
 import axios from 'axios';
 import MingusPopup from './MingusPopup';
@@ -289,7 +289,7 @@ export default function InitializationComponent() {
     const consistentNotes = useRef<any>();
     consistentNotes.current = consistentNotes.current || [];
 
-    const [doAutoAssignPatternNum, setDoAutoAssignPatternNum] = useState<number>(0);
+    const [doAutoAssignPatternNum, setDoAutoAssignPatternNum] = useState<number>(2);
 
     resetHeatmapCell.current = false;
 
@@ -549,6 +549,7 @@ export default function InitializationComponent() {
     const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(defaultNoteVals)
 
     const inPatternEditMode = (state: boolean) => {
+
         isInPatternEditMode.current = true;
     }
 
@@ -726,15 +727,33 @@ export default function InitializationComponent() {
 
     const handleNoteLengthUpdate = async (e: any, cellData: any) => {
         if (masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
-            const fraction = lenMarks[e.target.value].label;
+            console.log("E TARGET VALUE: ", e && e.target && e.target.value);
+            if (!e || !e.target || !e.target.value) return;
+            const fraction = lenMarks[( e && e.target && e.target.value)].label;
             const parts = fraction.indexOf('/') > -1 ? fraction.split('/').map(Number) : [Number(fraction)];
             const result = parts.length > 1 ? parts[0] / parts[1] : parts[0];
-            // alert('result~!!! ' + result);
+            alert('result~!!! ' + result);
             masterPatternsRef.current[cellData.yVal][cellData.xVal].length = result; // e.target.value;
             handleAutoAssignLength(cellData.xVal, cellData.yVal, result);
             setPatternsHashHook(masterPatternsRef.current);
             setPatternsHashUpdated(!masterPatternsHashUpdated);
-                        chuckHook &&
+                        
+            console.log("CAN WE UPDATE?>>> ", chuckHook &&
+            chuckRef.current &&
+            masterPatternsRef.current &&
+            Object.values(masterPatternsRef.current).length > 0 && 
+            Object.values(masterPatternsRef.current)
+                // .slice(1)
+                .map((i: any) => 
+                    Object.values(i).map(
+                        (j:any) => 
+                            Object.values(j).map(
+                                (h: any) => Number(h) * 1.0
+                            )[12]   
+                    )
+                ).flat())
+            
+            chuckHook &&
             chuckRef.current &&
             masterPatternsRef.current &&
             Object.values(masterPatternsRef.current).length > 0 &&
@@ -1473,6 +1492,7 @@ export default function InitializationComponent() {
     ]) // if there are problems, switch back to [${chuckUpdateNeeded}]
 
     const stopChuckInstance = async () => {
+        console.log("Stopping ChucK instance... ", chuckRef.current);
         chuckRef.current && await chuckRef.current.runCode(`Machine.removeAllShreds();`);
         chuckRef.current && await chuckRef.current.runCode(`Machine.resetShredID();`);
         setChuckUpdateNeeded(true);
@@ -1782,7 +1802,7 @@ export default function InitializationComponent() {
                 hid,
             );
 
-            chuckRef.current.runCode(newChuckCode.current);
+            await chuckRef.current && chuckRef.current.runCode(newChuckCode.current);
 
             setIsChuckRunning(true);
   
@@ -1958,7 +1978,7 @@ export default function InitializationComponent() {
 
     const updateKeyScaleChord = useCallback((key: string, scale: string, chord: string, chordLabel: string, octaveMax: string, octaveMin: string, noteBuilderFoc: string) => {
         
-        console.log("updateKeyScaleChord &^& called with: ", key, scale, chord, chordLabel, octaveMax, octaveMin);
+        // console.log("updateKeyScaleChord &^& called with: ", key, scale, chord, chordLabel, octaveMax, octaveMin);
 
         const dataToReturn = {
             scaleData: null,
@@ -2167,6 +2187,7 @@ export default function InitializationComponent() {
 
     const resetCellSubdivisionsCounter = (x: number, y: number) => {
         currentHeatmapXY.current = {x: Number(x), y: Number(y)};
+        //*tk2
         console.log('master patterns ref: ', masterPatternsRef.current[`${y}`][`${x}`]);
         const subdivs: any = masterPatternsRef.current[`${y}`][`${x}`].subdivisions;
         setPatternsHashUpdated(true);
@@ -2283,18 +2304,23 @@ export default function InitializationComponent() {
 
             const chugins: string[] = loadWebChugins();
             chugins.forEach((chuginPath) => Chuck.loadChugin(chuginPath));
-            const DEV_CHUCK_SRC = "https://chuck.stanford.edu/webchuck/dev/"; // dev webchuck src
-            const PROD_CHUCK_SRC = "https://chuck.stanford.edu/webchuck/src/"; // prod webchuck src
-            let whereIsChuck: string =
-                localStorage.getItem("chuckVersion") === "dev"
-                    ? DEV_CHUCK_SRC
-                    : PROD_CHUCK_SRC;
+            // const DEV_CHUCK_SRC = "https://chuck.stanford.edu/webchuck/dev/"; // dev webchuck src
+            // const PROD_CHUCK_SRC = "https://chuck.stanford.edu/webchuck/src/"; // prod webchuck src
+            // let whereIsChuck: string =
+            //     localStorage.getItem("chuckVersion") === "dev"
+            //         ? DEV_CHUCK_SRC
+            //         : PROD_CHUCK_SRC;
+             
+            const LOCAL_CHUCK_SRC = "/webchuck/"; 
+
+            // console.log("WHERE IS CHUCK111111? ", whereIsChuck);
             // Create theChuck
             const theChuck = await Chuck.init(
                 serverFilesToPreload,
                 audioContext,
                 audioContext.destination.maxChannelCount,
-                whereIsChuck
+                // whereIsChuck
+                LOCAL_CHUCK_SRC
             );
             try {
                 hid = await HID.init(theChuck, false, true);
@@ -2317,7 +2343,7 @@ export default function InitializationComponent() {
             chuckRef.current = theChuck;
             chuckRef.current && setChuckHook(chuckRef.current);
 
-            chuckRef.current.chuckPrint = (message) => {
+            chuckRef.current.chuckPrint = (message: string) => {
                 if (message.includes("TICK: ")) {
                     const parsedMsg = message.split(":")[1].trim();
 
@@ -2329,6 +2355,10 @@ export default function InitializationComponent() {
                         console.log("SHREDCOUNT ", message)
                     }
 
+                    if (message.includes("TICK TIMER: ")) {
+                        console.log("TICK TIMER: ", message)
+                    }
+
                     if (message.includes("ADSR IN HERE >>> ")) {
                         console.log("ADSR IN HERE >>>  ", message);
                     }
@@ -2337,6 +2367,12 @@ export default function InitializationComponent() {
                         console.log("PLAYING PROGRAMMATIC NOTE", message);
                     }
 
+                    if (message.includes("PROGLEN")) {
+                        console.log("PLAYING PROGLEN", message);
+                    }
+                    if (message.includes("DURSTEPTEST")) {
+                        console.log("DURSTEPTEST: ", message);
+                    }
 
 
             // console.log("CHUCK MESSAGE: ", message);     
@@ -2400,6 +2436,7 @@ export default function InitializationComponent() {
 
         if (masterPatternsRef.current[yVal] && masterPatternsRef.current[yVal][xVal]) {
             console.log("AUTOASSIGN NUMBER: ", doAutoAssignPatternNum);
+            //*tk1
             if (doAutoAssignPatternNum.toString() === "0") {
                 masterPatternsRef.current[yVal][xVal].fileNums = indices;
             } else if (
@@ -2679,7 +2716,7 @@ export default function InitializationComponent() {
         const observer = new ResizeObserver((entries) => {
         for (let entry of entries) {
             const { width, height } = entry.contentRect;
-            console.log('Parent size changed:', width, height);
+            // console.log('Parent size changed:', width, height);
             
             setParentSize({ width, height });
         }
@@ -2718,7 +2755,7 @@ export default function InitializationComponent() {
             <Box id={'relativeFrontendWrapper'}>
                 {/* RESPONSIVE APP BAR */}
                 {/* {chuckHook && */}
-                {
+                {clickedBegin && chuckHook && isChuckRunning &&
                     <Box    
                         sx={{
                             position: "absolute",
@@ -2816,7 +2853,17 @@ export default function InitializationComponent() {
                                         }} 
                                     >
                                         <Box id="rightPanelHeader">
-                                            <Box className="right-panel-header-wrapper">
+                                            <Box 
+                                                className="right-panel-header-wrapper"
+                                                sx={{
+                                                    // border: `1px solid ${PERRIWINKLE}`,
+                                                    border: `1px solid rgba(0,0,0,0.78)`,
+                                                    display: 'flex', 
+                                                    flexDirection: 'row', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'space-between'
+                                                }}
+                                            >
                                                 <Button 
                                                     id='toggleSliderPanelChildren_Effects' 
                                                     className='right-panel-header-button'
@@ -3150,7 +3197,11 @@ export default function InitializationComponent() {
                                 }</Box>
 
                                 {/* LEFT CONTAINER */}
-                                <Box id="leftContainerWrapper">
+                                <Box 
+                                    // sx={{
+                                    //     borderRight: `solid 1px ${GOLDEN_YELLOW}`
+                                    // }}
+                                    id="leftContainerWrapper">
                                     {clickedBegin && <ResponsiveAppBar
                                         selectRef={selectRef}
                                         tune={tune}
@@ -3187,6 +3238,17 @@ export default function InitializationComponent() {
                                         numeratorSignature={numeratorSignature}
                                         denominatorSignature={denominatorSignature}
                                     />}
+
+                                    <FileManager 
+                                        handleSubmit={handleSubmit}
+                                        onSubmit={onSubmit}
+                                        chuckHook={chuckHook}
+                                        register={register}
+                                        handleFileChange={handleFileChange}
+                                        handleButtonClick={handleButtonClick}
+                                        FileUploadIcon={FileUploadIcon}
+                                        inputRef={inputRef}
+                                    />
                                     {
                                         showBPM && (
                                             <Box sx={{
@@ -3212,16 +3274,6 @@ export default function InitializationComponent() {
                                         )
                                     }
 
-                                    <FileManager 
-                                        handleSubmit={handleSubmit}
-                                        onSubmit={onSubmit}
-                                        chuckHook={chuckHook}
-                                        register={register}
-                                        handleFileChange={handleFileChange}
-                                        handleButtonClick={handleButtonClick}
-                                        FileUploadIcon={FileUploadIcon}
-                                        inputRef={inputRef}
-                                    />
                                     <Box
                                         sx={{
                                             padding: '8px',

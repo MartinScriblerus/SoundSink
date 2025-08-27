@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import { InteractionData } from "./Heatmap";
-import { Box, Slider, useTheme } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close"
+import { Box, FormLabel, Slider, useTheme } from "@mui/material";
 import React from "react";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
 import { RUSTY_ORANGE, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK } from "../constants";
@@ -16,10 +15,10 @@ import GenericRadioButtons from "@/app/components/GenericRadioButtons";
 import ArpSpeedSliders from "@/app/components/ArpSpeedSliders";
 import { valuetext } from "../knobsHelper";
 import NoteBuilderToggle from "@/app/components/NoteBuilderToggle";
-import { masterPatternsRef } from "@/app/state/refs";
 import VelocityLengthSliders from "@/app/components/VelocityLengthSliders";
 import StepRadioButtons from "@/app/components/StepRadioButtons";
 import FileWindow from "@/app/components/FileWindow";
+import { samplesToTimeHMSS } from "../time";
 
 
 
@@ -71,14 +70,14 @@ type RendererProps = {
     xVal: number,
     yVal: number
   ) => void;
-  mTFreqs:number[];
-  mTMidiNums:number[];
-  updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any, f: any, g: any) => void;
+  mTFreqs: number[];
+  mTMidiNums: number[];
+  updateKeyScaleChord: (a: any, b: any, c: any, d: any, e: any, f: any, g: any) => void;
   userInteractionUpdatedScore: (x: number) => void;
   handleAssignPatternNumber: (e: any) => void;
   doAutoAssignPatternNumber: number;
 
-  setStkValues: React.Dispatch<React.SetStateAction<any>>; 
+  setStkValues: React.Dispatch<React.SetStateAction<any>>;
   tune: Tune;
   currentMicroTonalScale: (scale: any) => void;
   setFxKnobsCount: React.Dispatch<React.SetStateAction<number>>;
@@ -92,7 +91,7 @@ type RendererProps = {
   // universalSources={universalSources}
   updateCurrentFXScreen: any;
 
-  getSTK1Preset: (x: string) => any; 
+  getSTK1Preset: (x: string) => any;
   universalSources: React.MutableRefObject<any>;
   updateMicroTonalScale: (scale: any) => void;
 
@@ -112,7 +111,7 @@ type RendererProps = {
   currentNoteVals: any;
   vizSource: string;
   noteBuilderFocus: string;
-  handleNoteBuilder: (focus: string) => void; 
+  handleNoteBuilder: (focus: string) => void;
   exitEditMode: () => void;
   handleNoteLengthUpdate: (e: any, cellData: any) => void;
   handleNoteVelocityUpdate: (e: any, cellData: any) => void;
@@ -133,18 +132,12 @@ export const Renderer = ({
   height,
   data,
   setHoveredCell,
-  editPattern,
   masterPatternsHashHook,
-  masterPatternsHashHookUpdated,
-  updateCellColor,
-  updateCellColorBool,
   inPatternEditMode,
   filesToProcess,
-  selectFileForAssignment,
   handleChangeCellSubdivisions,
   cellSubdivisions,
   resetCellSubdivisionsCounter,
-  rebuildHeatmap,
   currentBeatCountToDisplay,
   currentNumerCountColToDisplay,
   currentDenomCount,
@@ -155,37 +148,31 @@ export const Renderer = ({
   mTFreqs,
   mTMidiNums,
   updateKeyScaleChord,
-  userInteractionUpdatedScore,
   handleAssignPatternNumber,
   doAutoAssignPatternNumber,
 
-
-  setStkValues,
   tune,
   currentMicroTonalScale,
   setFxKnobsCount,
   doUpdateBabylonKey,
 
   getSTK1Preset,
-  universalSources,
   updateMicroTonalScale,
   mingusKeyboardData,
   mingusChordsData,
-  updateMingusData,
   handleChangeNotesAscending,
   mTNames,
   fxRadioValue,
-  handleOsc1RateUpdate,
-  // handleOsc2RateUpdate,
-  handleMasterFastestRate,
-  handleStkRateUpdate,
-  handleSamplerRateUpdate,
-  handleAudioInRateUpdate,
-  currentNoteVals,
-  vizSource,
+  // handleOsc1RateUpdate,
+  // // handleOsc2RateUpdate,
+  // handleMasterFastestRate,
+  // handleStkRateUpdate,
+  // handleSamplerRateUpdate,
+  // handleAudioInRateUpdate,
+  // currentNoteVals,
+  // vizSource,
   noteBuilderFocus,
   handleNoteBuilder,
-  exitEditMode,
   handleNoteLengthUpdate,
   handleNoteVelocityUpdate,
   currentSelectedCell,
@@ -199,7 +186,7 @@ export const Renderer = ({
   chuckRef
 }: RendererProps) => {
 
-  
+
 
   // const [isInEditMode, setIsInEditMode] = useState<boolean>(false);
   const [showPatternEditorPopup, setShowPatternEditorPopup] = useState<boolean>(false);
@@ -235,7 +222,7 @@ export const Renderer = ({
   }, [width, height, boundsHeight, boundsWidth, mTFreqs, doAutoAssignPatternNumber]);
 
   const xScale = useMemo(() => {
-    
+
     return d3
       .scaleBand()
       .domain(xLabels.map((d: any) => d.toString()))
@@ -297,38 +284,55 @@ export const Renderer = ({
     }
 
     const triggerEditPattern = async (e: any, num: any) => {
-      console.log("christ almighty ", e, num);
-      const el: any = Object.values(e.target)[1];
+
+      // console.log("DEFAULT! E: ", e, "NUM: ", num)
+      const el: any = e && e.length > 0 && Object.values(e.target)[1];
 
       inPatternEditMode(true);
-
-      const isFill = el.id.includes("fill");
-      const vals = !isFill ? el.id.split("_") : el.id.replace("fill_", "").split("_");
+// samplesToTimeHMSS
+      const string: any = e && Object.values(e.target)[1] || null;
+      // const isFill = e && el.id.includes("fill");
+      const isFill = e && string && string.id && string.id.includes("fill");
+      
+      // const vals = !e ? ["1","1"] : !isFill ? e.target.split("_") : el.id.replace("fill_", "").split("_");
+      const vals = !e || (string.length < 1) || (string && !string.id) ? ["1","1"] : !isFill ? string.id.split("_") : string.id.replace("fill_", "").split("_");
       const xVal = Number(num);
 
-      const yVal = Number(vals[1]) || null;
+      const yVal = Number(vals[1]) || 1;
 
       clickHeatmapCell(xVal, yVal);
       const zVal = vals[2] || null;
+      
       xVal && yVal && resetCellSubdivisionsCounter(xVal, yVal);
       currentXVal.current = Number(xVal);
       currentYVal.current = Number(yVal);
       cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
+      !isChuckRunning && handleNoteLengthUpdate(e, cellData.current);
       yVal && getInstrumentName(yVal);
-      console.log("DOES THIS CAUSE ALL CELL DATA PROBLEMS? ", Number(yVal),Number(xVal), masterPatternsHashHook );
-      console.log("%cCELL DATA!!!!!: ", "color: green;", isFill, cellData.current);
+      console.log("%cCELL DATA!!!!!: ", "color: green;", Number(yVal), Number(xVal), isFill, cellData.current);
       setShowPatternEditorPopup(true);
       document.getElementById(`fill_${xVal}_${yVal}`);
-      const elToChange: any = 
+      const elToChange: any =
         document.getElementById(`fill_${xVal}_${yVal}`);
-        if (elToChange && elToChange !== null && elToChange.style.fill !== "black") {
-          return elToChange.style.fill = "black";
-        } else if (elToChange) {
-          return elToChange.style.fill = RUSTY_ORANGE;
+      if (elToChange && elToChange !== null && elToChange.style.fill !== "black") {
+        return elToChange.style.fill = "black";
+      } else if (elToChange) {
+        return elToChange.style.fill = RUSTY_ORANGE;
       }
     }
 
-    const patOptions = [0,2,4,8,16];
+  const didSetupHeatmap = useRef<boolean>(false);
+
+  useEffect(() => {
+  if (!currentXVal.current && !didSetupHeatmap.current) {
+    console.log("!!! ", didSetupHeatmap.current === false );
+
+    didSetupHeatmap.current === false && triggerEditPattern(null, 0);
+    didSetupHeatmap.current = true;
+  }
+  }, []);
+
+    const patOptions = [0, 2, 4, 8, 16];
 
     // MODIFY THIS TO ENABLE FILLS / ROLLS / POLYRHYTHMS / HOOKS ETC
     return (
@@ -340,17 +344,16 @@ export const Renderer = ({
             }
           ).map(
             (x) => {
-              return x; 
+              return x;
             }
           ).map(
             (i, idx) => {
 
               return (
                 <React.Fragment key={`overlay_note_${idx}_${d.x}_${d.y}`}>
-                  
                   <rect
-                    width={xScale.bandwidth() / (masterPatternsHashHook[`${d.y}`][d.x].subdivisions * (1/(masterPatternsHashHook[`${d.y}`][d.x].length)))}
-                    height={yScale.bandwidth() / 3}
+                    width={xScale.bandwidth() / (masterPatternsHashHook[`${d.y}`][d.x].subdivisions * (1 / (masterPatternsHashHook[`${d.y}`][d.x].length)))}
+                    height={yScale.bandwidth() / 2.5}
                     key={`main_cell_noteEl_${d.x}_${d.y}`}
                     r={4}
                     opacity={masterPatternsHashHook[`${d.y}`][`${d.x}`].velocity}
@@ -358,55 +361,46 @@ export const Renderer = ({
                     id={`fill_noteEl_${d.x}_${d.y}`}
                     x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
                     y={yScale(d.y)}
-                    // style={{
-                    //   background: GOLDEN_YELLOW, 
-                    //   zIndex: 9999,
-                    //   // width:`${(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length * 12)}px`,
-                    //   width: `${(xScale.bandwidth() / masterPatternsHashHook[`${d.y}`][d.x].subdivisions) * (masterPatternsHashHook[`${d.y}`][d.x].length)}`
-                    // }}
-                    >
+                  >
                   </rect>
 
                   <rect
                     width={(xScale.bandwidth() / masterPatternsHashHook[Number(d.y) - 1][d.x].subdivisions) * (masterPatternsHashHook[Number(d.y) - 1][d.x].length * currentNumerCountColToDisplay)}
-                    height={yScale.bandwidth() / 3}
+                    height={yScale.bandwidth() / 2.5}
                     key={`main_cell_sampleEl_${d.x}_${d.y}`}
                     r={4}
                     opacity={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].velocity * 2}
                     fill={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums.join().length > 0 ? PERRIWINKLE : "transparent"}
                     id={`fill_sampleEl_${d.x}_${d.y}`}
-                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[`${Number(d.y) - 1}`][d.x].subdivisions)}
+                    x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[`${Number(d.y) - 1}`][d.x].subdivisions)} //  * (masterPatternsHashHook[d.y][d.x].length * 12)
                     y={(yScale(d.y) || 0) + yScale.bandwidth() / 3}
                     style={{
-                      background: PERRIWINKLE, 
+                      background: PERRIWINKLE,
                       zIndex: 9999,
-                      width:`${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions) * (masterPatternsHashHook[d.y][d.x].length * 12)}px`,
+                      width: `${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions)}px`,
                     }}
-                    >
+                  >
                   </rect>
 
-                    {masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 && <text
-                      x={x! + 2}
-                      y={y! + 10 + idx * 10}
-                      key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text1_${d.x}_${d.y}`}
-                      fontSize={8}
-                      fill={'white'}
-                    >{masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}</text>}
+                  {masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 && <text
+                    x={x! + 2}
+                    y={y! + 10 + idx * 10}
+                    key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text1_${d.x}_${d.y}`}
+                    fontSize={8}
+                    fill={'white'}
+                  >{masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}</text>}
 
-                    {masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums?.join().length > 0 && <text
-                      x={x! + 2}
-                      y={y! + 10 + idx * 10  + yScale.bandwidth() / 3}
-                      key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text2_${d.x}_${d.y}`}
-                      fontSize={8}
-                      fill={'white'}
-                    >{1 / masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].length}</text>}
-
-
+                  {masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums?.join().length > 0 && <text
+                    x={x! + 2}
+                    y={y! + 10 + idx * 10 + yScale.bandwidth() / 3}
+                    key={`${masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName}_text2_${d.x}_${d.y}`}
+                    fontSize={8}
+                    fill={'white'}
+                  >{1 / masterPatternsHashHook[`${Number(d.y)}`][`${d.x}`].length}</text>}
 
 
-
+{/* // *tk3 */}
                   <rect
-                    // key={i + "_rectFills_" + idx + "_sequencer" + d.y + d.x}
                     key={`main_cell_${d.x}_${d.y}`}
                     r={4}
                     id={`fill_${d.x}_${d.y}`}
@@ -418,28 +412,28 @@ export const Renderer = ({
                     height={yScale.bandwidth()}
                     opacity={
                       (patOptions[doAutoAssignPatternNumber] > 0 && ((16 * (Number(d.y) - 1) + Number(d.x)) - (16 * currentSelectedCell.y + currentSelectedCell.x)) % (16 / patOptions[doAutoAssignPatternNumber]) === 0) ||
-                      (patOptions[doAutoAssignPatternNumber] === 0 && currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y)) ||
-                      currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y)
-                      ? 
-                        0.8 
-                      :
-                        0.5 
+                        (patOptions[doAutoAssignPatternNumber] === 0 && currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y)) ||
+                        currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y)
+                        ?
+                        0.8
+                        :
+                        0.5
                     }
                     fill={
-                        currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y) ||
-                        currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y) 
+                      currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y) ||
+                        currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y)
                         ?
-                            HOT_PINK  
-                        :   
-                            currentBeatCountToDisplay === Number(d.x)
+                        HOT_PINK
+                        :
+                        currentBeatCountToDisplay === Number(d.x)
+                          ?
+                          RUSTY_ORANGE
+                          :
+                          (Number(d.y) > 0)
                             ?
-                              RUSTY_ORANGE
+                            PERRIWINKLE
                             :
-                              (Number(d.y) > 0) 
-                              ? 
-                                PERRIWINKLE 
-                              : 
-                                HOT_PINK}
+                            HOT_PINK}
                     stroke={'rgba(245,245,245,0.78)'}
                     onClick={(e: any) => triggerEditPattern(e, d.x)}
                     onMouseEnter={(e) => {
@@ -455,7 +449,7 @@ export const Renderer = ({
                     onMouseLeave={() => setHoveredCell(null)}
                     cursor="pointer"
                     style={{ zIndex: 1, pointerEvents: "auto" }}
-                  > 
+                  >
                     <text>{d.x} {d.y}</text>
                   </rect>
                 </React.Fragment>
@@ -464,17 +458,11 @@ export const Renderer = ({
           )
         }
       </React.Fragment>
-      );
+    );
   });
-  
 
 
-  const handleCloseEditorPopup = () => {
-    setShowPatternEditorPopup(false);
-    rebuildHeatmap();
-    exitEditMode();
 
-  }
 
   const handleFillEdit = (e: any) => {
     console.log("FILL: ", e);
@@ -486,21 +474,21 @@ export const Renderer = ({
 
   const onPlayPause = () => {
     if (wavesurfer) {
-          wavesurfer.playPause()
-      }
+      wavesurfer.playPause()
+    }
   }
 
   const subdivisionCount = cellSubdivisions;
 
   function handleLatestSamplesFinal(selected: any) {
     console.log("WHAT IS THE FILE NAME? ", currentXVal.current, currentYVal.current, selected);
-    handleLatestSamples(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current - 1);
+    handleLatestSamples(selected.map((i: any) => i.value), currentXVal.current, currentYVal.current - 1);
     // userInteractionUpdatedScore(masterPatternsHashHook);
   }
 
-  function handleLatestNotesFinal (selected: any) {
+  function handleLatestNotesFinal(selected: any) {
     console.log("WHAT ARE THE NOTES? ", selected && selected.length > 0 ? selected : [], mTNames);
-    handleLatestNotes(selected.map((i:any)=>i.value), currentXVal.current, currentYVal.current);
+    handleLatestNotes(selected.map((i: any) => i.value), currentXVal.current, currentYVal.current);
   };
 
   function getFileNumsPreselected() {
@@ -520,7 +508,7 @@ export const Renderer = ({
     return notesObj;
   }
 
-  const handleTransposeUpdate = (e: any) => { 
+  const handleTransposeUpdate = (e: any) => {
     console.log("WHAT IS THE TRANSPOSE VALUE? ", e.target.value);
   };
 
@@ -530,82 +518,115 @@ export const Renderer = ({
       style={{
         display: "flex",
         width: '100%',
-        flexDirection: "row",
+        flexDirection: "column",
         textAlign: "center",
         justifyContent: "center",
       }}
     >
-      {showPatternEditorPopup && !isChuckRunning && (
-          <>
-            <Box>
-              {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[0].toString()}
-              {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[2].toString()}
-            </Box>
+      
+      {showPatternEditorPopup && (
+        <>
+          <Box>
+            {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[0].toString()}
+            {mingusKeyboardData && mingusKeyboardData.length > 0 && mingusKeyboardData.data[2].toString()}
+          </Box>
 
+          <Box
+            key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              fontFamily: 'monospace',
+              fontWeight: "100",
+              textAlign: 'left',
+              padding: "8px",
+            }}
+          >
             <Box
-              key={`wrapnewvals__${currentBeatCountToDisplay}_${currentNumerCountColToDisplay}_${currentDenomCount}_${currentPatternCount}`}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
+              style={{
                 fontFamily: 'monospace',
-                fontWeight: "100",              
-                textAlign: 'left',
+                fontWeight: '100',
+                color: 'rgba(245,245,245,0.78)',
+                paddingLeft: '8px',
+                width: '100%',
+                height: '100%',
+                background: 'rgba(245,245,245,0.078)',
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+                // border: `1px solid ${HOT_PINK}`,
+                border: `1px solid rgba(0,0,0,0.78)`,
               }}
             >
-                <Box 
-                  style={{
-                    fontFamily: 'monospace',
-                    fontWeight: '100',
-                    color: 'rgba(245,245,245,0.78)',
-                    paddingLeft: '8px',
-                    width: '100%',
-                    height: '100%',
-                    background: 'rgba(245,245,245,0.078)',
-                    display: 'inline-block',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <span style={{
-                    marginRight: "12px",
+              <span style={{
+                marginRight: "12px",
 
-                  }}>
-                    Cell: {
-                      `${currentXVal.current} | ${currentYVal.current}`
-                    }  
-                  </span>  
-                  <Box 
-                    sx={{
-                      display: "inline-flex",
-                      flexDirection: "row",
-                      justifyContent: "stretch",
-                      alignItems: "center",
-                      paddingTop: "8px",
-                      fontSize: '16px',
-                      borderRadius: '5px',
-                      blur: "8px",
-                    }}
-                  >
-                    Subdivs: <SubdivisionsPicker
-                      xVal={currentXVal.current}
-                      yVal={currentYVal.current}
-                      masterPatternsHashHook={masterPatternsHashHook}
-                      handleChangeCellSubdivisions={handleChangeCellSubdivisions}
-                      cellSubdivisions={cellSubdivisions}
-                    />
-                  </Box>
-                </Box>
+              }}>
+                Cell: {
+                  `${currentXVal.current} | ${currentYVal.current}`
+                }
+              </span>
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  flexDirection: "row",
+                  justifyContent: "stretch",
+                  alignItems: "center",
+                  paddingTop: "8px",
+                  fontSize: '16px',
+                  borderRadius: '5px',
+                  blur: "8px",
+                }}
+              >
+                Subdivs: <SubdivisionsPicker
+                  xVal={currentXVal.current}
+                  yVal={currentYVal.current}
+                  masterPatternsHashHook={masterPatternsHashHook}
+                  handleChangeCellSubdivisions={handleChangeCellSubdivisions}
+                  cellSubdivisions={cellSubdivisions}
+                />
+              </Box>
+            </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          maxHeight: "180px",
+          border: '1px solid rgba(0,0,0,0.78)',
+        }}
+      >
+        {width && height && boundsWidth && boundsHeight && <svg
+          key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
+          width={width || 0}
+          height={height}
+          style={{ pointerEvents: "none" }}
+        >
 
-                {fxRadioValue && fxRadioValue.toLowerCase().includes("sample") && (           
-                <Box 
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "top",
-                    // border: 'solid 1px rgba(245,245,245,0.78)',
-                    // borderRadius: '5px',
-                    // padding: '8px',
-                  }}
-                >        
+          <g
+            key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
+            width={boundsWidth}
+            height={boundsHeight}
+            transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+            style={{ pointerEvents: "none" }}
+          >
+            {allShapes}
+
+            {xLabels}
+            {yLabels}
+          </g>
+        </svg>}
+      </Box>
+            {fxRadioValue && fxRadioValue.toLowerCase().includes("sample") && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "top",
+                }}
+              >
+                <Box sx={{
+                  display: 'inline-flex',
+                }}>
                   <Box
                     sx={{
                       display: "inline-flex",
@@ -613,6 +634,7 @@ export const Renderer = ({
                       justifyContent: "stretch",
                       alignItems: "left",
                       width: "100%",
+                      padding: "16px",
                       height: "fit-content",
                     }}
                   >
@@ -622,172 +644,269 @@ export const Renderer = ({
                         paddingBottom: "8px",
                       }}
                     >
-                      {/* Samples: */}
-                                      {
-                    uploadedBlob.current && 
-                    fxRadioValue.includes("sample") &&  // is SAMPLE source
-                    // or... TODO... is Sample AND transposing
-                    <FileWindow 
-                        uploadedBlob={uploadedBlob}
-                        // setWavesurfer={setWavesurfer}
-                        getMeydaData={getMeydaData}
-                        clickedFile={clickedFile}
-                        chuck={chuckRef.current}
-                    />
-                } 
-                      
+                      {
+                        uploadedBlob.current &&
+                        fxRadioValue.includes("sample") &&  // is SAMPLE source
+                        // or... TODO... is Sample AND transposing
+                        <FileWindow
+                          uploadedBlob={uploadedBlob}
+                          // setWavesurfer={setWavesurfer}
+                          getMeydaData={getMeydaData}
+                          clickedFile={clickedFile}
+                          chuck={chuckRef.current}
+                        />
+                      }
                     </span>
                     <InsetCheckboxDropdown
-                      key={`${currentSelectedCell.x}_${currentSelectedCell.y}_files`} 
-                      files={new Set(filesToProcess.map((f: any) => f.filename))} 
-                      handleLatestSamplesFinal={handleLatestSamplesFinal} 
-                      fileNumsPreselected={getFileNumsPreselected()} />
+                      key={`${currentSelectedCell.x}_${currentSelectedCell.y}_files`}
+                      files={new Set(filesToProcess.map((f: any) => f.filename))}
+                      handleLatestSamplesFinal={handleLatestSamplesFinal}
+                      fileNumsPreselected={getFileNumsPreselected()} 
+                    />  
                   </Box>
-          
-                  <Box sx={{display: "flex", flexDirecton: "row"}}>
-                    <StepRadioButtons 
+
+                </Box>
+                <Box sx={{ 
+                  display: "inline-flex", 
+                  width: '100%',
+                  flexDirecton: "row" 
+                }}>
+                  <Box sx={{
+                    width: "58%",
+                    margin: "4px",
+                    marginLeft: "16px",
+                    border: `1px solid ${HOT_PINK}`,
+                    borderRadius: "5px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingLeft: "16px",
+                    paddingTop: "8px",
+                    height: "100%",
+                  }}>
+                    <StepRadioButtons
                       doAutoAssignPatternNumber={doAutoAssignPatternNumber}
                       handleAssignPatternNumber={handleAssignPatternNumber}
                     />
-
-                    <Slider
-                        className="note-vel-title"
-                        aria-label="TransposeSlider"
-                        value={transposeValue.current}
-                        getAriaValueText={valuetext}
-                        valueLabelDisplay="auto"
-                        step={.01}
-                        sx={{color: 'rgba(245,245,245,0.78)'}}
-                        onChange={handleTransposeUpdate}
-                        // marks={marks}
-                        min={0}
-                        max={transposeMax}
-                        color="secondary"
-                    />
                   </Box>
-
-                </Box>)}
-     
-                {fxRadioValue && fxRadioValue.toLowerCase().includes("osc") && (          
-                <Box 
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    // width: "50%",
-                    border: 'solid 1px rgba(245,245,245,0.78)',
-                    borderRadius: '5px',
-                    padding: '8px',
-                    height: "100% !important",
-                  }}
-                >
                   <Box
                     sx={{
                       display: "inline-flex",
                       flexDirection: "column",
                       justifyContent: "stretch",
-                      alignItems: "left",
-                      width: "100%",
+                      alignItems: "right",
+                      width: "34%",
+                      border: `1px solid ${PERRIWINKLE}`,
+                      borderRadius: "5px",
+                      margin: "4px",
+                      height: "100%",
                     }}
-                  >
-                    <span
-                      style={{
-                        paddingTop: "4px",
-                        paddingBottom: "8px",
-                        display: "inline-flex",
-                        flexDirection: "row",
+                  >                              
+                  <FormLabel
+                    sx={{
+                        color: 'rgba(245,245,245,0.78)',
+                        fontSize: '11px',
+                        paddingLeft: '8px',
+                        paddingRight: '8px',
+                        marginRight: '32px',
+                        paddingTop: '8px',
+                        scrollPaddingLeft: '16px',
+                    }}
+                    id="sample-velocity-select-label"
+                  >Velocity</FormLabel>
+                    <Slider
+                      // className="note-vel-title"
+                      aria-label="TransposeSlider"
+                      value={transposeValue.current}
+                      getAriaValueText={valuetext}
+                      valueLabelDisplay="auto"
+                      step={.01}
+                      sx={{ 
+                        backgroundColor: 'black', 
+                        color: 'rgba(0,245,245,0.78)',
+         
                       }}
-                    >
-                      {/* Notes: */}
-                      {/* <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} /> */}
-                    </span>          
-                    {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] && 
-                    (<Box sx={{
-                      display: "grid",
-                      // flexDirection: "row",
-                      gridTemplateColumns: "1fr 1fr",
-                      width: "100%",
-                    }}>
-                      <span style={{ padding: "0px 4px" }} key={`notesDropdown_${mTFreqs}`}>
-                        <InsetNotesDropdown
-                          key={`${currentSelectedCell.x}_${currentSelectedCell.y}_notes`}  
-                          notes={mTNames} 
-                          handleLatestNotesFinal={handleLatestNotesFinal} 
-                          notesPreselected={getNotesPreselected()}
-                          max={octaveMax}
-                          min={octaveMin}
-                        />
-                      </span>    
-                      <span style={{ padding: "0px 4px" }} >                      
-                        <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
-                      </span>
-                    </Box>)}
-                    <Box sx={{display: "flex", flexDirecton: "row"}}>
-                      <StepRadioButtons 
-                        doAutoAssignPatternNumber={doAutoAssignPatternNumber}
-                        handleAssignPatternNumber={handleAssignPatternNumber}
-                      />
-                      <Box className={'note-vel-title'}
-                      >
-                        {/* Velocity:  */}
-                        <Slider
-                            aria-label="Note Velocity"
-                            value={noteVelocityValue}
-                            getAriaValueText={valuetext}
-                            valueLabelDisplay="auto"
-                            sx={{
-                                color: 'rgba(245,245,245,0.78)',
-                                backgroundColor: 'rgba(28,28,28,0.78)'
-                            }}
-                            onChange={handleNoteVelocityUpdateLocal}
-                            step={0.01}
-                            min={0}
-                            max={1}
-                        />
-                      </Box>
-                    </Box>
-                    <VelocityLengthSliders 
-                      handleNoteLengthUpdate={handleNoteLengthUpdate}
-                      cellData={cellData.current}
+                      onChange={handleTransposeUpdate}
+                      // marks={marks}
+                      min={0}
+                      max={transposeMax}
+                      color="secondary"
                     />
                   </Box>
+                </Box>
+
+              </Box>)}
+
+            {fxRadioValue && fxRadioValue.toLowerCase().includes("osc") && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  height: "100% !important",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "inline-flex",
+                    flexDirection: "column",
+                    justifyContent: "stretch",
+                    alignItems: "left",
+                    width: "100%",
+                  }}
+                >
+                  <NoteBuilderToggle
+                    noteBuilderFocus={noteBuilderFocus}
+                    handleNoteBuilderToggle={handleNoteBuilder}
+                  />
                   <Box sx={{
                     width: "100%",
+                    height: "82px",
+                    // display: "grid",
                     display: "flex",
-                    flexDirection: "column",
+                    // gridTemplateColumns: "1fr 2fr",
+                    gap: 0.5,
                     justifyContent: "space-between",
                     alignItems: "top",
                   }}>
-                    <NoteBuilderToggle 
+                    {masterPatternsHashHook && masterPatternsHashHook[`${currentYVal.current}`] && masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`] &&
+                      (
+                        <Box
+                          sx={{
+                            padding: "2px 8px 2px 8px",
+                            borderRadius: "5px",
+                            border: `1px solid ${noteBuilderFocus !== "MIDI" ? RUSTY_ORANGE : PERRIWINKLE}`,
+                            marginLeft: "4px",
+                          }} key={`notesDropdown_${mTFreqs}`}>
+                          {!isChuckRunning ? <InsetNotesDropdown
+                            key={`${currentSelectedCell.x}_${currentSelectedCell.y}_notes`}
+                            notes={mTNames}
+                            handleLatestNotesFinal={handleLatestNotesFinal}
+                            notesPreselected={getNotesPreselected()}
+                            max={octaveMax}
+                            min={octaveMin} 
+                          /> : <Box sx={{height: "100%"}}/>}
+                        </Box>
+
+                      )}
+                    <Box>
+                      <MingusPopup
+                        updateKeyScaleChord={updateKeyScaleChord}
                         noteBuilderFocus={noteBuilderFocus}
-                        handleNoteBuilderToggle={handleNoteBuilder}
-                    />                        
-                    <MingusPopup 
-                      updateKeyScaleChord={updateKeyScaleChord}
-                      noteBuilderFocus={noteBuilderFocus}
 
-                      tune={tune}
-                      currentMicroTonalScale={currentMicroTonalScale}
-                      setFxKnobsCount={setFxKnobsCount}
-                      doUpdateBabylonKey={doUpdateBabylonKey}
-                      getSTK1Preset={getSTK1Preset}   
-                      updateMicroTonalScale={updateMicroTonalScale}  
-                    />  
+                        tune={tune}
+                        currentMicroTonalScale={currentMicroTonalScale}
+                        setFxKnobsCount={setFxKnobsCount}
+                        doUpdateBabylonKey={doUpdateBabylonKey}
+                        getSTK1Preset={getSTK1Preset}
+                        updateMicroTonalScale={updateMicroTonalScale}
+                      />
+                    </Box>
                   </Box>
-                </Box>)}
-            </Box>
-          </>
+                  <Box sx={{ display: "inline-flex", flexDirecton: "row", width: "100%" }}>
+                    <Box 
+                      sx={{
+                        borderRadius: "5px",
+                        border: `1px solid ${noteBuilderFocus !== "Chord" ? HOT_PINK : PERRIWINKLE}`,
+                        padding: "2px 16px 2px 16px",
+                        margin: "4px",
+                      }}
+                    >
+                    <StepRadioButtons
+                      doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+                      handleAssignPatternNumber={handleAssignPatternNumber}
+                    />
+                    </Box>
+                    <Box 
+                      sx={{
+                        border: `1px solid ${noteBuilderFocus !== "Micro" ? GOLDEN_YELLOW : PERRIWINKLE}`,
+                        borderRadius: "5px",
+                        padding: "2px 4px",
+                        margin: "4px 4px 4px 0",
+                        justifyContent: "right",
+                        width: "fit-content",
+                        flex: "1 1 auto",
+                      }}
+                    >
+                    <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
+                    </Box>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      maxWidth: "100%",
+                      width: "100%",
+                      whiteSpace: "nowrap",
+                      paddingLeft: "4px",
+                    }}
+                  >
+                    <Box sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      width: "50%",
+                      justifyContent: "space-between",
+                      borderRadius: "5px",
+                      border: `1px solid ${PERRIWINKLE}`,
+                      height: "100%",
+                      padding: "12px",
+                      marginRight: "4px"
+                    }}>
+                    <FormLabel
+                      sx={{
+                        color: 'rgba(245,245,245,0.78)',
+                        fontSize: '11px',
+                        paddingLeft: '0px',
+                        paddingRight: '8px',
+                      }}
+                      id="notes-input-select-label"
+                    >
+                      Note Velocity
+                    </FormLabel>
+                    <Slider
+                      aria-label="Note Velocity"
+                      value={noteVelocityValue}
+                      getAriaValueText={valuetext}
+                      valueLabelDisplay="auto"
+                      sx={{
+                        width: "50%",
+                        color: 'rgba(245,245,245,0.78)',
+                        backgroundColor: 'rgba(28,28,28,0.78)'
+                      }}
+                      onChange={handleNoteVelocityUpdateLocal}
+                      step={0.01}
+                      min={0}
+                      max={1}
+                    />
+                    </Box>
+                    <Box sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      width: "100%",
+                      justifyContent: "space-between",
+                      borderRadius: "5px",
+                      border: `1px solid ${RUSTY_ORANGE}`,
+                      padding: "0 16px 0 16px",
+                      marginRight: "4px",
+                    }}>
+                      <VelocityLengthSliders
+                        handleNoteLengthUpdate={handleNoteLengthUpdate}
+                        cellData={cellData.current}
+                        maxLen={Number(+doAutoAssignPatternNumber) !== 0 ? Number(+doAutoAssignPatternNumber) : 1}
+                        chuckIsRunning={isChuckRunning}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>)}
+          </Box>
+        </>
       )}
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          // padding: "8px",
-        }}
-      >
-      <ArpSpeedSliders 
+        {/* <ArpSpeedSliders 
         handleOsc1RateUpdate={handleOsc1RateUpdate} 
         // handleOsc2RateUpdate={handleOsc2RateUpdate}
         handleMasterFastestRate={handleMasterFastestRate}
@@ -797,29 +916,37 @@ export const Renderer = ({
         filesToProcess={filesToProcess}
         currentNoteVals={currentNoteVals}
         vizSource={vizSource}
-      />  
-
-      {width && height && boundsWidth && boundsHeight && <svg
-        key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
-        width={width || 0}
-        height={height}
-        style={{ pointerEvents: "none" }}
+      />   */}
+      {/* <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          maxHeight: "180px",
+          border: '1px solid rgba(0,0,0,0.78)',
+        }}
       >
-
-        <g
-          key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
-          width={boundsWidth}
-          height={boundsHeight}
-          transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+        {width && height && boundsWidth && boundsHeight && <svg
+          key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
+          width={width || 0}
+          height={height}
           style={{ pointerEvents: "none" }}
         >
-          {allShapes}
 
-          {xLabels}
-          {yLabels}
-        </g>
-      </svg>}
-      </Box>
+          <g
+            key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
+            width={boundsWidth}
+            height={boundsHeight}
+            transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+            style={{ pointerEvents: "none" }}
+          >
+            {allShapes}
+
+            {xLabels}
+            {yLabels}
+          </g>
+        </svg>}
+      </Box> */}
     </Box>
   );
 };
