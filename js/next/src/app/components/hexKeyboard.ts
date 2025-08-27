@@ -196,7 +196,7 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
                 const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(plane);
                 const textBlock = new BABYLON.GUI.TextBlock();
                 textBlock.text = noteName;
-                textBlock.color = 'rgba(255,255,255,0.78)';
+                textBlock.color = 'rgba(245,245,245,0.78)';
                 textBlock.fontSize = 100;
                 advancedTexture.addControl(textBlock);
 
@@ -219,7 +219,7 @@ export const getHexKeyboard = (game: any, chuckHook: Chuck | undefined, microTon
                     console.log("sanity... ", i, j, y)
                 
                     const theNoteNum: any = i * j * (y+1);
-                    const theFreq: number = 440 * Math.pow(2, ((theNoteNum - 69)/ 12))
+                    const theFreq: number = 440.0 * Math.pow(2, ((theNoteNum - 69)/ 12))
                     // console.log("THE FREQ: ", theFreq);
                     // console.log("THE CULPRIT? ", waterMaterialTop[0])
 

@@ -1,4 +1,4 @@
-import { PALE_BLUE } from '@/utils/constants';
+import { PERRIWINKLE } from '@/utils/constants';
 import { Box, FormControl, TextField, useTheme } from '@mui/material';
 import React from 'react';
 
@@ -24,24 +24,24 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
             }}
         >
             <FormControl
-            sx={{
-                margin: '8px',
-                padding: '0px',
-                color: 'rgba(228,225,209,1)',
-                maxWidth: '76px',
-                width: '50%',
-                height: 'auto', // ✅
-            }}
+                sx={{
+                    // margin: '8px',
+                    padding: '0px',
+                    color: 'rgba(228,225,209,1)',
+                    maxWidth: '76px',
+                    width: '50%',
+                    // height: 'auto', // ✅
+                }}
             >
             <TextField
                 type="number"
                 value={cellSubdivisions}
                 onChange={(event) => {
-                const val = Number(event.target.value);
-                if (val > 0) {
-                    handleChangeCellSubdivisions(val, xVal, yVal);
-                    masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = val;
-                }
+                    const val = Number(event.target.value);
+                    if (val > 0) {
+                        handleChangeCellSubdivisions(val, xVal, yVal);
+                        masterPatternsHashHook[`${yVal}`][`${Number(xVal)}`].subdivisions = val;
+                    }
                 }}
                 inputProps={{
                 style: {
@@ -53,7 +53,7 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
                 }}
                 sx={{
                     input: { color: 'primary.contrastText' },
-                    backgroundColor: PALE_BLUE,
+                    backgroundColor: PERRIWINKLE,
                     maxWidth: "6rem",
                     width: '72px',
                 }}

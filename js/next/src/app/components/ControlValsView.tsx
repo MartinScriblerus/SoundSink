@@ -1,20 +1,16 @@
 import React from "react";
-import MingusPopup from "./MingusPopup";
 import Box from '@mui/material/Box';
-import { styled } from '@mui/material/styles';
-import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import VerticalSlider from "./MasterVolumeSliders";
 
 type ControlsProps = {
-    testChord: any;
-    testScale: any;
-    updateKeyScaleChord: (a: any, b: any, c: any, d: any, e: any) => void;
+    updateKeyScaleChord: (a: any, b: any, c: any, d: any, e: any, f: any, g: any) => void;
     files: File[];
+    noteBuilderFocus?: string;
 }
 
 const ControlValsView = (props: ControlsProps) => {
-    const { testChord, testScale, updateKeyScaleChord, files } = props;
+    const { updateKeyScaleChord, files } = props;
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', padding: '16px', marginTop: "64px", background: 'black' }}>
 

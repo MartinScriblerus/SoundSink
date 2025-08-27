@@ -33,14 +33,11 @@ export const updateCurrentFXScreen = (
     doUpdateBabylonKey: (value: string) => void,
     babylonKey: string,
 ) => {
-    if (visibleFXKnobs.current && currentScreen.current.includes('stk') || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
-        setFxKnobsCount(visibleFXKnobs.current.length);
-    } else if (currentScreen.current === 'synth') {
-        // currentFX.current = [];
-        // currentFX.current = moogGrandmotherEffects.current;
-        // visibleFXKnobs.current = visibleFXKnobs.current || Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-        setFxKnobsCount(visibleFXKnobs.current.length);
-    }
+    // if (visibleFXKnobs.current && currentScreen.current.includes('stk') || currentScreen.current === 'fx_' || doReturnToSynth.current === true) {
+    //     setFxKnobsCount(visibleFXKnobs.current.length);
+    // } else if (currentScreen.current === 'synth') {
+    setFxKnobsCount(visibleFXKnobs.current.length);
+    // }
     doUpdateBabylonKey(`${babylonKey}1`);
 };
 
@@ -55,9 +52,7 @@ export const updateCheckedFXList = async (
     fxRadioValue: string,
     ) => {
 
-    console.log("CHECK E ", e.target.id);
-
-    currentEffectType.current = e.target.id && e.target.id;
+    currentEffectType.current = e.target.id ? e.target.id : e.target.value;
 
     if (checkedFXList.current.indexOf(e.target.value) === -1) {
         checkedFXList.current.push(e.target.value);
@@ -103,7 +98,7 @@ export const updateCheckedFXList = async (
 export const updateStkKnobs = (
     knobVals: STKOption[],
     setFxKnobsCount: React.Dispatch<SetStateAction<any>>,
-    setNeedsUpdate: React.Dispatch<SetStateAction<any>>,
+    // setNeedsUpdate: React.Dispatch<SetStateAction<any>>,
     getSTK1Preset: (value: string) => { type: string; var: string; presets: any[] },
     setBabylonKey: React.Dispatch<SetStateAction<any>>,
     babylonKey: string,
@@ -124,7 +119,7 @@ export const updateStkKnobs = (
                 setFxKnobsCount,
                 setBabylonKey,
                 babylonKey );
-            setNeedsUpdate(true);
+            // setNeedsUpdate(true);
             return;
         }
         currentStkTypeVar.current = (`${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).type}#${getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).var}`)
@@ -170,3 +165,7 @@ export const updateStkKnobs = (
             }
         }
 }
+
+export const valuetext = (value: number) => {
+    return `${value}`;
+};

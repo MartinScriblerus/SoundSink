@@ -175,7 +175,7 @@ const theme = useTheme();
   
   
   const linePath = lineBuilder(isInFileMode && filesToProcess && filesToProcess.length > 0 ? filesToProcess[0].data.map((i:any) => Number(parseFloat(i))) : data);
-  console.log("WTF LINEPATH: ", linePath);
+  console.log("LINEPATH: ", linePath);
   if (!linePath) {
     return null;
   }
@@ -215,7 +215,7 @@ const theme = useTheme();
         width={"100%"} 
         height={height} 
         style={{
-          background: 'rgba(0,0,0,0.78)', 
+          background: 'rgba(28,28,28,0.78)', 
           minHeight: "100%",  
           flexDirection: "row-reverse", 
           overflowX: "auto"}}>

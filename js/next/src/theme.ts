@@ -1,14 +1,14 @@
-// import { CREAM_WHITE, FOREST_GREEN, MATTE_BLACK, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE, STEEL_GRAY } from "@/utils/constants";
+// import { CREAM_WHITE, RUSTY_ORANGE, MATTE_BLACK, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK, STEEL_GRAY } from "@/utils/constants";
 // // doesn't seem to work...
 // const theme = {
 //     colors: {
-//         forestGreen: FOREST_GREEN,
+//         forestGreen: RUSTY_ORANGE,
 //         matteBlack: MATTE_BLACK,
 //         creamWhite: CREAM_WHITE,
-//         mutedOlive: MUTED_OLIVE,
+//         mutedOlive: GOLDEN_YELLOW,
 //         steelGray: STEEL_GRAY,
-//         rustyOrange: RUSTY_ORANGE,
-//         paleBlue: PALE_BLUE,
+//         rustyOrange: HOT_PINK,
+//         paleBlue: PERRIWINKLE,
 //       },      
 // };
 
@@ -16,7 +16,7 @@
 
 'use client';
 import { createTheme } from '@mui/material/styles';
-import { CREAM_WHITE, FOREST_GREEN, MATTE_BLACK, MUTED_OLIVE, PALE_BLUE, RUSTY_ORANGE, STEEL_GRAY } from './utils/constants';
+import { CREAM_WHITE, RUSTY_ORANGE, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK, STEEL_GRAY } from './utils/constants';
 
 
 const theme = createTheme({
@@ -24,11 +24,11 @@ const theme = createTheme({
     fontFamily: 'var(--font-roboto)',
   },
   palette: {
-    primaryA: FOREST_GREEN,
-    primaryB: MUTED_OLIVE,
-    secondaryA: PALE_BLUE,
-    secondaryB: RUSTY_ORANGE,
-    black: MATTE_BLACK,
+    primaryA: RUSTY_ORANGE,
+    primaryB: GOLDEN_YELLOW,
+    secondaryA: PERRIWINKLE,
+    secondaryB: HOT_PINK,
+    black: '#000000',
     white: CREAM_WHITE,
     gray: STEEL_GRAY,
 },

@@ -4,7 +4,7 @@ import InputIcon from '@mui/icons-material/Input';
 import '../page.module.css';
 import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material';
-import { MUTED_OLIVE } from '@/utils/constants';
+import { GOLDEN_YELLOW } from '@/utils/constants';
 
 type Props = {
     // currentFXScreen: string;
@@ -23,7 +23,7 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
                 display: programIsOn ? "flex" : "none",
                 flexDirection: "row",
                 width: "100% !important",
-                background: 'rgba(0,0,0,0.78)',
+                background: 'rgba(28,28,28,0.78)',
             }} 
             direction="row" spacing={2}>
             <Button 
@@ -32,13 +32,14 @@ const ShowFXView = ({handleShowFX, programIsOn}: Props) => {
                     display: programIsOn ? "flex" : "none",
                     flexDirection: "row",
                     width: "100%",
-                    border: MUTED_OLIVE,
-                    background: 'rgba(0,0,0,0.78)',
-                    color: `rgba(0,0,0,0.78) important!`,
+                    // border: GOLDEN_YELLOW,
+                    border: 'transparent',
+                    background: 'rgba(12, 9, 9, 0.78)',
+                    color: `rgba(28,28,28,0.78) important!`,
                     marginLeft: '0px',              
                     '&:hover': {
-                        color: 'rgba(255,255,255,0.78)',
-                        background: 'rgba(0,0,0,0.78)',
+                        color: 'rgba(245,245,245,0.78)',
+                        background: 'rgba(28,28,28,0.78)',
                     }
                 }} 
                 className={"ui_SynthLayerButton"}

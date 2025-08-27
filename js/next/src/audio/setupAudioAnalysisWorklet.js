@@ -4,8 +4,8 @@ let processorRegisteredAnalysis = false;
 
 const setupAudioAnalysisWorklet = async (audioContext, setMeydaData) => {
   if (processorRegisteredAnalysis) return;  // Skip if already registered
-    console.log("HERE!!@!@ ");
-    console.log(audioContext.audioWorklet);
+    console.log("Setting up audio analysis worklet: ", audioContext.audioWorklet);
+    // console.log(audioContext.audioWorklet);
     try {
       await audioContext.audioWorklet.addModule('/audio/meydaAudioProcessor.js');
       processorRegisteredAnalysis = true;  // Mark as registered  

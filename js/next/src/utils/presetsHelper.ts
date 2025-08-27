@@ -104,7 +104,6 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-        console.log("test test test: ", theStk1Fx);
     } else if (stkVal === 'sitar' || stkVal === 'Sitar') {
         theStk1Fx = {
             presets: sitarPresets,
@@ -178,7 +177,7 @@ export const getSTK1Preset = (stkVal: string) => {
             visible: true,
             checked: true
         };
-    } else if (stkVal === 'bottle' || stkVal === 'blowbotl') {
+    } else if (stkVal === 'bottle' || stkVal === 'blowbotl' || stkVal === 'blowbtl') {
         theStk1Fx = {
             presets: blowBotlPresets,
             type: stkIdentifierBlowBotl,
@@ -313,6 +312,8 @@ export const getSTK1Preset = (stkVal: string) => {
             var: stkVariableFrencHrn
         };
     }
+    // console.log("STK PRESETS: ", theStk1Fx.presets);
+
     return theStk1Fx;
 }
 
@@ -671,7 +672,7 @@ export const getFX1Preset = (fxVal: string) => {
         })
     }
     else {
-        alert('ooof in presets helper')
+        console.log('ooof in presets helper')
         // console.log('in the else of PresetsHelper');
         // theFX1Fx.push({
         //     presets: {},

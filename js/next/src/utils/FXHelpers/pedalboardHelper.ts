@@ -21,27 +21,27 @@ export const initialNodesDefaults = [
         },
     },
 
-    {
-        id: 'Osc2_In',
-        data: { label: 'Osc2_In' },
-        position: { x: 0, y: -100 },
-        type: 'input',
-        style: {
-            height: 40,
-            width: 100,
-            // backgroundColor: theme.palette.secondaryA
-        },
-    },
-    {
-        id: 'Osc2_Out',
-        data: { label: 'Osc2_Out' },
-        position: { x: 200, y: -100 },
-        style: {
-            height: 40,
-            width: 100,
-            // backgroundColor: theme.palette.secondaryA
-        },
-    },
+    // {
+    //     id: 'Osc2_In',
+    //     data: { label: 'Osc2_In' },
+    //     position: { x: 0, y: -100 },
+    //     type: 'input',
+    //     style: {
+    //         height: 40,
+    //         width: 100,
+    //         // backgroundColor: theme.palette.secondaryA
+    //     },
+    // },
+    // {
+    //     id: 'Osc2_Out',
+    //     data: { label: 'Osc2_Out' },
+    //     position: { x: 200, y: -100 },
+    //     style: {
+    //         height: 40,
+    //         width: 100,
+    //         // backgroundColor: theme.palette.secondaryA
+    //     },
+    // },
     {
         id: 'STK_In',
         data: { label: 'STK_In' },
@@ -109,7 +109,7 @@ export const initialNodesDefaults = [
 
 export const initialEdgesDefaults = [
     { id: 'edgefrom_Osc1_In', source: 'Osc1_In', target: 'Osc1_Out'},
-    { id: 'edgefrom_Osc2_In', source: 'Osc2_In', target: 'Osc2_Out'},
+    // { id: 'edgefrom_Osc2_In', source: 'Osc2_In', target: 'Osc2_Out'},
     { id: 'edgefrom_STK_In', source: 'STK_In', target: 'STK_Out'},
     { id: 'edgefrom_Sampler_In', source: 'Sampler_In', target: 'Sampler_Out'},
     { id: 'edgefrom_AudioIn_In', source: 'AudioIn_In', target: 'AudioIn_Out'},

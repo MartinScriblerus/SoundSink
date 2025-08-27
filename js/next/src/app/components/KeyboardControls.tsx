@@ -13,11 +13,12 @@ const KeyboardControls = (
     return (
         <Box 
             sx={{
-                color: `rgba(0,0,0,0.78) !important`, 
+                color: `rgba(28,28,28,0.78) !important`, 
                 flexDirection: 'row',
                 justifyContent: 'left',
                 alignItems: 'left',
-                display: chuckHook ? 'flex': 'none',
+                // display: chuckHook ? 'flex': 'none',
+                display: 'flex',
                 fontFamily: 'monospace',
             }}>
         </Box>

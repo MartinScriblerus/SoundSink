@@ -1,4 +1,4 @@
-import { PALE_BLUE } from "@/utils/constants";
+import { GOLDEN_YELLOW, PERRIWINKLE } from "@/utils/constants";
 import { Box, Button } from "@mui/material";
 import { Chuck } from "webchuck";
 
@@ -50,29 +50,31 @@ const FileManager = (props: FileManagerProps) => {
                     <Button
                         component="label"
                         sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            width: "100%",
-                            marginTop: '12px',
-                            cursor: "pointer",
-                            border: 'rgba(0,0,0,0.78)',
-                            background: 'rgba(0,0,0,0.78)',
-                            color: 'rgba(255,255,255,0.78)',
-                            position: 'relative',
-                            minWidth: '140px',
-                            marginLeft: '0px',
-                            zIndex: 15,
-                            maxHeight: '40px',
-                            '&:hover': {
-                                // color: theme.palette.primaryA,
-                                background: PALE_BLUE,
-                            }
-                        }}
+               border: `solid 1px ${GOLDEN_YELLOW}`,
+                backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
+                color: 'rgba(245,245,245,0.78)',
+                height: '48px',
+            
+                width: '100%',
+               // marginBottom: '4px',
+                minHeight: '48px',
+                display: "flex",
+                zIndex: '99',
+                pointerEvents: "auto",
+                cursor: "pointer",
+                '&:hover': {
+                  color: 'rgba(245,245,245,0.78)',
+                  background: GOLDEN_YELLOW,
+                }
+              }}
+              className="ui_SynthLayerButton"
+
+           
                         // className="ui_SynthLayerButton"
                         onClick={handleButtonClick}
                         endIcon={<FileUploadIcon />}
                     >
-                        <>UPLOAD FILE</>
+                        <>FILE</>
                     </Button>
                 </form>
             </Box>

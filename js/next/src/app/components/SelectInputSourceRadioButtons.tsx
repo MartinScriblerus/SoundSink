@@ -56,29 +56,29 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                 >
                     <FormControlLabel 
                         sx={{
-                            color: 'rgba(255,255,255,0.78)',
+                            color: 'rgba(245,245,245,0.78)',
                         }} 
                         value="Osc1" 
                         control={<Radio />} 
                         label="Osc1" />
-                    <FormControlLabel 
+                    {/* <FormControlLabel 
                         sx={{
-                            color: 'rgba(255,255,255,0.78)',
+                            color: 'rgba(245,245,245,0.78)',
                         }} 
                         value="Osc2" 
                         control={<Radio />} 
                         label="Osc2" 
-                    />
+                    /> */}
                     <FormControlLabel 
                         sx={{
-                            color: 'rgba(255,255,255,0.78)',
+                            color: 'rgba(245,245,245,0.78)',
                         }} 
                         value="STK" 
                         control={<Radio />} 
                         label="Inst" />
                     <FormControlLabel 
                         sx={{
-                            color: 'rgba(255,255,255,0.78)',
+                            color: 'rgba(245,245,245,0.78)',
                         }} 
                         value="Sampler" 
                         control={<Radio />} 
@@ -86,7 +86,7 @@ const SelectInputSourceRadioButtons = (props: Props) => {
                     />
                     <FormControlLabel 
                         sx={{
-                            color: 'rgba(255,255,255,0.78)',
+                            color: 'rgba(245,245,245,0.78)',
                         }} 
                         value="AudioIn" 
                         control={<Radio />} 

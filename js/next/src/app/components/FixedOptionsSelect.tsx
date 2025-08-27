@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { STKOption, stkOptions } from '../../utils/fixedOptionsDropdownData';
 
-import { NAVY, PEACH, ROYALBLUE } from '@/utils/constants';
+import { PERRIWINKLE, HOT_PINK } from '@/utils/constants';
 import { Box } from '@mui/material';
 
 type Props = {
@@ -30,21 +30,46 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
     useEffect(() => {
         // If modal is open, add event listener to detect outside clicks
         if (isOpen) {
-          const handleClickOutside = (event: any) => {
-            if (modalRef.current && !modalRef.current.contains(event.target)) {
-              setIsOpen(false); // Close the modal if clicked outside
-            }
-          };
+      
+            const handleClickOutside = (event: any) => {
+                if (modalRef.current && !modalRef.current.contains(event.target)) {
+                    setIsOpen(false); // Close the modal if clicked outside
+                    console.log("Clicked outside");
+                    // document.dispatchEvent(new MouseEvent("mousedown"));
+                }
+            };
     
-          // Add the event listener
-          document.addEventListener('mousedown', handleClickOutside);
-    
-          // Clean up the event listener when the component unmounts or when modal closes
-          return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-          };
+            Array.from(document.getElementsByTagName('canvas')).forEach((i:any) => i.addEventListener("pointerdown", handleClickOutside));
+            // Add the event listener
+            document.addEventListener('mousedown', handleClickOutside);
+        
+            // Clean up the event listener when the component unmounts or when modal closes
+            return () => {
+                Array.from(document.getElementsByTagName('canvas')).forEach((i:any) => i.removeEventListener('pointerdown', handleClickOutside));
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
         }
-      }, [isOpen]);
+    }, [isOpen]);
+
+
+    useEffect(() => {
+        function handleClickOutside(event: any) {
+        // If click is outside the popup, close it
+        if (modalRef.current && !modalRef.current.contains(event.target)) {
+            setIsOpen(false);
+        }
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    useEffect(() => {
+        console.log("STK Values Updated: ", stkValues);
+        setIsOpen(false); // Close dropdown when stkValues change
+    }, [stkValues]);
 
     return (
         <div className="dropdown-container" style={{ minHeight: '100%', height: '100%', background: '', width: '100%', position: 'relative' }}>
@@ -58,8 +83,8 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
                         width: '100%',
                         maxHeight: '450px',
                         overflowY: 'auto',
-                        background: 'rgba(0,0,0,0.78)',
-                        color: 'rgba(255,255,255,0.78)',
+                        background: 'rgba(28,28,28,0.78)',
+                        color: 'rgba(245,245,245,0.78)',
                         fontFamily: 'monospace',
                         fontSize: '12px',
                         listStyle: 'none',
@@ -67,15 +92,15 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
                         margin: 0,
                         zIndex: 99999,
                         left: '140px',
-                        top: '-154px',
+                        top: '0px',
                     }}>
                         {stkOptions.map((option) => (
                             <li key={option.value} onClick={() => handleSelect(option)}
                                 style={{
-                                    borderTop: '1px solid rgba(255,255,255,0.4)',
+                                    borderTop: '1px solid rgba(245,245,245,0.4)',
                                     padding: '5px',
                                     cursor: 'pointer',
-                                    background: stkValues?.some((v) => v.value === option.value) ? PEACH : ROYALBLUE,
+                                    background: stkValues?.some((v) => v.value === option.value) ? HOT_PINK : PERRIWINKLE,
                                 }}>
                                 {option.label}
                             </li>

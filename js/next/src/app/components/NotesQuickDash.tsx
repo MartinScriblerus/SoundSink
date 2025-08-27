@@ -3,8 +3,10 @@ import React, { useEffect, useRef, useState } from "react";
 
 
 import { Heatmap } from "@/utils/VizHelpers/Heatmap";
+import { Tune } from "@/tune";
 
 type QuickDashProps = {
+    isChuckRunning: boolean;
     featuresLegendData: any[];
     universalSources: any;
     handleSourceToggle: (name: string, val: any) => void;
@@ -12,7 +14,7 @@ type QuickDashProps = {
     currentNumerCount: any;
     currentBeatSynthCount: any;
     handleOsc1RateUpdate: any;
-    handleOsc2RateUpdate: any;
+    // handleOsc2RateUpdate: any;
     handleMasterFastestRate: any;
     handleStkRateUpdate: any;
     handleSamplerRateUpdate: any;
@@ -56,23 +58,61 @@ type QuickDashProps = {
 
     mTFreqs:number[];
     mTMidiNums:number[];
-    updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
-    testChord: () => void;
-    testScale: () => void;
+    updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any, f: any, g: any) => void;
     userInteractionUpdatedScore: (x: any) => void;
     handleAssignPatternNumber: (e: any) => void;
     doAutoAssignPatternNumber: number;
+
+
+    setStkValues: React.Dispatch<React.SetStateAction<any>>; 
+    tune: Tune;
+    currentMicroTonalScale: (scale: any) => void;
+    setFxKnobsCount: React.Dispatch<React.SetStateAction<number>>;
+    doUpdateBabylonKey: any;
+    // setBabylonKey={setBabylonKey}
+    babylonKey: string;
+    // setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
+    currentScreen: React.MutableRefObject<string>;
+    currentFX: React.MutableRefObject<any>;
+    currentStkTypeVar: React.MutableRefObject<string>;
+    // universalSources={universalSources}
+    updateCurrentFXScreen: any;
+
+    getSTK1Preset: (x: string) => any; 
+    universalSourcesRef: React.MutableRefObject<any>;
+
+    updateMicroTonalScale: (scale: any) => void;
+
+    mingusKeyboardData: any;
+    mingusChordsData: any;
+    updateMingusData: (data: any) => void;
+    handleChangeNotesAscending: (order: string) => void;
+    mTNames: string[];
+    fxRadioValue: string;
+
+    noteBuilderFocus: string;
+    handleNoteBuilder: (focus: string) => void;
+    handleNoteLengthUpdate: (e: any, cellData: any) => void;
+    handleNoteVelocityUpdate: (e: any, cellData: any) => void;
+    currentSelectedCell: { x: number; y: number };
+    octaveMax: number;
+    octaveMin: number;
+    uploadedBlob: React.MutableRefObject<any>;
+    getMeydaData: (fileData: ArrayBuffer) => Promise<any>;
+    clickedFile: React.MutableRefObject<string | null>;
+    chuckRef: React.MutableRefObject<any>;
 }
 
 const NotesQuickDash = (props:QuickDashProps) => {
     // const theme = useTheme();
     const {
+        isChuckRunning,
         featuresLegendData, 
         vizSource,
         currentNumerCount,
         currentBeatSynthCount,
         handleOsc1RateUpdate,
-        handleOsc2RateUpdate,
+        // handleOsc2RateUpdate,
         handleMasterFastestRate,
         handleStkRateUpdate,
         handleSamplerRateUpdate,
@@ -106,11 +146,43 @@ const NotesQuickDash = (props:QuickDashProps) => {
         mTFreqs,
         mTMidiNums,
         updateKeyScaleChord,
-        testChord,
-        testScale,
         userInteractionUpdatedScore,
         handleAssignPatternNumber,
         doAutoAssignPatternNumber,
+        setStkValues,
+        tune,
+        currentMicroTonalScale,
+        setFxKnobsCount,
+        doUpdateBabylonKey,
+        // setBabylonKey,
+        babylonKey,
+        // setNeedsUpdate,
+        currentScreen,
+        currentFX,
+        currentStkTypeVar,
+        // universalSources,
+        updateCurrentFXScreen,
+        getSTK1Preset,
+        universalSources,
+        
+        updateMicroTonalScale,
+        mingusKeyboardData,
+        mingusChordsData,
+        updateMingusData,
+        handleChangeNotesAscending,
+        mTNames,
+        fxRadioValue,
+        noteBuilderFocus,
+        handleNoteBuilder,
+        handleNoteLengthUpdate,
+        handleNoteVelocityUpdate,
+        currentSelectedCell,
+        octaveMax,
+        octaveMin,
+        uploadedBlob,
+        getMeydaData,
+        clickedFile,
+        chuckRef
     } = props;
     const [updateCellColorBool, setUpdateCellColorBool] = useState<boolean>(false);
     const [width, setWidth] = useState<number | undefined>(undefined);
@@ -144,8 +216,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
             sx={{
                 top: '36px',
                 textAlign: "center",
-                background: 'rgba(0,0,0,0.78)',
-                color: 'rgba(255,255,255,0.78)',
+                color: 'rgba(245,245,245,0.78)',
                 zIndex: "1",
                 right: "0",
                 width: "100%",
@@ -155,8 +226,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
                 <Box sx={{
                     top: '0px !important',
                     left: '0px !important',
-                    background: 'rgba(0,0,0,0.78)',
-                    color: 'rgba(255,255,255,0.78)',
+                    color: 'rgba(245,245,245,0.78)',
                     zIndex: 9001,
                     width: "-webkit-fill-available",
 
@@ -174,6 +244,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
                         // parentDivRef.current !== 0 && parentDivRef.current.getBoundingClientRect() &&
                         width && height &&
                         <Heatmap 
+                            isChuckRunning={isChuckRunning}
                             width={
                                 parentDivRef.current 
                                 ? 
@@ -191,7 +262,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             currentNumerCount={currentNumerCount}
                             currentBeatSynthCount={currentBeatSynthCount}
                             handleOsc1RateUpdate={handleOsc1RateUpdate}
-                            handleOsc2RateUpdate={handleOsc2RateUpdate} 
+                            // handleOsc2RateUpdate={handleOsc2RateUpdate} 
                             handleStkRateUpdate={handleStkRateUpdate} 
                             handleSamplerRateUpdate={handleSamplerRateUpdate} 
                             handleAudioInRateUpdate={handleAudioInRateUpdate}
@@ -217,7 +288,6 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             currentNumerCountColToDisplay={currentNumerCountColToDisplay}
                             currentDenomCount={currentDenomCount}
                             currentPatternCount={currentPatternCount}
-                            exitEditMode={exitEditMode}
                             isInPatternEditMode={isInPatternEditMode}
 
                             clickHeatmapCell={clickHeatmapCell}
@@ -226,11 +296,48 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             mTFreqs={mTFreqs}
                             mTMidiNums={mTMidiNums}
                             updateKeyScaleChord={updateKeyScaleChord}
-                            testChord={testChord}
-                            testScale={testScale}
                             userInteractionUpdatedScore={userInteractionUpdatedScore}
                             handleAssignPatternNumber={handleAssignPatternNumber}
                             doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+
+
+
+                            setStkValues={setStkValues}
+                            tune={tune}
+                            currentMicroTonalScale={currentMicroTonalScale}
+                            setFxKnobsCount={setFxKnobsCount}
+                            doUpdateBabylonKey={doUpdateBabylonKey}
+                            // setBabylonKey={setBabylonKey}
+                            babylonKey={babylonKey}
+                            // setNeedsUpdate={setNeedsUpdate}
+                            currentScreen={currentScreen}
+                            currentFX={currentFX}
+                            currentStkTypeVar={currentStkTypeVar}
+                            // universalSources={universalSources}
+                            updateCurrentFXScreen={updateCurrentFXScreen}
+                            getSTK1Preset={getSTK1Preset} 
+                            universalSources={universalSources} 
+
+                            updateMicroTonalScale={updateMicroTonalScale}
+
+                            mingusKeyboardData={mingusKeyboardData}
+                            mingusChordsData={mingusChordsData}
+                            updateMingusData={updateMingusData}
+                            handleChangeNotesAscending={handleChangeNotesAscending}
+                            mTNames={mTNames}
+                            fxRadioValue={fxRadioValue}
+                            noteBuilderFocus={noteBuilderFocus}
+                            handleNoteBuilder={handleNoteBuilder}
+                            exitEditMode={exitEditMode}
+                            handleNoteLengthUpdate={handleNoteLengthUpdate}
+                            handleNoteVelocityUpdate={handleNoteVelocityUpdate}
+                            currentSelectedCell={currentSelectedCell}
+                            octaveMax={octaveMax}
+                            octaveMin={octaveMin}
+                            uploadedBlob={uploadedBlob}
+                            getMeydaData={getMeydaData}
+                            clickedFile={clickedFile}
+                            chuckRef={chuckRef}
                         />
                     }
                 </Box>

@@ -68,3 +68,24 @@ export async function convertFrequency(notefreqchart: any, freq: number, microFr
     // console.log("NEW MICRO ARR: ", newMicroTonalArr);
     return freqLets;
 }
+
+export const noteToMidi = (note: string, octave: number): number => {
+  const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const enharmonics: Record<string, string> = {
+    "Db": "C#",
+    "Eb": "D#",
+    "Gb": "F#",
+    "Ab": "G#",
+    "Bb": "A#",
+  };
+
+  const normalized = enharmonics[note] || note.toUpperCase();
+
+  const index = names.indexOf(normalized);
+  if (index === -1) {
+    console.warn(`Unknown note: ${note}, defaulting to middle C`);
+    return 60;
+  }
+
+  return (octave + 1) * 12 + index;
+};

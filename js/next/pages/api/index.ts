@@ -47,7 +47,6 @@ function readAllFiles(dir: any) {
 }
 
 app.get('/', (request: Request, response: any) => {
-    alert('hey yooooooooo');
     const allAlreadyUploaded = readAllFiles('/uploads');
     console.log('ALL ALLREADY ', allAlreadyUploaded[0]);
     response.json({'data': allAlreadyUploaded[0]});

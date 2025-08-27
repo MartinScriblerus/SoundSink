@@ -10,7 +10,7 @@ export interface Osc1ToChuck {
 export interface AllSoundSourcesObject {
     master: Array<any>;
     osc1: Array<any>;
-    osc2: Array<any>;
+    // osc2: Array<any>;
     stks: Array<any>;
     samples: Array<any>;
     linesIn: Array<any>;

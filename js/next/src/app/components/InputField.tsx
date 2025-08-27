@@ -121,10 +121,10 @@ const InputRoot = styled('div')(
   // font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 400;
   border-radius: 8px;
-  color: rgba(0,0,0,0.78);
-  background: rgba(255,255,255,0.78);
+  color: rgba(28,28,28,0.78);
+  background: rgba(245,245,245,0.78);
   border: 1px solid ${grey[700]};
-  box-shadow: 0px 2px 4px rgba(0,0,0, 0.05);
+  box-shadow: 0px 2px 4px rgba(28,28,28,0.05);
   display: flex;
   width: 180px;
   align-items: center;

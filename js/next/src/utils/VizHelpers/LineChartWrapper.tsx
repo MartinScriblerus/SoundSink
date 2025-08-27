@@ -123,7 +123,7 @@ export const LineChartWrapper = (props:VizDataProps, {width = 700, height = 400}
             position: "relative", 
             display: "flex", 
             height: "100%",
-            background: "rgba(0,0,0,0.78)",
+            background: "rgba(28,28,28,0.78)",
             justifyContent: "right",
             alignItems: "right",
             borderRadius: "16px",

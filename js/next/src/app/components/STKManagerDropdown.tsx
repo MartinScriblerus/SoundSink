@@ -2,7 +2,7 @@ import React from 'react';
 import FixedOptionsDropdown from './FixedOptionsSelect';
 
 interface Props {
-    updateStkKnobs: (e: any) => void;
+    updateStkKnobs: any
     stkValues: any[];
     setStkValues: React.Dispatch<React.SetStateAction<any>>;
 }

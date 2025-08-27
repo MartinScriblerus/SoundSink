@@ -6,7 +6,7 @@ import Switch, { SwitchProps } from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Button } from '@mui/material';
-import { MUTED_OLIVE, RUSTY_ORANGE } from '@/utils/constants';
+import { GOLDEN_YELLOW, HOT_PINK } from '@/utils/constants';
 
 
 const AntSwitch = styled(Switch)(({ theme }) => ({
@@ -45,7 +45,7 @@ const AntSwitch = styled(Switch)(({ theme }) => ({
   '& .MuiSwitch-track': {
     borderRadius: 16 / 2,
     opacity: 1,
-    backgroundColor: 'rgba(0,0,0,.25)',
+    backgroundColor: 'rgba(28,28,28,.25)',
     boxSizing: 'border-box',
   },
 }));
@@ -72,9 +72,9 @@ export default function GenericToggle({
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
         <Button
               sx={{
-                border: MUTED_OLIVE,
-                background: 'rgba(255,255,255,0.78)',
-                color: `rgba(255,255,255,0.78) important!`,
+                border: GOLDEN_YELLOW,
+                background: 'rgba(245,245,245,0.78)',
+                color: `rgba(245,245,245,0.78) important!`,
                 marginLeft: '0px',
                 // maxWidth: '28px',
                 minWidth: '60px',
@@ -89,9 +89,9 @@ export default function GenericToggle({
                 pointerEvents: "auto",
                 cursor: "pointer",
                 '&:hover': {
-                  color: 'rgba(255,255,255,0.78)',
-                  background: MUTED_OLIVE,
-                  border: `1px solid ${RUSTY_ORANGE}`,
+                  color: 'rgba(245,245,245,0.78)',
+                  background: GOLDEN_YELLOW,
+                  border: `1px solid ${HOT_PINK}`,
                 }
               }}
               variant="outlined"
@@ -103,9 +103,8 @@ export default function GenericToggle({
             </Button>
             <Button
               sx={{
-                border: MUTED_OLIVE,
-                // background: 'rgba(0,0,0,0.78)',
-                color: `rgba(255,255,255,0.78) important!`,
+                border: GOLDEN_YELLOW,
+                color: `rgba(245,245,245,0.78) important!`,
                 minWidth: '60px',
                 maxWidth: '60px',
                 maxHeight: '40px',
@@ -119,9 +118,9 @@ export default function GenericToggle({
                 pointerEvents: "auto",
                 cursor: "pointer",
                 '&:hover': {
-                  color: 'rgba(255,255,255,0.78)',
-                  background: 'rgba(0,0,0,0.78)',
-                  border: `1px solid ${RUSTY_ORANGE}`,
+                  color: 'rgba(245,245,245,0.78)',
+                  background: 'rgba(28,28,28,0.78)',
+                  border: `1px solid ${HOT_PINK}`,
                 }
               }}
               variant="outlined"

@@ -88,7 +88,7 @@ export type STKInstruments = {
     Saxofony: EffectsSettings;
     Mandolin: EffectsSettings;
     BandedWg: EffectsSettings;
-    Bottle: EffectsSettings;
+    BlowBtl: EffectsSettings;
     BlowHole: EffectsSettings;
     Bowed: EffectsSettings;
     Brass: EffectsSettings;
@@ -126,7 +126,7 @@ export type Source = {
 
 export type Sources = {
     osc1: Source;
-    osc2: Source;
+    // osc2: Source;
     stk1: Source;
     sampler: Source;
     audioin: Source;
