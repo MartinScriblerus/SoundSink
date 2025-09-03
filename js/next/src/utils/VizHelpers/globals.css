@@ -638,7 +638,7 @@ ul {
   transition: opacity 500ms;
 }
 
-#toggleSourceGroup {
+#tHERITAGE_GOLD {
   color: #ffffff !important;
   display: flex; 
   flex-direction: row; 
@@ -708,8 +708,8 @@ ul {
   text-align: center;
   padding-top: 0px;
   z-index: 99999;
-  width:540px;
-  min-width: 540px
+  width:520px;
+  min-width: 520px
 }
 
 #frontendOuterWrapper {

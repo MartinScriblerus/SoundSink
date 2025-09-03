@@ -18,7 +18,7 @@ export default function GenericRadioButtons(props: GenericRadioProps) {
         display: "inline-flex",
         flexDirection: "column",
         whiteSpace: "nowrap",
-        width: "none"
+        width: "100%"
     }}>
       <FormLabel
         sx={{
@@ -26,6 +26,7 @@ export default function GenericRadioButtons(props: GenericRadioProps) {
             fontSize: '11px',
             paddingLeft: '8px',
             paddingRight: '8px',
+            width: "100%",
         }}
         id="scale-direction-select-label"
       >Scale Direction</FormLabel>

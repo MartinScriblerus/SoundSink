@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { Box, FormControl, Input } from '@mui/material';
 import microtoneDescsData from '../microtone_descriptions.json';
-import { PERRIWINKLE } from '@/utils/constants';
+import { OBERHEIM_TEAL } from '@/utils/constants';
 
 interface MicrotoneOption {
   value: string;
@@ -172,7 +172,7 @@ useEffect(() => {
                   padding: '5px',
                   cursor: 'pointer',
                   fontFamily: 'monospace',
-                  background: PERRIWINKLE,
+                  background: OBERHEIM_TEAL,
                 }}
               >
                 {option.label}

@@ -6,7 +6,7 @@ import Switch, { SwitchProps } from '@mui/material/Switch';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { Button } from '@mui/material';
-import { GOLDEN_YELLOW, HOT_PINK } from '@/utils/constants';
+import { HERITAGE_GOLD, ROSEWOOD } from '@/utils/constants';
 
 
 const AntSwitch = styled(Switch)(({ theme }) => ({
@@ -72,7 +72,7 @@ export default function GenericToggle({
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
         <Button
               sx={{
-                border: GOLDEN_YELLOW,
+                border: HERITAGE_GOLD,
                 background: 'rgba(245,245,245,0.78)',
                 color: `rgba(245,245,245,0.78) important!`,
                 marginLeft: '0px',
@@ -90,8 +90,8 @@ export default function GenericToggle({
                 cursor: "pointer",
                 '&:hover': {
                   color: 'rgba(245,245,245,0.78)',
-                  background: GOLDEN_YELLOW,
-                  border: `1px solid ${HOT_PINK}`,
+                  background: HERITAGE_GOLD,
+                  border: `1px solid ${ROSEWOOD}`,
                 }
               }}
               variant="outlined"
@@ -103,7 +103,7 @@ export default function GenericToggle({
             </Button>
             <Button
               sx={{
-                border: GOLDEN_YELLOW,
+                border: HERITAGE_GOLD,
                 color: `rgba(245,245,245,0.78) important!`,
                 minWidth: '60px',
                 maxWidth: '60px',
@@ -120,7 +120,7 @@ export default function GenericToggle({
                 '&:hover': {
                   color: 'rgba(245,245,245,0.78)',
                   background: 'rgba(28,28,28,0.78)',
-                  border: `1px solid ${HOT_PINK}`,
+                  border: `1px solid ${ROSEWOOD}`,
                 }
               }}
               variant="outlined"

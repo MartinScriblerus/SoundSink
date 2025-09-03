@@ -92,7 +92,7 @@ type QuickDashProps = {
 
     noteBuilderFocus: string;
     handleNoteBuilder: (focus: string) => void;
-    handleNoteLengthUpdate: (e: any, cellData: any) => void;
+    handleNoteLengthUpdate: (e: any, cellData: any, newValue: any) => void;
     handleNoteVelocityUpdate: (e: any, cellData: any) => void;
     currentSelectedCell: { x: number; y: number };
     octaveMax: number;

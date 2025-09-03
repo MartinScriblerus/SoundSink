@@ -1,4 +1,4 @@
-import { RUSTY_ORANGE } from '@/utils/constants';
+import { CORDUROY_RUST, } from '@/utils/constants';
 import { Box, FormControl, FormLabel, InputLabel } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import Select, { StylesConfig } from 'react-select';
@@ -115,13 +115,13 @@ const InsetNotesDropdown: React.FC<Props> = ({
           valueContainer: (base) => ({
             ...base,
             height: '100%',
-            padding: '0 4px',
+            padding: '0 0px',
           }),
           input: (base) => ({
             ...base,
             margin: 0,
             padding: 0,
-            width: '240px',
+            width: '100%',
           }),
           option: (base, state) => ({
             ...base,

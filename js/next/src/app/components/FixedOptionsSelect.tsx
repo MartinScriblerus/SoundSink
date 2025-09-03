@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { STKOption, stkOptions } from '../../utils/fixedOptionsDropdownData';
 
-import { PERRIWINKLE, HOT_PINK } from '@/utils/constants';
+import { OBERHEIM_TEAL, NEON_PINK } from '@/utils/constants';
 import { Box } from '@mui/material';
 
 type Props = {
@@ -100,7 +100,7 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
                                     borderTop: '1px solid rgba(245,245,245,0.4)',
                                     padding: '5px',
                                     cursor: 'pointer',
-                                    background: stkValues?.some((v) => v.value === option.value) ? HOT_PINK : PERRIWINKLE,
+                                    background: stkValues?.some((v) => v.value === option.value) ? NEON_PINK : OBERHEIM_TEAL,
                                 }}>
                                 {option.label}
                             </li>

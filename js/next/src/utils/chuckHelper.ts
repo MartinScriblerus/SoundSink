@@ -272,9 +272,6 @@ export const getChuckCode = (
 
         moogGMDefaults["noise"] => noiseSource.gain;
 
-
- 
-
         SinLfo => pitchLfo => blackhole;
         SinLfo => filterLfo => blackhole;
 
@@ -298,8 +295,6 @@ export const getChuckCode = (
         pitchLfo => sqr1;
         pitchLfo => sqr2;
 
-
-
         // ${moogGrandmotherEffects.current.limiterAttack.value}::ms => limiter.attackTime; // can we hardcode these???
         // ${moogGrandmotherEffects.current.limiterThreshold.value} => limiter.thresh; // can we hardcode these???
 
@@ -320,10 +315,6 @@ export const getChuckCode = (
         0.0 => float filterEnv;
         1.0 => float osc2Detune;
         ${moogGrandmotherEffects.current.oscOffset.value} => float oscOffset;
-
-
-
-
 
         fun void SetOsc1Freq(float frequency)
         {
@@ -346,7 +337,7 @@ export const getChuckCode = (
             // Std.mtof(offset + noteNumber + oscOffset) - osc2Detune => SetOsc2Freq;
 
             
-            1 => adsr.keyOn;             
+            // 1 => adsr.keyOn;             
             spork ~ filterEnvelope();
             // me.yield();
         }
@@ -477,6 +468,7 @@ export const getChuckCode = (
                 
 
                 (adsr.attackTime() + adsr.decayTime()) => dur hold;
+                // PROBLEMATIC!!!_1
                 hold => now;
                                     
                 adsr.keyOff();
@@ -599,9 +591,9 @@ export const getChuckCode = (
     
     fun void handlerPlaySingleNoteOff(Event playSingleNoteOff) {
       playSingleNoteOff => now;
-            if (testNotesArr.size() > 0) { 
+            if (testNotesArr.cap() > 0) { 
                 
-                for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+                for (0 => int j; j < testNotesArr.cap() && j < numVoices; j++) {
                     9999.0 => testNotesArr[j];
                     
                     for (0 => int k; k < chuckNotesOff.size(); k++) {
@@ -638,9 +630,9 @@ export const getChuckCode = (
         //     adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
 
 
-        //     if (testNotesArr.size() > 0) { 
+        //     if (testNotesArr.cap() > 0) { 
                 
-        //         for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+        //         for (0 => int j; j < testNotesArr.cap() && j < numVoices; j++) {
  
         //             if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0) {
         //                 adsr.keyOn(1);
@@ -651,7 +643,7 @@ export const getChuckCode = (
 
         //         beat => now;
                 
-        //         for (0 => int j; j < testNotesArr.size() && j < numVoices; j++) {
+        //         for (0 => int j; j < testNotesArr.cap() && j < numVoices; j++) {
         //             for (0 => int k; k < chuckNotesOff.size(); k++) {
         //                 if (testNotesArr[j] > 0.00 && testNotesArr[j] != 9999.0 && chuckNotesOff[k] == testNotesArr[j]) {
         //                     voice[j].keyOff(1);
@@ -688,21 +680,27 @@ export const getChuckCode = (
 
     fun void playProgrammaticNote(int tickCount, float noteLength) {
 
+        midiNotesArray[tickCount] => float midiNotesToPlay;
+        midiFreqsArray[tickCount] => float midiFreqsToPlay;
+        midiLengthsArray[tickCount] => float midiLengthsToPlay;
+        midiVelocitiesArray[tickCount] => float midiVelocitiesToPlay;
+
         // <<< "PLAYING PROGRAMMATIC NOTE AT TICK",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i).map((j:any) => Object.keys(j).toString())) }" >>>;
+        
+        
+        // WORK OUT BETTER WAY THAN NUMVOICES 
+        
         for (0 => int i; i < numVoices; i++) {
-            midiNotesArray[tickCount] => float midiNotesToPlay;
-            midiFreqsArray[tickCount] => float midiFreqsToPlay;
-            midiLengthsArray[tickCount] => float midiLengthsToPlay;
-            midiVelocitiesArray[tickCount] => float midiVelocitiesToPlay;
             
             if (midiNotesToPlay != 9999.0 && midiFreqsToPlay > 0.0) {
                 // adsr.keyOn(1);
+                1 => adsr.keyOn; 
                 midiFreqsToPlay => voice[i].keyOn;
 
                 // midiLengthsToPlay * (beat * numeratorSignature) => now;
-                <<< "PROGLEN: ", noteLength, (beatMS) >>>;
-                // noteLength * (beat) => now;
-                (beatMS * noteLength)::ms => now;
+                <<< "PROGLEN: ", (beatMS * noteLength) >>>;
+                (beatMS * noteLength)::ms => dur noteDur;
+                noteDur => now;
                 1 => voice[i].keyOff;
             }
 
@@ -852,15 +850,13 @@ export const getChuckCode = (
  
         /////////////////////////////////////////////////////
         // THIS COULD BE SWITCHED FROM MONO BACK TO POLY...
-        // for (0 => int i; i < testNotesArr.size(); i++) {
+        // for (0 => int i; i < testNotesArr.cap(); i++) {
         for (0 => int i; i < 1; i++) {
         
 
 
             (beatMS)::ms => dur durStep;
             
-            <<< "DURSTEPTEST: ", beatMS >>>;
-
             0.15 / numVoices => voice[i].gain;
             // 1.0 => adsr.gain;
 
@@ -904,12 +900,13 @@ export const getChuckCode = (
 
 
         int recurringTickCount;
+        // PROBLEMATIC!!!_2
         if (fastestTickCounter > ${numeratorSignature * masterFastestRate * denominatorSignature}) {
             fastestTickCounter % ${numeratorSignature * masterFastestRate * denominatorSignature} => recurringTickCount;
         } else {
             fastestTickCounter => recurringTickCount;
         }
-        <<< "SHREDCOUNT: ", Machine.numShreds() >>>;
+        <<< "SHREDCOUNT: ", Machine.numShreds(), recurringTickCount >>>;
  
 
         if (now >= startTimeMeasureLoop + step) {

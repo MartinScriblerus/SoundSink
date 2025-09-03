@@ -9,26 +9,20 @@ function valuetext(value: number) {
 }
 
 type VelocityLengthSlidersProps = {
-    handleNoteLengthUpdate: (event: any, cellData: any) => void;
+    handleNoteLengthUpdate: (event: any, cellData: any, newValue: any) => void;
     cellData?: any;
     maxLen?: number;
     chuckIsRunning?: boolean;
+    masterPatterns?: any;
 }
 
 const VelocityLengthSliders = (props: VelocityLengthSlidersProps) => {
 
-    const { handleNoteLengthUpdate, cellData, maxLen, chuckIsRunning } = props;
+    const { handleNoteLengthUpdate, cellData, maxLen, chuckIsRunning, masterPatterns } = props;
+    const idx = lenMarks.map(i => Number(+i.label)).indexOf(masterPatterns?.length);
+    const [noteLengthValue, setNoteLengthValue] = useState<number>(idx);
 
-    // console.log("MAX LEN ", maxLen);
-    // console.log("LOOK AT THIS CELLDATA: ", cellData);
 
-    const [noteLengthValue, setNoteLengthValue] = useState<number>(cellData?.length);
-    
-    useEffect(() => {
-    if (cellData?.length !== undefined) {
-        !chuckIsRunning && setNoteLengthValue(cellData.length);
-    }
-    }, [cellData]);
 
     return (
         <Box sx={{ 
@@ -53,10 +47,10 @@ const VelocityLengthSliders = (props: VelocityLengthSlidersProps) => {
                     // value={noteLengthValue}
                     value={noteLengthValue}
                     onChange={(e, newValue) => {
+                        console.log("NV! ", newValue);
                         if (!chuckIsRunning) {
-                            console.log("NEW VALUE???: ", newValue, e);
-                            setNoteLengthValue(newValue as number);
-                            handleNoteLengthUpdate(e, cellData);
+                            !chuckIsRunning && setNoteLengthValue(newValue as number);
+                            handleNoteLengthUpdate(e, cellData, newValue);
                         }
                     }}
                     getAriaValueText={valuetext}

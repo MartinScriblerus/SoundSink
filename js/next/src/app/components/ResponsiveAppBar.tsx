@@ -15,7 +15,7 @@ import { Chuck } from 'webchuck';
 import { useTheme } from '@mui/material';
 import GenericToggle from './GenericToggle';
 import { Sources } from '@/types/audioTypes';
-import { RUSTY_ORANGE, PERRIWINKLE, HOT_PINK } from '@/utils/constants';
+import { CORDUROY_RUST, OBERHEIM_TEAL, NEON_PINK } from '@/utils/constants';
 
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 interface KeysAppBarProps {
@@ -121,7 +121,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             {chuckHook && (
               <Button
               sx={{
-                border: `solid 1px ${HOT_PINK}`,
+                border: `solid 1px ${NEON_PINK}`,
                 backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
                 color: 'rgba(245,245,245,0.78)',
                 height: '48px',
@@ -135,7 +135,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 cursor: "pointer",
                 '&:hover': {
                   color: 'rgba(245,245,245,0.78)',
-                  background: HOT_PINK,
+                  background: NEON_PINK,
                 }
               }}
               className="ui_SynthLayerButton"
@@ -165,7 +165,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           
              // width: '100px',
               //marginBottom: '4px',
-              border: `1px solid ${PERRIWINKLE}`,
+              border: `1px solid ${OBERHEIM_TEAL}`,
               minHeight: '48px',
               display: "flex",
               zIndex: '99',
@@ -173,7 +173,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
               cursor: "pointer",
               '&:hover': {
                 color: 'rgba(245,245,245,0.78)',
-                background: PERRIWINKLE,
+                background: OBERHEIM_TEAL,
                 // border: `1px solid ${theme.palette.black}`,
               }
             }}
@@ -202,14 +202,14 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
                 height: '48px',
                 //width: '100px',
                 //marginRight: '8px',
-                border: `solid 1px ${RUSTY_ORANGE}`,
+                border: `solid 1px ${CORDUROY_RUST}`,
                 display: 'flex',
                 zIndex: '99',
                 pointerEvents: 'auto',
                 cursor: 'pointer',
                 '&:hover': {
                   color: 'rgba(245,245,245,0.78)',
-                  background: RUSTY_ORANGE,
+                  background: CORDUROY_RUST,
                   // border: `1.5px solid ${theme.palette.black}`,
                 }
               }}

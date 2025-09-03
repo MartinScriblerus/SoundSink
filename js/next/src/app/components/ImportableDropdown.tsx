@@ -1,4 +1,4 @@
-import { PERRIWINKLE } from "@/utils/constants";
+import { OBERHEIM_TEAL } from "@/utils/constants";
 import { Box, FormControl, Input } from "@mui/material";
 import React, {useRef, useState, useMemo} from "react";
 
@@ -91,7 +91,7 @@ const ImportableDropdown = (
                 width: '100%',
                 maxHeight: '300px',
                 overflowY: 'auto',
-                backgroundColor: PERRIWINKLE,
+                backgroundColor: OBERHEIM_TEAL,
                 color: 'rgba(245,245,245,0.78)',
                 zIndex: 9999,
               }}
@@ -121,7 +121,7 @@ const ImportableDropdown = (
                     padding: '5px',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
-                    background: PERRIWINKLE,
+                    background: OBERHEIM_TEAL,
                   }}
                 >
                   {option.label}

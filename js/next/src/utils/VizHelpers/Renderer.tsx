@@ -4,7 +4,7 @@ import { InteractionData } from "./Heatmap";
 import { Box, FormLabel, Slider, useTheme } from "@mui/material";
 import React from "react";
 import SubdivisionsPicker from "@/app/components/SubdivisionsPicker";
-import { RUSTY_ORANGE, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK } from "../constants";
+import { CORDUROY_RUST, HERITAGE_GOLD, OBERHEIM_TEAL, NEON_PINK } from "../constants";
 import InsetCheckboxDropdown from "@/app/components/InsetCheckboxDropdowns";
 import { PortalCenterModal } from "@/app/components/PortalCenterModal";
 import InsetNotesDropdown from "@/app/components/InsetNotesDropdowns";
@@ -113,7 +113,7 @@ type RendererProps = {
   noteBuilderFocus: string;
   handleNoteBuilder: (focus: string) => void;
   exitEditMode: () => void;
-  handleNoteLengthUpdate: (e: any, cellData: any) => void;
+  handleNoteLengthUpdate: (e: any, cellData: any, newValue: any) => void;
   handleNoteVelocityUpdate: (e: any, cellData: any) => void;
   currentSelectedCell: { x: number; y: number };
   octaveMax: number;
@@ -306,8 +306,12 @@ export const Renderer = ({
       xVal && yVal && resetCellSubdivisionsCounter(xVal, yVal);
       currentXVal.current = Number(xVal);
       currentYVal.current = Number(yVal);
+      // console.log("GET IT!!! 1 ", masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`]);
+      // console.log("GET IT!!! 2 ", currentXVal.current, currentYVal.current);
+      // console.log("GET IT!!! 3 ", masterPatternsHashHook);
       cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
-      !isChuckRunning && handleNoteLengthUpdate(e, cellData.current);
+      
+      // !isChuckRunning && handleNoteLengthUpdate(e, cellData.current, );
       yVal && getInstrumentName(yVal);
       console.log("%cCELL DATA!!!!!: ", "color: green;", Number(yVal), Number(xVal), isFill, cellData.current);
       setShowPatternEditorPopup(true);
@@ -317,7 +321,7 @@ export const Renderer = ({
       if (elToChange && elToChange !== null && elToChange.style.fill !== "black") {
         return elToChange.style.fill = "black";
       } else if (elToChange) {
-        return elToChange.style.fill = RUSTY_ORANGE;
+        return elToChange.style.fill = CORDUROY_RUST;
       }
     }
 
@@ -357,7 +361,7 @@ export const Renderer = ({
                     key={`main_cell_noteEl_${d.x}_${d.y}`}
                     r={4}
                     opacity={masterPatternsHashHook[`${d.y}`][`${d.x}`].velocity}
-                    fill={masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 ? GOLDEN_YELLOW : "transparent"}
+                    fill={masterPatternsHashHook[`${d.y}`][`${d.x}`].noteName?.join().length > 0 ? HERITAGE_GOLD : "transparent"}
                     id={`fill_noteEl_${d.x}_${d.y}`}
                     x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[d.y][d.x].subdivisions)}
                     y={yScale(d.y)}
@@ -370,12 +374,12 @@ export const Renderer = ({
                     key={`main_cell_sampleEl_${d.x}_${d.y}`}
                     r={4}
                     opacity={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].velocity * 2}
-                    fill={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums.join().length > 0 ? PERRIWINKLE : "transparent"}
+                    fill={masterPatternsHashHook[`${Number(d.y) - 1}`][`${d.x}`].fileNums.join().length > 0 ? OBERHEIM_TEAL : "transparent"}
                     id={`fill_sampleEl_${d.x}_${d.y}`}
                     x={(xScale(d.x)! + (xScale.bandwidth() * idx) / masterPatternsHashHook[`${Number(d.y) - 1}`][d.x].subdivisions)} //  * (masterPatternsHashHook[d.y][d.x].length * 12)
                     y={(yScale(d.y) || 0) + yScale.bandwidth() / 3}
                     style={{
-                      background: PERRIWINKLE,
+                      background: OBERHEIM_TEAL,
                       zIndex: 9999,
                       width: `${(xScale.bandwidth() / masterPatternsHashHook[d.y][d.x].subdivisions)}px`,
                     }}
@@ -423,17 +427,17 @@ export const Renderer = ({
                       currentBeatCountToDisplay === Number(d.x) && currentNumerCountColToDisplay === Number(d.y) ||
                         currentSelectedCell.x === Number(d.x) && currentSelectedCell.y === Number(d.y)
                         ?
-                        HOT_PINK
+                        NEON_PINK
                         :
                         currentBeatCountToDisplay === Number(d.x)
                           ?
-                          RUSTY_ORANGE
+                          CORDUROY_RUST
                           :
                           (Number(d.y) > 0)
                             ?
-                            PERRIWINKLE
+                            OBERHEIM_TEAL
                             :
-                            HOT_PINK}
+                            NEON_PINK}
                     stroke={'rgba(245,245,245,0.78)'}
                     onClick={(e: any) => triggerEditPattern(e, d.x)}
                     onMouseEnter={(e) => {
@@ -675,7 +679,7 @@ export const Renderer = ({
                     width: "58%",
                     margin: "4px",
                     marginLeft: "16px",
-                    border: `1px solid ${HOT_PINK}`,
+                    border: `1px solid ${NEON_PINK}`,
                     borderRadius: "5px",
                     justifyContent: "center",
                     alignItems: "center",
@@ -695,7 +699,7 @@ export const Renderer = ({
                       justifyContent: "stretch",
                       alignItems: "right",
                       width: "34%",
-                      border: `1px solid ${PERRIWINKLE}`,
+                      border: `1px solid ${OBERHEIM_TEAL}`,
                       borderRadius: "5px",
                       margin: "4px",
                       height: "100%",
@@ -775,8 +779,10 @@ export const Renderer = ({
                           sx={{
                             padding: "2px 8px 2px 8px",
                             borderRadius: "5px",
-                            border: `1px solid ${noteBuilderFocus !== "MIDI" ? RUSTY_ORANGE : PERRIWINKLE}`,
-                            marginLeft: "4px",
+                            // width: "100%",
+                            width: "240px",
+                            border: `1px solid ${noteBuilderFocus !== "MIDI" ? CORDUROY_RUST : OBERHEIM_TEAL}`,
+                            // marginLeft: "4px",
                           }} key={`notesDropdown_${mTFreqs}`}>
                           {!isChuckRunning ? <InsetNotesDropdown
                             key={`${currentSelectedCell.x}_${currentSelectedCell.y}_notes`}
@@ -789,7 +795,11 @@ export const Renderer = ({
                         </Box>
 
                       )}
-                    <Box>
+                    <Box 
+                      sx={{
+                        width: "100%",
+                      }}
+                    >
                       <MingusPopup
                         updateKeyScaleChord={updateKeyScaleChord}
                         noteBuilderFocus={noteBuilderFocus}
@@ -807,9 +817,12 @@ export const Renderer = ({
                     <Box 
                       sx={{
                         borderRadius: "5px",
-                        border: `1px solid ${noteBuilderFocus !== "Chord" ? HOT_PINK : PERRIWINKLE}`,
-                        padding: "2px 16px 2px 16px",
-                        margin: "4px",
+                        border: `1px solid ${noteBuilderFocus !== "Chord" ? NEON_PINK : OBERHEIM_TEAL}`,
+                        padding: "2px 2px 2px 2px",
+                        marginTop: "4px",
+                        marginBottom: "4px",
+                        marginRight: "4px",
+                        // marginRight: "8px"
                       }}
                     >
                     <StepRadioButtons
@@ -819,10 +832,10 @@ export const Renderer = ({
                     </Box>
                     <Box 
                       sx={{
-                        border: `1px solid ${noteBuilderFocus !== "Micro" ? GOLDEN_YELLOW : PERRIWINKLE}`,
+                        border: `1px solid ${noteBuilderFocus !== "Micro" ? HERITAGE_GOLD : OBERHEIM_TEAL}`,
                         borderRadius: "5px",
                         padding: "2px 4px",
-                        margin: "4px 4px 4px 0",
+                        margin: "4px 0px 4px 0",
                         justifyContent: "right",
                         width: "fit-content",
                         flex: "1 1 auto",
@@ -840,7 +853,7 @@ export const Renderer = ({
                       maxWidth: "100%",
                       width: "100%",
                       whiteSpace: "nowrap",
-                      paddingLeft: "4px",
+                      // paddingLeft: "4px",
                     }}
                   >
                     <Box sx={{
@@ -850,7 +863,7 @@ export const Renderer = ({
                       width: "50%",
                       justifyContent: "space-between",
                       borderRadius: "5px",
-                      border: `1px solid ${PERRIWINKLE}`,
+                      border: `1px solid ${OBERHEIM_TEAL}`,
                       height: "100%",
                       padding: "12px",
                       marginRight: "4px"
@@ -889,15 +902,15 @@ export const Renderer = ({
                       width: "100%",
                       justifyContent: "space-between",
                       borderRadius: "5px",
-                      border: `1px solid ${RUSTY_ORANGE}`,
+                      border: `1px solid ${CORDUROY_RUST}`,
                       padding: "0 16px 0 16px",
-                      marginRight: "4px",
                     }}>
                       <VelocityLengthSliders
                         handleNoteLengthUpdate={handleNoteLengthUpdate}
                         cellData={cellData.current}
                         maxLen={Number(+doAutoAssignPatternNumber) !== 0 ? Number(+doAutoAssignPatternNumber) : 1}
                         chuckIsRunning={isChuckRunning}
+                        masterPatterns={masterPatternsHashHook[`${currentYVal.current}`][`${currentXVal.current}`]}
                       />
                     </Box>
                   </Box>

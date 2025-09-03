@@ -1,4 +1,4 @@
-import { GOLDEN_YELLOW, PERRIWINKLE } from "@/utils/constants";
+import { HERITAGE_GOLD } from "@/utils/constants";
 import { Box, Button } from "@mui/material";
 import { Chuck } from "webchuck";
 
@@ -50,7 +50,7 @@ const FileManager = (props: FileManagerProps) => {
                     <Button
                         component="label"
                         sx={{
-               border: `solid 1px ${GOLDEN_YELLOW}`,
+               border: `solid 1px ${HERITAGE_GOLD}`,
                 backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
                 color: 'rgba(245,245,245,0.78)',
                 height: '48px',
@@ -64,7 +64,7 @@ const FileManager = (props: FileManagerProps) => {
                 cursor: "pointer",
                 '&:hover': {
                   color: 'rgba(245,245,245,0.78)',
-                  background: GOLDEN_YELLOW,
+                  background: HERITAGE_GOLD,
                 }
               }}
               className="ui_SynthLayerButton"

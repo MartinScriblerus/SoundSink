@@ -11,7 +11,7 @@ import {
 import { Box, useTheme } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 import React from 'react';
-import { GOLDEN_YELLOW, PERRIWINKLE } from '@/utils/constants';
+import { HERITAGE_GOLD, OBERHEIM_TEAL } from '@/utils/constants';
 
 type PedalboardProps = {
     currentChain: any;
@@ -70,7 +70,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         // Node Inlet
         const node1 = new DefaultNodeModel({
             name: `${sourceName} source`,
-            color: PERRIWINKLE,
+            color: OBERHEIM_TEAL,
         });
         const normalizedHeight = height > 200 ? height - 200 : 48;
         node1.setPosition(32, normalizedHeight);
@@ -78,7 +78,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         // Node Outlet
         const node2 = new DefaultNodeModel({
             name: `${sourceName} outlet`,
-            color: PERRIWINKLE,
+            color: OBERHEIM_TEAL,
         });
         // node2.setPosition(140, 280);
         node2.setPosition(width - 100, 48);
@@ -92,7 +92,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
             if (node.id.includes("_source") || node.id.includes("_outlet")) return;
             const newNode = new DefaultNodeModel({
                 name: `${node.id}_${sourceName}`,
-                color: GOLDEN_YELLOW,
+                color: HERITAGE_GOLD,
             });
             newNode.setPosition((idx) * 80, (idx) * 48);
             newNode.addOutPort('Out');

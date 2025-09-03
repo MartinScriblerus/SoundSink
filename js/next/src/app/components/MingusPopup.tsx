@@ -1,4 +1,4 @@
-import { RUSTY_ORANGE, GOLDEN_YELLOW, PERRIWINKLE, HOT_PINK, STEEL_GRAY } from '@/utils/constants';
+import { CORDUROY_RUST, OBERHEIM_TEAL, NEON_PINK, SLATE_GRAY, HERITAGE_GOLD } from '@/utils/constants';
 import { Box, FormControl, FormLabel, Input } from '@mui/material';
 import React, { Dispatch, useEffect } from 'react';
 import InstrumentsAndMicrotones from './InstrumentsAndMicrotones';
@@ -261,14 +261,14 @@ const MingusPopup = ({
                 // minWidth: '128px',
                 // width: 'calc(100% - 4px)',
                 // width: '250px',
-                width: '194px',
+                width: '100%',
                 alignItems: 'stretch',
                 fontSize: '12px',
                 border: () => {
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "scale") return `1px solid ${PERRIWINKLE}`;
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "chord") return `1px solid ${HOT_PINK}`;
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "micro") return `1px solid ${GOLDEN_YELLOW}`;
-                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "midi") return `1px solid ${RUSTY_ORANGE}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "scale") return `1px solid ${OBERHEIM_TEAL}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "chord") return `1px solid ${NEON_PINK}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "micro") return `1px solid ${HERITAGE_GOLD}`;
+                    if (noteBuilderFocus && noteBuilderFocus.toLowerCase() === "midi") return `1px solid ${CORDUROY_RUST}`;
                 },
                 borderRadius: '4px',
                 marginRight: '4px',
@@ -278,6 +278,7 @@ const MingusPopup = ({
                 sx={{
                     color: 'rgba(245,245,245,0.78)',
                     fontSize: '11px',
+                    paddingLeft: '8px',
                 }}
                 id="notebuilder-select-label"
             >Notes Builder</FormLabel>
@@ -347,7 +348,7 @@ const MingusPopup = ({
                                 fontSize: '12px',
                                 maxHeight: '12rem',
                                 overflowY: 'auto',
-                                backgroundColor: PERRIWINKLE,
+                                backgroundColor: OBERHEIM_TEAL,
                                 color: 'rgba(245,245,245,0.78)',
                                 zIndex: 9999,
                                 // minWidth: '180px',
@@ -380,7 +381,7 @@ const MingusPopup = ({
                                                 padding: '5px',
                                                 cursor: 'pointer',
                                                 fontFamily: 'monospace',
-                                                background: PERRIWINKLE,
+                                                background: OBERHEIM_TEAL,
                                                 color: 'rgba(245,245,245,0.78)',
                                             }}
                                         >
@@ -397,7 +398,6 @@ const MingusPopup = ({
                 <FormControl sx={{
                     color: 'rgba(245,245,245,0.78)',
                     position: 'relative',
-                    // border: `1px solid ${PERRIWINKLE}`,
                     border: 'transparent',
                     borderRadius: '4px',
                     flexDirection: 'row',
@@ -453,7 +453,7 @@ const MingusPopup = ({
                                 width: '100%',
                                 maxHeight: '12rem',
                                 overflowY: 'auto',
-                                backgroundColor: PERRIWINKLE,
+                                backgroundColor: OBERHEIM_TEAL,
                                 color: 'rgba(245,245,245,0.78)',
                                 zIndex: 9999,
                             }}
@@ -489,7 +489,7 @@ const MingusPopup = ({
                                                     padding: '5px',
                                                     cursor: 'pointer',
                                                     fontFamily: 'monospace',
-                                                    background: PERRIWINKLE,
+                                                    background: OBERHEIM_TEAL,
                                                 }}
                                             >
                                                 {option.label}
@@ -587,7 +587,7 @@ const MingusPopup = ({
                                         padding: '5px',
                                         cursor: 'pointer',
                                         fontFamily: 'monospace',
-                                        background: PERRIWINKLE,
+                                        background: OBERHEIM_TEAL,
                                     }}
                                 >
                                     {option}
@@ -652,7 +652,7 @@ const MingusPopup = ({
                                     width: '100%',
                                     maxHeight: '12rem',
                                     overflowY: 'auto',
-                                    backgroundColor: PERRIWINKLE,
+                                    backgroundColor: OBERHEIM_TEAL,
                                     color: 'rgba(245,245,245,0.78)',
                                     zIndex: 9999,
                                     minWidth: '180px',
@@ -685,7 +685,7 @@ const MingusPopup = ({
                                                     padding: '5px',
                                                     cursor: 'pointer',
                                                     fontFamily: 'monospace',
-                                                    background: PERRIWINKLE,
+                                                    background: OBERHEIM_TEAL,
                                                 }}
                                             >
                                                 {option.label}
@@ -751,7 +751,7 @@ const MingusPopup = ({
                                 width: '100%',
                                 maxHeight: '12rem',
                                 overflowY: 'auto',
-                                backgroundColor: PERRIWINKLE,
+                                backgroundColor: OBERHEIM_TEAL,
                                 color: 'rgba(245,245,245,0.78)',
                                 zIndex: 9999,
                                 minWidth: '180px',
@@ -782,7 +782,7 @@ const MingusPopup = ({
                                             padding: '5px',
                                             cursor: 'pointer',
                                             fontFamily: 'monospace',
-                                            background: PERRIWINKLE,
+                                            background: OBERHEIM_TEAL,
                                         }}
                                     >
                                         {option.label}

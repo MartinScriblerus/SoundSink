@@ -20,7 +20,7 @@ const StepRadioButtons = (props: StepRadioBtnProps) => {
                                     paddingRight: '8px',
                                 }}
                                 id="repeats-select-label"
-                              >Sequence Patterns</FormLabel>
+                              >HERITAGE_GOLD</FormLabel>
                               <RadioGroup
                                 aria-labelledby="demo-radio-buttons-group-label"
                                 value={doAutoAssignPatternNumber ? doAutoAssignPatternNumber.toString() : "0"}
@@ -32,7 +32,7 @@ const StepRadioButtons = (props: StepRadioBtnProps) => {
                                 }}
                               >
                                 <FormControlLabel value="0" control={<Radio />} label="0" />
-                                <FormControlLabel value="10" control={<Radio />} label="1" />
+                                <FormControlLabel value="1" control={<Radio />} label="1" />
                                 <FormControlLabel value="1" control={<Radio />} label="2" />
                                 <FormControlLabel value="2" control={<Radio />} label="4" />
                                 <FormControlLabel value="3" control={<Radio />} label="8" />

@@ -36,7 +36,7 @@ import { initialEdgesDefaults, initialNodesDefaults } from '@/utils/FXHelpers/pe
 import setupAudioWorklet from '../../audio/setupAudioWorklet';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import setupAudioAnalysisWorklet from '../../audio/setupAudioAnalysisWorklet';
-import { GOLDEN_YELLOW, HOT_PINK, PERRIWINKLE, RUSTY_ORANGE } from '@/utils/constants';
+import {NEON_PINK, CORDUROY_RUST, OBERHEIM_TEAL } from '@/utils/constants';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
 import axios from 'axios';
 import MingusPopup from './MingusPopup';
@@ -415,8 +415,8 @@ export default function InitializationComponent() {
             for (let step = 0; step < totalSteps; step++) {
                 const stepKey = `${step}`;
 
-                // ⚡ Only initialize cell if missing → keeps dynamic edits safe
-                if (!masterPatternsRef.current[rowKey][stepKey]) {
+                const cell = masterPatternsRef.current[rowKey][stepKey];
+                if (!cell) {
                     masterPatternsRef.current[rowKey][stepKey] = {
                         on: true,
                         step,
@@ -443,12 +443,19 @@ export default function InitializationComponent() {
                         },
                         subdivisions: 1
                     };
+                } else {
+                    // merge defaults only if missing
+                    // cell.length ??= 1/16;
+                    cell.velocity ??= 0.9;
+                    cell.subdivisions ??= 1;
+                    cell.fileNums ??= [];
                 }
             }
         }
-        // Update React state to trigger render
-        setPatternsHashHook(masterPatternsRef.current);
-        setPatternsHashUpdated(true);
+        // // Update React state to trigger render
+        // setPatternsHashHook(masterPatternsRef.current);
+        // setPatternsHashHook(JSON.parse(JSON.stringify(masterPatternsRef.current)));
+        // setPatternsHashUpdated(true);
     }, [
     numeratorSignature,
     masterFastestRate,
@@ -457,6 +464,10 @@ export default function InitializationComponent() {
     mTNames
     ]);
 
+    useEffect(() => {
+        setPatternsHashHook(JSON.parse(JSON.stringify(masterPatternsRef.current)));
+        setPatternsHashUpdated(true);
+    }, [rightPanelOptions]);
 
     allOctaveMidiFreqs.current = {};
 
@@ -725,15 +736,15 @@ export default function InitializationComponent() {
         setPatternsHashHook(masterPatternsRef.current);
     }
 
-    const handleNoteLengthUpdate = async (e: any, cellData: any) => {
-        if (masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
-            console.log("E TARGET VALUE: ", e && e.target && e.target.value);
+    const handleNoteLengthUpdate = async (e: any, cellData: any, newValue: any) => {
+        console.log("THANKS HANDLE NOTELENGTH UPDATE: ", lenMarks[newValue]);
+        if (!isChuckRunning && masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
             if (!e || !e.target || !e.target.value) return;
             const fraction = lenMarks[( e && e.target && e.target.value)].label;
             const parts = fraction.indexOf('/') > -1 ? fraction.split('/').map(Number) : [Number(fraction)];
             const result = parts.length > 1 ? parts[0] / parts[1] : parts[0];
-            alert('result~!!! ' + result);
-            masterPatternsRef.current[cellData.yVal][cellData.xVal].length = result; // e.target.value;
+            alert('result~!!! ' + result + "" + result);
+            masterPatternsRef.current[cellData.yVal][cellData.xVal].length = Number(+lenMarks[newValue].label); // e.target.value;
             handleAutoAssignLength(cellData.xVal, cellData.yVal, result);
             setPatternsHashHook(masterPatternsRef.current);
             setPatternsHashUpdated(!masterPatternsHashUpdated);
@@ -743,7 +754,7 @@ export default function InitializationComponent() {
             masterPatternsRef.current &&
             Object.values(masterPatternsRef.current).length > 0 && 
             Object.values(masterPatternsRef.current)
-                // .slice(1)
+                .slice(1)
                 .map((i: any) => 
                     Object.values(i).map(
                         (j:any) => 
@@ -760,7 +771,7 @@ export default function InitializationComponent() {
             await chuckRef.current.setFloatArray(
                 "midiLengthsArray",
                 Object.values(masterPatternsRef.current)
-                // .slice(1) // skip first row
+                .slice(1) // skip first row
                 .map((i: any) => 
                     Object.values(i).map(
                         (j:any) => 
@@ -1829,6 +1840,7 @@ export default function InitializationComponent() {
             );
 
 
+            console.log("KRIKES 0 ", masterPatternsRef.current);
             console.log("KRIKES 1 ", Object.values(masterPatternsRef.current).map((i: any) => 
                 Object.values(i).map(
                     (j:any) => 
@@ -2700,8 +2712,8 @@ export default function InitializationComponent() {
     }
 
     const updateMicroTonalScale = (scale: any) => {
-    console.log("OY SCALE! ", scale)
-    setMicrotonalScale(scale.value);
+        console.log("OY SCALE! ", scale)
+        setMicrotonalScale(scale.value);
     };
 
     const updateMingusData = (data: any) => {
@@ -2804,14 +2816,14 @@ export default function InitializationComponent() {
                                             height: '90px',
                                             fontFamily: 'monospace',
                                             fontSize: '1em !important',
-                                            background: PERRIWINKLE,
+                                            background: OBERHEIM_TEAL,
                                             padding: '24px',
                                             margin: '16px',
                                             color: 'rgba(255,255,255,0.78)',
                                             border: 'rgba(255,255,255,0.78)',
                                             '&:hover': {
                                                 color: '#f5f5f5 !important',
-                                                // border: `1px solid ${PERRIWINKLE}`,
+                                                // border: `1px solid ${SEAFOAM_TEAL}`,
                                                 border: 'transparent',
                                             }
                                         }}
@@ -2856,7 +2868,7 @@ export default function InitializationComponent() {
                                             <Box 
                                                 className="right-panel-header-wrapper"
                                                 sx={{
-                                                    // border: `1px solid ${PERRIWINKLE}`,
+                                                    // border: `1px solid ${SEAFOAM_TEAL}`,
                                                     border: `1px solid rgba(0,0,0,0.78)`,
                                                     display: 'flex', 
                                                     flexDirection: 'row', 
@@ -3022,15 +3034,25 @@ export default function InitializationComponent() {
                                                 flexDirection: "row", 
                                                 position: "absolute",
                                                 cursor: "pointer",
-                                                top: "30px",
-                                                left: "32px",
-                                                zIndex: "9998",
+                                                top: "80px",
+                                                right: "300px",
+                                                zIndex: "99999",
                                                 pointerEvents: "auto",
                                                 whiteSpace: "nowrap",
                                                 fontSize: "12px",
                                             }}
                                         >
-                                        {currentScreen.current !== "synth" && <ArrowBack 
+                                        {
+                                        
+                                        
+                                        ((selectedSTKs.length > 0 ||
+                                    selectedEffects.length > 0) ||
+                                        currentScreen.current !== "synth") && 
+                                        
+                                        
+                                        
+                                        
+                                        <ArrowBack 
                                             onClick={() => {
                                                 currentScreen.current = "synth";
                                                 visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
@@ -3041,21 +3063,29 @@ export default function InitializationComponent() {
                                                     babylonKeyRef.current,
                                                 );
                                             }}
-                                            sx={{
-                                                zIndex: "9999",
-                                            }}
+                                            // sx={{
+                                        
+                                            //     right: "300px",
+                                            //     top: "80px",
+                                            //     zIndex: "99999 !important",
+                                            //     position: "absolute",
+                                            //     cursor: "pointer",
+
+                                            // }}
                                         />}</Box>
                                     }
 
                                 {
                                     (selectedSTKs.length > 0 ||
-                                    selectedEffects.length > 0) ?
+                                    selectedEffects.length > 0) || currentScreen.current !== "synth" ?
                                     <Button 
                                         sx={{
                                             position: "absolute",
-                                            top: "20px",
-                                            left: "64px",
-                                            zIndex: "9999",
+                                            top: "74px",
+                                            right: "150px",
+                        
+                                            cursor: "pointer",
+                                            zIndex: "99999",
                                         }}
                                         onClick={handleManageFX}>Manage Effects</Button> : <></>}                               
                                 {isManagingEffects && 
@@ -3090,7 +3120,7 @@ export default function InitializationComponent() {
                                                 sx={{
                                                     fontSize: "12px",
                                                     color: "rgba(255,255,255,0.78)",
-                                                    backgroundColor: PERRIWINKLE,
+                                                    backgroundColor: OBERHEIM_TEAL,
                                                     padding: "4px",
                                                     borderRadius: "4px",
                                                     // marginBottom: "4px",
@@ -3104,7 +3134,7 @@ export default function InitializationComponent() {
                                                         value={`${stkBtn}`}
                                                         key={`singleSelectSTK_${stkBtn}`}
                                                         sx={{
-                                                            backgroundColor: RUSTY_ORANGE,
+                                                            backgroundColor: CORDUROY_RUST,
                                                             color: "white",
                                                             fontSize: "14px",
                                                             marginTop: "4px",
@@ -3128,7 +3158,7 @@ export default function InitializationComponent() {
                                                 style={{
                                                     fontSize: "12px",
                                                     color: "rgba(255,255,255,0.78)",
-                                                    backgroundColor: PERRIWINKLE,
+                                                    backgroundColor: OBERHEIM_TEAL,
                                                     padding: "4px",
                                                     borderRadius: "4px",
                                                 }}
@@ -3158,7 +3188,7 @@ export default function InitializationComponent() {
                                                                     effect.split("_")[1]
                                                                 }
                                                                 sx={{
-                                                                    backgroundColor: HOT_PINK,
+                                                                    backgroundColor: NEON_PINK,
                                                                     color: "white",
                                                                     fontSize: "14px",
                                                                     marginTop: "4px",
@@ -3199,7 +3229,7 @@ export default function InitializationComponent() {
                                 {/* LEFT CONTAINER */}
                                 <Box 
                                     // sx={{
-                                    //     borderRight: `solid 1px ${GOLDEN_YELLOW}`
+                                    //     borderRight: `solid 1px ${HERITAGE_GOLD}`
                                     // }}
                                     id="leftContainerWrapper">
                                     {clickedBegin && <ResponsiveAppBar
@@ -3332,6 +3362,8 @@ export default function InitializationComponent() {
                         zIndex: "9999",
                         bottom: '0px',
                         left: '140px',
+                        // background: 'yellow',
+                        pointerEvents: keysVisible ? 'none' : 'auto'
                     }}
                 >                                        
                     <KeyboardControls

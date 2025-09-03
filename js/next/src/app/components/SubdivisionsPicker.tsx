@@ -1,4 +1,4 @@
-import { PERRIWINKLE } from '@/utils/constants';
+import { OBERHEIM_TEAL } from '@/utils/constants';
 import { Box, FormControl, TextField, useTheme } from '@mui/material';
 import React from 'react';
 
@@ -53,7 +53,7 @@ const SubdivisionsPicker = (props: SubdivisionsPickerProps) => {
                 }}
                 sx={{
                     input: { color: 'primary.contrastText' },
-                    backgroundColor: PERRIWINKLE,
+                    backgroundColor: OBERHEIM_TEAL,
                     maxWidth: "6rem",
                     width: '72px',
                 }}

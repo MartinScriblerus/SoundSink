@@ -17,9 +17,9 @@ const ClockCounter = (props: ClockCounterProps) => {
         <Box
             id="clockCounterWrapper"
             sx={{
-                top: '12px',
+                top: '64px',
                 position: 'absolute',
-                left: '224px',
+                right: '12px',
                 zIndex: 9999,
             }}
         >
