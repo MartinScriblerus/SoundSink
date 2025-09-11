@@ -11,7 +11,7 @@ type QuickDashProps = {
     universalSources: any;
     handleSourceToggle: (name: string, val: any) => void;
     vizSource: string;
-    currentNumerCount: any;
+    // currentNumerCount: any;
     currentBeatSynthCount: any;
     handleOsc1RateUpdate: any;
     // handleOsc2RateUpdate: any;
@@ -109,7 +109,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
         isChuckRunning,
         featuresLegendData, 
         vizSource,
-        currentNumerCount,
+        // currentNumerCount,
         currentBeatSynthCount,
         handleOsc1RateUpdate,
         // handleOsc2RateUpdate,
@@ -259,7 +259,7 @@ const NotesQuickDash = (props:QuickDashProps) => {
                                 : 
                                     0
                             } 
-                            currentNumerCount={currentNumerCount}
+                            // currentNumerCount={currentNumerCount}
                             currentBeatSynthCount={currentBeatSynthCount}
                             handleOsc1RateUpdate={handleOsc1RateUpdate}
                             // handleOsc2RateUpdate={handleOsc2RateUpdate} 

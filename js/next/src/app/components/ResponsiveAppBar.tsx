@@ -47,8 +47,8 @@ interface KeysAppBarProps {
   stkValues: any;
   setStkValues: any;
   currentBeatCountToDisplay: number;
-  currentNumerCountColToDisplay: number;
-  currentDenomCount: number;
+  // currentNumerCountColToDisplay: number;
+  // currentDenomCount: number;
   currentPatternCount: number;
   chuckMicButton: () => void;
   numeratorSignature: number;
@@ -63,8 +63,8 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
     handleToggleStkArpeggiator,
     handleSwitchToggle,
     currentBeatCountToDisplay,
-    currentNumerCountColToDisplay,
-    currentDenomCount,
+    // currentNumerCountColToDisplay,
+    // currentDenomCount,
     currentPatternCount,
     chuckMicButton,
     numeratorSignature,

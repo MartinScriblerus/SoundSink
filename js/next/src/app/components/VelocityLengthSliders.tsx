@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Box, FormLabel, Slider } from '@mui/material';
 import { lenMarks } from '@/utils/FXHelpers/helperDefaults';
 
 const lenVals = [0, 1, 2, 3, 4, 5, 6, 7];
 
 function valuetext(value: number) {
-  return `${value}`;
+    return `${value}`;
 }
 
 type VelocityLengthSlidersProps = {
@@ -19,55 +19,55 @@ type VelocityLengthSlidersProps = {
 const VelocityLengthSliders = (props: VelocityLengthSlidersProps) => {
 
     const { handleNoteLengthUpdate, cellData, maxLen, chuckIsRunning, masterPatterns } = props;
-    const idx = lenMarks.map(i => Number(+i.label)).indexOf(masterPatterns?.length);
-    const [noteLengthValue, setNoteLengthValue] = useState<number>(idx);
+    
+    // console.log("YOYO LEN ? ", lenMarks.map((i:any) => i.label.indexOf("/") > -1 ? (i.label.split("/")[0] / i.label.split("/")[1]) : (i.label / 1)), "MPL: ", masterPatterns?.length);
+    
+    const arr: any = lenMarks.map((i:any) => i.label.indexOf("/") > -1 ? (i.label.split("/")[0] / i.label.split("/")[1]) : (i.label / 1)) 
+    const idx = arr.indexOf(masterPatterns?.length);
 
 
+    // const [singleNoteLengthValue, setSingleNoteLengthValue] = useState<number | undefined>((idx && idx >= 0) ? idx : undefined);
 
     return (
-        <Box sx={{ 
-            padding: '4px', 
+        <Box sx={{
+            padding: '4px',
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
             marginRight: '8px',
         }}>
-            {/* <Box className={'note-len-title'}> */}
-                <FormLabel
-                    sx={{
-                        color: 'rgba(245,245,245,0.78)',
-                        fontSize: '11px',
-                        paddingLeft: '8px',
-                        paddingRight: '8px',
-                    }}
-                    id="velocities-select-label"
-                >Note Length</FormLabel>
-                <Slider
-                    aria-label="Note Length"
-                    // value={noteLengthValue}
-                    value={noteLengthValue}
-                    onChange={(e, newValue) => {
-                        console.log("NV! ", newValue);
-                        if (!chuckIsRunning) {
-                            !chuckIsRunning && setNoteLengthValue(newValue as number);
-                            handleNoteLengthUpdate(e, cellData, newValue);
-                        }
-                    }}
-                    getAriaValueText={valuetext}
-                    valueLabelDisplay="auto"
-                    step={1}
-                    sx={{
-                        color: 'rgba(245,245,245,0.78)',
-                        backgroundColor: 'rgba(28,28,28,0.78)',
-                        width: '100%',
-                    }}
-                    // onChange={(e) => !chuckIsRunning && handleNoteLengthUpdateLocal(e)}
-                    marks={lenMarks}
-                    min={0}
-                    max={8}
-                />
-            {/* </Box> */}
+            <FormLabel
+                sx={{
+                    color: 'rgba(245,245,245,0.78)',
+                    fontSize: '11px',
+                    paddingLeft: '8px',
+                    paddingRight: '8px',
+                }}
+                id="velocities-select-label"
+            >Note Length</FormLabel>
+            <Slider
+                aria-label="Note Length"
+                value={lenMarks[idx].value}
+                onChange={(e, newValue) => {
+                    console.log("NV! ", newValue);
+                    // if (!chuckIsRunning && newValue && (newValue !== noteLengthValue)) {
 
+                        // setNoteLengthValue(newValue as number);
+                        handleNoteLengthUpdate(e, cellData, newValue);
+                    // }
+                }}
+                getAriaValueText={valuetext}
+                valueLabelDisplay="auto"
+                step={1}
+                sx={{
+                    color: 'rgba(245,245,245,0.78)',
+                    backgroundColor: 'rgba(28,28,28,0.78)',
+                    width: '100%',
+                }}
+                marks={lenMarks}
+                min={0}
+                max={8}
+            />
         </Box>
     )
 };

@@ -16,7 +16,7 @@ import { convertEnvSetting } from '@/utils/FXHelpers/winFuncEnvHelper';
 
 import BPMModule from './BPMModule';
 import ResponsiveAppBar from './ResponsiveAppBar';
-import {Tune} from '../../tune';
+import { Tune } from '../../tune';
 import Keyboard from './Keyboard'
 import { useMingusData } from '@/hooks/useMingusData';
 import KeyboardControls from './KeyboardControls';
@@ -36,69 +36,69 @@ import { initialEdgesDefaults, initialNodesDefaults } from '@/utils/FXHelpers/pe
 import setupAudioWorklet from '../../audio/setupAudioWorklet';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import setupAudioAnalysisWorklet from '../../audio/setupAudioAnalysisWorklet';
-import {NEON_PINK, CORDUROY_RUST, OBERHEIM_TEAL } from '@/utils/constants';
+import { NEON_PINK, CORDUROY_RUST, OBERHEIM_TEAL } from '@/utils/constants';
 import serverFilesToPreload from '../../utils/serverFilesToPreload';
 import axios from 'axios';
 import MingusPopup from './MingusPopup';
 import InstrumentsAndMicrotones from './InstrumentsAndMicrotones';
-import { getChuckCode, noteToFreq } from '@/utils/chuckHelper';
-import { 
-    activeSTKDeclarations, 
-    activeSTKPlayOff, 
-    activeSTKPlayOn, 
-    activeSTKSettings, 
-    allOctaveMidiFreqs, 
-    checkedFXList, 
-    chuckRef, 
-    clippedDuration, 
-    currentEffectType, 
-    currentFX, 
-    currentHeatmapXY, 
-    currentScreen, 
-    currentStkTypeVar, 
-    currNotes, 
-    currNotesHash, 
-    delayAFinalHelper, 
-    delayFinalHelper, 
-    delayLFinalHelper, 
-    doReturnToSynth, 
-    ellipticFinalHelper, 
-    expDelayFinalHelper, 
-    expEnvFinalHelper, 
-    ffmpegRef, 
-    filesToProcess, 
-    fxValsRef, 
-    initialEdges, 
-    initialNodes, 
-    initialRun, 
-    inputRef, 
-    isInPatternEditMode, 
-    isSubmitting, 
-    keysAndTuneDone, 
-    lastFileUploadMeydaData, 
-    masterPatternsRef, 
-    messageRef, 
-    midiAccess, 
-    modulateFinalHelper, 
-    moogGrandmotherEffects, 
-    NOTES_SET_REF, 
-    parentDivRef, 
-    powerADSRFinalHelper, 
-    regionEnd, 
-    regionStart, 
-    resetHeatmapCell, 
-    spectacleFinalHelper, 
-    stkKnobValsRef, 
-    testArrBuffFile, 
-    totalDuration, 
-    universalSources, 
-    uploadedBlob, 
-    visibleFXKnobs, 
-    wavesurferRef, 
-    winFuncEnvFinalHelper, 
-    workerRef, 
-    wpDiodeLadderFinalHelper, 
-    wpKorg35FinalHelper 
+import { createEmptyTargets, getAllSignalData, getChuckCode, noteToFreq, processSourceFX, SignalChainTargets } from '@/utils/chuckHelper';
+import {
+    activeSTKDeclarations,
+    activeSTKPlayOff,
+    activeSTKPlayOn,
+    activeSTKSettings,
+    allOctaveMidiFreqs,
+    checkedFXList,
+    chuckRef,
+    clippedDuration,
+    currentEffectType,
+    currentFX,
+    currentHeatmapXY,
+    currentScreen,
+    currentStkTypeVar,
+    currNotes,
+    currNotesHash,
+    delayAFinalHelper,
+    delayFinalHelper,
+    delayLFinalHelper,
+    doReturnToSynth,
+    ellipticFinalHelper,
+    expDelayFinalHelper,
+    expEnvFinalHelper,
+    ffmpegRef,
+    filesToProcess,
+    fxValsRef,
+    initialEdges,
+    initialNodes,
+    initialRun,
+    inputRef,
+    isInPatternEditMode,
+    isSubmitting,
+    keysAndTuneDone,
+    lastFileUploadMeydaData,
+    masterPatternsRef,
+    messageRef,
+    midiAccess,
+    modulateFinalHelper,
+    moogGrandmotherEffects,
+    NOTES_SET_REF,
+    parentDivRef,
+    powerADSRFinalHelper,
+    regionEnd,
+    regionStart,
+    resetHeatmapCell,
+    spectacleFinalHelper,
+    stkKnobValsRef,
+    testArrBuffFile,
+    totalDuration,
+    universalSources,
+    uploadedBlob,
+    visibleFXKnobs,
+    wavesurferRef,
+    winFuncEnvFinalHelper,
+    workerRef,
+    wpDiodeLadderFinalHelper,
+    wpKorg35FinalHelper
 } from '../state/refs';
 import FileWindow from './FileWindow';
 import FileManager from './FileManager';
@@ -118,21 +118,35 @@ interface Note {
 }
 
 export default function InitializationComponent() {
-    
+
     const [programIsOn, setProgramIsOn] = useState<boolean>(false);
+    const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
     const [chuckHook, setChuckHook] = useState<Chuck | undefined>();
     const [babylonReady, setBabylonReady] = useState(false);
     const [formats, setFormats] = React.useState<any>(() => []);
     const [checkedEffectsListHook, setCheckedEffectsListHook] = useState<Array<any>>([]);
-    
+
+    const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(defaultNoteVals)
+
+    const [notesAddedDetails, setNotesAddedDetails] = useState<any>([]);
+
     // NEEDS WORK (after samples)...
     const [masterVolumeValsUpdated, setMasterVolumeValsUpdated] = useState<any>(false);
     const [keysVisible, setKeysVisible] = useState(false);
     const [keysReady, setKeysReady] = useState(false);
     const [vizSource, setVizSource] = useState<string>('');
 
-    const [chuckIsReady, setChuckIsReady] = useState(false);
+    const [newMicroTonalArr, setNewMicroTonalArr] = useState<any>([])//
+
+    // const [chuckIsReady, setChuckIsReady] = useState(false);
     const [screenView, setScreenView] = useState<number>(1);
+
+    const [clickedFile, setClickedFile] = useState<any>(null);
+
+    // const [singleNoteLengthValue, setSingleNoteLengthValue] = useState<number | undefined>();
+
+
+    const [doAutoAssignPatternNum, setDoAutoAssignPatternNum] = useState<number>(2);
 
     const [noteBuilderFocus, setNoteBuilderFocus] = useState<string>("Scale");
 
@@ -163,14 +177,14 @@ export default function InitializationComponent() {
     const [fXChainKey, setFXChainKey] = useState<string>('');
 
     const [chuckUpdateNeeded, setChuckUpdateNeeded] = useState(false);
-    const [bpm, setBpm] = useState<number>(120.00);
+    const [bpm, setBpm] = useState<number>(120.0);
     const [beatsNumerator, setBeatsNumerator] = useState(4);
     const [beatsDenominator, setBeatsDenominator] = useState(4);
     const { register, handleSubmit, watch, setValue } = useForm();
     const [clickedBegin, setClickedBegin] = useState<boolean>(false);
     const [stkValues, setStkValues] = useState<STKOption[]>([]);
     const [midiBPMClockIncoming, setMidiBPMClockIncoming] = useState<any>([]);
-    const [fxRadioValue, setFxRadioValue] = React.useState<any>('Osc1'); 
+    const [fxRadioValue, setFxRadioValue] = React.useState<any>('Osc1');
     // const [analysisSourceRadioValue, setAnalysisSourceRadioValue] = React.useState<any>('Osc');
     const [showBPM, setShowBPM] = useState<boolean>(true);
     // const [showSTKManager, setShowSTKManager] = useState<boolean>(false);
@@ -188,27 +202,36 @@ export default function InitializationComponent() {
     const [tune, setTune] = useState<any>(null);
     const [mingusKeyboardData, setMingusKeyboardData] = useState<any>([]);
     const [mingusChordsData, setMingusChordsData] = useState<any>([]);
-    const [currentChain, setCurrentChain] = useState<any>();
+    // const [currentChain, setCurrentChain] = useState<any>();
+
+    const [currentChain, setCurrentChain] = useState<{
+        osc1: string[];
+        stk1: string[];
+        sampler: string[];
+        audioin: string[];
+        }>({
+        osc1: [],
+        stk1: [],
+        sampler: [],
+        audioin: [],
+        });
+
+
     // const [meydaNeedsUpdate, setMeydaNeedsUpdate] = useState<boolean>(false);
     const [lastFileUpload, setLastFileUpload] = useState<any>('');
     const [numeratorSignature, setNumeratorSignature] = useState(4);
     const [denominatorSignature, setDenominatorSignature] = useState(4);
     const [currentBeatSynthCount, setCurrentBeatSynthCount] = useState<number>(0);
-    const [currentBeatCountToDisplay, setCurrentBeatCountToDisplay] = useState<number>(0);
-    const [currentNumerCount, setCurrentNumerCount] = useState<number>(0);
-    const [currentNumerCountColToDisplay, setCurrentNumerCountColToDisplay] = useState<number>(0);
-    const [currentDenomCount, setCurrentDenomCount] = useState<number>(1);
-    const [currentPatternCount, setCurrentPatternCount] = useState<number>(0);
+
     const [patternsPerCycle, setPatternsPerCycle] = useState<number>(4);
     const [masterFastestRate, setMasterFastestRate] = useState<number>(4);
-    // const [estimatedMidiClockBpm, setEstimatedMidiClockBpm] = useState<any>();
-    // const [keysFullscreen, setKeysFullscreen] = useState<boolean>(false);
+
     const [masterPatternsHashHook, setPatternsHashHook] = useState<any>({});
     const [masterPatternsHashUpdated, setPatternsHashUpdated] = useState<boolean>(false);
     const [mTFreqs, setMTFreqs] = useState<any>([]);
     const [mTNames, setMTNames] = useState<any>([]);
     const [currentSelectedCell, setCurrentSelectedCell] = useState<any>({ x: 0, y: 0 });
-    
+
     const [notes, setNotes] = useState<Note[]>([]);
     const [mTMidiNums, setMTMidiNums] = useState<any>([]);
     const [showNotesOrder, setShowNotesOrder] = useState<string>('asc');
@@ -230,6 +253,33 @@ export default function InitializationComponent() {
     const [isManagingEffects, setIsManagingFX] = useState<boolean>(false);
 
 
+    const [singleNoteLengthValue, setSingleNoteLengthValue] = useState<number | undefined>();
+
+    const updateBPM = () => {
+        (async() => {
+            // Calculate beat length (in milliseconds)
+            const beatInMilliseconds = (60000 / (bpm || 120)); // 1 beat = 60_000 ms / BPM
+            const beatInt = beatInMilliseconds / numeratorSignature;
+            const beatSeconds = beatInt / 1000;
+            const beatFactor = numeratorSignature / denominatorSignature;
+            const quarterNote = beatSeconds; // in seconds
+            const adjustedBeat = quarterNote * beatFactor; // also in seconds
+            const beat = adjustedBeat;
+            const whole = beat * numeratorSignature;
+            const measure = whole;
+
+            // Set values in ChucK using WebChucK
+            chuckRef.current && await chuckRef.current.setFloat("beatMS", (measure * 1000 * beatFactor) / masterFastestRate);
+            chuckRef.current && await chuckRef.current.setInt("numeratorSignature", numeratorSignature);
+            chuckRef.current && await chuckRef.current.setInt("denominatorSignature", denominatorSignature);
+        })();
+    }
+
+    useEffect(() => {
+        updateBPM();
+    }, [bpm, numeratorSignature, denominatorSignature, isChuckRunning]);
+
+
 
     const [showNotesAscending, setShowNotesAscending] = useState<boolean>(true);
 
@@ -239,7 +289,12 @@ export default function InitializationComponent() {
     const [invertedScaleHook, setInvertedScaleHook] = useState<any>(null);
     const [chordHook, setChordHook] = useState<QueryResponse | null>(null);
 
+    const [clockCounterKey, setClockCounterKey] = useState<string>('');
+
     const finalMicroToneNotesRef = useRef<any>([]);
+
+    const chain = useRef<any>(null);
+
 
     const headerDict = {
         'Content-Type': 'application/json',
@@ -249,7 +304,7 @@ export default function InitializationComponent() {
         "Access-Control-Allow-Methods": "DELETE, POST, GET, OPTIONS"
     }
 
-    const requestOptions = {       
+    const requestOptions = {
         headers: headerDict,
         params: {
             key: audioKey || 'A',
@@ -258,38 +313,59 @@ export default function InitializationComponent() {
 
     const notesRef = useRef<Note[]>([]);
 
-    const signalChain: any = [];
-    const signalChainDeclarations: any = [];
-    const valuesReadout: any = {};
-    const valuesReadoutDeclarations: any = {};
-    
-    const signalChainSampler: any = [];
-    const signalChainSamplerDeclarations: any = [];
-    const valuesReadoutSampler: any = {};
-    const valuesReadoutSamplerDeclarations: any = {};
+    const signalChain = useRef<any>([]);
+    const signalChainDeclarations = useRef<any[]>([]);
+    const valuesReadout = useRef<any>({});
+    const valuesReadoutDeclarations = useRef<any>({});
 
-    const signalChainSTK: any = [];
-    const signalChainSTKDeclarations: any = [];
-    const valuesReadoutSTK: any = {};
-    const valuesReadoutSTKDeclarations: any = {};
+    const signalChainSampler = useRef<any[]>([]);
+    const signalChainSamplerDeclarations = useRef<any[]>([]);
+    const valuesReadoutSampler = useRef<any>({});
+    const valuesReadoutSamplerDeclarations = useRef<any>({});
 
-    const signalChainAudioIn: any = [];
-    const signalChainAudioInDeclarations: any = [];
-    const valuesReadoutAudioIn: any = {};
-    const valuesReadoutAudioInDeclarations: any = {};
+    const signalChainSTK = useRef<any[]>([]);
+    const signalChainSTKDeclarations = useRef<any[]>([]);
+    const valuesReadoutSTK = useRef<any>({});
+    const valuesReadoutSTKDeclarations = useRef<any>({});
 
-    
+    const signalChainAudioIn = useRef<any[]>([]);
+    const signalChainAudioInDeclarations = useRef<any[]>([]);
+    const valuesReadoutAudioIn = useRef<any>({});
+    const valuesReadoutAudioInDeclarations = useRef<any[]>([]);
+
+    const allTargetsRef = useRef<AllTargets | null | undefined>(null);
+    if (!allTargetsRef.current) {
+        allTargetsRef.current = createAllTargets();
+    }
+
+    const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
+        console.log('@@@@ newBeatsNumerator: ', newBeatsNumerator)
+        if (newBeatsNumerator) {
+            setBeatsNumerator(Number(newBeatsNumerator));
+            setNumeratorSignature(Number(newBeatsNumerator));
+        }
+        setChuckUpdateNeeded(true);
+    }
+
+    const handleChangeBeatsDenominator = (newDenominator: number) => {
+        if (newDenominator) {
+            setBeatsDenominator(Number(newDenominator));
+            setDenominatorSignature(Number(newDenominator));
+        }
+        setChuckUpdateNeeded(true);
+    }
+
     const handleNoteBuilder = (val: any) => {
         console.log("notebuilder val? ", val);
         val && setNoteBuilderFocus(val);
         const test = updateKeyScaleChord(keyScaleChord.key, keyScaleChord.scale, keyScaleChord.chord, keyScaleChord.chordLabel, keyScaleChord.octaveMax, keyScaleChord.octaveMin, val);
-        console.log("TEST RETURNED: ", test);  
+        console.log("TEST RETURNED: ", test);
     };
 
     const consistentNotes = useRef<any>();
     consistentNotes.current = consistentNotes.current || [];
 
-    const [doAutoAssignPatternNum, setDoAutoAssignPatternNum] = useState<number>(2);
+    // const [doAutoAssignPatternNum, setDoAutoAssignPatternNum] = useState<number>(2);
 
     resetHeatmapCell.current = false;
 
@@ -302,17 +378,17 @@ export default function InitializationComponent() {
 
     const noteOnPlay = useCallback(
         async (theMidiNum: number, theMidiVelocity: number, theMidiHz?: any) => {
-          await chuckRef.current;
+            await chuckRef.current;
 
-        //   console.log("hello!");
-          currNotesHash.current[`${theMidiNum}`] = [theMidiNum, theMidiVelocity];
-          currNotes.current = Object.values(currNotesHash.current)
-            .map((i: any) => i[0])
-            .filter((i: any) => i);
+            //   console.log("hello!");
+            currNotesHash.current[`${theMidiNum}`] = [theMidiNum, theMidiVelocity];
+            currNotes.current = Object.values(currNotesHash.current)
+                .map((i: any) => i[0])
+                .filter((i: any) => i);
 
-          console.log("notes in onplay: ", currNotes.current);
+            console.log("notes in onplay: ", currNotes.current);
 
-          currNotes.current.forEach((note: any) => triggerNote(note));
+            currNotes.current.forEach((note: any) => triggerNote(note));
         },
         // [chuckRef, currNotesHash, currNotes] // Only if these are not refs!
         []
@@ -320,47 +396,47 @@ export default function InitializationComponent() {
 
     const noteOffPlay = useCallback(
         async (theMidiNum: number) => {
-          await chuckRef.current && await chuckHook;
-      
-          const noteOffIndex = consistentNotes.current.indexOf(theMidiNum);
-          const currentNotesIndex = currNotesHash.current[theMidiNum];
-          if (noteOffIndex !== -1 || currentNotesIndex) {
-            console.log("do we have a noteOff Index? ", noteOffIndex, " consistentNotes: ", consistentNotes.current, "theMidiNum: ", theMidiNum, "currNotesHash: ", currNotesHash.current);
-      
-            chuckHook &&
-              chuckRef.current &&
-              await chuckRef.current.setFloatArray(
-                "testNotesArr",
-                consistentNotes.current.map((i: any) =>
-                  i !== theMidiNum ? Number(parseFloat(i).toFixed(2)) : null
-                ).filter((i: any) => i !== null)
-              );
-      
-            let floatArr;
-            try {
-              floatArr =
+            await chuckRef.current && await chuckHook;
+
+            const noteOffIndex = consistentNotes.current.indexOf(theMidiNum);
+            const currentNotesIndex = currNotesHash.current[theMidiNum];
+            if (noteOffIndex !== -1 || currentNotesIndex) {
+                console.log("do we have a noteOff Index? ", noteOffIndex, " consistentNotes: ", consistentNotes.current, "theMidiNum: ", theMidiNum, "currNotesHash: ", currNotesHash.current);
+
                 chuckHook &&
-                chuckRef.current &&
-                (await chuckRef.current.getFloatArray("chuckNotesOff"));
-            } catch (e) {
-              // ignore
+                    chuckRef.current &&
+                    await chuckRef.current.setFloatArray(
+                        "testNotesArr",
+                        consistentNotes.current.map((i: any) =>
+                            i !== theMidiNum ? Number(parseFloat(i).toFixed(2)) : null
+                        ).filter((i: any) => i !== null)
+                    );
+
+                let floatArr;
+                try {
+                    floatArr =
+                        chuckHook &&
+                        chuckRef.current &&
+                        (await chuckRef.current.getFloatArray("chuckNotesOff"));
+                } catch (e) {
+                    // ignore
+                }
+
+                const newArr: number[] = floatArr ? [...floatArr, theMidiNum] : [];
+                chuckHook &&
+                    chuckRef.current &&
+                    await chuckRef.current.setFloatArray("chuckNotesOff", newArr);
+
+                currNotesHash.current[`${theMidiNum}`] = false;
+                delete currNotesHash.current[`${theMidiNum}`];
+                consistentNotes.current = consistentNotes.current.filter(
+                    (i: any) => i !== theMidiNum
+                );
+                triggerNoteOff(theMidiNum);
             }
-      
-            const newArr: number[] = floatArr ? [...floatArr, theMidiNum] : [];
-            chuckHook &&
-              chuckRef.current &&
-              await chuckRef.current.setFloatArray("chuckNotesOff", newArr);
-      
-            currNotesHash.current[`${theMidiNum}`] = false;
-            delete currNotesHash.current[`${theMidiNum}`];
-            consistentNotes.current = consistentNotes.current.filter(
-              (i: any) => i !== theMidiNum
-            );
-            triggerNoteOff(theMidiNum);
-          }
         },
         [chuckHook, consistentNotes] // Only if not refs
-      );
+    );
 
     useEffect(() => {
         // console.log("MIDI DATA: ", midiData);
@@ -382,6 +458,7 @@ export default function InitializationComponent() {
 
     useEffect(() => {
         if (typeof midiBPMClockIncoming === "number") {
+            console.log("WHAT IS IT? ", midiBPMClockIncoming);
             setBpm(midiBPMClockIncoming);
         }
         return () => {
@@ -390,7 +467,7 @@ export default function InitializationComponent() {
 
     const handleAssignPatternNumber = (e: any) => {
         const newPatternNumber = e.target.value;
-        console.log("check auto assign pattern number is now... ",  newPatternNumber);
+        console.log("check auto assign pattern number is now... ", newPatternNumber);
         setDoAutoAssignPatternNum(newPatternNumber);
     };
 
@@ -422,9 +499,9 @@ export default function InitializationComponent() {
                         step,
                         color: 'blue',
 
-                        colorR: 0/255,
-                        colorG: 168/255,
-                        colorB: 168/255,
+                        colorR: 0 / 255,
+                        colorG: 168 / 255,
+                        colorB: 168 / 255,
                         colorA: 1.0,
                         colorIntensity: 0,
 
@@ -434,7 +511,7 @@ export default function InitializationComponent() {
                         note: mTMidiNums[step] !== undefined ? [mTMidiNums[step]] : [0.0], // [69.0], <<<< problem!!! these are getting read as freqs!!!!
                         noteName: mTNames[step] ? [mTNames[step].filter((i: any) => i)] : [''],
                         fileNums: [],
-                        length: 1/16,
+                        length: 1 / 16,
                         velocity: 0.9,
                         midiInfo: {
                             noteOnLength: 1000,
@@ -457,11 +534,11 @@ export default function InitializationComponent() {
         // setPatternsHashHook(JSON.parse(JSON.stringify(masterPatternsRef.current)));
         // setPatternsHashUpdated(true);
     }, [
-    numeratorSignature,
-    masterFastestRate,
-    mTFreqs,
-    mTMidiNums,
-    mTNames
+        numeratorSignature,
+        masterFastestRate,
+        mTFreqs,
+        mTMidiNums,
+        mTNames
     ]);
 
     useEffect(() => {
@@ -479,14 +556,14 @@ export default function InitializationComponent() {
             console.log('&&&selected microtone::: what is i???? ', i);
         }
         setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
+        updateBPM();
     }, []);
 
-    const [newMicroTonalArr, setNewMicroTonalArr] = useState<any>([])//
 
     const currentMicroTonalScale = (scale: any) => {
         let theScale;
         if (!scale || scale && !scale.name || scale.length < 1) return;
-        
+
         theScale = scale.name;
         tune.loadScale(scale.name);
         tune.tonicize(440);
@@ -523,19 +600,19 @@ export default function InitializationComponent() {
             obj: Record<number, Record<number, number>>,
             minOctave: number,
             maxOctave: number
-          ): number[] => {
+        ): number[] => {
             const result: number[] = [];
-          
+
             for (let octave = minOctave; octave <= maxOctave; octave++) {
-              const scale = obj[octave];
-              if (!scale) continue;
-          
-              const positions = Object.keys(scale).map(Number).sort((a, b) => a - b);
-              for (const pos of positions) {
-                result.push(scale[pos]);
-              }
+                const scale = obj[octave];
+                if (!scale) continue;
+
+                const positions = Object.keys(scale).map(Number).sort((a, b) => a - b);
+                for (const pos of positions) {
+                    result.push(scale[pos]);
+                }
             }
-          
+
             return result;
         };
         finalMicroToneNotesRef.current = flattenFreqsInRange(microFreqsObj, +selectedChordScaleOctaveRange.octaveMin, +selectedChordScaleOctaveRange.octaveMax)
@@ -557,7 +634,7 @@ export default function InitializationComponent() {
         }
     };
 
-    const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(defaultNoteVals)
+    // const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(defaultNoteVals)
 
     const inPatternEditMode = (state: boolean) => {
 
@@ -565,7 +642,7 @@ export default function InitializationComponent() {
     }
 
     const handleMasterRateUpdate = async () => {
-        const fastestRate = Math.max(...Object.values(currentNoteVals).map((i) => i[0]));  
+        const fastestRate = Math.max(...Object.values(currentNoteVals).map((i) => i[0]));
         setMasterFastestRate(fastestRate);
     }
 
@@ -580,30 +657,30 @@ export default function InitializationComponent() {
     //     setCurrentNoteVals({ ...currentNoteVals, osc2: [valOscRate] });
     //     handleMasterRateUpdate();
     // }
-    
+
     const handleStkRateUpdate = async (val: any) => {
         const valStkRate = await val.target.value;
         setCurrentNoteVals({ ...currentNoteVals, stks: [valStkRate] });
         handleMasterRateUpdate();
     }
-    
+
     const handleSamplerRateUpdate = async (val: any) => {
         const valSamplerRate = await val.target.value;
         setCurrentNoteVals({ ...currentNoteVals, samples: [valSamplerRate] });
         handleMasterRateUpdate();
     }
-    
+
     const handleAudioInRateUpdate = async (val: any) => {
         const valAudioInRate = await val.target.value;
         console.log("YES AUDIN??? ", valAudioInRate, currentNoteVals);
         setCurrentNoteVals({ ...currentNoteVals, linesIn: [valAudioInRate] });
         handleMasterRateUpdate();
     }
-    
+
     const handleSwitchToggle = () => {
         setIsAudioView(!isAudioView);
     };
-    
+
     if (!currentFX.current && (!masterPatternsRef.current || masterPatternsRef.current.length < 1)) {
         currentFX.current = moogGrandmotherEffects.current;
     }
@@ -617,46 +694,46 @@ export default function InitializationComponent() {
             });
             return offlineAudioContext.decodeAudioData(arrayBuffer);
         })
-        .then((audioBuffer) => {
-            const signal = new Float32Array(512);
+            .then((audioBuffer) => {
+                const signal = new Float32Array(512);
 
-            for (let i = 0; i < audioBuffer.sampleRate * 5; i += 512) {
-                audioBuffer.copyFromChannel(signal, 0, i);
-                lastFileUploadMeydaData.current = [];
-                lastFileUploadMeydaData.current && lastFileUploadMeydaData.current.push(
-                    Meyda.extract(
-                        [
-                            // "pitch",
-                            // "onsets",
-                            "rms",
-                            "mfcc",
-                            "chroma",
-                            "zcr",
-                            "energy",
-                            "amplitudeSpectrum",
-                            "powerSpectrum",
-                            "spectralCentroid",
-                            "spectralFlatness",
-                            "spectralRolloff",
-                            // "spectralFlux",
-                            "spectralSlope",
-                            "spectralFlatness",
-                            "spectralSpread",
-                            "spectralSkewness",
-                            "spectralKurtosis",
-                            "spectralCrest",
-                            "loudness",
-                            "perceptualSpread",
-                            "perceptualSharpness",
-                            "complexSpectrum",
-                            "buffer"]
-                        , signal));
-            }
-            console.log("HEYA HOLY MOLY IT WORKED ", lastFileUploadMeydaData.current);
-            const returnMeyda = lastFileUploadMeydaData.current;
-            console.log("RETURN MEYDA: ", returnMeyda);
-            return returnMeyda;
-        });
+                for (let i = 0; i < audioBuffer.sampleRate * 5; i += 512) {
+                    audioBuffer.copyFromChannel(signal, 0, i);
+                    lastFileUploadMeydaData.current = [];
+                    lastFileUploadMeydaData.current && lastFileUploadMeydaData.current.push(
+                        Meyda.extract(
+                            [
+                                // "pitch",
+                                // "onsets",
+                                "rms",
+                                "mfcc",
+                                "chroma",
+                                "zcr",
+                                "energy",
+                                "amplitudeSpectrum",
+                                "powerSpectrum",
+                                "spectralCentroid",
+                                "spectralFlatness",
+                                "spectralRolloff",
+                                // "spectralFlux",
+                                "spectralSlope",
+                                "spectralFlatness",
+                                "spectralSpread",
+                                "spectralSkewness",
+                                "spectralKurtosis",
+                                "spectralCrest",
+                                "loudness",
+                                "perceptualSpread",
+                                "perceptualSharpness",
+                                "complexSpectrum",
+                                "buffer"]
+                            , signal));
+                }
+                console.log("HEYA HOLY MOLY IT WORKED ", lastFileUploadMeydaData.current);
+                const returnMeyda = lastFileUploadMeydaData.current;
+                console.log("RETURN MEYDA: ", returnMeyda);
+                return returnMeyda;
+            });
     }
 
     const handleAutoAssignLength = (xVal: string | number, yVal: string | number, noteLengths: number) => {
@@ -668,32 +745,32 @@ export default function InitializationComponent() {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
 
                 for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                    if (((x1 === currentSelectedCell.x) || (currentSelectedCell.x + Math.floor((numeratorSignature * masterFastestRate)/2)) === x1) && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                    if (((x1 === currentSelectedCell.x) || (currentSelectedCell.x + Math.floor((numeratorSignature * masterFastestRate) / 2)) === x1) && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1 + 1][x1].length = noteLengths; // e.target.value;
                     }
                 }
             }
-        } else if (doAutoAssignPatternNum.toString() === "2" ) {
+        } else if (doAutoAssignPatternNum.toString() === "2") {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
                 for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                    if (x1  % numeratorSignature === currentSelectedCell.x && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                    if (x1 % numeratorSignature === currentSelectedCell.x && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1 + 1][x1].length = noteLengths; // e.target.value;
                     }
                 };
             }
         } else if (doAutoAssignPatternNum.toString() === "3") {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
-                for (let x1 =  0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
-                    if(masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1 + 1][x1].length = noteLengths; // e.target.value;
+                for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
+                    if (masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1 + 1][x1].length = noteLengths; // e.target.value;
                 };
             }
         } else if (doAutoAssignPatternNum.toString() === "4") {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
                 for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1++) {
-                    if(masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1 + 1][x1].length = noteLengths; // e.target.value;
+                    if (masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1 + 1][x1].length = noteLengths; // e.target.value;
                 };
             }
-        } 
+        }
         setPatternsHashHook(masterPatternsRef.current);
     }
 
@@ -706,33 +783,33 @@ export default function InitializationComponent() {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
 
                 for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                    if (((x1 === currentSelectedCell.x) || (currentSelectedCell.x + Math.floor((numeratorSignature * masterFastestRate)/2)) === x1) && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                    if (((x1 === currentSelectedCell.x) || (currentSelectedCell.x + Math.floor((numeratorSignature * masterFastestRate) / 2)) === x1) && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1 + 1][x1].velocity = velocity; // e.target.value;
                     }
                 }
-            
+
             }
-        } else if (doAutoAssignPatternNum.toString() === "2" ) {
+        } else if (doAutoAssignPatternNum.toString() === "2") {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
                 for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                    if (x1  % numeratorSignature === currentSelectedCell.x && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                    if (x1 % numeratorSignature === currentSelectedCell.x && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1 + 1][x1].velocity = velocity; // e.target.value;
                     }
                 };
             }
         } else if (doAutoAssignPatternNum.toString() === "3") {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
-                for (let x1 =  0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
-                    if(masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1][x1].velocity = velocity; // e.target.value;
+                for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
+                    if (masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1][x1].velocity = velocity; // e.target.value;
                 };
             }
         } else if (doAutoAssignPatternNum.toString() === "4") {
             for (let y1 = 0; y1 < denominatorSignature; y1++) {
                 for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1++) {
-                    if(masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1][x1].velocity = velocity; // e.target.value;
+                    if (masterPatternsRef.current[y1 + 1] && masterPatternsRef.current[y1 + 1][x1]) masterPatternsRef.current[y1][x1].velocity = velocity; // e.target.value;
                 };
             }
-        } 
+        }
         setPatternsHashHook(masterPatternsRef.current);
     }
 
@@ -740,47 +817,51 @@ export default function InitializationComponent() {
         console.log("THANKS HANDLE NOTELENGTH UPDATE: ", lenMarks[newValue]);
         if (!isChuckRunning && masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
             if (!e || !e.target || !e.target.value) return;
-            const fraction = lenMarks[( e && e.target && e.target.value)].label;
+            const fraction = lenMarks[(e && e.target && e.target.value)].label;
             const parts = fraction.indexOf('/') > -1 ? fraction.split('/').map(Number) : [Number(fraction)];
+
+            console.log('fraction?? ', fraction, 'parts?? ', parts);
+
             const result = parts.length > 1 ? parts[0] / parts[1] : parts[0];
-            alert('result~!!! ' + result + "" + result);
-            masterPatternsRef.current[cellData.yVal][cellData.xVal].length = Number(+lenMarks[newValue].label); // e.target.value;
+            console.log('result~!!! ' + Number(+result), masterPatternsRef.current);
+            // setSingleNoteLengthValue(Number(+result));
+            masterPatternsRef.current[cellData.yVal][cellData.xVal].length = Number(+result); // Number(+lenMarks[newValue].label); // e.target.value;
             handleAutoAssignLength(cellData.xVal, cellData.yVal, result);
             setPatternsHashHook(masterPatternsRef.current);
             setPatternsHashUpdated(!masterPatternsHashUpdated);
-                        
-            console.log("CAN WE UPDATE?>>> ", chuckHook &&
-            chuckRef.current &&
-            masterPatternsRef.current &&
-            Object.values(masterPatternsRef.current).length > 0 && 
-            Object.values(masterPatternsRef.current)
-                .slice(1)
-                .map((i: any) => 
-                    Object.values(i).map(
-                        (j:any) => 
-                            Object.values(j).map(
-                                (h: any) => Number(h) * 1.0
-                            )[12]   
-                    )
-                ).flat())
-            
-            chuckHook &&
-            chuckRef.current &&
-            masterPatternsRef.current &&
-            Object.values(masterPatternsRef.current).length > 0 &&
-            await chuckRef.current.setFloatArray(
-                "midiLengthsArray",
+
+            console.log("midiLengthsArray?>>> ", chuckHook &&
+                chuckRef.current &&
+                masterPatternsRef.current &&
+                Object.values(masterPatternsRef.current).length > 0 &&
                 Object.values(masterPatternsRef.current)
-                .slice(1) // skip first row
-                .map((i: any) => 
-                    Object.values(i).map(
-                        (j:any) => 
-                            Object.values(j).map(
-                                (h: any) => Number(h) * 1.0
-                            )[12]   
-                    )
-                ).flat()
-            );
+                    .slice(1)
+                    .map((i: any) =>
+                        Object.values(i).map(
+                            (j: any) =>
+                                Object.values(j).map(
+                                    (h: any) => Number(h) * 1.0
+                                )[12]
+                        )
+                    ).flat())
+
+            chuckHook &&
+                chuckRef.current &&
+                masterPatternsRef.current &&
+                Object.values(masterPatternsRef.current).length > 0 &&
+                await chuckRef.current.setFloatArray(
+                    "midiLengthsArray",
+                    Object.values(masterPatternsRef.current)
+                        .slice(1) // skip first row
+                        .map((i: any) =>
+                            Object.values(i).map(
+                                (j: any) =>
+                                    Object.values(j).map(
+                                        (h: any) => Number(h) * 1.0
+                                    )[12]
+                            )
+                        ).flat()
+                );
         }
     };
 
@@ -829,13 +910,13 @@ export default function InitializationComponent() {
             arrayBuffer = event.target.result;
             const formattedName = file.name.replaceAll(' ', '_').replaceAll('-', '');
             console.log("@@@ check the formatted name: ", formattedName);
-            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1 
-            ) {       
-                filesToProcess.current.push({ 'filename': formattedName, 'data': fileData, 'processed': false }); 
+            if (filesToProcess.current.map((i: any) => i.name).indexOf(formattedName) === -1
+            ) {
+                filesToProcess.current.push({ 'filename': formattedName, 'data': fileData, 'processed': false });
                 console.log("FILES TO PROCESS: ", filesToProcess.current);
                 chuckRef.current && chuckRef.current.createFile("", formattedName, fileData);
-            } 
-     
+            }
+
             const meydaDat = await getMeydaData(arrayBuffer);
             if (chuckHook) {
                 setChuckUpdateNeeded(true);
@@ -849,6 +930,10 @@ export default function InitializationComponent() {
     const handleClickName = (e: any, op: string) => {
         console.log('TEST CLICK ', e, op);
     };
+
+
+
+
 
     useEffect(() => {
         let isMounted = true;
@@ -893,12 +978,12 @@ export default function InitializationComponent() {
     const initFX = useCallback((updateCurrentFXScreen: any) => {
         let visibleStkAndFX: Array<any>;
         if (universalSources.current) {
-            const getSelEffs:any = [];
-            Object.entries(universalSources.current).map((i:any) => i[1].effects && Object.values(i[1].effects).filter((j: any) => j.On && j)) && 
-            Object.entries(universalSources.current).map((i:any) => i[1].effects && Object.values(i[1].effects).filter((j: any) => j.On && j)).map((f:any, idx: number) => {
-                    f.map((x:any) => getSelEffs.push(`${['osc1', 'stk', 'sampler', 'audioin'][idx]}_${x.Type}`))
-            })
-            setSelectedEffects(getSelEffs);  
+            const getSelEffs: any = [];
+            Object.entries(universalSources.current).map((i: any) => i[1].effects && Object.values(i[1].effects).filter((j: any) => j.On && j)) &&
+                Object.entries(universalSources.current).map((i: any) => i[1].effects && Object.values(i[1].effects).filter((j: any) => j.On && j)).map((f: any, idx: number) => {
+                    f.map((x: any) => getSelEffs.push(`${['osc1', 'stk', 'sampler', 'audioin'][idx]}_${x.Type}`))
+                })
+            setSelectedEffects(getSelEffs);
             if (doReturnToSynth.current !== true) {
                 // **** THIS IS WHERE THE ISSUE MAY BE HAPPENING => WHATEVER GETS PASSED INTO VISIBLESTKSANDFX ALWAYS WINS 
                 visibleStkAndFX = Object.entries(universalSources.current).filter(
@@ -949,8 +1034,8 @@ export default function InitializationComponent() {
         if (initialNodes.current && initialEdges.current) {
             setInitialNodesHook(initialNodes.current.filter((i: any) => i));
             setInitialEdgesHook(initialEdges.current.filter((i: any) => i));
-        }        
-    }, [fxRadioValue, checkedFXUpdating]);
+        }
+    }, [checkedFXUpdating]);
 
     useEffect(() => {
 
@@ -1018,29 +1103,29 @@ export default function InitializationComponent() {
             const getTune = new Tune();
             setTune(getTune);
         }
-        
+
         return () => {
             isMounted = false;
         };
     }, [
-        fxRadioValue,
+        // fxRadioValue,
         markUpdated,
         tune,
         initFX,
     ]);
 
-    useEffect(() => {
-        let isMounted = true;
-        currentFX.current = [];
-        checkedFXList.current = [];
-        chuckRef.current && chuckRef.current.setString("currentSrc", getConvertedRadio(fxRadioValue));
-        const fastestRate: number[] = Object.values(defaultNoteVals).map((i: any) => i && i[0])
-        chuckRef.current && chuckRef.current.setInt("fastestRateUpdate", Math.max(...fastestRate));
-        setVizSource(getConvertedRadio(fxRadioValue));
-        return () => {
-            isMounted = false;
-        };
-    }, [fxRadioValue]);
+    // useEffect(() => {
+    //     let isMounted = true;
+    //     currentFX.current = [];
+    //     checkedFXList.current = [];
+    //     chuckRef.current && chuckRef.current.setString("currentSrc", getConvertedRadio(fxRadioValue));
+    //     const fastestRate: number[] = Object.values(defaultNoteVals).map((i: any) => i && i[0])
+    //     chuckRef.current && chuckRef.current.setInt("fastestRateUpdate", Math.max(...fastestRate));
+    //     setVizSource(getConvertedRadio(fxRadioValue));
+    //     return () => {
+    //         isMounted = false;
+    //     };
+    // }, [fxRadioValue]);
 
     const handleToggleArpeggiator = () => {
         if (arpeggiatorOn === 0) {
@@ -1076,35 +1161,49 @@ export default function InitializationComponent() {
     };
 
 
-    const updateFlowNodesAndEdges = () => {
-        const pedalChain: Source[][] | unknown = universalSources.current && Object.entries(universalSources.current).map((source: any) => {
-            return Object.values(source[1].effects).filter((effect: any) => {
-                return effect && effect.On
-            })
-        });
-        if (!pedalChain || Object.values(pedalChain).length < 1) return;
-        const chain: any = {
-            osc1: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[0] ? Object.values(pedalChain)[0].map((i: any) => i.VarName) : [],
-            // osc2: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[1] ? Object.values(pedalChain)[1].map((i: any) => i.VarName) : [],
-            stk: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[2] ? Object.values(pedalChain)[2].map((i: any) => i.VarName) : [],
-            sampler: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[3] ? Object.values(pedalChain)[3].map((i: any) => i.VarName) : [],
-            audioin: pedalChain && Object.values(pedalChain).length > 0 && Object.values(pedalChain)[4] ? Object.values(pedalChain)[4].map((i: any) => i.VarName) : [],
-        }
-        console.log("CHAIN AUDIO IN: ", chain.audioin);
-        console.log("CHECK AUDIO IN ON Z CHAIN: ", `${getConvertedRadio(fxRadioValue).toLowerCase()}`)
 
-        const currentInst: any[] = chain[`${getConvertedRadio(fxRadioValue).toLowerCase()}`]
-        currentInst && setCurrentChain(currentInst);
+    const updateFlowNodesAndEdges = () => {
+        if (!universalSources.current) return;
+
+        const pedalChain = Object.entries(universalSources.current).map(
+            ([, source]) => Object.values(source.effects).filter(eff => eff.On)
+        );
+
+        setCurrentChain({
+            osc1: pedalChain[0]?.map(i => i.VarName) ?? [],
+            stk1: pedalChain[1]?.map(i => i.VarName) ?? [],
+            sampler: pedalChain[2]?.map(i => i.VarName) ?? [],
+            audioin: pedalChain[3]?.map(i => i.VarName) ?? [],
+        });  
     };
 
+
+    const oscDatas = useRef<any>();
+    const stkDatas = useRef<any>();
+    const samplerDatas = useRef<any>();
+    const audioinDatas = useRef<any>();    
 
     ////////////////////////////////////////////////////////////////
     // WE WANT ONLY ONE LOOP THROUGH WHATEVER OBJECT HOLDS THE SOURCES RIGHT HERE... 
     ////////////////////////////////////////////////////////////////
 
     const genericFXToString = (sources: Sources) => {
+        // WE SHOULD BE UPDATING PRETTY MAJORLY HERE TO KEEP DATA AND UI IN SYNC...
+        // ***** THIS IS THE PLACE TO DO IT, SINCE THE DATA WILL REFLECT BETTER THAN THE KNOBS ARE SHOWING WHEN WE TOGGLE LATERALLY BETW FX
+
+        // ****** WE ALSO WANT TO SHIFT BACK TO GENERIC SYNTH WHEN WE TOGGLE SOURCES... LEAVING THIS UNCOMMENTED TO BEGIN HERE AFTER LUNCH...
+
         console.log("S O U R C E S: ", sources);
-        console.log("check instruments ", sources && sources.stk1 && sources.stk1.instruments && Object.entries(sources.stk1.instruments).filter((i:any) => i[1].On && i) && Object.entries(sources.stk1.instruments).filter((i: any) => i[1].VarName && i[1].VarName.length && i));
+        console.log("check instruments ", sources && sources.stk1 && sources.stk1.instruments && Object.entries(sources.stk1.instruments).filter((i: any) => i[1].On && i) && Object.entries(sources.stk1.instruments).filter((i: any) => i[1].VarName && i[1].VarName.length && i));
+
+
+        const { osc1, stk, sampler, audioin } = getAllSignalData();
+
+        // sampler
+        oscDatas.current = osc1;
+        stkDatas.current = stk;
+        samplerDatas.current = sampler;
+        audioinDatas.current = audioin;
 
         // if (
         //     universalSources.current && 
@@ -1133,9 +1232,80 @@ export default function InitializationComponent() {
 
         if (!sources) return;
 
-        Object.entries(sources).forEach((i: [string, Source]) => { 
+        Object.entries(sources).forEach((i: [string, Source]) => {
+            // if (getConvertedRadio(fxRadioValue).toLowerCase() !== i[0].toLowerCase()) {
+            // } else {
+            //     console.log("SKIPPING SOURCE: ", i[0]);
+            //     if (i[0].includes("osc")) {
+            //         console.log("AND WHAT IS i1??? ", i[1]);
+            //         console.log("^^ TARGETS REF OSC: ", targetsRef.current);
+            //         console.log("^^ ALL TARGETS REF OSC1: ", allTargetsRef.current?.osc1);
+            //         console.log("^^ VALUES READOUT OSC1: ", valuesReadout);
+            //         console.log("^^ VALUES READOUT DECLARATIONS OSC1: ", valuesReadoutDeclarations);
+            //         console.log("^^ SIGNAL CHAIN OSC1: ", signalChain);
+            //         console.log("^^ SIGNAL CHAIN DECLARATIONS OSC1: ", signalChainDeclarations);
+            //     } else if (i[0].includes("stk")) {
+            //         console.log("AND WHAT IS i1??? ", i[1]);
+            //         console.log("^^ TARGETS REF STK: ", targetsRef.current);
+            //         console.log("^^ ALL TARGETS REF STK: ", allTargetsRef.current?.stk1);
+            //         console.log("^^ VALUES READOUT STK: ", valuesReadoutSTK);
+            //         console.log("^^ VALUES READOUT DECLARATIONS STK: ", valuesReadoutSTKDeclarations);
+            //         console.log("^^ SIGNAL CHAIN STK: ", signalChainSTK);
+            //         console.log("^^ SIGNAL CHAIN DECLARATIONS STK: ", signalChainSTKDeclarations);
+            //     } else if (i[0].includes("sample")) {
+            //         console.log("AND WHAT IS i1??? ", i[1]);
+            //         console.log("^^ TARGETS REF SAMPLER: ", targetsRef.current);
+            //         console.log("^^ ALL TARGETS REF SAMPLER: ", allTargetsRef.current?.sampler);
+            //         console.log("^^ VALUES READOUT SAMPLER: ", valuesReadoutSampler);
+            //         console.log("^^ VALUES READOUT DECLARATIONS SAMPLER: ", valuesReadoutSamplerDeclarations);
+            //         console.log("^^ SIGNAL CHAIN SAMPLER: ", signalChainSampler);
+            //         console.log("^^ SIGNAL CHAIN DECLARATIONS SAMPLER: ", signalChainSamplerDeclarations);
+            //     } else if (i[0].includes("audioin")) {
+            //         console.log("AND WHAT IS i1??? ", i[1]);
+            //         console.log("^^ TARGETS REF AUDIOIN: ", targetsRef.current);
+            //         console.log("^^ ALL TARGETS REF AUDIOIN: ", allTargetsRef.current?.audioin);
+            //         console.log("^^ VALUES READOUT AUDIOIN: ", valuesReadoutAudioIn);
+            //         console.log("^^ VALUES READOUT DECLARATIONS AUDIOIN: ", valuesReadoutAudioInDeclarations);
+            //         console.log("^^ SIGNAL CHAIN AUDIOIN: ", signalChainAudioIn);
+            //         console.log("^^ SIGNAL CHAIN DECLARATIONS AUDIOIN: ", signalChainAudioInDeclarations); 
+            //     }
+            // } 
+            
             const theSource: string = i[0];
+
+            const newWinFuncEnv = { ...winFuncEnvFinalHelper.current[theSource] };
+            const newPowerADSR = { ...powerADSRFinalHelper.current[theSource] };
+
+            const newExpEnv = { ...expEnvFinalHelper.current[theSource] };
+            const newWpDiodeLadder = { ...wpDiodeLadderFinalHelper.current[theSource] };
+            const newWpKorg35 = { ...wpKorg35FinalHelper.current[theSource] };
+            // const newModulate = { ...modulateFinalHelper.current[theSource] };
+            const newDelay = { ...delayFinalHelper.current[theSource] };
+            const newDelayA = { ...delayAFinalHelper.current[theSource] };
+            const newDelayL = { ...delayLFinalHelper.current[theSource] };
+            const newExpDelay = expDelayFinalHelper.current[`${theSource}`];
+            const newElliptic = ellipticFinalHelper.current[`${theSource}`]
+            const newSpectacle = spectacleFinalHelper.current[`${theSource}`];
+
+
+
             i[1] && i[1].effects && Object.values(i[1].effects).forEach((eS: EffectsSettings) => {
+                // console.log("AND WHAT is eS / i[1].effects???1 ", eS.Type, "cET??? ", currentEffectType.current);
+                if (
+                    eS?.Type.toLowerCase() === currentEffectType.current.toLowerCase()
+                ) {
+                    console.log("BADABING... ", eS);
+                    // console.log("AND WHAT is sources[i] / i? ", i)
+                    if (i[0].toLowerCase() === getConvertedRadio(fxRadioValue).toLowerCase()) {
+                        console.log("BADABOOM!!! ", i);
+
+                        console.log("AND WHAT is targetsRef??? ", targetsRef.current);
+                        console.log("AND WHAT is allTargetsRef??? ", allTargetsRef.current);
+                    }
+                }
+
+
+
                 const theEffectsSettings = eS;
 
                 // THIS FIRST MAPPING HANDLES THE DAC DECLARATION CHAINING
@@ -1143,11 +1313,20 @@ export default function InitializationComponent() {
                 Object.values(theEffectsSettings.presets).length > 0 &&
                     Object.values(theEffectsSettings.presets).map((preset: Preset) => {
 
+
+                        
+                        const varNamesArr = Object.values(i[1].effects).filter((i: any) => i.On).map(i => i.VarName);
+                        if (varNamesArr.includes(preset.name)) {
+                            console.log("AND WHAT is preset...??? ", preset, " >>>>> ", varNamesArr);
+                        }
+
                         const thePreset = preset;
 
                         if (!thePreset) return;
 
                         if (thePreset && thePreset.type && thePreset.type.includes("_needsFun")) {
+
+
                             if (thePreset.type.includes("_winFuncEnv")) {
                                 if (thePreset.name === "attackTime") {
                                     winFuncEnvFinalHelper.current[theSource].attackTime = Math.pow(2, Number(thePreset.value));
@@ -1161,56 +1340,56 @@ export default function InitializationComponent() {
                             if (thePreset.type.includes("_powerADSR")) {
                                 // add quantization / feedback etc later
                                 if (thePreset.name === "attackTime") {
-                                    powerADSRFinalHelper.current[theSource].attackTime = thePreset.value;
+                                    newPowerADSR.attackTime = thePreset.value;
                                 } else if (thePreset.name === "attackCurve") {
-                                    powerADSRFinalHelper.current[theSource].attackCurve = thePreset.value;
+                                    newPowerADSR.attackCurve = thePreset.value;
                                 } else if (thePreset.name === "releaseTime") {
-                                    powerADSRFinalHelper.current[theSource].releaseTime = thePreset.value;
+                                    newPowerADSR.releaseTime = thePreset.value;
                                 } else if (thePreset.name === "releaseCurve") {
-                                    powerADSRFinalHelper.current[theSource].releaseCurve = thePreset.value;
+                                    newPowerADSR.releaseCurve = thePreset.value;
                                 }
 
                                 else if (thePreset.name === "decayTime") {
-                                    powerADSRFinalHelper.current[theSource].decayTime = thePreset.value;
+                                    newPowerADSR.decayTime = thePreset.value;
                                 }
                                 else if (thePreset.name === "decayCurve") {
-                                    powerADSRFinalHelper.current[theSource].decayCurve = thePreset.value;
+                                    newPowerADSR.decayCurve = thePreset.value;
                                 }
                                 else if (thePreset.name === "sustainLevel") {
-                                    powerADSRFinalHelper.current[theSource].sustainLevel = thePreset.value;
+                                    newPowerADSR.sustainLevel = thePreset.value;
                                 }
                             }
                             if (thePreset.type.includes("_expEnv")) {
                                 if (thePreset.name === "T60") {
-                                    expEnvFinalHelper.current[theSource].T60 = thePreset.value;
+                                    newExpEnv.T60 = thePreset.value;
                                 } else if (thePreset.name === "radius") {
-                                    expEnvFinalHelper.current[theSource].radius = thePreset.value;
+                                    newExpEnv.radius = thePreset.value;
                                 } else if (thePreset.name === "value") {
-                                    expEnvFinalHelper.current[theSource].value = thePreset.value;
+                                    newExpEnv.value = thePreset.value;
                                 }
                             }
                             if (thePreset.type.includes("_diodeladder")) {
                                 if (thePreset.name === "cutoff") {
-                                    wpDiodeLadderFinalHelper.current[theSource].cutoff = thePreset.value;
+                                    newWpDiodeLadder.cutoff = thePreset.value;
                                 } else if (thePreset.name === "nlp_type") {
-                                    wpDiodeLadderFinalHelper.current[theSource].nlp_type = thePreset.value;
+                                    newWpDiodeLadder.nlp_type = thePreset.value;
                                 } else if (thePreset.name === "nonlinear") {
-                                    wpDiodeLadderFinalHelper.current[theSource].nonlinear = thePreset.value;
+                                    newWpDiodeLadder.nonlinear = thePreset.value;
                                 } else if (thePreset.name === "saturation") {
-                                    wpDiodeLadderFinalHelper.current[theSource].saturation = thePreset.value;
+                                    newWpDiodeLadder.saturation = thePreset.value;
                                 } else if (thePreset.name === "resonance") {
-                                    wpDiodeLadderFinalHelper.current[theSource].resonance = thePreset.value;
+                                    newWpDiodeLadder.resonance = thePreset.value;
                                 }
                             }
                             if (thePreset.type.includes("_wpkorg35")) {
                                 if (thePreset.name === "cutoff") {
-                                    wpKorg35FinalHelper.current[theSource].cutoff = thePreset.value;
+                                    newWpKorg35.cutoff = thePreset.value;
                                 } else if (thePreset.name === "resonance") {
-                                    wpKorg35FinalHelper.current[theSource].resonance = thePreset.value;
+                                    newWpKorg35.resonance = thePreset.value;
                                 } else if (thePreset.name === "nonlinear") {
-                                    wpKorg35FinalHelper.current[theSource].nonlinear = thePreset.value;
+                                    newWpKorg35.nonlinear = thePreset.value;
                                 } else if (thePreset.name === "saturation") {
-                                    wpKorg35FinalHelper.current[theSource].saturation = thePreset.value;
+                                    newWpKorg35.saturation = thePreset.value;
                                 }
                             }
                             if (thePreset.type.includes("mod")) {
@@ -1224,95 +1403,146 @@ export default function InitializationComponent() {
                             }
                             if (thePreset.type === "Delay") {
                                 if (thePreset.name === "delay") {
-                                    delayFinalHelper.current[theSource].delay = thePreset.value;
+                                    newDelay.delay = thePreset.value;
                                 } else if (thePreset.name === "lines") {
-                                    delayFinalHelper.current[theSource].lines = thePreset.value;
+                                    newDelay.lines = thePreset.value;
                                 } else if (thePreset.name === "syncDelay") {
-                                    delayFinalHelper.current[theSource].syncDelay = thePreset.value;
+                                    newDelay.syncDelay = thePreset.value;
                                 }
                             }
                             if ((thePreset.type === "DelayA")) {
                                 if (thePreset.name === "delay") {
-                                    delayAFinalHelper.current[theSource].delay = thePreset.value;
+                                    newDelayA.delay = thePreset.value;
                                 } else if (thePreset.name === "lines") {
-                                    delayAFinalHelper.current[theSource].lines = thePreset.value;
+                                    newDelayA.lines = thePreset.value;
                                 } else if (thePreset.name === "syncDelay") {
-                                    delayAFinalHelper.current[theSource].syncDelay = thePreset.value;
+                                    newDelayA.syncDelay = thePreset.value;
                                 }
                             }
                             if ((thePreset.type === "DelayL")) {
                                 if (thePreset.name === "delay") {
-                                    delayLFinalHelper.current[theSource].delay = thePreset.value;
+                                    newDelayL.delay = thePreset.value;
                                 } else if (thePreset.name === "lines") {
-                                    delayLFinalHelper.current[theSource].lines = thePreset.value;
+                                    newDelayL.lines = thePreset.value;
                                 } else if (thePreset.name === "syncDelay") {
-                                    delayLFinalHelper.current[theSource].syncDelay = thePreset.value;
+                                    newDelayL.syncDelay = thePreset.value;
                                 }
                             }
                             if (thePreset.type === "ExpDelay") {
                                 if (thePreset.name === "ampcurve") {
-                                    expDelayFinalHelper.current[`${theSource}`].ampcurve = thePreset.value;
+                                    newExpDelay.ampcurve = thePreset.value;
                                 } else if (thePreset.name === "durcurve") {
-                                    expDelayFinalHelper.current[`${theSource}`].durcurve = thePreset.value;
+                                    newExpDelay.durcurve = thePreset.value;
                                 } else if (thePreset.name === "delay") {
-                                    expDelayFinalHelper.current[`${theSource}`].delay = thePreset.value;
+                                    newExpDelay.delay = thePreset.value;
                                 } else if (thePreset.name === "mix") {
-                                    expDelayFinalHelper.current[`${theSource}`].mix = thePreset.value;
+                                    newExpDelay.mix = thePreset.value;
                                 } else if (thePreset.name === "reps") {
-                                    expDelayFinalHelper.current[`${theSource}`].reps = thePreset.value;
+                                    newExpDelay.reps = thePreset.value;
                                 }
                             }
                             if (thePreset.type === "Elliptic") {
                                 if (thePreset.name === "lowFilter") {
-                                    ellipticFinalHelper.current[`${theSource}`].lowFilter = thePreset.value;
+                                    newElliptic.lowFilter = thePreset.value;
                                 } else if (thePreset.name === "midFilter") {
-                                    ellipticFinalHelper.current[`${theSource}`].midFilter = thePreset.value;
+                                    newElliptic.midFilter = thePreset.value;
                                 } else if (thePreset.name === "highFilter") {
-                                    ellipticFinalHelper.current[`${theSource}`].highFilter = thePreset.value;
+                                    newElliptic.highFilter = thePreset.value;
                                 } else if (thePreset.name === "atten") {
-                                    ellipticFinalHelper.current[`${theSource}`].atten = thePreset.value;
+                                    newElliptic.atten = thePreset.value;
                                 } else if (thePreset.name === "ripple") {
-                                    ellipticFinalHelper.current[`${theSource}`].ripple = thePreset.value;
+                                    newElliptic.ripple = thePreset.value;
                                 } else if (thePreset.name === "filterMode") {
-                                    ellipticFinalHelper.current[`${theSource}`].filterMode = thePreset.value;
+                                    newElliptic.filterMode = thePreset.value;
                                 }
                             }
                             if (thePreset.type === "Spectacle") {
                                 console.log('OY SPECTACLE PRESET ', thePreset)
                                 if (thePreset.name === "bands") {
-                                    spectacleFinalHelper.current[`${theSource}`].bands;
+                                    newSpectacle.bands = thePreset.value;
                                 } else if (thePreset.name === "delay") {
-                                    spectacleFinalHelper.current[`${theSource}`].delay;
+                                    newSpectacle.delay = thePreset.value;
                                 } else if (thePreset.name === "eq") {
-                                    spectacleFinalHelper.current[`${theSource}`].eq;
+                                    newSpectacle.eq = thePreset.value;
                                 } else if (thePreset.name === "feedback") {
-                                    spectacleFinalHelper.current[`${theSource}`].feedback;
+                                    newSpectacle.feedback = thePreset.value;
                                 } else if (thePreset.name === "fftlen") {
-                                    spectacleFinalHelper.current[`${theSource}`].fftlen;
+                                    newSpectacle.fftlen = thePreset.value;
                                 } else if (thePreset.name === "freqMax") {
-                                    spectacleFinalHelper.current[`${theSource}`].freqMax;
+                                    newSpectacle.freqMax = thePreset.value;
                                 } else if (thePreset.name === "freqMin") {
-                                    spectacleFinalHelper.current[`${theSource}`].freqMin;
+                                    newSpectacle.freqMin = thePreset.value;
                                 } else if (thePreset.name === "mix") {
-                                    spectacleFinalHelper.current[`${theSource}`].mix;
+                                    newSpectacle.mix = thePreset.value;
                                 } else if (thePreset.name === "overlap") {
-                                    spectacleFinalHelper.current[`${theSource}`].overlap;
+                                    newSpectacle.overlap = thePreset.value;
                                 } else if (thePreset.name === "table") {
-                                    spectacleFinalHelper.current[`${theSource}`].table;
+                                    newSpectacle.table = thePreset.value;
                                 }
                             }
                             else {
                             }
-                        } else {
                         }
+
+                        winFuncEnvFinalHelper.current = {
+                            ...winFuncEnvFinalHelper.current,
+                            [theSource]: newWinFuncEnv
+                        };
+                        powerADSRFinalHelper.current = {
+                            ...powerADSRFinalHelper.current,
+                            [theSource]: newPowerADSR
+                        };
+                        expEnvFinalHelper.current = {
+                            ...expEnvFinalHelper.current,
+                            [theSource]: newExpEnv
+                        };
+                        wpDiodeLadderFinalHelper.current = {
+                            ...wpDiodeLadderFinalHelper.current,
+                            [theSource]: newWpDiodeLadder
+                        };
+                        wpKorg35FinalHelper.current = {
+                            ...wpKorg35FinalHelper.current,
+                            [theSource]: newWpKorg35
+                        };
+                        // modulateFinalHelper.current = {
+                        //     ...modulateFinalHelper.current,
+                        //     [theSource]: newModulate
+                        //     };
+                        delayFinalHelper.current = {
+                            ...delayFinalHelper.current,
+                            [theSource]: newDelay
+                        };
+                        delayAFinalHelper.current = {
+                            ...delayAFinalHelper.current,
+                            [theSource]: newDelayA
+                        };
+                        delayLFinalHelper.current = {
+                            ...delayLFinalHelper.current,
+                            [theSource]: newDelayL
+                        };
+                        expDelayFinalHelper.current = {
+                            ...expDelayFinalHelper.current,
+                            [theSource]: newExpDelay
+                        };
+                        ellipticFinalHelper.current = {
+                            ...ellipticFinalHelper.current,
+                            [theSource]: newElliptic
+                        };
+                        spectacleFinalHelper.current = {
+                            ...spectacleFinalHelper.current,
+                            [theSource]: newSpectacle
+                        };
+
+                        return null;
+
                     })
-            });           
+            });
         });
-        universalSources.current && 
-        universalSources.current.stk1.instruments &&
-        setActiveSTKs(
-            Object.values(universalSources.current.stk1.instruments).filter((i: any) => i.On)
-        )
+        universalSources.current &&
+            universalSources.current.stk1.instruments &&
+            setActiveSTKs(
+                Object.values(universalSources.current.stk1.instruments).filter((i: any) => i.On)
+            )
         setChuckUpdateNeeded(true);
     };
 
@@ -1327,16 +1557,16 @@ export default function InitializationComponent() {
     type NoteHolder = {
         [key: string]: NoteHolderItem;
     }
-    
+
     const notesHolder = useRef<any>({});
 
-    const [notesAddedDetails, setNotesAddedDetails] = useState<any>([]);
 
     const notesDetailsRef = useRef<any>();
     notesDetailsRef.current = notesDetailsRef.current || [];
 
     const organizeRows = async (rowNum: number, note: string) => {
         await note;
+        console.log("AND WHAT IS ... in organize rows // note: ", note, "rowNum: ", rowNum);
         const noteReady = {
             midiNote: undefined,
             midiHz: undefined,
@@ -1344,10 +1574,11 @@ export default function InitializationComponent() {
         };
         note = note.replace("♯", "#");
         const getNote: any = Note.get(note);
+        console.log("AND WHAT IS GETNOTE? ", getNote);
         noteReady.midiNote = getNote.midi;
         noteReady.midiHz = getNote.freq;
         noteReady.name = note;
-        
+
         if (noteReady && notesAddedDetails.filter((i: any) => i.id === noteReady.name && i).length < 1) {
             notesHolder.current[`${noteReady.name}`] = {
                 midiNote: noteReady.midiNote,
@@ -1355,8 +1586,8 @@ export default function InitializationComponent() {
                 name: noteReady.name,
             }
             notesDetailsRef.current.indexOf(`${noteReady.name}`) === -1 && notesAddedDetails.length < 1 && setNotesAddedDetails((m: any) => [...m, noteReady]);
-                setKeysReady(true);
-                setKeysVisible(true);
+            setKeysReady(true);
+            setKeysVisible(true);
         } else {
             alert("baby steps!");
             setKeysReady(false);
@@ -1405,7 +1636,7 @@ export default function InitializationComponent() {
             }
             processor.port.onmessage = (event) => {
                 if (event.data.audioData) {
-                    const clonedBuffer = event.data.audioData.slice(0); 
+                    const clonedBuffer = event.data.audioData.slice(0);
                     event.data.audioData && workerRef.current?.postMessage({
                         audioData: clonedBuffer,
                         sampleRate: audioContext.sampleRate,
@@ -1464,7 +1695,7 @@ export default function InitializationComponent() {
             }
         }
     }, [chuckHook]);
-    
+
     useEffect(() => {
         let isMounted = true;
         if (!chuckUpdateNeeded) {
@@ -1474,20 +1705,34 @@ export default function InitializationComponent() {
 
             if (universalSources.current) {
                 console.log("!@#*** updating generic string... ", moogGrandmotherEffects.current);
-                
+
                 Object.values(moogGrandmotherEffects.current).forEach((value: any) => {
-                    (async() => {
+                    (async () => {
                         try {
                             chuckRef.current && await chuckRef.current.setAssociativeFloatArrayValue("moogGMDefaults", value.name, value.value);
                         } catch (e) {
                             alert("ERR:" + e)
                         }
-                    })();                    
+                    })();
                 });
-                genericFXToString(universalSources.current);     
+
+                const safeSources = Object.fromEntries(
+                    Object.entries(universalSources.current).map(([srcName, src]) => [
+                        srcName,
+                        {
+                            ...src,
+                            effects: JSON.parse(JSON.stringify(src.effects)) // deep copy only effects
+                        }
+                    ])
+                );
+
+                console.log("GOD DAMMIT SAFE SOURCES: ", safeSources);
+                genericFXToString(safeSources as Sources);
+
+                // genericFXToString(universalSources.current);     
             }
 
-            (async() => {
+            (async () => {
                 chuckRef.current && await chuckRef.current.broadcastEvent('fxUpdate');
             })()
 
@@ -1499,7 +1744,7 @@ export default function InitializationComponent() {
         };
     }, [
         chuckUpdateNeeded,
-        fxRadioValue  
+        fxRadioValue
     ]) // if there are problems, switch back to [${chuckUpdateNeeded}]
 
     const stopChuckInstance = async () => {
@@ -1520,25 +1765,25 @@ export default function InitializationComponent() {
     };
 
 
-    const triggerNoteOff = async(note: any) => {
+    const triggerNoteOff = async (note: any) => {
         await chuckRef.current;
         let currNotesOffArray: any = chuckRef.current && chuckRef.current.getFloatArray("chuckNotesOff");
-        
+
         await currNotesOffArray;
-        
+
         if (!currNotesOffArray || currNotesOffArray.length < 1) {
             currNotesOffArray = [];
         }
         try {
             const result = await currNotesOffArray;
-         
+
             if (result.length > 0 && !result.toString().includes('9999')) {
                 console.log("ummm ", result, "note: ", note);
             }
             const newNotesOff = [note];
             chuckRef.current && await chuckRef.current.setFloatArray("chuckNotesOff", newNotesOff);
             consistentNotes.current = consistentNotes.current.filter((i: any) => i !== note);
-            chuckRef.current && await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i:any) => Number(+parseFloat(i)).toFixed(2)));
+            chuckRef.current && await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i: any) => Number(+parseFloat(i)).toFixed(2)));
             // chuckRef.current && await chuckRef.current.broadcastEvent('playSingleNoteOff');
             consistentNotes.current = [];
         } catch (e) {
@@ -1556,197 +1801,184 @@ export default function InitializationComponent() {
         setMTFreqs(consistentNotes.current.map((i: any) => 440.0 * Math.pow(2, (i - 69.0) / 12.0)));
 
         if (chuckRef.current) {
-          const freqNote = (midiNoteIn: any) => 440.0 * Math.pow(2, (midiNoteIn - 69.0) / 12.0)
-          console.log("consistentNotes??? : ", consistentNotes.current);
-          try {
-            await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i: any) => freqNote(i))); 
-            consistentNotes.current = [];
-          } catch (e) {
+            const freqNote = (midiNoteIn: any) => 440.0 * Math.pow(2, (midiNoteIn - 69.0) / 12.0)
+            console.log("consistentNotes??? : ", consistentNotes.current);
+            try {
+                await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i: any) => freqNote(i)));
+                consistentNotes.current = [];
+            } catch (e) {
 
-          }
-        } 
+            }
+        }
         // chuckRef.current && chuckRef.current.broadcastEvent('playSingleNote');
-        
+
         NOTES_SET_REF.current = Object.values(currNotesHash.current)
-        .map((i: any) => {
-          const parsed = parseFloat(i[0]);
-          return !isNaN(parsed) ? parsed : null;
-        })
-        .filter(i => i !== null)
-        .map(i => {
-          return i % 1 === 0 ? i + 0.0 : i; // Ensure it's a float (even if it's an integer)
-        });
+            .map((i: any) => {
+                const parsed = parseFloat(i[0]);
+                return !isNaN(parsed) ? parsed : null;
+            })
+            .filter(i => i !== null)
+            .map(i => {
+                return i % 1 === 0 ? i + 0.0 : i; // Ensure it's a float (even if it's an integer)
+            });
 
         console.log("NOTES_SET_REF???: ", NOTES_SET_REF.current);
 
         // chuckRef.current && 
         // chuckRef.current.broadcastEvent('playNote');
         currNotesHash.current = {};
-        
+
     };
 
     const handleCheckedFXToShow = (msg: any) => {
         console.log("effect to show message: " + msg.target.value);
-        setShowNotesOrder(msg.target.value)
+        console.log("effect to show sanity?? ", msg);
+        msg?.target.length > 0 && setShowNotesOrder(msg.target.value)
         // setCheckedEffectToShow(msg);
     }
 
 
     const getSourceFX = (thisSource: string) => {
+        alert(thisSource);
         if (thisSource === "stk") thisSource = "stk1";
 
         const checkFX = universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects;
-        console.log("checkFX_forThisSource ----> ", thisSource, "FX ----> ", checkFX);
+
+
+        console.log("&*&* thisSource ----> ", thisSource, "checkFX ----> ", checkFX, "fxRadioValue ----> ", fxRadioValue);
+
+
 
         return `
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.PowerADSR.Code(powerADSRFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WinFuncEnv.Code(winFuncEnvFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.ExpEnv.Code(expEnvFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Elliptic.Code(ellipticFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Spectacle.Code(spectacleFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WPDiodeLadder.Code(wpDiodeLadderFinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35 && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.WPKorg35.Code(wpKorg35FinalHelper.current) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.ExpDelay.Code(expDelayFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Modulate.Code(modulateFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.PowerADSR.Code(powerADSRFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WinFuncEnv.Code(winFuncEnvFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpEnv.Code(expEnvFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Elliptic.Code(ellipticFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Spectacle.Code(spectacleFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPDiodeLadder.Code(wpDiodeLadderFinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35 && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.WPKorg35.Code(wpKorg35FinalHelper.current) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.ExpDelay.Code(expDelayFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Modulate.Code(modulateFinalHelper.current, currentNoteVals) : ''}
 
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.Delay.Code(delayFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.DelayA.Code(delayAFinalHelper.current, currentNoteVals) : ''}
-            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL.On ? universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects.DelayL.Code(delayLFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.Delay.Code(delayFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayA.Code(delayAFinalHelper.current, currentNoteVals) : ''}
+            ${universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL.On ? universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects.DelayL.Code(delayLFinalHelper.current, currentNoteVals) : ''}
         `;
     };
 
-    const newChuckCode = useRef<any>(""); 
+    const newChuckCode = useRef<any>("");
 
-    async function applyPresetValue(
-        chuckRef: React.MutableRefObject<any>,
-        fx: any,
-        preset: any,
-        varName: string,
-        readoutMap: Record<string, string>,
-        readoutDeclMap: Record<string, string>
-    ) {
-        if (preset.type.includes("int")) {
-            const placeHolder = `allFXDynamicInts["${varName}_${preset.name}"]`;
-            const latestValue = `${placeHolder} => ${varName}.${preset.name};`;
-            if (!fx.Code) {
-                readoutMap[preset.name] = latestValue;
-                readoutDeclMap[preset.name] =
-                    `(${preset.value})${preset.type.includes("dur") ? "::ms" : ""} => ${placeHolder};`;
-            }
-            await chuckRef.current?.setAssociativeIntArrayValue(
-                "allFXDynamicInts", `${varName}_${preset.name}`, preset.value
-            );
-        } else if (preset.type.includes("float")) {
-            const placeHolder = `allFXDynamicFloats["${varName}_${preset.name}"]`;
-            const latestValue = `${placeHolder} => ${varName}.${preset.name};`;
-            if (!fx.Code) {
-                readoutMap[preset.name] = latestValue;
-                readoutDeclMap[preset.name] =
-                    `(${preset.value})${preset.type.includes("dur") ? "::ms" : ""} => ${placeHolder};`;
-            }
-            await chuckRef.current?.setAssociativeFloatArrayValue(
-                "allFXDynamicFloats", `${varName}_${preset.name}`, preset.value
-            );
-        }
+    type SourceTargets = {
+        signalChain: string[];
+        signalChainDeclarations: string[];
+        valuesReadout: string[];
+        valuesReadoutDeclarations: string[];
+    };
+
+    type AllTargets = {
+        osc1: SourceTargets;
+        stk1: SourceTargets;
+        sampler: SourceTargets;
+        audioin: SourceTargets;
+    };
+
+    function createAllTargets(): AllTargets {
+        return {
+            osc1: createEmptyTargets(),
+            stk1: createEmptyTargets(),
+            sampler: createEmptyTargets(),
+            audioin: createEmptyTargets(),
+        };
     }
-
+    const targetsRef = useRef<AllTargets | null | undefined>(null);
+    if (!targetsRef.current) {
+        targetsRef.current = createAllTargets();
+    }
 
     const runChuck = async (isTestingChord?: number | undefined) => {
         if (typeof window === 'undefined') return;
         console.log("running chuck now... ", chuckUpdateNeeded);
 
         if (chuckRef.current) {
-            const getOsc1FX = universalSources.current && Object.values(universalSources.current.osc1.effects).filter(i => i.On);
-            // const getOsc2FX = universalSources.current && Object.values(universalSources.current.osc2.effects).filter(i => i.On);
-            const getSamplerFX = universalSources.current && Object.values(universalSources.current.sampler.effects).filter(i => i.On);
-            const getAudioInFX = universalSources.current && Object.values(universalSources.current.audioin.effects).filter(i => i.On);
-            const getSTKFX = universalSources.current && Object.values(universalSources.current.stk1.effects).filter(i => i.On);
 
-            getConvertedRadio(fxRadioValue).toLowerCase().includes("osc") && getOsc1FX?.map((fx: any) => {
-                const type = fx.Type;
-                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
-                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${varName} => ` : `${varName}[${fx.presets.lines.value}] => `;
-                const addedEffectDeclaration =  (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName}; ` : `${type} ${varName}[${fx.presets.lines.value}]; `;
-                signalChain.indexOf(addedEffect) === -1 && signalChain.push(addedEffect);
-                signalChainDeclarations.indexOf(addedEffectDeclaration) === -1 && signalChainDeclarations.push(addedEffectDeclaration);
-                Object.values(fx.presets).map(async (preset: any) => {
-                    await applyPresetValue(
-                        chuckRef,
-                        fx,
-                        preset,
-                        varName,
-                        valuesReadout,
-                        valuesReadoutDeclarations
-                    );
-                });
-            });
+            const fxRadio = getConvertedRadio(fxRadioValue).toLowerCase();
+            const osc1FX = universalSources.current && Object.values(universalSources.current.osc1.effects).filter(fx => fx.On);
+            const samplerFX = universalSources.current && Object.values(universalSources.current.sampler.effects).filter(fx => fx.On);
+            const audioInFX = universalSources.current && Object.values(universalSources.current.audioin.effects).filter(fx => fx.On);
+            const stkFX = universalSources.current && Object.values(universalSources.current.stk1.effects).filter(fx => fx.On);
 
-            getConvertedRadio(fxRadioValue).toLowerCase() === "sampler" && getSamplerFX?.map((fx: any) => {
-                const type = fx.Type;
-                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
-                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
-                const addedEffectDeclaration =  (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName}; ` : `${type} ${varName}[${fx.presets.lines.value}]; `;
-                signalChainSampler.indexOf(addedEffect) === -1 && signalChainSampler.push(addedEffect);
-                signalChainSamplerDeclarations.indexOf(addedEffectDeclaration) === -1 && signalChainSamplerDeclarations.push(addedEffectDeclaration);
-                Object.values(fx.presets).map(async (preset: any) => {
-                    await applyPresetValue(
-                        chuckRef,
-                        fx,
-                        preset,
-                        varName,
-                        valuesReadoutSampler,
-                        valuesReadoutSamplerDeclarations
-                    );
-                });
-            });
 
-            getConvertedRadio(fxRadioValue).toLowerCase() === "audioin" && getAudioInFX?.map((fx: any) => {
-                const type = fx.Type;
-                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
-                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
-                const addedEffectDeclaration =  (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName}; ` : `${type} ${varName}[${fx.presets.lines.value}]; `;
-                signalChainAudioIn.indexOf(addedEffect) === -1 && signalChainAudioIn.push(addedEffect);
-                signalChainAudioInDeclarations.indexOf(addedEffectDeclaration) === -1 && signalChainAudioInDeclarations.push(addedEffectDeclaration);
-                
+            const targets = targetsRef.current!;
 
-                Object.values(fx.presets).map(async (preset: any) => {
-                    await applyPresetValue(
-                        chuckRef,
-                        fx,
-                        preset,
-                        varName,
-                        valuesReadoutAudioIn,
-                        valuesReadoutAudioInDeclarations
-                    );
-                });
-            });
+                await processSourceFX(
+                    'osc1',
+                    osc1FX as any,
+                    chuckRef,
+                    // fxRadioValue,
+                    'osc1',
+                    {
+                        signalChain: signalChain.current,
+                        signalChainDeclarations: signalChainDeclarations.current,
+                        valuesReadout: valuesReadout.current,
+                        valuesReadoutDeclarations: valuesReadoutDeclarations.current
+                    },
+                    universalSources.current
+                    // targets.osc1
+                );
 
-            getConvertedRadio(fxRadioValue).toLowerCase().includes("stk") && getSTKFX?.map((fx: any) => {
-                const type = fx.Type;
-                const varName = fx.VarName + '_' + getConvertedRadio(fxRadioValue);
-                const addedEffect = (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${varName} => ` : `${type} ${varName}[${fx.presets.lines.value}] => `;
-                const addedEffectDeclaration =  (type !== 'Delay' && type !== 'DelayL' && type !== 'DelayA') ? `${type} ${varName}; ` : `${type} ${varName}[${fx.presets.lines.value}]; `;
-                signalChainSTK.indexOf(addedEffect) === -1 && signalChainSTK.push(addedEffect);
-                signalChainSTKDeclarations.indexOf(addedEffectDeclaration) === -1 && signalChainSTKDeclarations.push(addedEffectDeclaration);
+                await processSourceFX(
+                    'sampler',
+                    samplerFX as any,
+                    chuckRef,
+                    'sampler',
+                    {
+                        signalChain: signalChainSampler.current,
+                        signalChainDeclarations: signalChainSamplerDeclarations.current,
+                        valuesReadout: valuesReadoutSampler.current,
+                        valuesReadoutDeclarations: valuesReadoutSamplerDeclarations.current
+                    },
+                    universalSources.current
+                    // targets.sampler
+                );
 
-                Object.values(fx.presets).map(async (preset: any) => {
-                    await applyPresetValue(
-                        chuckRef,
-                        fx,
-                        preset,
-                        varName,
-                        valuesReadoutSTK,
-                        valuesReadoutSTKDeclarations
-                    );
-                });
-            });
+                await processSourceFX(
+                    'audioin',
+                    audioInFX as any,
+                    chuckRef,
+                    'audioin',
+                    {
+                        signalChain: signalChainAudioIn.current,
+                        signalChainDeclarations: signalChainAudioInDeclarations.current,
+                        valuesReadout: valuesReadoutAudioIn.current,
+                        valuesReadoutDeclarations: valuesReadoutAudioInDeclarations.current
+                    },
+                    universalSources.current
+                    // targets.audioin
+                );
+
+                await processSourceFX(
+                    'stk1',
+                    stkFX as any,
+                    chuckRef,
+                    'stk1',
+                    {
+                        signalChain: signalChainSTK.current,
+                        signalChainDeclarations: signalChainSTKDeclarations.current,
+                        valuesReadout: valuesReadoutSTK.current,
+                        valuesReadoutDeclarations: valuesReadoutSTKDeclarations.current
+                    },
+                    universalSources.current
+                    // targets.stk1
+                );
+ 
+
 
             console.log("stk instruments: ", universalSources.current && universalSources.current.stk1.instruments && universalSources.current.stk1.instruments)
             console.log("masterPatternsRef.current: ", masterPatternsRef.current)
 
 
             activeSTKDeclarations.current = '';
-            activeSTKSettings.current = ''; 
+            activeSTKSettings.current = '';
             activeSTKs.map((s: any) => {
                 activeSTKDeclarations.current = activeSTKDeclarations.current.concat(`${s.Type} ${s.VarName} => stk_FxChain => Dyno stk_Dyno_${s.VarName} => dac; `);
                 activeSTKPlayOn.current = activeSTKPlayOn.current.concat(`allFreqs[stk_f] => ${s.VarName}.freq; 1 => ${s.VarName}.noteOn; `);
@@ -1771,10 +2003,10 @@ export default function InitializationComponent() {
             const filesArray = filesToProcess.current.map(
                 (f: any) => `me.dir() + "${f.filename}"`
             ).join(', ');
-
-
             const maxFreq = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMax);
             const minFreq = noteToMidi(selectedChordScaleOctaveRange.key, selectedChordScaleOctaveRange.octaveMin);
+
+
             newChuckCode.current = getChuckCode(
                 isTestingChord,
                 filesArray,
@@ -1785,22 +2017,22 @@ export default function InitializationComponent() {
                 denominatorSignature,
                 bpm,
                 moogGrandmotherEffects,
-                signalChain,
-                signalChainDeclarations,
-                signalChainSampler,
-                signalChainSamplerDeclarations,
-                signalChainSTK,
-                signalChainSTKDeclarations,
-                signalChainAudioIn,
-                signalChainAudioInDeclarations,
-                valuesReadout,
-                valuesReadoutSampler,
-                valuesReadoutSTK,
-                valuesReadoutAudioIn,
-                valuesReadoutDeclarations,
-                valuesReadoutSamplerDeclarations,
-                valuesReadoutSTKDeclarations,
-                valuesReadoutAudioInDeclarations,
+                signalChain.current,
+                signalChainDeclarations.current,
+                signalChainSampler.current,
+                signalChainSamplerDeclarations.current,
+                signalChainSTK.current,
+                signalChainSTKDeclarations.current,
+                signalChainAudioIn.current,
+                signalChainAudioInDeclarations.current,
+                valuesReadout.current,
+                valuesReadoutSampler.current,
+                valuesReadoutSTK.current,
+                valuesReadoutAudioIn.current,
+                valuesReadoutDeclarations.current,
+                valuesReadoutSamplerDeclarations.current,
+                valuesReadoutSTKDeclarations.current,
+                valuesReadoutAudioInDeclarations.current,
                 getSourceFX,
                 mTFreqs,
                 activeSTKDeclarations.current,
@@ -1808,7 +2040,7 @@ export default function InitializationComponent() {
                 activeSTKPlayOn.current,
                 activeSTKPlayOff.current,
                 selectedChordScaleOctaveRange,
-                {maxFreq, minFreq},
+                { maxFreq, minFreq },
                 notesHolder,
                 hid,
             );
@@ -1816,90 +2048,90 @@ export default function InitializationComponent() {
             await chuckRef.current && chuckRef.current.runCode(newChuckCode.current);
 
             setIsChuckRunning(true);
-  
+
             console.log("HERE IS CHUCK CODE: ", newChuckCode.current);
 
-            
+
 
             // THIS BLOCK IS CAUSING RED ERROR (BUT ALSO WORKS!!!)
             // FIX THIS & MOVE OTHER 3 HERE...
             chuckHook &&
-            chuckRef.current &&
-            masterPatternsRef.current &&
-            Object.values(masterPatternsRef.current).length > 0 &&
-            await chuckRef.current.setFloatArray(
-                "midiNotesArray",
-                Object.values(masterPatternsRef.current).map((i: any) => 
-                    Object.values(i).map(
-                        (j:any) => 
-                            Object.values(j).map(
-                                (h: any) => Number(h) * 1.0
-                            )[9]   
-                    )
-                ).flat()
-            );
+                chuckRef.current &&
+                masterPatternsRef.current &&
+                Object.values(masterPatternsRef.current).length > 0 &&
+                await chuckRef.current.setFloatArray(
+                    "midiNotesArray",
+                    Object.values(masterPatternsRef.current).map((i: any) =>
+                        Object.values(i).map(
+                            (j: any) =>
+                                Object.values(j).map(
+                                    (h: any) => Number(h) * 1.0
+                                )[9]
+                        )
+                    ).flat()
+                );
 
 
             console.log("KRIKES 0 ", masterPatternsRef.current);
-            console.log("KRIKES 1 ", Object.values(masterPatternsRef.current).map((i: any) => 
+            console.log("KRIKES 1 ", Object.values(masterPatternsRef.current).map((i: any) =>
                 Object.values(i).map(
-                    (j:any) => 
+                    (j: any) =>
                         Object.values(j).map(
                             (h: any) => Number(h) * 1.0
-                        )[8]   
+                        )[8]
                 )
             ).flat())
 
             // THE BELOW LOOPS ARE CONTROLLING NOTES (AND PROBABLY A WHOLE LOT MORE)...
             chuckHook &&
-            chuckRef.current &&
-            masterPatternsRef.current &&
-            Object.values(masterPatternsRef.current).length > 0 &&
-            await chuckRef.current.setFloatArray(
-                "midiFreqsArray",
-                Object.values(masterPatternsRef.current).map((i: any) => 
-                    Object.values(i).map(
-                        (j:any) => 
-                            Object.values(j).map(
-                                (h: any) => Number(h) * 1.0
-                            )[8]   
-                    )
-                ).flat()
-            );
+                chuckRef.current &&
+                masterPatternsRef.current &&
+                Object.values(masterPatternsRef.current).length > 0 &&
+                await chuckRef.current.setFloatArray(
+                    "midiFreqsArray",
+                    Object.values(masterPatternsRef.current).map((i: any) =>
+                        Object.values(i).map(
+                            (j: any) =>
+                                Object.values(j).map(
+                                    (h: any) => Number(h) * 1.0
+                                )[8]
+                        )
+                    ).flat()
+                );
 
             chuckHook &&
-            chuckRef.current &&
-            masterPatternsRef.current &&
-            Object.values(masterPatternsRef.current).length > 0 &&
-            await chuckRef.current.setFloatArray(
-                "midiLengthsArray",
-                Object.values(masterPatternsRef.current)
-                // .slice(1) // skip first row
-                .map((i: any) => 
-                    Object.values(i).map(
-                        (j:any) => 
-                            Object.values(j).map(
-                                (h: any) => Number(h) * 1.0
-                            )[12]   
-                    )
-                ).flat()
-            );
+                chuckRef.current &&
+                masterPatternsRef.current &&
+                Object.values(masterPatternsRef.current).length > 0 &&
+                await chuckRef.current.setFloatArray(
+                    "midiLengthsArray",
+                    Object.values(masterPatternsRef.current)
+                        // .slice(1) // skip first row
+                        .map((i: any) =>
+                            Object.values(i).map(
+                                (j: any) =>
+                                    Object.values(j).map(
+                                        (h: any) => Number(h) * 1.0
+                                    )[12]
+                            )
+                        ).flat()
+                );
 
             chuckHook &&
-            chuckRef.current &&
-            masterPatternsRef.current &&
-            Object.values(masterPatternsRef.current).length > 0 &&
-            await chuckRef.current.setFloatArray(
-                "midiVelocitiesArray",
-                Object.values(masterPatternsRef.current).map((i: any) => 
-                    Object.values(i).map(
-                        (j:any) => 
-                            Object.values(j).map(
-                                (h: any) => Number(h) * 1.0
-                            )[13]   
-                    )
-                ).flat()
-            );
+                chuckRef.current &&
+                masterPatternsRef.current &&
+                Object.values(masterPatternsRef.current).length > 0 &&
+                await chuckRef.current.setFloatArray(
+                    "midiVelocitiesArray",
+                    Object.values(masterPatternsRef.current).map((i: any) =>
+                        Object.values(i).map(
+                            (j: any) =>
+                                Object.values(j).map(
+                                    (h: any) => Number(h) * 1.0
+                                )[13]
+                        )
+                    ).flat()
+                );
 
         } else {
             alert("NO aChuck!");
@@ -1913,10 +2145,10 @@ export default function InitializationComponent() {
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    const [clickedFile, setClickedFile] = useState<any>(null);
+
     const handleClickUploadedFiles = (e: any) => {
         console.log("CLICKED FILES: ", e.target.innerText);
-        const theClickedFile = filesToProcess.current.filter((f: any) => f.filename.toLowerCase() === e.target.innerText.toLowerCase()); 
+        const theClickedFile = filesToProcess.current.filter((f: any) => f.filename.toLowerCase() === e.target.innerText.toLowerCase());
         console.log("CLICKED FILE: ", theClickedFile);
         setClickedFile(theClickedFile[0]);
         if (isInPatternEditMode) {
@@ -1957,19 +2189,19 @@ export default function InitializationComponent() {
 
     const handleMingusKeyboardData = useCallback((data: any) => {
         // console.log("MINGUS KEYBOARD DATA *** : ", data);
-      
+
         const microtones = finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b);
         const formattedMicrotones = microtones.length > 0
-          ? microtones.map((i: any) => +Number(i).toFixed(2))
-          : data.data[0];
-      
+            ? microtones.map((i: any) => +Number(i).toFixed(2))
+            : data.data[0];
+
         const noteData = showNotesOrder === "asc"
-          ? data.data[0]
-          : showNotesOrder === "desc"
-            ? data.data[1]
-            : showNotesOrder === "microtonal"
-              ? formattedMicrotones
-              : data.data[0];
+            ? data.data[0]
+            : showNotesOrder === "desc"
+                ? data.data[1]
+                : showNotesOrder === "microtonal"
+                    ? formattedMicrotones
+                    : data.data[0];
         if (noteBuilderFocus.toLowerCase().includes("scale")) {
             setMTNames(noteData);
         }
@@ -1989,14 +2221,14 @@ export default function InitializationComponent() {
     }
 
     const updateKeyScaleChord = useCallback((key: string, scale: string, chord: string, chordLabel: string, octaveMax: string, octaveMin: string, noteBuilderFoc: string) => {
-        
+
         // console.log("updateKeyScaleChord &^& called with: ", key, scale, chord, chordLabel, octaveMax, octaveMin);
 
         const dataToReturn = {
             scaleData: null,
             chordData: null
         };
-        
+
         setSelectedChordScaleOctaveRange({
             key: key,
             scale: scale,
@@ -2004,13 +2236,13 @@ export default function InitializationComponent() {
             octaveMax: octaveMax,
             octaveMin: octaveMin
         })
-        
-        setKeyScaleChord({key: key, scale: scale, chord: chord, octaveMax: octaveMax, octaveMin: octaveMin});
-        
-        if (noteBuilderFoc.toLowerCase().includes("scale")) {    
-            axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, { 
-                audioKey: key || selectedChordScaleOctaveRange.key, 
-                audioScale: scale.replace(/ /g, "") || selectedChordScaleOctaveRange.scale.replace(/ /g, ""), 
+
+        setKeyScaleChord({ key: key, scale: scale, chord: chord, octaveMax: octaveMax, octaveMin: octaveMin });
+
+        if (noteBuilderFoc.toLowerCase().includes("scale")) {
+            axios.post(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_scales`, {
+                audioKey: key || selectedChordScaleOctaveRange.key,
+                audioScale: scale.replace(/ /g, "") || selectedChordScaleOctaveRange.scale.replace(/ /g, ""),
                 octave: octaveMax || selectedChordScaleOctaveRange.octaveMax,
             }, {
                 headers: {
@@ -2031,27 +2263,27 @@ export default function InitializationComponent() {
             // console.log("WHAT IS KEY / SCALE / CHORD? ", key, scale, chord);
         } else if (noteBuilderFoc.toLowerCase().includes("chord")) {
             axios.post(
-                `${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`, 
-                { 
-                    audioChord: chord, 
+                `${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`,
+                {
+                    audioChord: chord,
                     audioKey: key.replace('♯', '#'),
-                }, 
+                },
                 {
                     headers: {
                         'Content-Type': 'application/json'
                     }
-            }).then(({ data }) => {    
-                const chordsVal = JSON.parse(data); 
-                const gc = getChord(chordLabel, chordsVal[0].progs_nums);
-                if (gc && gc.length > 0) {
-                    
-                    setMTNames(gc[0]);
-                }
-                setChordHook(chordsVal);
-                handleMingusChordsData(data);
-                dataToReturn.chordData = data && typeof data === "string" ? JSON.parse(data) : data;
-                return data;
-            });
+                }).then(({ data }) => {
+                    const chordsVal = JSON.parse(data);
+                    const gc = getChord(chordLabel, chordsVal[0].progs_nums);
+                    if (gc && gc.length > 0) {
+
+                        setMTNames(gc[0]);
+                    }
+                    setChordHook(chordsVal);
+                    handleMingusChordsData(data);
+                    dataToReturn.chordData = data && typeof data === "string" ? JSON.parse(data) : data;
+                    return data;
+                });
         }
         return dataToReturn;
     }, [
@@ -2069,8 +2301,7 @@ export default function InitializationComponent() {
     // SLIDER CONTROL KNOB
     // ========================================================
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    const handleUpdateSliderVal = useCallback(async (radioVal: string, obj: any, value: any) => {       
-       
+    const handleUpdateSliderVal = useCallback(async (radioVal: string, obj: any, value: any) => {
 
         if (universalSources.current) {
             if (!currentEffectType.current) {
@@ -2081,7 +2312,7 @@ export default function InitializationComponent() {
         }
 
         if (obj.fxType === "stk") {
-            const currStkType = currentStkTypeVar.current.split("#")[0];    
+            const currStkType = currentStkTypeVar.current.split("#")[0];
             obj.value = value;
 
             if (
@@ -2089,7 +2320,7 @@ export default function InitializationComponent() {
                 universalSources.current.stk1.instruments &&
                 universalSources.current.stk1.instruments[currStkType as keyof STKInstruments]
             ) {
-                Object.values(universalSources.current.stk1.instruments[currStkType.toString() as keyof STKInstruments].presets).filter(async (i: any) => { 
+                Object.values(universalSources.current.stk1.instruments[currStkType.toString() as keyof STKInstruments].presets).filter(async (i: any) => {
                     if (i.name === obj.name) {
                         i.value = value;
                         const vN = universalSources.current &&
@@ -2121,26 +2352,26 @@ export default function InitializationComponent() {
                         chuckRef.current && await chuckRef.current.setAssociativeFloatArrayValue("allFXDynamicFloats", `${universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].VarName}_${getConvertedRadio(fxRadioValue)}_${obj.name}`, value);
                     }
 
-                    console.log("****? ", value, "&&&&? ", chuckRef.current && await chuckRef.current.getAssociativeIntArrayValue("allFXDynamicInts", `${ universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].VarName}_${getConvertedRadio(fxRadioValue)}_${obj.name}`));
+                    console.log("****? ", value, "&&&&? ", chuckRef.current && await chuckRef.current.getAssociativeIntArrayValue("allFXDynamicInts", `${universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].VarName}_${getConvertedRadio(fxRadioValue)}_${obj.name}`));
                 }
             }
         } else if (obj.fxType === 'default') {
             moogGrandmotherEffects.current[`${obj.name}`].value = value;
             Object.values(moogGrandmotherEffects.current).forEach((value: any) => {
-                (async() => {
+                (async () => {
                     try {
                         chuckRef.current && await chuckRef.current.setAssociativeFloatArrayValue("moogGMDefaults", value.name, value.value);
                     } catch (e) {
                         console.log("ERR:", e)
                     }
-                })();                    
+                })();
             });
         }
         setChuckUpdateNeeded(true);
 
         // console.log("sanity values readout osc1 in parent: ", Object.values(valuesReadout))
 
-    },[fxRadioValue, markUpdated]); // valuesReadout causes Babylon to rerender & flicker, which is both bad and possibly good if we can harness the updates... 
+    }, [fxRadioValue, markUpdated]); // valuesReadout causes Babylon to rerender & flicker, which is both bad and possibly good if we can harness the updates... 
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // ========================================================
 
@@ -2198,7 +2429,7 @@ export default function InitializationComponent() {
     };
 
     const resetCellSubdivisionsCounter = (x: number, y: number) => {
-        currentHeatmapXY.current = {x: Number(x), y: Number(y)};
+        currentHeatmapXY.current = { x: Number(x), y: Number(y) };
         //*tk2
         console.log('master patterns ref: ', masterPatternsRef.current[`${y}`][`${x}`]);
         const subdivs: any = masterPatternsRef.current[`${y}`][`${x}`].subdivisions;
@@ -2207,16 +2438,16 @@ export default function InitializationComponent() {
     }
 
     const handleChangeNotesAscending = (msg: any) => {
-        const newFreqs = msg.target.value === "asc" 
-        ? mingusKeyboardData.data[0] 
-        : msg.target.value === "desc" 
-            ? mingusKeyboardData.data[1] 
-            : (showNotesOrder === "microtonal") && finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b).length > 0 
-                ? finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b).map(
-                    (i: any) => +Number(i).toFixed(2)
-                ) 
-                : mingusKeyboardData.data[0] ? mingusKeyboardData.data[0] : ['no notes found']
-                ;
+        const newFreqs = msg.target.value === "asc"
+            ? mingusKeyboardData.data[0]
+            : msg.target.value === "desc"
+                ? mingusKeyboardData.data[1]
+                : (showNotesOrder === "microtonal") && finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b).length > 0
+                    ? finalMicroToneNotesRef.current.sort((a: any, b: any) => a - b).map(
+                        (i: any) => +Number(i).toFixed(2)
+                    )
+                    : mingusKeyboardData.data[0] ? mingusKeyboardData.data[0] : ['no notes found']
+            ;
         setMTNames(newFreqs);
     };
 
@@ -2245,13 +2476,38 @@ export default function InitializationComponent() {
     }
 
     const handleSourceToggle = (name: string, val: any) => {
-        updateFXInputRadio(val);
-        setVizSource(val);
+
+        currentScreen.current = "synth";
+        currentEffectType.current = getConvertedRadio(val)
         visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
 
-        setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
+        // setFxKnobsCount(visibleFXKnobs.current && visibleFXKnobs.current.length > 0 ? visibleFXKnobs.current.length : 0);
+        setFxKnobsCount(moogGrandmotherEffects.current.length);
         updateCurrentFXScreen(setFxKnobsCount, doUpdateBabylonKey, babylonKeyRef.current);
 
+        setFxRadioValue(val);
+
+
+        if(universalSources.current && Object.values(Object.entries(universalSources.current).filter(i => i[0] === val)[0][1].effects).filter(i => i.On ).length > 0)
+        {
+            const effects = universalSources.current &&
+            Object.values(
+                Object.entries(universalSources.current)
+                .find(([key]) => key === val)?.[1].effects || {}
+            ).filter(i => i.On);
+
+            setCurrentChain(prev => ({
+            ...prev,
+            [val]: effects.map(i => i.VarName),
+            }));
+
+            setCheckedEffectsListHook(
+            effects.map(i => i.VarName) // only keep VarNames
+            );
+
+        } else {
+
+        }
     };
 
 
@@ -2263,38 +2519,74 @@ export default function InitializationComponent() {
 
     const exitEditMode = () => {
         isInPatternEditMode.current = false;
-        setPatternsHashUpdated(true);    
+        setPatternsHashUpdated(true);
     }
+
+    const currentBeatCountToDisplayRef = useRef<number>(0);
+    currentBeatCountToDisplayRef.current = currentBeatCountToDisplayRef.current || 0;
+    const currentNumerCountColToDisplayRef = useRef<number>(0);
+    currentNumerCountColToDisplayRef.current = currentNumerCountColToDisplayRef.current || 0;
+    const currentDenomCountRef = useRef<number>(0);
+    currentDenomCountRef.current = currentDenomCountRef.current || 0;
+    const currentPatternCountRef = useRef<number>(0);
+    currentPatternCountRef.current = currentPatternCountRef.current || 0;
 
     const handleChuckMsg = (chuckMsg: string) => {
         let isMounted = true;
-        const parsedNumbers = chuckMsg.match(/\d+/g) || [];  
-        
-        const bC = parsedNumbers.length > 0 && parsedNumbers[parsedNumbers.length - 1] 
-            ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
-            : currentBeatCountToDisplay;  // Keep previous value if no valid number found
-        
-        const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
-        const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
-        const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
-        const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
-        
-        setCurrentBeatCountToDisplay(beatDisplay);
-        setCurrentNumerCountColToDisplay(numerCount);
-        setCurrentDenomCount(denomCount);
-        setCurrentPatternCount(patternCount);
+        // const parsedNumbers = chuckMsg.match(/\d+/g) || [];  
+
+        // const bC = parsedNumbers.length > 0 && parsedNumbers[parsedNumbers.length - 1] 
+        //     ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
+        //     : currentBeatCountToDisplayRef.current;  // Keep previous value if no valid number found
+
+        // const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
+        // const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
+        // const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
+        // const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
+
+        // // setCurrentBeatCountToDisplay(beatDisplay);
+        // // setCurrentNumerCountColToDisplay(numerCount);
+        // // setCurrentDenomCount(denomCount);
+        // // setCurrentPatternCount(patternCount);
+        // currentBeatCountToDisplayRef.current = beatDisplay;
+        // currentNumerCountColToDisplayRef.current = numerCount;
+        // currentDenomCountRef.current = denomCount;
+        // currentPatternCountRef.current = patternCount;
 
         if (chuckMsg.includes("MAX_MIN:")) {
             try {
-                let maxFreq = '440'; 
+                let maxFreq = '440';
                 let minFreq = '0';
                 maxFreq = chuckMsg.split("::::")[0].trim();
                 minFreq = chuckMsg.split("::::")[1].trim();
                 setMaxMinFreq([Number(+maxFreq), Number(+minFreq)]);
-            } catch(e) {
+            } catch (e) {
                 console.log("error getting max min freq from chuck... ", e);
             }
-        } 
+        } else {
+            const parsedNumbers = chuckMsg.match(/\d+/g) || [];
+            const bC = parsedNumbers.length > 0 && parsedNumbers[parsedNumbers.length - 1]
+                ? parseInt(parsedNumbers[parsedNumbers.length - 1], 10)  // Use last number if available
+                : currentBeatCountToDisplayRef.current;  // Keep previous value if no valid number found
+
+            const beatDisplay = Math.floor(bC % (masterFastestRate * numeratorSignature)) + 1;
+            const numerCount = Math.floor(bC / (masterFastestRate * numeratorSignature)) % numeratorSignature + 1;
+            const denomCount = Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature)) % denominatorSignature + 1;
+            const patternCount = Math.floor(Math.floor(bC / (masterFastestRate * numeratorSignature * denominatorSignature * patternsPerCycle))) % patternsPerCycle;
+
+            // setCurrentBeatCountToDisplay(beatDisplay);
+            // setCurrentNumerCountColToDisplay(numerCount);
+            // setCurrentDenomCount(denomCount);
+            // setCurrentPatternCount(patternCount);
+            currentBeatCountToDisplayRef.current = beatDisplay;
+            currentNumerCountColToDisplayRef.current = numerCount;
+            currentDenomCountRef.current = denomCount;
+            currentPatternCountRef.current = patternCount;
+            setClockCounterKey(currentBeatCountToDisplayRef.current + '-' + currentNumerCountColToDisplayRef.current + '-' + currentDenomCountRef.current + '-' + currentPatternCountRef.current);
+
+
+        }
+
         return () => {
             isMounted = false;
         }
@@ -2306,7 +2598,7 @@ export default function InitializationComponent() {
         // await initChuck();
         setClickedBegin(true);
         setShowLoader(false);
-        
+
         (async () => {
             setShowLoader(true);
             const audioContext = new AudioContext();
@@ -2322,8 +2614,8 @@ export default function InitializationComponent() {
             //     localStorage.getItem("chuckVersion") === "dev"
             //         ? DEV_CHUCK_SRC
             //         : PROD_CHUCK_SRC;
-             
-            const LOCAL_CHUCK_SRC = "/webchuck/"; 
+
+            const LOCAL_CHUCK_SRC = "/webchuck/";
 
             // console.log("WHERE IS CHUCK111111? ", whereIsChuck);
             // Create theChuck
@@ -2336,7 +2628,7 @@ export default function InitializationComponent() {
             );
             try {
                 hid = await HID.init(theChuck, false, true);
-                 
+
                 console.log("heya get HID... ", hid);
             } catch (e) {
 
@@ -2347,7 +2639,7 @@ export default function InitializationComponent() {
                 theChuckContext.resume();
             }
             let chuckVersion = '';
-            
+
             theChuck.getParamString("VERSION").then((value: string) => {
                 chuckVersion = value;
             });
@@ -2362,7 +2654,7 @@ export default function InitializationComponent() {
                     // setChuckMsg(parsedMsg); 
                     handleChuckMsg(parsedMsg)
                 } else {
-          
+
                     if (message.includes("SHREDCOUNT: ")) {
                         console.log("SHREDCOUNT ", message)
                     }
@@ -2387,8 +2679,8 @@ export default function InitializationComponent() {
                     }
 
 
-            // console.log("CHUCK MESSAGE: ", message);     
-                    
+                    // console.log("CHUCK MESSAGE: ", message);     
+
                     // THIS SHOULD BE CHECKING THE ADSR...
                     // if (message.includes("ADSR")) {
                     //     console.log("ADSR MESSAGE: ", message)
@@ -2403,10 +2695,10 @@ export default function InitializationComponent() {
 
     const handleButtonClick = () => {
         if (inputRef.current) {
-          inputRef.current.click();
+            inputRef.current.click();
         }
     };
-    
+
 
     const toggleSliderPanelChildren = (panel: string) => {
         const index = rightPanelOptions.indexOf(panel);
@@ -2418,20 +2710,20 @@ export default function InitializationComponent() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-          const fileList = e.target.files;
-          console.log('File selected:', fileList);
-    
-          // VERY IMPORTANT: Update file value manually
-          setValue("file", fileList);
-    
-          // Now trigger submit
-          handleSubmit(onSubmit)();
+            const fileList = e.target.files;
+            console.log('File selected:', fileList);
+
+            // VERY IMPORTANT: Update file value manually
+            setValue("file", fileList);
+
+            // Now trigger submit
+            handleSubmit(onSubmit)();
         }
     };
 
 
 
-    const handleLatestSamples = (   
+    const handleLatestSamples = (
         fileNames: string[],
         xVal: number,
         yVal: number
@@ -2445,6 +2737,10 @@ export default function InitializationComponent() {
         const dynamicN = selectedCell?.subdivisions || 1;
 
         const assignEveryOtherReferenceNumber = xVal % 2;
+
+
+        // PULL UP THE AUDIO DATA HERE!!!!
+        // DATA TO WAVESURFER HERE...
 
         if (masterPatternsRef.current[yVal] && masterPatternsRef.current[yVal][xVal]) {
             console.log("AUTOASSIGN NUMBER: ", doAutoAssignPatternNum);
@@ -2466,34 +2762,34 @@ export default function InitializationComponent() {
                         masterPatternsRef.current[y1][otherX].fileNums = indices;
                     }
                 }
-            } else if (doAutoAssignPatternNum.toString() === "2" ) {
+            } else if (doAutoAssignPatternNum.toString() === "2") {
                 const selectedX = Number(currentSelectedCell.x);
 
                 for (let y1 = 0; y1 < denominatorSignature; y1++) {
                     for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                    const hitX = x1 % numeratorSignature;
+                        const hitX = x1 % numeratorSignature;
 
-                    if (
-                        (hitX === selectedX) && // TWO hits per row
-                        masterPatternsRef.current[y1]?.[x1]
-                    ) {
-                        masterPatternsRef.current[y1][x1].fileNums = indices;
-                    }
+                        if (
+                            (hitX === selectedX) && // TWO hits per row
+                            masterPatternsRef.current[y1]?.[x1]
+                        ) {
+                            masterPatternsRef.current[y1][x1].fileNums = indices;
+                        }
                     }
                 }
             } else if (doAutoAssignPatternNum.toString() === "3") {
                 for (let y1 = 0; y1 < denominatorSignature; y1++) {
-                    for (let x1 =  0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
-                        if(masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) masterPatternsRef.current[y1][x1].fileNums = indices;
+                    for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
+                        if (masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) masterPatternsRef.current[y1][x1].fileNums = indices;
                     };
                 }
             } else if (doAutoAssignPatternNum.toString() === "4") {
                 for (let y1 = 0; y1 < denominatorSignature; y1++) {
                     for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1++) {
-                        if(masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) masterPatternsRef.current[y1][x1].fileNums = indices;
+                        if (masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) masterPatternsRef.current[y1][x1].fileNums = indices;
                     };
                 }
-            } 
+            }
         } else {
             console.log("LATEST SAMPLES IN THE ELSE HERE... ", xVal, yVal, masterPatternsRef.current)
         }
@@ -2505,23 +2801,26 @@ export default function InitializationComponent() {
         xVal: number,
         yVal: number
     ) => {
-        masterPatternsRef.current[yVal] =  masterPatternsRef.current[yVal] || {}; 
-        
+        masterPatternsRef.current[yVal] = masterPatternsRef.current[yVal] || {};
+
 
         console.log("WHAT ARE NOTES??? ", notes, Number(yVal), xVal, masterPatternsRef.current);
 
-        
+
         masterPatternsRef.current[Number(yVal)][xVal].noteName = notes.map(n => n)
         masterPatternsRef.current[Number(yVal)][xVal].noteHz = notes.map((i: any) => noteToFreq(i.split("-")[0], Number(i.split("-")[1])));
         masterPatternsRef.current[Number(yVal)][xVal].noteMidi = notes.map((i: any) => noteToMidi(i.split("-")[0], Number(i.split("-")[1])));
-        
+
+        masterPatternsRef.current[Number(yVal)][xVal].midiInfo.pitch = notes.map((i: any) => noteToMidi(i.split("-")[0], Number(i.split("-")[1])));
+        masterPatternsRef.current[Number(yVal)][xVal].noteOnLength = notes.map((i: any) => i.length);
+
         if (noteBuilderFocus.includes("chord")) {
             setMTNames([...keyScaleChord.chord]);
         } else if (noteBuilderFocus.includes("scale")) {
             setMTNames([...keyScaleChord.scale]);
         }
-        console.log("WHAT IS HANDLE LATEST NOTES???  ", "X: ", xVal, "Y: ", yVal, "NOTES: ", notes, "CHORD: ", ...keyScaleChord.chord, "SCALE: ", ...keyScaleChord.scale);  
-        
+        console.log("WHAT IS HANDLE LATEST NOTES???  ", "X: ", xVal, "Y: ", yVal, "NOTES: ", notes, "CHORD: ", ...keyScaleChord.chord, "SCALE: ", ...keyScaleChord.scale);
+
 
         notes.map((n: any) => {
             const noteLetter = n.split("-")[0];
@@ -2541,18 +2840,18 @@ export default function InitializationComponent() {
             for (let y1 = 0; y1 <= denominatorSignature; y1++) {
 
                 for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                    if (((x1 === currentSelectedCell.x) || (currentSelectedCell.x + Math.floor((numeratorSignature * masterFastestRate)/2)) === x1) && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                    if (((x1 === currentSelectedCell.x) || (currentSelectedCell.x + Math.floor((numeratorSignature * masterFastestRate) / 2)) === x1) && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1][x1].noteName = notes;
                         masterPatternsRef.current[y1][x1].noteHz = notes.map((i: any) => 1.0 * noteToFreq(i.split("-")[0], Number(i.split("-")[1])));
                         masterPatternsRef.current[y1][x1].noteMidi = notes.map((i: any) => 1.0 * noteToMidi(i.split("-")[0], Number(i.split("-")[1])));
                     }
                 }
-            
+
             }
-        } else if (doAutoAssignPatternNum.toString() === "2" ) {
+        } else if (doAutoAssignPatternNum.toString() === "2") {
             for (let y1 = 0; y1 <= denominatorSignature; y1++) {
                 for (let x1 = 0; x1 < numeratorSignature * masterFastestRate; x1++) {
-                    if (x1  % numeratorSignature === currentSelectedCell.x && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                    if (x1 % numeratorSignature === currentSelectedCell.x && masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1][x1].noteName = notes;
 
                         masterPatternsRef.current[y1][x1].noteHz = notes.map((i: any) => 1.0 * noteToFreq(i.split("-")[0], Number(i.split("-")[1])));
@@ -2562,8 +2861,8 @@ export default function InitializationComponent() {
             }
         } else if (doAutoAssignPatternNum.toString() === "3") {
             for (let y1 = 0; y1 <= denominatorSignature; y1++) {
-                for (let x1 =  0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
-                    if(masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1 += 2) {
+                    if (masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1][x1].noteName = notes;
                         masterPatternsRef.current[y1][x1].noteHz = notes.map((i: any) => 1.0 * noteToFreq(i.split("-")[0], Number(i.split("-")[1])));
                         masterPatternsRef.current[y1][x1].noteMidi = notes.map((i: any) => 1.0 * noteToMidi(i.split("-")[0], Number(i.split("-")[1])));
@@ -2573,14 +2872,14 @@ export default function InitializationComponent() {
         } else if (doAutoAssignPatternNum.toString() === "4") {
             for (let y1 = 0; y1 <= denominatorSignature; y1++) {
                 for (let x1 = 0; x1 <= numeratorSignature * masterFastestRate; x1++) {
-                    if(masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
+                    if (masterPatternsRef.current[y1] && masterPatternsRef.current[y1][x1]) {
                         masterPatternsRef.current[y1][x1].noteName = notes;
                         masterPatternsRef.current[y1][x1].noteHz = notes.map((i: any) => 1.0 * noteToFreq(i.split("-")[0], Number(i.split("-")[1])));
                         masterPatternsRef.current[y1][x1].noteMidi = notes.map((i: any) => 1.0 * noteToMidi(i.split("-")[0], Number(i.split("-")[1])));
                     }
                 };
             }
-        } 
+        }
         setPatternsHashHook(masterPatternsRef.current);
     };
 
@@ -2588,14 +2887,14 @@ export default function InitializationComponent() {
 
     const handleUpdateCheckedFXList = (e: any) => {
         updateCheckedFXList(
-                e,
-                setCheckedEffectsListHook,
-                doReturnToSynth,
-                setFxKnobsCount,
-                updateFlowNodesAndEdges,
-                initFX,
-                getConvertedRadio,
-                fxRadioValue,
+            e,
+            setCheckedEffectsListHook,
+            doReturnToSynth,
+            setFxKnobsCount,
+            updateFlowNodesAndEdges,
+            initFX,
+            getConvertedRadio,
+            fxRadioValue,
         );
     }
 
@@ -2613,14 +2912,14 @@ export default function InitializationComponent() {
     const updateStkKnobs = async (knobValsArg: STKOption[]) => {
         const knobVals: STKOption[] = knobValsArg || [];
         console.log("yup knobs: ", knobVals)
-            
+
         chuckHook && chuckRef.current && await chuckRef.current.setInt("stkInstsInUse", knobVals.length)
-        
+
         stkKnobValsRef.current = [];
         if (knobVals[0] && knobVals[0].color === "") {
             console.log("knob vals: ", knobVals);
             const match = stkOptions.filter((i: any) => i.label === knobVals[0].label);
-            const fullMatch = {    
+            const fullMatch = {
                 color: match[0].color,
                 label: match[0].label,
                 value: match[0].value,
@@ -2632,14 +2931,14 @@ export default function InitializationComponent() {
         console.log("chuggit!!: ", stkKnobValsRef.current)
 
         if (!stkKnobValsRef.current[stkKnobValsRef.current.length - 1]) {
-            
+
             visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
             setFxKnobsCount(moogGrandmotherEffects.current.length);
-            updateCurrentFXScreen(        
+            updateCurrentFXScreen(
                 setFxKnobsCount,
                 doUpdateBabylonKey,
                 babylonKeyRef.current);
-   
+
             return;
         } else {
             const getSTKVal: any = getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value);
@@ -2647,7 +2946,7 @@ export default function InitializationComponent() {
             if (universalSources.current) {
                 console.log('@@@@@@@@@@@ knob vals / STK VALS REF CURRENT ', getSTKVal);
                 console.log('@@@@@@@@@@@ STK PRESETS ', getSTKVal.presets);
-                
+
                 setSelectedSTKs((x) => [...x, getSTKVal]);
                 const stk: any = universalSources.current.stk1
                 visibleFXKnobs.current = Object.values(getSTK1Preset(stkKnobValsRef.current[stkKnobValsRef.current.length - 1].value).presets).map((i: any) => [i.label, i]);
@@ -2674,12 +2973,12 @@ export default function InitializationComponent() {
                     console.log("YOHEYHOYYO ", stk.instruments);
                     const instruments = Object.values(stk.instruments).filter((i: any) => i.On);
                     console.log("INSTRUMENTS>>> ", instruments);
-                    instruments.forEach((j:any) => {
+                    instruments.forEach((j: any) => {
                         const instType = currentStkTypeVar.current.split("#")[0];
                         const instVarName = currentStkTypeVar.current.split("#")[1];
                         console.log("HEYAHEYAHEYA JJJJJJ ", j);
                         console.log("INST TYPE: ", instType, "INST VAR NAME: ", instVarName);
-                        j.presets.map(async (i:any) => {
+                        j.presets.map(async (i: any) => {
                             if (i.type.includes("int")) {
                                 chuckRef.current && await chuckRef.current.setAssociativeIntArrayValue("allSTKFXDynamicInts", `${instType}_${instVarName}_stk_${i.name}`, i.value);
                                 console.log("BLAM!INT ", `${instType}_${instVarName}_stk_${i.name}`, i.value);
@@ -2705,7 +3004,7 @@ export default function InitializationComponent() {
                         doUpdateBabylonKey,
                         babylonKeyRef.current,
                     );
-                    
+
                 }
             }
         }
@@ -2720,18 +3019,16 @@ export default function InitializationComponent() {
         console.log("**** WHAT IS DATA HERE????: ", data)
     }
 
-    const [parentSize, setParentSize] = useState({ width: 0, height: 0 });
-
     useEffect(() => {
         if (!parentDivRef.current) return;
 
         const observer = new ResizeObserver((entries) => {
-        for (let entry of entries) {
-            const { width, height } = entry.contentRect;
-            // console.log('Parent size changed:', width, height);
-            
-            setParentSize({ width, height });
-        }
+            for (let entry of entries) {
+                const { width, height } = entry.contentRect;
+                // console.log('Parent size changed:', width, height);
+
+                setParentSize({ width, height });
+            }
         });
 
         observer.observe(parentDivRef.current);
@@ -2740,15 +3037,21 @@ export default function InitializationComponent() {
         return () => observer.disconnect();
     }, [chuckHook]);
 
-    
+
 
     const handleViewSTK = (e: any) => {
-        updateStkKnobs([{label: e.target.value, value: e.target.value, color: ""}]);
+        updateStkKnobs([{ label: e.target.value, value: e.target.value, color: "" }]);
     }
 
     const handleViewEffect = (e: any) => {
+        console.log("WTF IN HANDLE VIEW EFFECT ?!?! ", e.target.textContent, "e is what??>> ", e);
+        handleCheckedFXToShow({ target: { value: e.target.value.split("_")[1] } });
+        currentFX.current = moogGrandmotherEffects.current;
+        visibleFXKnobs.current = visibleFXKnobs.current || Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
+        setFxKnobsCount(visibleFXKnobs.current.length);
         doReturnToSynth.current = false;
         handleUpdateCheckedFXList(e);
+        // markUpdated(); <<< TK!
     }
 
     const handleManageFX = () => {
@@ -2756,32 +3059,62 @@ export default function InitializationComponent() {
         setIsManagingFX(!isManagingEffects);
     }
 
+    const getNewFX = (fx: string | undefined) => {
+
+        const varNames: any = universalSources.current && Object.values(universalSources.current?.osc1?.effects).map(i => [`${i.VarName}`, i]);
+        console.log("UNIVERSAL SOURCES ", varNames && Object.values(varNames).length > 0 && varNames.map((i: any) => i[0]), "?!?! ", fx?.split("_"));
+        const idx = varNames && Object.values(varNames).length > 0 && varNames.map((i: any) => i[0]).indexOf(fx?.split("_")[0]);
+        const item = idx !== -1 && varNames && varNames.length > 0 ? varNames[idx][1] : null;
+        if (item && item.Type) {
+            handleViewEffect({ target: { value: `${item.Type}` } });
+        }
+    }
+
     // THIS IS AUDIO DATA OBJECT --->
     // console.log("masterPatternsHashHook keys!@#$: ", masterPatternsHashHook);
 
+    const switchSourceChain = () => {
+        const sourceName = getConvertedRadio(fxRadioValue);
+        switch (sourceName) {
+            case 'osc1':
+                // Handle osc1 case
+                return currentChain.osc1;
+            case 'stk1':
+                return currentChain.stk1;
+            case 'sampler':
+                return currentChain.sampler;
+            case 'audio': 
+                return currentChain.audioin; 
+            default:
+                // Handle default case
+                break;
+        }
+    }
+
     return (
-        <Box 
+        <Box
             id={'frontendOuterWrapper'}
         >
-            
+
             <Box id={'relativeFrontendWrapper'}>
                 {/* RESPONSIVE APP BAR */}
                 {/* {chuckHook && */}
                 {clickedBegin && chuckHook && isChuckRunning &&
-                    <Box    
+                    <Box
                         sx={{
                             position: "absolute",
                             width: "calc(100% - 140px)",
                             left: '140px'
-                        }} 
+                        }}
                     >
                         <ClockCounter
                             chuckHook={chuckHook}
-                            currentPatternCount={currentPatternCount}
-                            currentDenomCount={currentDenomCount}
-                            currentNumerCountColToDisplay={currentNumerCountColToDisplay}
-                            currentBeatCountToDisplay={currentBeatCountToDisplay}
+                            currentPatternCount={currentPatternCountRef.current}
+                            currentDenomCount={currentDenomCountRef.current}
+                            currentNumerCountColToDisplay={currentNumerCountColToDisplayRef.current}
+                            currentBeatCountToDisplay={currentBeatCountToDisplayRef.current}
                             numeratorSignature={numeratorSignature}
+                            clockCounterKey={clockCounterKey}
                         />
                     </Box>
                 }
@@ -2802,45 +3135,45 @@ export default function InitializationComponent() {
                         }}
                     >
                         {
-                            clickedBegin ? 
-                            (
-                                <>
-                                </>
-                            ) :
-                            (
-                                <Box sx={{width: "100%", height: "100%", display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
-                                    <AnimatedTitle clickedBegin={clickedBegin} />
-                                    <Button
-                                        sx={{
-                                            width: '160px',
-                                            height: '90px',
-                                            fontFamily: 'monospace',
-                                            fontSize: '1em !important',
-                                            background: OBERHEIM_TEAL,
-                                            padding: '24px',
-                                            margin: '16px',
-                                            color: 'rgba(255,255,255,0.78)',
-                                            border: 'rgba(255,255,255,0.78)',
-                                            '&:hover': {
-                                                color: '#f5f5f5 !important',
-                                                // border: `1px solid ${SEAFOAM_TEAL}`,
-                                                border: 'transparent',
-                                            }
-                                        }}
-                                        variant="contained"
-                                        id="initChuckButton"
-                                        onClick={newInitChuck}
-                                        endIcon={<PlayArrowIcon
-                                        style={{ 
-                                            height: '100%', 
-                                            pointerEvents: "none" 
-                                        }} 
-                                    />}
-                                >
-                                        Launch Studio
-                                    </Button>
-                                </Box>
-                            )
+                            clickedBegin ?
+                                (
+                                    <>
+                                    </>
+                                ) :
+                                (
+                                    <Box sx={{ width: "100%", height: "100%", display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                        <AnimatedTitle clickedBegin={clickedBegin} />
+                                        <Button
+                                            sx={{
+                                                width: '160px',
+                                                height: '90px',
+                                                fontFamily: 'monospace',
+                                                fontSize: '1em !important',
+                                                background: OBERHEIM_TEAL,
+                                                padding: '24px',
+                                                margin: '16px',
+                                                color: 'rgba(255,255,255,0.78)',
+                                                border: 'rgba(255,255,255,0.78)',
+                                                '&:hover': {
+                                                    color: '#f5f5f5 !important',
+                                                    // border: `1px solid ${SEAFOAM_TEAL}`,
+                                                    border: 'transparent',
+                                                }
+                                            }}
+                                            variant="contained"
+                                            id="initChuckButton"
+                                            onClick={newInitChuck}
+                                            endIcon={<PlayArrowIcon
+                                                style={{
+                                                    height: '100%',
+                                                    pointerEvents: "none"
+                                                }}
+                                            />}
+                                        >
+                                            Launch Studio
+                                        </Button>
+                                    </Box>
+                                )
                         }
 
                         <Box
@@ -2853,8 +3186,8 @@ export default function InitializationComponent() {
                                 maxHeight: '100%',
                                 width: '100%',
                             }}
-                        >                            
-                            {chuckHook && <>                     
+                        >
+                            {chuckHook && <>
                                 <Box id="rightPanelWrapper">
                                     <Box
                                         ref={parentDivRef}
@@ -2862,30 +3195,41 @@ export default function InitializationComponent() {
                                             display: controlView !== 'knobsView' ? 'none' : 'flex',
                                             flexDirection: 'column',
                                             width: '100%',
-                                        }} 
+                                        }}
                                     >
                                         <Box id="rightPanelHeader">
-                                            <Box 
+
+                                            {
+                                                universalSources.current &&
+                                                Object.keys(universalSources.current).length > 0 &&
+                                                <GroupToggle
+                                                    name={"test name"}
+                                                    options={Object.keys(universalSources.current).map(i => i)}
+                                                    handleSourceToggle={handleSourceToggle}
+                                                />
+                                            }
+
+                                            <Box
                                                 className="right-panel-header-wrapper"
                                                 sx={{
                                                     // border: `1px solid ${SEAFOAM_TEAL}`,
                                                     border: `1px solid rgba(0,0,0,0.78)`,
-                                                    display: 'flex', 
-                                                    flexDirection: 'row', 
-                                                    alignItems: 'center', 
+                                                    display: 'flex',
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
                                                     justifyContent: 'space-between'
                                                 }}
                                             >
-                                                <Button 
-                                                    id='toggleSliderPanelChildren_Effects' 
+                                                <Button
+                                                    id='toggleSliderPanelChildren_Effects'
                                                     className='right-panel-header-button'
                                                     sx={{ backgroundColor: rightPanelOptions[0] === 'effects' ? 'rgba(255,255,255,0.278)' : 'transparent' }}
                                                     onClick={(e: any) => toggleSliderPanelChildren('effects')}
                                                 >
                                                     Effects View
                                                 </Button>
-                                                <Button 
-                                                    id='toggleSliderPanelChildren_Pattern' 
+                                                <Button
+                                                    id='toggleSliderPanelChildren_Pattern'
                                                     className='right-panel-header-button'
                                                     sx={{ backgroundColor: rightPanelOptions[0] !== 'effects' ? 'rgba(255,255,255,0.278)' : 'transparent' }}
                                                     onClick={(e: any) => toggleSliderPanelChildren('pattern')}
@@ -2893,40 +3237,36 @@ export default function InitializationComponent() {
                                                     Patterns View
                                                 </Button>
                                             </Box>
-                                            {
-                                                universalSources.current && 
-                                                Object.keys(universalSources.current).length > 0 && 
-                                                <GroupToggle
-                                                    name={"test name"}
-                                                    options={Object.keys(universalSources.current).map(i => i)}
-                                                    handleSourceToggle={handleSourceToggle}
-                                                />
-                                            }
+
                                         </Box>
-                                        <Box  
-                                            sx={{ 
-                                                maxHeight: 'calc(100% - 6rem)', 
-                                                display: rightPanelOptions[0] === 'effects' ? "flex" : "none" 
+                                        <Box
+                                            sx={{
+                                                maxHeight: 'calc(100% - 6rem)',
+                                                display: rightPanelOptions[0] === 'effects' ? "flex" : "none"
                                             }}
                                         >
                                             <Box id={'reactDiagramsPedalboardWrapper'}>
                                                 <ReactDiagramsPedalboard
-                                                    currentChain={currentChain}
-                                                    sourceName={getConvertedRadio(fxRadioValue)}
+                                                    universalSources={universalSources}
+                                                    // currentChain={currentChain}
+                                                    currentChain={switchSourceChain()}
+                                                    sourceName={fxRadioValue}
                                                     width={parentSize.width}
                                                     height={parentSize.height}
+                                                    handleCheckedEffectsToShow={handleCheckedFXToShow}
+                                                    getNewFX={getNewFX}
                                                 />
                                             </Box>
                                         </Box>
-                                        
-                                        <Box sx={{display: rightPanelOptions[0] !== 'effects' ? "flex" : "none" }}>
+
+                                        <Box sx={{ display: rightPanelOptions[0] !== 'effects' ? "flex" : "none" }}>
                                             <NotesQuickDash
                                                 isChuckRunning={isChuckRunning}
                                                 featuresLegendData={[]}
                                                 universalSources={universalSources.current}
                                                 handleSourceToggle={handleSourceToggle}
                                                 vizSource={vizSource}
-                                                currentNumerCount={currentNumerCount}
+                                                // currentNumerCount={currentNumerCount}
                                                 currentBeatSynthCount={currentBeatSynthCount}
                                                 handleMasterFastestRate={handleMasterRateUpdate}
                                                 handleOsc1RateUpdate={handleOsc1RateUpdate}
@@ -2951,10 +3291,10 @@ export default function InitializationComponent() {
                                                 handleClickUploadedFiles={handleClickUploadedFiles}
                                                 parentDiv={parentDivRef.current}
                                                 masterFastestRate={masterFastestRate}
-                                                currentBeatCountToDisplay={currentBeatCountToDisplay}
-                                                currentNumerCountColToDisplay={currentNumerCountColToDisplay}
-                                                currentDenomCount={currentDenomCount} 
-                                                currentPatternCount={currentPatternCount}
+                                                currentBeatCountToDisplay={currentBeatCountToDisplayRef.current}
+                                                currentNumerCountColToDisplay={currentNumerCountColToDisplayRef.current}
+                                                currentDenomCount={currentDenomCountRef.current}
+                                                currentPatternCount={currentPatternCountRef.current}
                                                 exitEditMode={exitEditMode}
                                                 clickHeatmapCell={clickHeatmapCell}
                                                 isInPatternEditMode={isInPatternEditMode.current}
@@ -2977,9 +3317,9 @@ export default function InitializationComponent() {
                                                 currentFX={currentFX}
                                                 currentStkTypeVar={currentStkTypeVar}
                                                 updateCurrentFXScreen={updateCurrentFXScreen}
-                                                getSTK1Preset={getSTK1Preset} 
-                                                universalSourcesRef={universalSources}   
-                                                updateMicroTonalScale={updateMicroTonalScale}  
+                                                getSTK1Preset={getSTK1Preset}
+                                                universalSourcesRef={universalSources}
+                                                updateMicroTonalScale={updateMicroTonalScale}
                                                 mingusKeyboardData={mingusKeyboardData}
                                                 mingusChordsData={mingusChordsData}
                                                 updateMingusData={updateMingusData}
@@ -3000,234 +3340,225 @@ export default function InitializationComponent() {
                                             />
                                         </Box>
                                     </Box>
-                                </Box>                   
-                            
+                                </Box>
+
                                 {/* // MIDDLE CONTAINER (KNOBS) */}
-                                <Box 
+                                <Box
                                     id={"middleKnobsContainer"}
                                     sx={{
                                         position: 'relative',
                                         marginLeft: '140px',
                                     }}
                                 >{
-                                    controlView !== 'knobsView' 
-                                    ?
-                                        <Box sx={{top: "54px", width: "100%", height: "100%", boxSizing: "border-box", padding: "0px", margin: "0px"}}> 
-                                            <ControlValsView
-                                                updateKeyScaleChord={updateKeyScaleChord}
-                                                files={filesToProcess.current}
-                                            /> 
-                                        </Box>
-                                    :   
-                                        <Box 
-                                            sx={{
-                                                boxSizing: 'border-box',
-                                                width: '100%',
-                                                height: '100%',
-                                            }}
-                                            key={babylonKeyRef.current}
-                                        >
-                                    {
-                                        <Box
-                                            sx={{
-                                                display: "inline-flex", 
-                                                flexDirection: "row", 
-                                                position: "absolute",
-                                                cursor: "pointer",
-                                                top: "80px",
-                                                right: "300px",
-                                                zIndex: "99999",
-                                                pointerEvents: "auto",
-                                                whiteSpace: "nowrap",
-                                                fontSize: "12px",
-                                            }}
-                                        >
-                                        {
-                                        
-                                        
-                                        ((selectedSTKs.length > 0 ||
-                                    selectedEffects.length > 0) ||
-                                        currentScreen.current !== "synth") && 
-                                        
-                                        
-                                        
-                                        
-                                        <ArrowBack 
-                                            onClick={() => {
-                                                currentScreen.current = "synth";
-                                                visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
-                                                setFxKnobsCount(moogGrandmotherEffects.current.length);
-                                                updateCurrentFXScreen(
-                                                    setFxKnobsCount,
-                                                    doUpdateBabylonKey,
-                                                    babylonKeyRef.current,
-                                                );
-                                            }}
-                                            // sx={{
-                                        
-                                            //     right: "300px",
-                                            //     top: "80px",
-                                            //     zIndex: "99999 !important",
-                                            //     position: "absolute",
-                                            //     cursor: "pointer",
+                                        controlView !== 'knobsView'
+                                            ?
+                                            <Box sx={{ top: "54px", width: "100%", height: "100%", boxSizing: "border-box", padding: "0px", margin: "0px" }}>
+                                                <ControlValsView
+                                                    updateKeyScaleChord={updateKeyScaleChord}
+                                                    files={filesToProcess.current}
+                                                />
+                                            </Box>
+                                            :
+                                            <Box
+                                                sx={{
+                                                    boxSizing: 'border-box',
+                                                    width: '100%',
+                                                    height: '100%',
+                                                }}
+                                                key={babylonKeyRef.current}
+                                            >
+                                                {
+                                                    <Box
+                                                        sx={{
+                                                            display: "inline-flex",
+                                                            flexDirection: "row",
+                                                            position: "absolute",
+                                                            cursor: "pointer",
+                                                            bottom: "40px",
+                                                            right: "180px",
+                                                            zIndex: "99999",
+                                                            pointerEvents: "auto",
+                                                            whiteSpace: "nowrap",
+                                                            fontSize: "12px",
+                                                        }}
+                                                    >
+                                                        {
 
-                                            // }}
-                                        />}</Box>
-                                    }
 
-                                {
+                                                            ((selectedSTKs.length > 0 ||
+                                                                selectedEffects.length > 0) ||
+                                                                currentScreen.current !== "synth") &&
+
+
+
+
+                                                            <ArrowBack
+                                                                onClick={() => {
+                                                                    currentScreen.current = "synth";
+                                                                    visibleFXKnobs.current = Object.values(moogGrandmotherEffects.current).map((i: any) => [i.label, i]);
+                                                                    setFxKnobsCount(moogGrandmotherEffects.current.length);
+                                                                    updateCurrentFXScreen(
+                                                                        setFxKnobsCount,
+                                                                        doUpdateBabylonKey,
+                                                                        babylonKeyRef.current,
+                                                                    );
+                                                                }}
+                                                            />}</Box>
+                                                }
+
+                                                {/* {
                                     (selectedSTKs.length > 0 ||
                                     selectedEffects.length > 0) || currentScreen.current !== "synth" ?
                                     <Button 
                                         sx={{
                                             position: "absolute",
-                                            top: "74px",
-                                            right: "150px",
+                                            top: "32px",
+                                            left: "330px",
                         
                                             cursor: "pointer",
                                             zIndex: "99999",
                                         }}
-                                        onClick={handleManageFX}>Manage Effects</Button> : <></>}                               
-                                {isManagingEffects && 
-                                    <Box
-                                        sx={{
-                                            position: "absolute",
-                                            top: "60px",
-                                            left: "32px",
-                                            width: "300px",
-                                            backgroundColor: "rgba(0,0,0,0.78)",
-                                            padding: "8px",
-                                            borderRadius: "4px",
-                                            zIndex: "9999",
-                                            display: "flex",
-                                            flexDirection: "row",
-                                        }}
-                                    >
-                                        <Box 
-                                            id={`activeSTKsManagerDropdown`}
-                                            sx={{
-                                                width: "140px",
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                marginRight: "4px",
-                                                overflowY: "auto",
-                                                maxHeight: "200px",
-                                                boxSizing: "border-box",
-                                                backgroundColor: "rgba(28,28,28,0.78)",
-                                            }}
-                                        >
-                                            <Box
-                                                sx={{
-                                                    fontSize: "12px",
-                                                    color: "rgba(255,255,255,0.78)",
-                                                    backgroundColor: OBERHEIM_TEAL,
-                                                    padding: "4px",
-                                                    borderRadius: "4px",
-                                                    // marginBottom: "4px",
-                                                }}
-                                                key={`manage_fx_wrapper_STKS_${stkValues.length}`}
-                                            >Instruments</Box>
-                                            {
-                                                stkValues.length > 0 && [...new Set(stkValues.map(i => i.label))].map((stkBtn: any) => {
-                                                    return <Button 
-                                                        onClick={handleViewSTK}
-                                                        value={`${stkBtn}`}
-                                                        key={`singleSelectSTK_${stkBtn}`}
+                                        onClick={handleManageFX}>Manage Effects</Button> : <></>}                                */}
+                                                {isManagingEffects &&
+                                                    <Box
                                                         sx={{
-                                                            backgroundColor: CORDUROY_RUST,
-                                                            color: "white",
-                                                            fontSize: "14px",
-                                                            marginTop: "4px",
-                                                            marginBottom: "4px",
+                                                            position: "absolute",
+                                                            top: "60px",
+                                                            left: "32px",
+                                                            width: "300px",
+                                                            backgroundColor: "rgba(0,0,0,0.78)",
+                                                            padding: "8px",
+                                                            borderRadius: "4px",
+                                                            zIndex: "9999",
+                                                            display: "flex",
+                                                            flexDirection: "row",
                                                         }}
                                                     >
-                                                        {stkBtn}
-                                                    </Button>
-                                                })
-                                            }
-                                        </Box>
-                                        <Box
-                                            id={`activeEffectsManagerDropdown`}
-                                            sx={{
-                                                width: "140px",
-                                                display: "flex",
-                                                flexDirection: "column",
-                                            }}
-                                        >
-                                            <Box
-                                                style={{
-                                                    fontSize: "12px",
-                                                    color: "rgba(255,255,255,0.78)",
-                                                    backgroundColor: OBERHEIM_TEAL,
-                                                    padding: "4px",
-                                                    borderRadius: "4px",
-                                                }}
-                                                key={`manage_fx_wrapper_effects_${checkedEffectsListHook.length}`}
-                                            >Effects</Box>
-                                            {
-                                                selectedEffects.length > 0 && <Box
-                                                    key={`${selectedEffects.toString()}`}
-                                                    sx={{
-                                                        display: "flex",
-                                                        flexDirection: "column",
-                                                        overflowY: "auto",
-                                                        maxHeight: "200px",
-                                                        width: "100%",
-                                                        // padding: "4px",
-                                                        boxSizing: "border-box",
-                                                        backgroundColor: "rgba(28,28,28,0.78)",
-                                                        borderRadius: "4px",
-                                                    }}>
-                                                      
-                                                    {
-                                                        selectedEffects.map((effect: any) => (
-                                                            <Button
-                                                                key={`checkedEffect_${effect}`}
-                                                                onClick={handleViewEffect}
-                                                                value={
-                                                                    effect.split("_")[1]
-                                                                }
+                                                        <Box
+                                                            id={`activeSTKsManagerDropdown`}
+                                                            sx={{
+                                                                width: "140px",
+                                                                display: "flex",
+                                                                flexDirection: "column",
+                                                                marginRight: "4px",
+                                                                overflowY: "auto",
+                                                                maxHeight: "200px",
+                                                                boxSizing: "border-box",
+                                                                backgroundColor: "rgba(28,28,28,0.78)",
+                                                            }}
+                                                        >
+                                                            <Box
                                                                 sx={{
-                                                                    backgroundColor: NEON_PINK,
-                                                                    color: "white",
-                                                                    fontSize: "14px",
-                                                                    marginTop: "4px",
-                                                                    marginBottom: "4px",
+                                                                    fontSize: "12px",
+                                                                    color: "rgba(255,255,255,0.78)",
+                                                                    backgroundColor: OBERHEIM_TEAL,
+                                                                    padding: "4px",
+                                                                    borderRadius: "4px",
+                                                                    // marginBottom: "4px",
                                                                 }}
-                                                            >
+                                                                key={`manage_fx_wrapper_STKS_${stkValues.length}`}
+                                                            >Instruments</Box>
+                                                            {
+                                                                stkValues.length > 0 && [...new Set(stkValues.map(i => i.label))].map((stkBtn: any) => {
+                                                                    return <Button
+                                                                        onClick={handleViewSTK}
+                                                                        value={`${stkBtn}`}
+                                                                        key={`singleSelectSTK_${stkBtn}`}
+                                                                        sx={{
+                                                                            backgroundColor: CORDUROY_RUST,
+                                                                            color: "white",
+                                                                            fontSize: "14px",
+                                                                            marginTop: "4px",
+                                                                            marginBottom: "4px",
+                                                                        }}
+                                                                    >
+                                                                        {stkBtn}
+                                                                    </Button>
+                                                                })
+                                                            }
+                                                        </Box>
+                                                        <Box
+                                                            id={`activeEffectsManagerDropdown`}
+                                                            sx={{
+                                                                width: "140px",
+                                                                display: "flex",
+                                                                flexDirection: "column",
+                                                            }}
+                                                        >
+                                                            <Box
+                                                                style={{
+                                                                    fontSize: "12px",
+                                                                    color: "rgba(255,255,255,0.78)",
+                                                                    backgroundColor: OBERHEIM_TEAL,
+                                                                    padding: "4px",
+                                                                    borderRadius: "4px",
+                                                                }}
+                                                                key={`manage_fx_wrapper_effects_${checkedEffectsListHook.length}`}
+                                                            >Effects</Box>
+                                                            {
+                                                                selectedEffects.length > 0 && <Box
+                                                                    key={`${selectedEffects.toString()}`}
+                                                                    sx={{
+                                                                        display: "flex",
+                                                                        flexDirection: "column",
+                                                                        overflowY: "auto",
+                                                                        maxHeight: "200px",
+                                                                        width: "100%",
+                                                                        // padding: "4px",
+                                                                        boxSizing: "border-box",
+                                                                        backgroundColor: "rgba(28,28,28,0.78)",
+                                                                        borderRadius: "4px",
+                                                                    }}>
 
-                                                                {effect}
-                                                            </Button>
-                                                        ))
-                                                    }
-                                                </Box>
-                                            }
-                                        </Box>
-                                    </Box>
-                                }
-                                {babylonReady && babylonReady && <BabylonLayer
-                                    currentBeatCountToDisplay={{currentBeatCountToDisplay}}
-                                    bpm={bpm}
-                                    handleUpdateSliderVal={handleUpdateSliderVal}
-                                    fxKnobsCount={fxKnobsCount}
-                
+                                                                    {
+                                                                        selectedEffects.map((effect: any) => (
+                                                                            <Button
+                                                                                key={`checkedEffect_${effect}`}
+                                                                                onClick={handleViewEffect}
+                                                                                value={
+                                                                                    effect.split("_")[1]
+                                                                                }
+                                                                                sx={{
+                                                                                    backgroundColor: NEON_PINK,
+                                                                                    color: "white",
+                                                                                    fontSize: "14px",
+                                                                                    marginTop: "4px",
+                                                                                    marginBottom: "4px",
+                                                                                }}
+                                                                            >
 
-                                    effects={currentFX.current}
-                                    visibleFXKnobs={visibleFXKnobs.current}
-                                    chuckUpdateNeeded={chuckUpdateNeeded}
-                                    chuckHook={chuckHook}
-                                    hasHexKeys={hasHexKeys}
-                                    showFX={{ showFX }}
-                                    programIsOn={programIsOn}
-                                    microTonalArr={newMicroTonalArr}
-                                    updateHasHexKeys={updateHasHexkeys}
-                                    fxRadioValue={fxRadioValue || "osc1"}
-                                />}
-                                </Box>
-                                }</Box>
+                                                                                {effect}
+                                                                            </Button>
+                                                                        ))
+                                                                    }
+                                                                </Box>
+                                                            }
+                                                        </Box>
+                                                    </Box>
+                                                }
+                                                {babylonReady && babylonReady && <BabylonLayer
+                                                    currentBeatCountToDisplay={currentBeatCountToDisplayRef.current}
+                                                    bpm={bpm}
+                                                    handleUpdateSliderVal={handleUpdateSliderVal}
+                                                    fxKnobsCount={fxKnobsCount}
+
+
+                                                    effects={currentFX.current}
+                                                    visibleFXKnobs={visibleFXKnobs.current}
+                                                    chuckUpdateNeeded={chuckUpdateNeeded}
+                                                    chuckHook={chuckHook}
+                                                    hasHexKeys={hasHexKeys}
+                                                    showFX={{ showFX }}
+                                                    programIsOn={programIsOn}
+                                                    microTonalArr={newMicroTonalArr}
+                                                    updateHasHexKeys={updateHasHexkeys}
+                                                    fxRadioValue={fxRadioValue || "osc1"}
+                                                />}
+                                            </Box>
+                                    }</Box>
 
                                 {/* LEFT CONTAINER */}
-                                <Box 
+                                <Box
                                     // sx={{
                                     //     borderRight: `solid 1px ${HERITAGE_GOLD}`
                                     // }}
@@ -3249,10 +3580,10 @@ export default function InitializationComponent() {
                                         universalSources={universalSources.current}
                                         vizSource={vizSource}
                                         stkValues={stkValues}
-                                        currentBeatCountToDisplay={currentBeatCountToDisplay}
-                                        currentNumerCountColToDisplay={currentNumerCountColToDisplay}
-                                        currentDenomCount={currentDenomCount}
-                                        currentPatternCount={currentPatternCount}
+                                        currentBeatCountToDisplay={currentBeatCountToDisplayRef.current}
+                                        // currentNumerCountColToDisplay={currentNumerCountColToDisplay}
+                                        // currentDenomCount={currentDenomCount}
+                                        currentPatternCount={currentPatternCountRef.current}
                                         updateHasHexKeys={updateHasHexkeys}
                                         handleFormat={handleFormat}
                                         setStkValues={setStkValues}
@@ -3269,7 +3600,7 @@ export default function InitializationComponent() {
                                         denominatorSignature={denominatorSignature}
                                     />}
 
-                                    <FileManager 
+                                    <FileManager
                                         handleSubmit={handleSubmit}
                                         onSubmit={onSubmit}
                                         chuckHook={chuckHook}
@@ -3287,18 +3618,20 @@ export default function InitializationComponent() {
                                                 flexDirection: "row",
                                                 paddingTop: "12px",
                                                 justifyContent: "center",
-                                                alignItems: "center",                                             
+                                                alignItems: "center",
                                             }}>
                                                 <BPMModule
                                                     bpm={bpm}
                                                     setBpm={setBpm}
                                                     beatsNumerator={beatsNumerator}
-                                                    beatsDenominator={beatsDenominator} 
+                                                    beatsDenominator={beatsDenominator}
                                                     setChuckUpdateNeeded={setChuckUpdateNeeded}
-                                                    setBeatsNumerator={setBeatsNumerator} 
-                                                    setBeatsDenominator={setBeatsDenominator} 
-                                                    setNumeratorSignature={setNumeratorSignature} 
-                                                    setDenominatorSignature={setDenominatorSignature}                                                    
+                                                    // setBeatsNumerator={setBeatsNumerator} 
+                                                    // setBeatsDenominator={setBeatsDenominator} 
+                                                    // setNumeratorSignature={setNumeratorSignature} 
+                                                    // setDenominatorSignature={setDenominatorSignature} 
+                                                    handleChangeBeatsNumerator={handleChangeBeatsNumerator}
+                                                    handleChangeBeatsDenominator={handleChangeBeatsDenominator}
                                                 />
                                             </Box>
                                         )
@@ -3316,13 +3649,13 @@ export default function InitializationComponent() {
                                             setStkValues={setStkValues}
                                         ></STKManagerDropdown>
                                     </Box>
-        
+
                                     <Box sx={{ position: "relative" }}>
                                         <Box sx={{
                                             position: 'relative',
                                             color: 'rgba(255,255,255,0.78)',
                                         }}>
-            
+
                                             <FXRouting
                                                 key={fXChainKey + fxRadioValue}
                                                 fxData={universalSources.current || defaultSources}
@@ -3365,7 +3698,7 @@ export default function InitializationComponent() {
                         // background: 'yellow',
                         pointerEvents: keysVisible ? 'none' : 'auto'
                     }}
-                >                                        
+                >
                     <KeyboardControls
                         selectRef={selectRef}
                         tune={tune}

@@ -463,6 +463,7 @@ export const getSTK2Preset = (stkVal: string) => {
 }
 
 export const getFX1Preset = (fxVal: string) => {
+    console.log("FX VAL::: ", fxVal);
     const theFX1Fx = [];
     // if (fxVal === 'mod') {
     //     theFX1Fx.push({
@@ -603,6 +604,11 @@ export const getFX1Preset = (fxVal: string) => {
         });
     } 
     else if (fxVal === 'pittrack') {
+        console.log("YA HERE!!! ", {
+            presets: pitchTrackPresets,
+            type: stkIdentifierPitchTrack, //
+            var: stkVariablePitchTrack
+        })
         theFX1Fx.push({
             presets: pitchTrackPresets,
             type: stkIdentifierPitchTrack, //

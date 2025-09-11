@@ -1,6 +1,281 @@
 import { useEffect } from "react";
 import { HID } from "webchuck";
 import { audioInHelperString } from "./audioInHelper";
+import { Sources } from "@/types/audioTypes";
+import { universalSources } from "@/app/state/refs";
+
+
+
+
+
+export function buildSourceData(sourceName: keyof typeof universalSources.current) {
+  const src: any = universalSources.current?.[sourceName];
+  if (!src?.effects) {
+    return {
+      signalChain: [],
+      signalChainDeclarations: [],
+      valuesReadout: {},
+      valuesReadoutDeclarations: {}
+    };
+  }
+
+  const active = Object.values(src.effects).filter((fx: any) => fx.On);
+
+  const signalChain: any = [];
+  const signalChainDeclarations: any = [];
+  const valuesReadout: Record<string, any> = {};
+  const valuesReadoutDeclarations: Record<string, any> = {};
+
+  active.forEach((fx: any) => {
+    // e.g. "bitcrusher_sampler"
+    const varName = `${fx.VarName}_${sourceName}`;
+
+    // chain wiring
+    signalChain.push(fx.Type.toLowerCase());               // "bitcrusher"
+    signalChain.push(`${varName} => `);                    // "bitcrusher_sampler =>"
+
+    // declaration
+    signalChainDeclarations.push(`${fx.Type.toLowerCase()} => dac;`);
+    signalChainDeclarations.push(`${fx.Type} ${varName};`);
+
+    // presets into valuesReadout + valuesReadoutDeclarations
+    valuesReadout[fx.Type.toLowerCase()] = {};
+    valuesReadoutDeclarations[fx.Type.toLowerCase()] = {};
+
+    Object.entries(fx.presets).forEach(([param, preset]: [string, any]) => {
+      const assignLine = `allFXDynamic${preset.kind}[\"${varName}_${param}\"] => ${varName}.${param};`;
+      valuesReadout[fx.Type.toLowerCase()][param] = assignLine;
+
+      const getterLine = `(${preset.value}) => allFXDynamic${preset.kind}[\"${varName}_${param}\"];`;
+      valuesReadoutDeclarations[fx.Type.toLowerCase()][param] = getterLine;
+    });
+  });
+
+  return {
+    signalChain,
+    signalChainDeclarations,
+    valuesReadout,
+    valuesReadoutDeclarations
+  };
+}
+
+
+
+export function getAllSignalData() {
+  if (!universalSources.current) return {};
+
+  const makeData = (src: any) => {
+    if (!src?.effects) {
+      return {
+        signalChain: [],
+        signalChainDeclarations: [],
+        valuesReadout: {},
+        valuesReadoutDeclarations: {}
+      };
+    }
+
+    const active = Object.values(src.effects).filter((fx: any) => fx.On);
+
+    return {
+      signalChain: active.map((fx: any) => fx.VarName),
+      signalChainDeclarations: active.map((fx: any) => `${fx.VarName} => dac;`), // example
+      valuesReadout: Object.fromEntries(
+        active.map((fx: any) => [fx.VarName, fx.presets])
+      ),
+      valuesReadoutDeclarations: Object.fromEntries(
+        active.map((fx: any) => [fx.VarName, Object.keys(fx.presets)])
+      )
+    };
+  };
+
+  return {
+    osc1: makeData(universalSources.current.osc1),
+    stk: makeData(universalSources.current.stk1),
+    sampler: makeData(universalSources.current.sampler),
+    audioin: makeData(universalSources.current.audioin)
+  };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export async function applyPresetValue(
+    chuckRef: React.MutableRefObject<any>,
+    fx: any,
+    preset: any,
+    varName: string,
+    readoutMap: Record<string, string>,
+    readoutDeclMap: Record<string, string>
+) {
+
+    if (!preset || typeof preset.type !== "string" || typeof preset.name !== "string") return;
+
+    const t = preset.type;
+    const isDur = t.includes("dur");
+
+    console.log("blammmm ", preset);
+
+    if (t.includes("int")) {
+        const placeHolder = `allFXDynamicInts["${varName}_${preset.name}"]`;
+        const latestValue = `${placeHolder} => ${varName}.${preset.name};`;
+        if (!fx.Code) {
+            readoutMap[preset.name] = latestValue;
+            readoutDeclMap[preset.name] =
+                `(${preset.value})${preset.type.includes("dur") ? "::ms" : ""} => ${placeHolder};`;
+        }
+        await chuckRef.current?.setAssociativeIntArrayValue(
+            "allFXDynamicInts", `${varName}_${preset.name}`, preset.value
+        );
+    } else if (preset.type.includes("float")) {
+        const placeHolder = `allFXDynamicFloats["${varName}_${preset.name}"]`;
+        const latestValue = `${placeHolder} => ${varName}.${preset.name};`;
+        if (!fx.Code) {
+            readoutMap[preset.name] = latestValue;
+            readoutDeclMap[preset.name] =
+                `(${preset.value})${preset.type.includes("dur") ? "::ms" : ""} => ${placeHolder};`;
+        }
+        await chuckRef.current?.setAssociativeFloatArrayValue(
+            "allFXDynamicFloats", `${varName}_${preset.name}`, preset.value
+        );
+    }
+    console.log("@@ Applying preset:", preset, "to variable:", varName, "with type:", t, "readoutMap:", readoutMap, "readoutDeclMap:", readoutDeclMap);
+}
+
+// export const createEmptyTargets: any = () => ({
+//     signalChain: [],
+//     signalChainDeclarations: [],
+//     valuesReadout: {},
+//     valuesReadoutDeclarations: {}
+// });
+
+export type SignalChainTargets = {
+  signalChain: string[];
+  signalChainDeclarations: string[];
+  valuesReadout: string[];
+  valuesReadoutDeclarations: string[];
+};
+
+export function createEmptyTargets(): SignalChainTargets {
+  return {
+    signalChain: [],
+    signalChainDeclarations: [],
+    valuesReadout: [],
+    valuesReadoutDeclarations: []
+  };
+}
+
+
+
+
+
+
+
+
+export async function processSourceFX(
+  sourceKey: keyof Sources,
+  fxList: any[],
+  chuckRef: any,
+  fxRadioValue: string,
+  targets: SignalChainTargets,
+  universalSources: Sources | undefined
+) {
+  for (const fx of fxList) {
+    // console.log("SANITY FXFX: ", fx);
+    const type = fx.Type;
+    // const varName = `${fx.VarName}_${fxRadioValue}`;
+    const varName = `${fx.VarName}_${sourceKey}`;
+    const isArrayEffect = ['Delay', 'DelayL', 'DelayA'].includes(type);
+
+    const ANALYZERS = new Set([
+        "PitchTrack", "Centroid", "FFT", "RMS", "ZeroX" // extend as needed
+    ]);
+
+    console.log("THE HELL IS TARGETS? ", targets);
+
+    // --- NEW: analyzer guard
+    if (ANALYZERS.has(type)) {
+      const decl = `${type} ${varName}; ${varName} => blackhole; `;
+      if (!targets.signalChainDeclarations.includes(decl)) {
+        targets.signalChainDeclarations.push(decl);
+      }
+      // analyzers don't get presets applied the same way; skip applyPresetValue
+      continue;
+    }
+
+    // const lines = isArrayEffect ? (fx.presets?.lines?.value ?? 1) : undefined;
+
+
+    let addedEffect: any = isArrayEffect
+      ? `${type} ${varName}[${fx.presets.lines.value || 1}] => `
+      : `${varName} => `;
+
+    const addedEffectDeclaration = isArrayEffect
+      ? `${type} ${varName}[${fx.presets.lines.value || 1}]; `
+      : `${type} ${varName}; `;
+
+
+    console.log("fxRadioValue: ", fxRadioValue, "fx.VarName: ", fx.VarName, "varName: ", varName);
+
+    console.log("** ADDED EFFECT: ", addedEffect);
+    console.log("** ADDED EFFECT DECLARATION: ", addedEffectDeclaration);
+    console.log("** targets prior: ", targets);
+    console.log("** FX ???? ", fx);
+
+    // if(addedEffect.split(" ").length > 1 && addedEffect.split(" ")[0].includes('Delay')) {
+    //     addedEffect = addedEffect?.split(" ").shift()?.toString();
+    // }
+    if (
+        !Object.values(targets.signalChain).toString().includes(addedEffect) && 
+        universalSources && universalSources[sourceKey] && Object.values(universalSources[sourceKey].effects).filter(i => i.On && i.VarName === fx.VarName).length > 0 &&
+        targets.signalChain.indexOf(addedEffect) === -1
+    ) {
+      targets.signalChain.push(addedEffect);
+    }
+
+    if (
+        !Object.values(targets.signalChainDeclarations).toString().includes(addedEffectDeclaration) &&
+        universalSources && universalSources[sourceKey] && Object.values(universalSources[sourceKey].effects).filter(i => i.On && i.VarName === fx.VarName).length > 0 &&
+        targets.signalChainDeclarations.indexOf(addedEffectDeclaration) === -1
+    ) {
+      targets.signalChainDeclarations.push(addedEffectDeclaration);
+    }
+
+    for (const preset of Object.values(fx.presets)) {
+
+        if (universalSources && universalSources[sourceKey] && Object.values(universalSources[sourceKey].effects).filter(i => i.On && i.VarName === fx.VarName).length === 0) {
+            console.log("SKIPPING PRESET APPLICATION FOR ", fx.VarName, " AS IT IS TURNED OFF");
+            continue;
+        }
+
+      try {
+        await applyPresetValue(
+          chuckRef,
+          fx,
+          preset,
+          varName,
+        //   targetsRef.current.osc1.valuesReadout as any,
+          targets.valuesReadout as any,
+          targets.valuesReadoutDeclarations as any
+        );
+      } catch (err) {
+        console.error(`applyPresetValue failed for ${varName}:`, err);
+      }
+    }
+    console.log("OY TARGETS SANITY??? ", targets);
+  }
+}
+
+
 
 export const getChuckCode = (
     isTestingChord: number | undefined,
@@ -42,36 +317,16 @@ export const getChuckCode = (
 
     // console.log("HID? ", hid);
     console.log("JUST PRIOR TO CHUCK HERE IS selectedChordScaleOctaveRange: ", selectedChordScaleOctaveRange);
-    
-
-    // ** WHY IS MTFREQ NEEDED???  These 2 seem fine but they also don't arrange freq data in object-like manner needed by sequencer... 
-    // console.log("JUST PRIOR TO CHUCK HERE IS mTFreqs: ", mTFreqs);
-    // console.log("MAX MINNING! ", maxMinFreq, mTFreqs.filter((f: any) => f >= parseFloat(maxMinFreq.minFreq) && f <= parseFloat(maxMinFreq.maxFreq)) )
-
-    
-    console.log("MASTER FASTEST RATE IS ", masterFastestRate);
-    console.log("HEY_YO FILES ARRAY! ", filesArray);
-
-    // console.log("COULD THIS BE??? ",  Object.values(masterPatternsRef.current).map((i: any) => i.note))
-    
+    console.log("MASTER FASTEST RATE: ", masterFastestRate);
+    console.log("HEY_YO FILES ARRAY! ", filesArray);    
     console.log("SANITY NOTESHOLDER: ", notesHolder.current);
-    // console.log("GARRRR ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i).map( (i:any) => i.note )));
-
-    // console.log("CHECK SIGNAL CHAIN, EFFECTS READOUTS, and STK SETUP: ", signalChain, signalChainSTK, valuesReadout, valuesReadoutSTK, activeSTKDeclarations, activeSTKSettings);
- 
     console.log("VALS DECLARATIONS: ", valuesReadoutDeclarations);
-
     console.log("MASTERPATTERNSREF IN CHUCK HELPER: ", Object.values(masterPatternsRef.current));
-
-    console.log("MASTERFASTEST RATE: ", masterFastestRate);
-
-    
 
     const beatInMilliseconds = ((60000 / bpm));
 
     console.log("BEAT LENGTH IN MILLISECONDS >>> ", beatInMilliseconds);
 
-    
     type NoteEvent = {
         freq: number;
         startTime: number; // in beats or seconds
@@ -79,39 +334,14 @@ export const getChuckCode = (
         velocity: number;
     };
       
-    console.log("*STK SANITY 1 -- declarations ", activeSTKDeclarations);
-    console.log("*STK SANITY 2 -- settings ", activeSTKSettings);
 
-    console.log("&* VALUES READOUT TEST ", valuesReadout);
-    console.log("&* VALUES DECALRATIONS TEST ", valuesReadoutDeclarations);
-    console.log("&* GET SOURCE TEST ",getSourceFX('osc1'));
-    console.log("AYE! SANITY: ", Object.values(masterPatternsRef.current).map((i: any) =>  Object.values(i)));
-    // console.log("*STK SANITY 3 -- playOn ", activeSTKPlayOn);
-    // console.log("*STK SANITY 4 -- playOff ", activeSTKPlayOff);
 
     const masterPatternsObj = (Object.values(masterPatternsRef.current).map((i:any)=>Object.values(i))[0])[0];
     // const masterPatternsStr = JSON.stringify(masterPatternsObj);
     console.log("MASTER PATTERNS OBJ ", masterPatternsObj);
 
 
-
-    console.log("OH MAN -- STK TO FIX: ", 
-        Object.values(valuesReadout).map((value: any) => value).join(' '),
-        Object.values(valuesReadoutSampler).map((value: any) => value).join(' '),
-        Object.values(valuesReadoutSTK).map((value: any) => value).join(' '),
-        Object.values(valuesReadoutAudioIn).map((value: any) => value).join(' ')
-    );
-
-
-
-
-
-
-
-
-
-
-
+    console.log("LALALA ", Object.values(valuesReadout).map((value: any) => value).join(' '));
 
     const newChuckCode = `
     
@@ -150,6 +380,9 @@ export const getChuckCode = (
     global int stkInstsInUse;
     global float allFXDynamicFloats[0];
     global float allSTKFXDynamicFloats[0];
+    // global float beatMS;
+    // global int numeratorSignature;
+    // global int denominatorSignature;
 
     ${beatInMilliseconds} => global float beatMS; 
 
@@ -302,9 +535,9 @@ export const getChuckCode = (
         // 0.8 => limiter.thresh; // can we hardcode these???
         
         // rethink volume when creating a master panel....
-        0.18 => saw1.gain => saw2.gain;
-        0.18 => tri1.gain => tri2.gain;
-        0.18 => sqr1.gain => sqr2.gain;
+        0.04 => saw1.gain => saw2.gain;
+        0.03 => tri1.gain => tri2.gain;
+        0.03 => sqr1.gain => sqr2.gain;
 
         // ${moogGrandmotherEffects.current.cutoff.value} => float filterCutoff; // again... why hardcode this???
         // filterCutoff => lpf.freq;
@@ -488,15 +721,9 @@ export const getChuckCode = (
             }
             (amount / 100) * 5000 => filterCutoff;
             ////////////////////////////////////////////////////////
-            // is this fix ok?
-            // 10::ms => now;
-            //   whole/4 => now;
-            // if (arpeggiatorOn == 1) {
-                // (whole)/numVoices - (now % (whole)/numVoices) => now;
-                beat => now;
-            // } else {
-            //     (whole) - (now % (whole)) => now;
-            // } 
+
+                (beatMS)::ms => now;
+
             ////////////////////////////////////////////////////////
         }
 
@@ -658,54 +885,45 @@ export const getChuckCode = (
 
     fun void handlerFXUpdate(Event fxUpdatez) {
         fxUpdatez => now;
-        // while (true) {
-            // fxUpdate => now;
-            string keys[0];
-            allFXDynamicInts.getKeys(keys);
-            for( auto key : keys )
-            {
-            <<< "KEY_VAL1", key, allFXDynamicInts[key] >>>;
-            }
 
-                   ${Object.values(valuesReadout).map((value: any) => value).join(' ')}
-                   ${Object.values(valuesReadoutSampler).map((value: any) => value).join(' ')}
-                   ${Object.values(valuesReadoutSTK).map((value: any) => value).join(' ')}
-                   ${Object.values(valuesReadoutAudioIn).map((value: any) => value).join(' ')}
+        string keys[0];
+        allFXDynamicInts.getKeys(keys);
 
-        // }
+        ${Object.values(valuesReadout).map((value: any) => value).join(' ')}
+        ${Object.values(valuesReadoutSampler).map((value: any) => value).join(' ')}
+        ${Object.values(valuesReadoutSTK).map((value: any) => value).join(' ')}
+        ${Object.values(valuesReadoutAudioIn).map((value: any) => value).join(' ')}
+
     }
 
 
 
 
-    fun void playProgrammaticNote(int tickCount, float noteLength) {
-
-        midiNotesArray[tickCount] => float midiNotesToPlay;
-        midiFreqsArray[tickCount] => float midiFreqsToPlay;
-        midiLengthsArray[tickCount] => float midiLengthsToPlay;
-        midiVelocitiesArray[tickCount] => float midiVelocitiesToPlay;
+    fun void playProgrammaticNote(int tickCount, float noteLength, float noteFreqs, float noteVels) {
 
         // <<< "PLAYING PROGRAMMATIC NOTE AT TICK",  "${Object.values(masterPatternsRef.current).map((i: any) => Object.values(i).map((j:any) => Object.keys(j).toString())) }" >>>;
         
         
         // WORK OUT BETTER WAY THAN NUMVOICES 
         
-        for (0 => int i; i < numVoices; i++) {
+        // for (0 => int i; i < numVoices; i++) {
             
-            if (midiNotesToPlay != 9999.0 && midiFreqsToPlay > 0.0) {
+            if (noteFreqs != 9999.0 && noteFreqs > 0.0) {
                 // adsr.keyOn(1);
                 1 => adsr.keyOn; 
-                midiFreqsToPlay => voice[i].keyOn;
+                noteFreqs => voice[0].keyOn;
+                // noteVels => voice[0].gain;
 
-                // midiLengthsToPlay * (beat * numeratorSignature) => now;
                 <<< "PROGLEN: ", (beatMS * noteLength) >>>;
                 (beatMS * noteLength)::ms => dur noteDur;
                 noteDur => now;
-                1 => voice[i].keyOff;
+                1 => voice[0].keyOff;
+            } else {
+                (beatMS * noteLength)::ms => dur noteDur;
+                noteDur => now;
             }
 
-            // <<< "PLAYING PROGRAMMATIC NOTE AT TICK", tickCount, midiNotesToPlay, midiFreqsToPlay, midiLengthsToPlay, midiVelocitiesToPlay, (midiLengthsToPlay * (beat * numeratorSignature) ), midiLengthsArray.size() >>>;
-        }
+        // }
     }
 
     voice[numVoices - 1] => STK_EffectsChain stk_FxChain => Dyno stk1_Dyno => dac;
@@ -745,39 +963,35 @@ export const getChuckCode = (
             <<< "TICK TEST for NOTES: ", notesArr[x] >>>;
         }  
 
-        while (true) {
+        // while (true) {
 
 
-            string keys[0];
-            allFXDynamicInts.getKeys(keys);
-            for( auto key : keys )
-            {
-                <<< "KEY_VAL2", key, allFXDynamicInts[key] >>>;
+        //     string keys[0];
+        //     allFXDynamicInts.getKeys(keys);
+        //     for( auto key : keys )
+        //     {
+        //         <<< "KEY_VAL2", key, allFXDynamicInts[key] >>>;
 
-            }
+        //     }
 
 
-            
-            // *** TURN BACK ON LINE BELOW (AUG 15 2025)???
-            // playANote => now;
 
-            // <<< "NOTES_ARR ", notesArr.string() >>>; 
 
-            for (0 => int j; j < notesArr.size() && j < numVoices; j++) {
+        //     for (0 => int j; j < notesArr.size() && j < numVoices; j++) {
  
-                if (notesArr[j] > 0.00 && notesArr[j] != 9999.0) {
-                    // notesArr[j] => voice[j].keyOn;
-                    // if (arpeggiatorOn == 1) {
-                    //     beat => now;
-                    // }
-                    // voice[j].keyOff(1);
-                }
-            }
-            if (arpeggiatorOn == 0) {
-                // beat / ${masterFastestRate} => now;
-                beat => now;
-            }
-        }         
+        //         if (notesArr[j] > 0.00 && notesArr[j] != 9999.0) {
+        //             // notesArr[j] => voice[j].keyOn;
+        //             // if (arpeggiatorOn == 1) {
+        //             //     beat => now;
+        //             // }
+        //             // voice[j].keyOff(1);
+        //         }
+        //     }
+        //     if (arpeggiatorOn == 0) {
+        //         // beat / ${masterFastestRate} => now;
+        //         beat * 8 => now;
+        //     }
+        // }         
     }
 
 
@@ -856,8 +1070,10 @@ export const getChuckCode = (
 
 
             (beatMS)::ms => dur durStep;
+
             
-            0.15 / numVoices => voice[i].gain;
+            
+            0.05 / numVoices => voice[i].gain;
             // 1.0 => adsr.gain;
 
             adsr.set(durStep * moogGMDefaults["adsrAttack"], durStep * moogGMDefaults["adsrDecay"], moogGMDefaults["adsrSustain"], durStep * moogGMDefaults["adsrRelease"]);
@@ -908,14 +1124,21 @@ export const getChuckCode = (
         }
         <<< "SHREDCOUNT: ", Machine.numShreds(), recurringTickCount >>>;
  
+        
 
         if (now >= startTimeMeasureLoop + step) {
             
-            <<< "TICK:", fastestTickCounter >>>;
+            <<< "TICK:", fastestTickCounter, "RTC: ", recurringTickCount >>>;
        
             tickCounter + 1 => tickCounter;
-            if (midiLengthsArray.size() > 0) {
-                spork ~ playProgrammaticNote(recurringTickCount, midiLengthsArray[recurringTickCount] );    
+
+            if (midiLengthsArray.cap() > 0) {
+                spork ~ playProgrammaticNote(
+                    recurringTickCount, 
+                    midiLengthsArray[recurringTickCount],
+                    midiFreqsArray[recurringTickCount],
+                    midiVelocitiesArray[recurringTickCount]
+                );    
                 spork ~ handlerPlaySTK1(recurringTickCount, midiLengthsArray[recurringTickCount]);
             }
             spork ~ handlePlayDrumMeasure(recurringTickCount);
@@ -950,18 +1173,6 @@ export const getChuckCode = (
     `;
     return newChuckCode;
 }
-
-// export const noteToFreq = (note: string, octave: number): number => {
-//     const names = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-//     const i = names.indexOf(note.toUpperCase());
-//     if (i === -1) {
-//         throw new Error(`Invalid note name: ${note}`);
-//     }
-
-//     const midi = (octave + 1) * 12 + i; // MIDI number
-//     const freq = 440 * Math.pow(2, (midi - 69) / 12); // Convert MIDI to Hz
-//     return freq;
-// };
 
 export const noteToFreq = (note: string, octave: number): number => {
   const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];

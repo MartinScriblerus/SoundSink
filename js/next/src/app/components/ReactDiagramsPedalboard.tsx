@@ -12,26 +12,31 @@ import { Box, useTheme } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 import React from 'react';
 import { HERITAGE_GOLD, OBERHEIM_TEAL } from '@/utils/constants';
+import { getConvertedRadio } from '@/utils/utils';
 
 type PedalboardProps = {
+    universalSources: React.MutableRefObject<any>;
     currentChain: any;
     sourceName: string;
     width: number;
     height: number;
+    handleCheckedEffectsToShow: (e: any) => void;
+    getNewFX: (fxName: string) => void;
 };
 
 const ReactDiagramsPedalboard = (props: PedalboardProps) => {
-    const {currentChain, sourceName, width, height} = props;
+    const {universalSources, currentChain, sourceName, width, height, handleCheckedEffectsToShow, getNewFX} = props;
 
     const theme = useTheme();
 
     const engine = useMemo(() => {
+
         const engine = createEngine();
 
-        // intermediate connector nodes
         
         const getNewNodes = ((source: string, nodeVarNames: string[]) => {
-            const userAddedNodeNames = nodeVarNames.filter(nodeName => !nodeName.includes('source') && !nodeName.includes('outlet'));
+
+            const userAddedNodeNames = nodeVarNames.filter((nodeName: any) => typeof nodeName === 'string' && nodeName.indexOf(source) === -1 && nodeName.indexOf('outlet') === -1);
             const nodesArr = [
                 {
                     id: `${sourceName}_source`,
@@ -82,14 +87,21 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         });
         // node2.setPosition(140, 280);
         node2.setPosition(width - 100, 48);
-        
+
+        console.log("CURRENT CHAIN**: ", currentChain, sourceName );
         const newNodesFodder = currentChain && currentChain.length > 0 ? getNewNodes(sourceName, currentChain) : [];
         const newNodes: any = [];
         const newLinks: any = [];
 
+        console.log("NODES FODDER: ", newNodesFodder);
+
         // Add nodes to the engine
         newNodesFodder.forEach((node: any, idx: number) => {
             if (node.id.includes("_source") || node.id.includes("_outlet")) return;
+            handleCheckedEffectsToShow({target: {value: node.id}}); 
+
+            console.log("ADDING NODE: ", node.id);
+
             const newNode = new DefaultNodeModel({
                 name: `${node.id}_${sourceName}`,
                 color: HERITAGE_GOLD,
@@ -105,11 +117,29 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         const initialLink = portOut_Inlet.link<DefaultLinkModel>(portIn_Outlet);
         
         newNodes.length > 0 && newNodes.map((newNode: DefaultNodeModel, idx: number) => {
+
+            newNode.registerListener({
+                selectionChanged: () => {
+                    console.log("IDX ", idx)
+                    const nm: any = newNode.getOptions().name;
+                    getNewFX(nm);
+                    console.log("NODE SELECTED: ", newNode.getOptions().name, newNode);
+                }
+            });
+
             if (idx > 0) {
                 const previousNode = newNodes[idx - 1];
                 const currentNode = newNodes[idx];
+
                 const outgoingPort = previousNode.getPort('Out') as DefaultPortModel || previousNode.addOutPort('Out') as DefaultPortModel;
                 const incomingPort = currentNode.getPort('In') as DefaultPortModel || currentNode.addInPort('In') as DefaultPortModel;
+
+                console.log("AYAYAY CURRENT NODE: ", currentNode);
+
+                
+
+                handleCheckedEffectsToShow({target: {value: currentNode}});
+
                 if (outgoingPort && incomingPort) {
                     const link = outgoingPort.link<DefaultLinkModel>(incomingPort);
                     newLinks.push(link);
@@ -138,6 +168,7 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         const model = new DiagramModel();
         model.addAll(node1, node2, ...newNodes, initialLink, ...newLinks);
         engine.setModel(model);
+        
         return engine;
     }, [currentChain, sourceName, width, height]);
 

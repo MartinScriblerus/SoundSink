@@ -48,13 +48,13 @@ const InsetCheckboxDropdown = ({
     files.forEach((f: any) => {
       if (options.options && options.options.map((o: any) => o.value).indexOf(f) === -1) {
         options.options.push({ value: f, label: f });
+        console.log("^^ file options: ", options);
       }
     });
-    console.log("^^ file options: ", options);
     setOptionsHook(options.options);
 
     const preSelOpts = fileNumsPreselected && Array.from(fileNumsPreselected).length > 0 && Array.from(fileNumsPreselected).map((i: any) => options.options[i]);
-    console.log("^^ preSelOpts: ", preSelOpts);
+    // console.log("^^ preSelOpts: ", preSelOpts);
     preSelOpts &&  preSelOpts.length && setSelectedOptions(preSelOpts);
   }, [files, files.length, fileNumsPreselected])
 

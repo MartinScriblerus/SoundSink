@@ -1,4 +1,4 @@
-import React, { SetStateAction, useRef } from 'react';
+import React, { SetStateAction, useEffect, useRef } from 'react';
 import { Box, useTheme } from '@mui/system';
 import FXCheckboxLabels from './FXCheckboxes';
 import { STKOption } from '@/utils/fixedOptionsDropdownData';

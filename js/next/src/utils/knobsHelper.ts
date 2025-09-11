@@ -59,6 +59,8 @@ export const updateCheckedFXList = async (
         setCheckedEffectsListHook((x: any) => [...x, e.target.value]);
     } else {
         doReturnToSynth.current = true;
+        console.log("IN THE ELSE OF UPDATE CHECKED FX LIST />>> what is checkedFXList.current?: ", checkedFXList.current)
+        console.log("E TARGET VALUE IN ELSE OF UPDATE CHECKED FX LIST: ", e.target.value);
         console.log("returning to synth in the else...");
         const index = checkedFXList.current.indexOf(e.target.value);
         checkedFXList.current.splice(index, 1);

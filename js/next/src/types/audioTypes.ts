@@ -221,7 +221,7 @@ export type Effects = {
     PowerADSR: EffectsSettings;
     KasFilter: EffectsSettings;
     Multicomb: EffectsSettings;
-    PitchTracker: EffectsSettings;
+    PitchTrack: EffectsSettings;
     Sigmund: EffectsSettings;
     SndBuf: EffectsSettings;
     LiSa: EffectsSettings;

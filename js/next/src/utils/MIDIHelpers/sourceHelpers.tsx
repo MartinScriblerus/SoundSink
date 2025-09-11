@@ -574,7 +574,7 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            PitchTracker: {
+            PitchTrack: {
                 VarName: '',
                 On: false,
                 Declaration: '',
@@ -971,7 +971,7 @@ export const defaultSources: Sources = {
                             ConnectionIn: [],
                             ConnectionOut: []
                         },
-                        PitchTracker: {
+                        PitchTrack: {
                             VarName: '',
                             On: false,
                             Declaration: '',
@@ -1546,7 +1546,7 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            PitchTracker: {
+            PitchTrack: {
                 VarName: '',
                 On: false,
                 Declaration: '',
@@ -1931,7 +1931,7 @@ export const defaultSources: Sources = {
                 ConnectionIn: [],
                 ConnectionOut: []
             },
-            PitchTracker: {
+            PitchTrack: {
                 VarName: '',
                 On: false,
                 Declaration: '',

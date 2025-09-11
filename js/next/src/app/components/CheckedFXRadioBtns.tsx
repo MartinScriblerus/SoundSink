@@ -5,7 +5,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import FormLabel from '@mui/material/FormLabel';
 import { Box, useTheme } from '@mui/material';
-import { CLAY_RUST } from '@/utils/constants';
+import { CORDUROY_RUST} from '@/utils/constants';
 
 interface Props {
     checkedEffectsListHook: Array<string> | any;
@@ -16,9 +16,9 @@ const CheckedFXRadioBtns = (props: Props) => {
     const {checkedEffectsListHook, handleCheckedFXToShow} = props;
     const theme = useTheme();
         
-    // useEffect(() => {
-    //     console.log("checked effects list hook: ", checkedEffectsListHook);
-    // }, [])
+    useEffect(() => {
+        console.log("checked effects list hook: ", checkedEffectsListHook);
+    }, [checkedEffectsListHook]);
 
     return (
         <Box sx={{position: 'relative'}}>
@@ -30,7 +30,7 @@ const CheckedFXRadioBtns = (props: Props) => {
                     name="row-radio-buttons-group-checkedFX"
                     onChange={handleCheckedFXToShow}
                     sx={{
-                        color: CLAY_RUST, 
+                        color: CORDUROY_RUST, 
                         zIndex: 9999, 
                         fontSize: '13px'
                     }}

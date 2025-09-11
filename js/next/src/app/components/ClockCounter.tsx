@@ -1,4 +1,5 @@
 import { Box, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
 
 type ClockCounterProps = {
     chuckHook: any;
@@ -7,11 +8,24 @@ type ClockCounterProps = {
     currentNumerCountColToDisplay: number;
     currentBeatCountToDisplay: number;
     numeratorSignature: number;
+    clockCounterKey: string;
 }
 const ClockCounter = (props: ClockCounterProps) => {
-    const { chuckHook, currentPatternCount, currentDenomCount, currentNumerCountColToDisplay, currentBeatCountToDisplay, numeratorSignature } = props;
-    
-    
+    const { chuckHook, currentPatternCount, currentDenomCount, currentNumerCountColToDisplay, currentBeatCountToDisplay, numeratorSignature, clockCounterKey } = props;
+
+    const [cpCount, setCpCount] = useState<number>(0);
+    const [cdCount, setCdCount] = useState<number>(0);
+    const [cnCount, setCnCount] = useState<number>(0);
+    const [cbCount, setCbCount] = useState<number>(0);
+
+    useEffect(() => {
+        setCpCount(currentPatternCount);
+        setCdCount(currentDenomCount);
+        setCnCount(currentNumerCountColToDisplay);
+        setCbCount(Math.floor(Math.ceil(currentBeatCountToDisplay / numeratorSignature)));
+    }, [
+        clockCounterKey
+    ])
     
     return (
         <Box
@@ -37,19 +51,20 @@ const ClockCounter = (props: ClockCounterProps) => {
             }}
             >
             <Typography sx={{ marginLeft: "12px", marginRight: "12px", fontSize: "24px !important" }}>
-                {currentPatternCount}
+                {cpCount}
             </Typography>
 
             <Typography sx={{ marginLeft: "12px", marginRight: "12px", fontSize: "24px !important" }}>
-                {currentDenomCount}
+                {cdCount}
             </Typography>
 
             <Typography sx={{ marginLeft: "12px", marginRight: "12px", fontSize: "24px !important" }}>
-                {currentNumerCountColToDisplay}
+                {cnCount}
             </Typography>
 
             <Typography sx={{ marginLeft: "12px", marginRight: "12px", fontSize: "24px !important" }}>
-                {Math.floor(Math.ceil(currentBeatCountToDisplay / numeratorSignature))}
+                {/* {Math.floor(Math.ceil(cbCount / numeratorSignature))} */}
+                {cbCount}
             </Typography>
             </Box>
         </Box>

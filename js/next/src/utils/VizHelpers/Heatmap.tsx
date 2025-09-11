@@ -9,7 +9,7 @@ type HeatmapProps = {
   isChuckRunning: boolean; 
   width: number;
   height: number;
-  currentNumerCount: number;
+  // currentNumerCount: number;
   handleOsc1RateUpdate: (val: any) => void;
   // handleOsc2RateUpdate: (val: any) => void;
   handleMasterFastestRate: (val: any) => void;
@@ -117,7 +117,7 @@ export const Heatmap = ({
   width, 
   height, 
   currentBeatSynthCount,
-  currentNumerCount,
+  // currentNumerCount,
   currentNoteVals,
   filesToProcess,
   handleOsc1RateUpdate,

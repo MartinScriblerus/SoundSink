@@ -15,10 +15,12 @@ const BPMModuleFun = (props: BPMModule) => {
         beatsNumerator,
         // handleChangeBeatsDenominator,
         setChuckUpdateNeeded,
-        setBeatsNumerator,
-        setBeatsDenominator,
-        setNumeratorSignature,
-        setDenominatorSignature,
+        // setBeatsNumerator,
+        // setBeatsDenominator,
+        // setNumeratorSignature,
+        // setDenominatorSignature,
+        handleChangeBeatsNumerator,
+        handleChangeBeatsDenominator,
         beatsDenominator,
     } = props;
     const theme = useTheme();
@@ -33,21 +35,22 @@ const BPMModuleFun = (props: BPMModule) => {
         setChuckUpdateNeeded(true);
     }
 
-    const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
-        if (newBeatsNumerator) {
-            setBeatsNumerator(Number(newBeatsNumerator));
-            setNumeratorSignature(Number(newBeatsNumerator));
-        }
-        setChuckUpdateNeeded(true);
-    }
+    // const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
+    //     console.log('@@@@ newBeatsNumerator: ', newBeatsNumerator)
+    //     if (newBeatsNumerator) {
+    //         setBeatsNumerator(Number(newBeatsNumerator));
+    //         setNumeratorSignature(Number(newBeatsNumerator));
+    //     }
+    //     setChuckUpdateNeeded(true);
+    // }
 
-    const handleChangeBeatsDenominator = (newDenominator: number) => {
-        if (newDenominator) {
-            setBeatsDenominator(Number(newDenominator));
-            setDenominatorSignature(Number(newDenominator));
-        }
-        setChuckUpdateNeeded(true);
-    }
+    // const handleChangeBeatsDenominator = (newDenominator: number) => {
+    //     if (newDenominator) {
+    //         setBeatsDenominator(Number(newDenominator));
+    //         setDenominatorSignature(Number(newDenominator));
+    //     }
+    //     setChuckUpdateNeeded(true);
+    // }
 
     return (
         <Box sx={{

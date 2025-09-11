@@ -252,15 +252,30 @@ export const Renderer = ({
   //   .domain([min, max]);
 
   // THE X AND Y HERE MAP ONTO THE X AND Y AXIS OF THE HEATMAP
-
+  const didSetupHeatmap = useRef<boolean>(false);
   // Build the rectangles
   const allShapes = data.map((d, i) => {
     const x = xScale(d.x);
     const y = yScale(d.y);
 
-    if (d.value === null || !x || !y) {
-      return;
+      // Hooks must be called unconditionally
+
+
+  useEffect(() => {
+    if (!currentXVal.current && !didSetupHeatmap.current) {
+      triggerEditPattern(null, 0);
+      didSetupHeatmap.current = true;
     }
+  }, []);
+
+  // Conditional rendering of JSX should happen AFTER hooks
+  if (d.value === null || !x || !y) {
+    return null; // better than `return;`
+  }
+
+    // if (d.value === null || !x || !y) {
+    //   return;
+    // }
 
     const getInstrumentName = (yVal: number) => {
       switch (yVal) {
@@ -289,20 +304,20 @@ export const Renderer = ({
       const el: any = e && e.length > 0 && Object.values(e.target)[1];
 
       inPatternEditMode(true);
-// samplesToTimeHMSS
+      // samplesToTimeHMSS
       const string: any = e && Object.values(e.target)[1] || null;
       // const isFill = e && el.id.includes("fill");
       const isFill = e && string && string.id && string.id.includes("fill");
-      
+
       // const vals = !e ? ["1","1"] : !isFill ? e.target.split("_") : el.id.replace("fill_", "").split("_");
-      const vals = !e || (string.length < 1) || (string && !string.id) ? ["1","1"] : !isFill ? string.id.split("_") : string.id.replace("fill_", "").split("_");
+      const vals = !e || (string.length < 1) || (string && !string.id) ? ["1", "1"] : !isFill ? string.id.split("_") : string.id.replace("fill_", "").split("_");
       const xVal = Number(num);
 
       const yVal = Number(vals[1]) || 1;
 
       clickHeatmapCell(xVal, yVal);
       const zVal = vals[2] || null;
-      
+
       xVal && yVal && resetCellSubdivisionsCounter(xVal, yVal);
       currentXVal.current = Number(xVal);
       currentYVal.current = Number(yVal);
@@ -310,8 +325,7 @@ export const Renderer = ({
       // console.log("GET IT!!! 2 ", currentXVal.current, currentYVal.current);
       // console.log("GET IT!!! 3 ", masterPatternsHashHook);
       cellData.current = { xVal: Number(xVal), yVal: Number(yVal), zVal: zVal, ...masterPatternsHashHook[`${Number(yVal)}`][`${Number(xVal)}`] }
-      
-      // !isChuckRunning && handleNoteLengthUpdate(e, cellData.current, );
+
       yVal && getInstrumentName(yVal);
       console.log("%cCELL DATA!!!!!: ", "color: green;", Number(yVal), Number(xVal), isFill, cellData.current);
       setShowPatternEditorPopup(true);
@@ -325,16 +339,16 @@ export const Renderer = ({
       }
     }
 
-  const didSetupHeatmap = useRef<boolean>(false);
+    // const didSetupHeatmap = useRef<boolean>(false);
 
-  useEffect(() => {
-  if (!currentXVal.current && !didSetupHeatmap.current) {
-    console.log("!!! ", didSetupHeatmap.current === false );
+    useEffect(() => {
+      if (!currentXVal.current && !didSetupHeatmap.current) {
+        console.log("!!! ", didSetupHeatmap.current === false);
 
-    didSetupHeatmap.current === false && triggerEditPattern(null, 0);
-    didSetupHeatmap.current = true;
-  }
-  }, []);
+        didSetupHeatmap.current === false && triggerEditPattern(null, 0);
+        didSetupHeatmap.current = true;
+      }
+    }, []);
 
     const patOptions = [0, 2, 4, 8, 16];
 
@@ -403,7 +417,7 @@ export const Renderer = ({
                   >{1 / masterPatternsHashHook[`${Number(d.y)}`][`${d.x}`].length}</text>}
 
 
-{/* // *tk3 */}
+                  {/* // *tk3 */}
                   <rect
                     key={`main_cell_${d.x}_${d.y}`}
                     r={4}
@@ -527,7 +541,7 @@ export const Renderer = ({
         justifyContent: "center",
       }}
     >
-      
+
       {showPatternEditorPopup && (
         <>
           <Box>
@@ -590,36 +604,36 @@ export const Renderer = ({
                 />
               </Box>
             </Box>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          maxHeight: "180px",
-          border: '1px solid rgba(0,0,0,0.78)',
-        }}
-      >
-        {width && height && boundsWidth && boundsHeight && <svg
-          key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
-          width={width || 0}
-          height={height}
-          style={{ pointerEvents: "none" }}
-        >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                maxHeight: "180px",
+                border: '1px solid rgba(0,0,0,0.78)',
+              }}
+            >
+              {width && height && boundsWidth && boundsHeight && <svg
+                key={`heatmapSVG_${currentXVal.current}_${currentYVal.current}`}
+                width={width || 0}
+                height={height}
+                style={{ pointerEvents: "none" }}
+              >
 
-          <g
-            key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
-            width={boundsWidth}
-            height={boundsHeight}
-            transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
-            style={{ pointerEvents: "none" }}
-          >
-            {allShapes}
+                <g
+                  key={`heatmapGelement_${currentXVal.current}_${currentYVal.current}`}
+                  width={boundsWidth}
+                  height={boundsHeight}
+                  transform={`translate(${[MARGIN.left, MARGIN.top].join(",")})`}
+                  style={{ pointerEvents: "none" }}
+                >
+                  {allShapes}
 
-            {xLabels}
-            {yLabels}
-          </g>
-        </svg>}
-      </Box>
+                  {xLabels}
+                  {yLabels}
+                </g>
+              </svg>}
+            </Box>
             {fxRadioValue && fxRadioValue.toLowerCase().includes("sample") && (
               <Box
                 sx={{
@@ -665,15 +679,15 @@ export const Renderer = ({
                       key={`${currentSelectedCell.x}_${currentSelectedCell.y}_files`}
                       files={new Set(filesToProcess.map((f: any) => f.filename))}
                       handleLatestSamplesFinal={handleLatestSamplesFinal}
-                      fileNumsPreselected={getFileNumsPreselected()} 
-                    />  
+                      fileNumsPreselected={getFileNumsPreselected()}
+                    />
                   </Box>
 
                 </Box>
-                <Box sx={{ 
-                  display: "inline-flex", 
+                <Box sx={{
+                  display: "inline-flex",
                   width: '100%',
-                  flexDirecton: "row" 
+                  flexDirecton: "row"
                 }}>
                   <Box sx={{
                     width: "58%",
@@ -704,9 +718,9 @@ export const Renderer = ({
                       margin: "4px",
                       height: "100%",
                     }}
-                  >                              
-                  <FormLabel
-                    sx={{
+                  >
+                    <FormLabel
+                      sx={{
                         color: 'rgba(245,245,245,0.78)',
                         fontSize: '11px',
                         paddingLeft: '8px',
@@ -714,9 +728,9 @@ export const Renderer = ({
                         marginRight: '32px',
                         paddingTop: '8px',
                         scrollPaddingLeft: '16px',
-                    }}
-                    id="sample-velocity-select-label"
-                  >Velocity</FormLabel>
+                      }}
+                      id="sample-velocity-select-label"
+                    >Velocity</FormLabel>
                     <Slider
                       // className="note-vel-title"
                       aria-label="TransposeSlider"
@@ -724,10 +738,10 @@ export const Renderer = ({
                       getAriaValueText={valuetext}
                       valueLabelDisplay="auto"
                       step={.01}
-                      sx={{ 
-                        backgroundColor: 'black', 
+                      sx={{
+                        backgroundColor: 'black',
                         color: 'rgba(0,245,245,0.78)',
-         
+
                       }}
                       onChange={handleTransposeUpdate}
                       // marks={marks}
@@ -790,12 +804,12 @@ export const Renderer = ({
                             handleLatestNotesFinal={handleLatestNotesFinal}
                             notesPreselected={getNotesPreselected()}
                             max={octaveMax}
-                            min={octaveMin} 
-                          /> : <Box sx={{height: "100%"}}/>}
+                            min={octaveMin}
+                          /> : <Box sx={{ height: "100%" }} />}
                         </Box>
 
                       )}
-                    <Box 
+                    <Box
                       sx={{
                         width: "100%",
                       }}
@@ -814,7 +828,7 @@ export const Renderer = ({
                     </Box>
                   </Box>
                   <Box sx={{ display: "inline-flex", flexDirecton: "row", width: "100%" }}>
-                    <Box 
+                    <Box
                       sx={{
                         borderRadius: "5px",
                         border: `1px solid ${noteBuilderFocus !== "Chord" ? NEON_PINK : OBERHEIM_TEAL}`,
@@ -825,12 +839,12 @@ export const Renderer = ({
                         // marginRight: "8px"
                       }}
                     >
-                    <StepRadioButtons
-                      doAutoAssignPatternNumber={doAutoAssignPatternNumber}
-                      handleAssignPatternNumber={handleAssignPatternNumber}
-                    />
+                      <StepRadioButtons
+                        doAutoAssignPatternNumber={doAutoAssignPatternNumber}
+                        handleAssignPatternNumber={handleAssignPatternNumber}
+                      />
                     </Box>
-                    <Box 
+                    <Box
                       sx={{
                         border: `1px solid ${noteBuilderFocus !== "Micro" ? HERITAGE_GOLD : OBERHEIM_TEAL}`,
                         borderRadius: "5px",
@@ -841,7 +855,7 @@ export const Renderer = ({
                         flex: "1 1 auto",
                       }}
                     >
-                    <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
+                      <GenericRadioButtons label={"ascending"} options={["asc", "desc"]} callback={handleChangeNotesAscending} />
                     </Box>
                   </Box>
                   <Box
@@ -868,32 +882,32 @@ export const Renderer = ({
                       padding: "12px",
                       marginRight: "4px"
                     }}>
-                    <FormLabel
-                      sx={{
-                        color: 'rgba(245,245,245,0.78)',
-                        fontSize: '11px',
-                        paddingLeft: '0px',
-                        paddingRight: '8px',
-                      }}
-                      id="notes-input-select-label"
-                    >
-                      Note Velocity
-                    </FormLabel>
-                    <Slider
-                      aria-label="Note Velocity"
-                      value={noteVelocityValue}
-                      getAriaValueText={valuetext}
-                      valueLabelDisplay="auto"
-                      sx={{
-                        width: "50%",
-                        color: 'rgba(245,245,245,0.78)',
-                        backgroundColor: 'rgba(28,28,28,0.78)'
-                      }}
-                      onChange={handleNoteVelocityUpdateLocal}
-                      step={0.01}
-                      min={0}
-                      max={1}
-                    />
+                      <FormLabel
+                        sx={{
+                          color: 'rgba(245,245,245,0.78)',
+                          fontSize: '11px',
+                          paddingLeft: '0px',
+                          paddingRight: '8px',
+                        }}
+                        id="notes-input-select-label"
+                      >
+                        Note Velocity
+                      </FormLabel>
+                      <Slider
+                        aria-label="Note Velocity"
+                        value={noteVelocityValue}
+                        getAriaValueText={valuetext}
+                        valueLabelDisplay="auto"
+                        sx={{
+                          width: "50%",
+                          color: 'rgba(245,245,245,0.78)',
+                          backgroundColor: 'rgba(28,28,28,0.78)'
+                        }}
+                        onChange={handleNoteVelocityUpdateLocal}
+                        step={0.01}
+                        min={0}
+                        max={1}
+                      />
                     </Box>
                     <Box sx={{
                       display: "flex",
@@ -919,7 +933,15 @@ export const Renderer = ({
           </Box>
         </>
       )}
-        {/* <ArpSpeedSliders 
+
+
+
+
+
+
+
+
+      {/* <ArpSpeedSliders 
         handleOsc1RateUpdate={handleOsc1RateUpdate} 
         // handleOsc2RateUpdate={handleOsc2RateUpdate}
         handleMasterFastestRate={handleMasterFastestRate}

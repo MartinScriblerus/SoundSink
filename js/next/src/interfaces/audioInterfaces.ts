@@ -37,10 +37,12 @@ export interface BPMModule {
     // handleChangeBeatsNumerator: (beatspm: number) => void; 
     // handleChangeBeatsDenominator: (mpb: number) => void;
     setChuckUpdateNeeded: React.Dispatch<React.SetStateAction<boolean>>;
-    setBeatsNumerator: React.Dispatch<React.SetStateAction<number>>;
-    setBeatsDenominator: React.Dispatch<React.SetStateAction<number>>;
-    setNumeratorSignature: React.Dispatch<React.SetStateAction<number>>;
-    setDenominatorSignature: React.Dispatch<React.SetStateAction<number>>;
+    // setBeatsNumerator: React.Dispatch<React.SetStateAction<number>>;
+    // setBeatsDenominator: React.Dispatch<React.SetStateAction<number>>;
+    // setNumeratorSignature: React.Dispatch<React.SetStateAction<number>>;
+    // setDenominatorSignature: React.Dispatch<React.SetStateAction<number>>;
+    handleChangeBeatsNumerator: (beatspm: number) => void;
+    handleChangeBeatsDenominator: (mpb: number) => void;
 };
 
 
