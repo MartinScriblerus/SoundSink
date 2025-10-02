@@ -67,7 +67,7 @@ const FixedOptionsDropdown: React.FC<Props> = ({ stkValues, setStkValues, update
     }, []);
 
     useEffect(() => {
-        console.log("STK Values Updated: ", stkValues);
+        // console.log("STK Values Updated: ", stkValues);
         setIsOpen(false); // Close dropdown when stkValues change
     }, [stkValues]);
 

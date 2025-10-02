@@ -59,37 +59,27 @@ type QuickDashProps = {
     mTFreqs:number[];
     mTMidiNums:number[];
     updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any, f: any, g: any) => void;
-    userInteractionUpdatedScore: (x: any) => void;
     handleAssignPatternNumber: (e: any) => void;
     doAutoAssignPatternNumber: number;
-
-
     setStkValues: React.Dispatch<React.SetStateAction<any>>; 
     tune: Tune;
     currentMicroTonalScale: (scale: any) => void;
     setFxKnobsCount: React.Dispatch<React.SetStateAction<number>>;
     doUpdateBabylonKey: any;
-    // setBabylonKey={setBabylonKey}
     babylonKey: string;
-    // setNeedsUpdate: React.Dispatch<React.SetStateAction<boolean>>;
     currentScreen: React.MutableRefObject<string>;
     currentFX: React.MutableRefObject<any>;
     currentStkTypeVar: React.MutableRefObject<string>;
-    // universalSources={universalSources}
     updateCurrentFXScreen: any;
-
     getSTK1Preset: (x: string) => any; 
     universalSourcesRef: React.MutableRefObject<any>;
-
     updateMicroTonalScale: (scale: any) => void;
-
     mingusKeyboardData: any;
     mingusChordsData: any;
     updateMingusData: (data: any) => void;
     handleChangeNotesAscending: (order: string) => void;
     mTNames: string[];
     fxRadioValue: string;
-
     noteBuilderFocus: string;
     handleNoteBuilder: (focus: string) => void;
     handleNoteLengthUpdate: (e: any, cellData: any, newValue: any) => void;
@@ -109,10 +99,8 @@ const NotesQuickDash = (props:QuickDashProps) => {
         isChuckRunning,
         featuresLegendData, 
         vizSource,
-        // currentNumerCount,
         currentBeatSynthCount,
         handleOsc1RateUpdate,
-        // handleOsc2RateUpdate,
         handleMasterFastestRate,
         handleStkRateUpdate,
         handleSamplerRateUpdate,
@@ -139,14 +127,11 @@ const NotesQuickDash = (props:QuickDashProps) => {
         exitEditMode,
         isInPatternEditMode,
         clickHeatmapCell,
-
         handleLatestSamples,
         handleLatestNotes,
-
         mTFreqs,
         mTMidiNums,
         updateKeyScaleChord,
-        userInteractionUpdatedScore,
         handleAssignPatternNumber,
         doAutoAssignPatternNumber,
         setStkValues,
@@ -154,17 +139,13 @@ const NotesQuickDash = (props:QuickDashProps) => {
         currentMicroTonalScale,
         setFxKnobsCount,
         doUpdateBabylonKey,
-        // setBabylonKey,
         babylonKey,
-        // setNeedsUpdate,
         currentScreen,
         currentFX,
         currentStkTypeVar,
-        // universalSources,
         updateCurrentFXScreen,
         getSTK1Preset,
-        universalSources,
-        
+        universalSources,    
         updateMicroTonalScale,
         mingusKeyboardData,
         mingusChordsData,
@@ -296,7 +277,6 @@ const NotesQuickDash = (props:QuickDashProps) => {
                             mTFreqs={mTFreqs}
                             mTMidiNums={mTMidiNums}
                             updateKeyScaleChord={updateKeyScaleChord}
-                            userInteractionUpdatedScore={userInteractionUpdatedScore}
                             handleAssignPatternNumber={handleAssignPatternNumber}
                             doAutoAssignPatternNumber={doAutoAssignPatternNumber}
 

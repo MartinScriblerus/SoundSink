@@ -61,7 +61,6 @@ type HeatmapProps = {
   mTFreqs:number[];
   mTMidiNums:number[];
   updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any, f: any, g: any) => void;
-  userInteractionUpdatedScore: (x: number) => void;
   handleAssignPatternNumber: (e: any) => void;
   doAutoAssignPatternNumber: number;
 
@@ -155,7 +154,6 @@ export const Heatmap = ({
   mTFreqs,
   mTMidiNums,
   updateKeyScaleChord,
-  userInteractionUpdatedScore,
   handleAssignPatternNumber,
   doAutoAssignPatternNumber,
 
@@ -236,7 +234,7 @@ export const Heatmap = ({
             {
               <Renderer
                 isChuckRunning={isChuckRunning}
-                width={400}
+                width={540}
                 height={200}
                 data={heatmapData}
                 setHoveredCell={setHoveredCell}
@@ -262,7 +260,6 @@ export const Heatmap = ({
                 mTFreqs={mTFreqs}
                 mTMidiNums={mTMidiNums}
                 updateKeyScaleChord={updateKeyScaleChord}
-                userInteractionUpdatedScore={userInteractionUpdatedScore}
                 handleAssignPatternNumber={handleAssignPatternNumber}
                 doAutoAssignPatternNumber={doAutoAssignPatternNumber}
                 setStkValues={setStkValues}

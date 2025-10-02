@@ -112,6 +112,7 @@ export type STKInstruments = {
 
 export type Source = {
     masterVolume: number;
+    masterPan: number;
     detune: number;
     effects: Effects;
     effectsString: string;
@@ -121,6 +122,9 @@ export type Source = {
     files?: File[];
     active: boolean;
     isEditing: boolean;
+    isMuted: boolean;
+    isSolo: boolean;
+    // samplerRate: number;
 }
 
 

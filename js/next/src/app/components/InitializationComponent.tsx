@@ -110,6 +110,7 @@ import STKManagerDropdown from './STKManagerDropdown';
 import { noteToMidi } from '@/utils/siteHelpers';
 import { AnimatedTitle } from './AnimatedTitle';
 import ClockCounter from './ClockCounter';
+import AudioMixer from './AudioMixer';
 
 interface Note {
     frequency: number;
@@ -252,6 +253,8 @@ export default function InitializationComponent() {
     const [selectedEffects, setSelectedEffects] = useState<any[]>([]);
     const [isManagingEffects, setIsManagingFX] = useState<boolean>(false);
 
+    const [expandedMixerSource, setExpandedMixerSource] = useState<string>('');
+
 
     const [singleNoteLengthValue, setSingleNoteLengthValue] = useState<number | undefined>();
 
@@ -273,6 +276,56 @@ export default function InitializationComponent() {
             chuckRef.current && await chuckRef.current.setInt("numeratorSignature", numeratorSignature);
             chuckRef.current && await chuckRef.current.setInt("denominatorSignature", denominatorSignature);
         })();
+    }
+
+    const handleUpdateVolumes = async (source: string, newValue: number) => {
+        if (chuckRef.current && universalSources.current) {
+            // universalSources.current[source as keyof Sources].masterVolume = newValue;
+            if (source.toLowerCase().includes('osc1')) {
+                universalSources.current!.osc1.masterVolume = newValue;
+                await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_Osc1", "gain", universalSources.current!.osc1.masterVolume / 100);
+            } else if (source.toLowerCase().toLowerCase().includes('sampler')) {
+                universalSources.current!.sampler.masterVolume = newValue;
+                await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_Sampler", "gain", universalSources.current!.sampler.masterVolume / 100);
+            } else if (source.toLowerCase().includes('audioin')) {
+                universalSources.current!.audioin.masterVolume = newValue;
+                await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_AudioIn", "gain", universalSources.current!.audioin.masterVolume / 100);
+            } else if (source.toLowerCase().includes('stk1')) {
+                universalSources.current!.stk1.masterVolume = newValue;
+                await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_Stk1", "gain", universalSources.current!.stk1.masterVolume / 100);
+            } else {
+                console.log("tried to update volume without a source match");
+            }
+        }
+    }
+    const handleToggleMutes = (source: string) => {
+        if (universalSources.current) universalSources.current[source as keyof Sources].isMuted = !universalSources.current[source as keyof Sources].isMuted;
+    }
+    const handleToggleSolos = (source: string) => {
+        if (universalSources.current) universalSources.current[source as keyof Sources].isSolo = !universalSources.current[source as keyof Sources].isSolo;
+    }
+    const handleUpdatePans = async (source: string, newValue: number) => {
+        if (chuckRef.current && universalSources.current) {
+            // console.log("????? ", universalSources.current[source as keyof Sources]);
+            // universalSources.current[source as keyof Sources] && (universalSources.current[source as keyof Sources].masterPan = newValue);
+
+            if (source.toLowerCase().includes('osc')) {
+                console.log("ERR WTF -- YUP! ", source);
+                universalSources.current!.osc1.masterPan = newValue;
+                await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_Osc1", "pan", universalSources.current!.osc1.masterPan);
+            } else if(source.includes('sampler')) {
+                universalSources.current!.sampler.masterPan = newValue;
+                await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_Sampler", "pan", universalSources.current!.sampler.masterPan);
+            } else if (source.toLowerCase().includes('audioin')) {
+                    universalSources.current!.audioin.masterPan = newValue;
+                    await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_AudioIn", "pan", universalSources.current!.audioin.masterPan);
+            } else if (source.toLowerCase().includes('stk1')) {
+                    universalSources.current!.stk1.masterPan = newValue;
+                    await chuckRef.current.setAssociativeFloatArrayValue("audioMixer_Stk1", "pan", universalSources.current!.stk1.masterPan);
+            } else {
+                console.log("tried to update pan without a source match");
+            }
+        }
     }
 
     useEffect(() => {
@@ -362,8 +415,8 @@ export default function InitializationComponent() {
         console.log("TEST RETURNED: ", test);
     };
 
-    const consistentNotes = useRef<any>();
-    consistentNotes.current = consistentNotes.current || [];
+    // const consistentNotes = useRef<any>();
+    // consistentNotes.current = consistentNotes.current || [];
 
     // const [doAutoAssignPatternNum, setDoAutoAssignPatternNum] = useState<number>(2);
 
@@ -376,19 +429,39 @@ export default function InitializationComponent() {
         persistLastMidiNote.current = midiData.triggerArgs[1]
     }
 
+const pressedNotes = useRef<Set<number>>(new Set());
+const pressedVelocities = useRef<Set<number>>(new Set());
+const [pressed, setPressed] = useState<any>(new Set());
+
+
+useEffect(() => {
+    console.log("PRESSED: ", pressed);
+}, [pressed]);
+
+
+
     const noteOnPlay = useCallback(
         async (theMidiNum: number, theMidiVelocity: number, theMidiHz?: any) => {
             await chuckRef.current;
-
-            //   console.log("hello!");
             currNotesHash.current[`${theMidiNum}`] = [theMidiNum, theMidiVelocity];
             currNotes.current = Object.values(currNotesHash.current)
                 .map((i: any) => i[0])
                 .filter((i: any) => i);
 
-            console.log("notes in onplay: ", currNotes.current);
+            const currentVelocities = Object.values(currNotesHash.current)
+                .map((i: any) => i[1])
+                .filter((i: any) => i);
+            // console.log("@@@@ notes in onplay: ", currNotes.current);
 
-            currNotes.current.forEach((note: any) => triggerNote(note));
+            currNotes.current.forEach((note: any, idx: number) => {
+                pressedNotes.current.add(note);
+                pressedVelocities.current.add(currentVelocities[idx] || 0.5);
+                setPressed(Array.from(pressedNotes.current));
+                // triggerNote(note)
+            });
+            chuckRef.current && chuckRef.current.setFloatArray("chuckNotes", pressedNotes.current);
+            chuckRef.current && chuckRef.current.setFloatArray("chuckVelocities", pressedVelocities.current);
+            // chuckRef.current && chuckRef.current.broadcastEvent("playSingleNote");
         },
         // [chuckRef, currNotesHash, currNotes] // Only if these are not refs!
         []
@@ -396,46 +469,22 @@ export default function InitializationComponent() {
 
     const noteOffPlay = useCallback(
         async (theMidiNum: number) => {
-            await chuckRef.current && await chuckHook;
-
-            const noteOffIndex = consistentNotes.current.indexOf(theMidiNum);
-            const currentNotesIndex = currNotesHash.current[theMidiNum];
-            if (noteOffIndex !== -1 || currentNotesIndex) {
-                console.log("do we have a noteOff Index? ", noteOffIndex, " consistentNotes: ", consistentNotes.current, "theMidiNum: ", theMidiNum, "currNotesHash: ", currNotesHash.current);
-
-                chuckHook &&
-                    chuckRef.current &&
-                    await chuckRef.current.setFloatArray(
-                        "testNotesArr",
-                        consistentNotes.current.map((i: any) =>
-                            i !== theMidiNum ? Number(parseFloat(i).toFixed(2)) : null
-                        ).filter((i: any) => i !== null)
-                    );
-
-                let floatArr;
-                try {
-                    floatArr =
-                        chuckHook &&
-                        chuckRef.current &&
-                        (await chuckRef.current.getFloatArray("chuckNotesOff"));
-                } catch (e) {
-                    // ignore
-                }
-
-                const newArr: number[] = floatArr ? [...floatArr, theMidiNum] : [];
-                chuckHook &&
-                    chuckRef.current &&
-                    await chuckRef.current.setFloatArray("chuckNotesOff", newArr);
-
-                currNotesHash.current[`${theMidiNum}`] = false;
-                delete currNotesHash.current[`${theMidiNum}`];
-                consistentNotes.current = consistentNotes.current.filter(
-                    (i: any) => i !== theMidiNum
-                );
-                triggerNoteOff(theMidiNum);
-            }
+            // await chuckRef.current && await chuckHook;
+            console.log("****** noteOffPlay theMidiNum: ", theMidiNum);
+            console.log("pressedNotes before: ", [...pressedNotes.current]);
+            const ind = [...pressedNotes.current].indexOf(theMidiNum);
+            pressedNotes.current.delete(theMidiNum);
+            const newVelocities = [...pressedVelocities.current];
+            newVelocities.splice(ind, 1);
+            pressedVelocities.current = new Set(newVelocities);
+            setPressed(Array.from(pressedNotes.current));
+            chuckRef.current && chuckRef.current.setFloatArray("chuckNotes", pressedNotes.current);
+            chuckRef.current && chuckRef.current.setFloatArray("chuckVelocities", pressedVelocities.current);
+            currNotesHash.current[`${theMidiNum}`] = false;
+            delete currNotesHash.current[`${theMidiNum}`];
+            // chuckRef.current && chuckRef.current.broadcastEvent("releaseSingleNote");
         },
-        [chuckHook, consistentNotes] // Only if not refs
+        []
     );
 
     useEffect(() => {
@@ -445,7 +494,10 @@ export default function InitializationComponent() {
                 persistLastMidiNote.current = midiData.triggerArgs[1];
                 chuckHook && noteOnPlay(midiData.triggerArgs[1], midiData.triggerArgs[2], 440.0 * Math.pow(2, (midiData.triggerArgs[1] - 69) / 12.0));
             } else if (midiData.triggerArgs && midiData.triggerArgs[0] === 128) {
-                chuckHook && noteOffPlay(persistLastMidiNote.current);
+                chuckHook && pressedNotes.current.has(persistLastMidiNote.current) && noteOffPlay(persistLastMidiNote.current);
+                chuckHook && pressedNotes.current.has(midiData.triggerArgs[1]) && noteOffPlay(midiData.triggerArgs[1]);
+                console.log("what is this? ", pressedNotes.current.has(persistLastMidiNote.current));
+                console.log("what is this2? ", pressedNotes.current.has(midiData.triggerArgs[1]));
             }
         }
     }, [midiData, chuckHook, noteOffPlay, noteOnPlay]);
@@ -470,7 +522,6 @@ export default function InitializationComponent() {
         console.log("check auto assign pattern number is now... ", newPatternNumber);
         setDoAutoAssignPatternNum(newPatternNumber);
     };
-
 
     useEffect(() => {
         const beatsPerMeasure = numeratorSignature;               // e.g., 4
@@ -520,6 +571,7 @@ export default function InitializationComponent() {
                         },
                         subdivisions: 1
                     };
+                    // console.log("CHACHECK THIS OUT: ",  masterPatternsRef.current[rowKey][stepKey]);
                 } else {
                     // merge defaults only if missing
                     // cell.length ??= 1/16;
@@ -558,7 +610,6 @@ export default function InitializationComponent() {
         setFxKnobsCount(Object.keys(moogGrandmotherEffects.current).length);
         updateBPM();
     }, []);
-
 
     const currentMicroTonalScale = (scale: any) => {
         let theScale;
@@ -633,11 +684,10 @@ export default function InitializationComponent() {
             setKeysVisible(false);
         }
     };
-
     // const [currentNoteVals, setCurrentNoteVals] = useState<AllSoundSourcesObject>(defaultNoteVals)
 
     const inPatternEditMode = (state: boolean) => {
-
+        console.log("SETTING PATTERN EDIT MODE: ", state);
         isInPatternEditMode.current = true;
     }
 
@@ -814,7 +864,7 @@ export default function InitializationComponent() {
     }
 
     const handleNoteLengthUpdate = async (e: any, cellData: any, newValue: any) => {
-        console.log("THANKS HANDLE NOTELENGTH UPDATE: ", lenMarks[newValue]);
+        // console.log("THANKS HANDLE NOTELENGTH UPDATE: ", lenMarks[newValue]);
         if (!isChuckRunning && masterPatternsRef.current[cellData.yVal][cellData.xVal]) {
             if (!e || !e.target || !e.target.value) return;
             const fraction = lenMarks[(e && e.target && e.target.value)].label;
@@ -918,6 +968,7 @@ export default function InitializationComponent() {
             }
 
             const meydaDat = await getMeydaData(arrayBuffer);
+            console.log("MEYDA DATA of File(I presume...)??? ", meydaDat);
             if (chuckHook) {
                 setChuckUpdateNeeded(true);
             }
@@ -1114,19 +1165,6 @@ export default function InitializationComponent() {
         initFX,
     ]);
 
-    // useEffect(() => {
-    //     let isMounted = true;
-    //     currentFX.current = [];
-    //     checkedFXList.current = [];
-    //     chuckRef.current && chuckRef.current.setString("currentSrc", getConvertedRadio(fxRadioValue));
-    //     const fastestRate: number[] = Object.values(defaultNoteVals).map((i: any) => i && i[0])
-    //     chuckRef.current && chuckRef.current.setInt("fastestRateUpdate", Math.max(...fastestRate));
-    //     setVizSource(getConvertedRadio(fxRadioValue));
-    //     return () => {
-    //         isMounted = false;
-    //     };
-    // }, [fxRadioValue]);
-
     const handleToggleArpeggiator = () => {
         if (arpeggiatorOn === 0) {
             setArpeggiatorOn(1);
@@ -1205,71 +1243,11 @@ export default function InitializationComponent() {
         samplerDatas.current = sampler;
         audioinDatas.current = audioin;
 
-        // if (
-        //     universalSources.current && 
-        //     universalSources.current.stk1.instruments
-        // ) {
-        //     console.log("*S R C s: ", Object.values(Object.values(universalSources.current.stk1.instruments).filter((i: any) => i.On).map(i => [i.Type, i.VarName, i.presets.map((i: any) => [i.name, i.value])])));
-        // }
 
-        // if (sources && Object.keys(sources).length > 0 && sources.osc1) {
-        //     console.log("!@!@!@!@ ",  Object.values(sources.osc1.effects).filter((i: any) => i.On).map(i => i));
-        //     const osc1NewVals = Object.values(sources.osc1.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-
-        //     osc1NewVals && osc1NewVals.length > 0 && osc1NewVals.map((i: any) => {
-        //         const effectPart = i[1];
-        //         const effectNom = `${i[1]}_osc1`;
-        //         i[2].map((preset: any) => {
-        //             const presetName = preset[0];
-        //         });
-
-        //     });
-        //     const osc2NewVals = Object.values(sources.osc2.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-        //     const stkNewVals = Object.values(sources.stk1.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-        //     const samplerNewVals = Object.values(sources.sampler.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-        //     const audioInNewVals = Object.values(sources.audioin.effects).filter((i: any) => i.On).map(i => [i.Type, i.VarName, Object.values(i.presets).map((i: any) => [i.name, i.value])]);
-        // }
 
         if (!sources) return;
 
         Object.entries(sources).forEach((i: [string, Source]) => {
-            // if (getConvertedRadio(fxRadioValue).toLowerCase() !== i[0].toLowerCase()) {
-            // } else {
-            //     console.log("SKIPPING SOURCE: ", i[0]);
-            //     if (i[0].includes("osc")) {
-            //         console.log("AND WHAT IS i1??? ", i[1]);
-            //         console.log("^^ TARGETS REF OSC: ", targetsRef.current);
-            //         console.log("^^ ALL TARGETS REF OSC1: ", allTargetsRef.current?.osc1);
-            //         console.log("^^ VALUES READOUT OSC1: ", valuesReadout);
-            //         console.log("^^ VALUES READOUT DECLARATIONS OSC1: ", valuesReadoutDeclarations);
-            //         console.log("^^ SIGNAL CHAIN OSC1: ", signalChain);
-            //         console.log("^^ SIGNAL CHAIN DECLARATIONS OSC1: ", signalChainDeclarations);
-            //     } else if (i[0].includes("stk")) {
-            //         console.log("AND WHAT IS i1??? ", i[1]);
-            //         console.log("^^ TARGETS REF STK: ", targetsRef.current);
-            //         console.log("^^ ALL TARGETS REF STK: ", allTargetsRef.current?.stk1);
-            //         console.log("^^ VALUES READOUT STK: ", valuesReadoutSTK);
-            //         console.log("^^ VALUES READOUT DECLARATIONS STK: ", valuesReadoutSTKDeclarations);
-            //         console.log("^^ SIGNAL CHAIN STK: ", signalChainSTK);
-            //         console.log("^^ SIGNAL CHAIN DECLARATIONS STK: ", signalChainSTKDeclarations);
-            //     } else if (i[0].includes("sample")) {
-            //         console.log("AND WHAT IS i1??? ", i[1]);
-            //         console.log("^^ TARGETS REF SAMPLER: ", targetsRef.current);
-            //         console.log("^^ ALL TARGETS REF SAMPLER: ", allTargetsRef.current?.sampler);
-            //         console.log("^^ VALUES READOUT SAMPLER: ", valuesReadoutSampler);
-            //         console.log("^^ VALUES READOUT DECLARATIONS SAMPLER: ", valuesReadoutSamplerDeclarations);
-            //         console.log("^^ SIGNAL CHAIN SAMPLER: ", signalChainSampler);
-            //         console.log("^^ SIGNAL CHAIN DECLARATIONS SAMPLER: ", signalChainSamplerDeclarations);
-            //     } else if (i[0].includes("audioin")) {
-            //         console.log("AND WHAT IS i1??? ", i[1]);
-            //         console.log("^^ TARGETS REF AUDIOIN: ", targetsRef.current);
-            //         console.log("^^ ALL TARGETS REF AUDIOIN: ", allTargetsRef.current?.audioin);
-            //         console.log("^^ VALUES READOUT AUDIOIN: ", valuesReadoutAudioIn);
-            //         console.log("^^ VALUES READOUT DECLARATIONS AUDIOIN: ", valuesReadoutAudioInDeclarations);
-            //         console.log("^^ SIGNAL CHAIN AUDIOIN: ", signalChainAudioIn);
-            //         console.log("^^ SIGNAL CHAIN DECLARATIONS AUDIOIN: ", signalChainAudioInDeclarations); 
-            //     }
-            // } 
             
             const theSource: string = i[0];
 
@@ -1294,13 +1272,13 @@ export default function InitializationComponent() {
                 if (
                     eS?.Type.toLowerCase() === currentEffectType.current.toLowerCase()
                 ) {
-                    console.log("BADABING... ", eS);
+                    // console.log("BADABING... ", eS);
                     // console.log("AND WHAT is sources[i] / i? ", i)
                     if (i[0].toLowerCase() === getConvertedRadio(fxRadioValue).toLowerCase()) {
                         console.log("BADABOOM!!! ", i);
 
-                        console.log("AND WHAT is targetsRef??? ", targetsRef.current);
-                        console.log("AND WHAT is allTargetsRef??? ", allTargetsRef.current);
+                        // console.log("AND WHAT is targetsRef??? ", targetsRef.current);
+                        // console.log("AND WHAT is allTargetsRef??? ", allTargetsRef.current);
                     }
                 }
 
@@ -1566,7 +1544,7 @@ export default function InitializationComponent() {
 
     const organizeRows = async (rowNum: number, note: string) => {
         await note;
-        console.log("AND WHAT IS ... in organize rows // note: ", note, "rowNum: ", rowNum);
+        // console.log("AND WHAT IS ... in organize rows // note: ", note, "rowNum: ", rowNum); <<<< THIS WORKS GREAT
         const noteReady = {
             midiNote: undefined,
             midiHz: undefined,
@@ -1574,7 +1552,7 @@ export default function InitializationComponent() {
         };
         note = note.replace("♯", "#");
         const getNote: any = Note.get(note);
-        console.log("AND WHAT IS GETNOTE? ", getNote);
+        // console.log("AND WHAT IS GETNOTE? ", getNote); <<<< THIS WORKS GREAT
         noteReady.midiNote = getNote.midi;
         noteReady.midiHz = getNote.freq;
         noteReady.name = note;
@@ -1627,7 +1605,7 @@ export default function InitializationComponent() {
         setupAudioAnalysisWorklet(chuckRef.current.context, setMeydaData).then(() => {
             // const processor = audioContext.createScriptProcessor(512, 1, 1);
             const processor = new AudioWorkletNode(audioContext, 'meyda-audio-processor');
-            // console.log("meyda processor: ", processor);
+            console.log("meyda processor: ", processor);
             if (!workerRef.current) {
                 workerRef.current = new Worker("/workers/meydaWorker.js", { type: 'module' });
                 workerRef.current.onmessage = (e) => {
@@ -1701,10 +1679,10 @@ export default function InitializationComponent() {
         if (!chuckUpdateNeeded) {
             return;
         } else {
-            chuckRef.current && chuckRef.current.setString("currentSrc", getConvertedRadio(fxRadioValue));
+            // chuckRef.current && chuckRef.current.setString("currentSrc", getConvertedRadio(fxRadioValue));
 
             if (universalSources.current) {
-                console.log("!@#*** updating generic string... ", moogGrandmotherEffects.current);
+                // console.log("!@#*** updating generic string... ", moogGrandmotherEffects.current);
 
                 Object.values(moogGrandmotherEffects.current).forEach((value: any) => {
                     (async () => {
@@ -1725,11 +1703,7 @@ export default function InitializationComponent() {
                         }
                     ])
                 );
-
-                console.log("GOD DAMMIT SAFE SOURCES: ", safeSources);
-                genericFXToString(safeSources as Sources);
-
-                // genericFXToString(universalSources.current);     
+                genericFXToString(safeSources as Sources);   
             }
 
             (async () => {
@@ -1765,70 +1739,9 @@ export default function InitializationComponent() {
     };
 
 
-    const triggerNoteOff = async (note: any) => {
-        await chuckRef.current;
-        let currNotesOffArray: any = chuckRef.current && chuckRef.current.getFloatArray("chuckNotesOff");
 
-        await currNotesOffArray;
 
-        if (!currNotesOffArray || currNotesOffArray.length < 1) {
-            currNotesOffArray = [];
-        }
-        try {
-            const result = await currNotesOffArray;
 
-            if (result.length > 0 && !result.toString().includes('9999')) {
-                console.log("ummm ", result, "note: ", note);
-            }
-            const newNotesOff = [note];
-            chuckRef.current && await chuckRef.current.setFloatArray("chuckNotesOff", newNotesOff);
-            consistentNotes.current = consistentNotes.current.filter((i: any) => i !== note);
-            chuckRef.current && await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i: any) => Number(+parseFloat(i)).toFixed(2)));
-            // chuckRef.current && await chuckRef.current.broadcastEvent('playSingleNoteOff');
-            consistentNotes.current = [];
-        } catch (e) {
-            console.log("Error in triggerNoteOff: ", e);
-        }
-    }
-
-    const triggerNote = async (note: any) => {
-        await chuckRef.current;
-
-        // chuckRef.current && chuckRef.current.broadcastEvent('playSingleNote');
-        consistentNotes.current && consistentNotes.current.indexOf(note) === -1 && consistentNotes.current.push(1.0 * note);
-
-        setMTMidiNums(consistentNotes.current);
-        setMTFreqs(consistentNotes.current.map((i: any) => 440.0 * Math.pow(2, (i - 69.0) / 12.0)));
-
-        if (chuckRef.current) {
-            const freqNote = (midiNoteIn: any) => 440.0 * Math.pow(2, (midiNoteIn - 69.0) / 12.0)
-            console.log("consistentNotes??? : ", consistentNotes.current);
-            try {
-                await chuckRef.current.setFloatArray("testNotesArr", consistentNotes.current.map((i: any) => freqNote(i)));
-                consistentNotes.current = [];
-            } catch (e) {
-
-            }
-        }
-        // chuckRef.current && chuckRef.current.broadcastEvent('playSingleNote');
-
-        NOTES_SET_REF.current = Object.values(currNotesHash.current)
-            .map((i: any) => {
-                const parsed = parseFloat(i[0]);
-                return !isNaN(parsed) ? parsed : null;
-            })
-            .filter(i => i !== null)
-            .map(i => {
-                return i % 1 === 0 ? i + 0.0 : i; // Ensure it's a float (even if it's an integer)
-            });
-
-        console.log("NOTES_SET_REF???: ", NOTES_SET_REF.current);
-
-        // chuckRef.current && 
-        // chuckRef.current.broadcastEvent('playNote');
-        currNotesHash.current = {};
-
-    };
 
     const handleCheckedFXToShow = (msg: any) => {
         console.log("effect to show message: " + msg.target.value);
@@ -1839,7 +1752,7 @@ export default function InitializationComponent() {
 
 
     const getSourceFX = (thisSource: string) => {
-        alert(thisSource);
+        // alert(thisSource);
         if (thisSource === "stk") thisSource = "stk1";
 
         const checkFX = universalSources.current && universalSources.current[getConvertedRadio(thisSource) as keyof Sources] && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects && universalSources.current[getConvertedRadio(thisSource) as keyof Sources].effects;
@@ -2072,15 +1985,15 @@ export default function InitializationComponent() {
                 );
 
 
-            console.log("KRIKES 0 ", masterPatternsRef.current);
-            console.log("KRIKES 1 ", Object.values(masterPatternsRef.current).map((i: any) =>
-                Object.values(i).map(
-                    (j: any) =>
-                        Object.values(j).map(
-                            (h: any) => Number(h) * 1.0
-                        )[8]
-                )
-            ).flat())
+            // console.log("KRIKES 0 ", masterPatternsRef.current);
+            // console.log("KRIKES 1 ", Object.values(masterPatternsRef.current).map((i: any) =>
+            //     Object.values(i).map(
+            //         (j: any) =>
+            //             Object.values(j).map(
+            //                 (h: any) => Number(h) * 1.0
+            //             )[8]
+            //     )
+            // ).flat())
 
             // THE BELOW LOOPS ARE CONTROLLING NOTES (AND PROBABLY A WHOLE LOT MORE)...
             chuckHook &&
@@ -2180,7 +2093,7 @@ export default function InitializationComponent() {
         const micButton: any = document.querySelector(`#micStartRecordButton`);
         micButton && (micButton.disabled = true);
         console.log("BROADCAST PLAY AUDIO IN ONCE!!!! ");
-        chuckRef.current && chuckRef.current.broadcastEvent("playAudioIn");
+        // chuckRef.current && chuckRef.current.broadcastEvent("playAudioIn");
 
     };
     // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2249,7 +2162,6 @@ export default function InitializationComponent() {
                     'Content-Type': 'application/json'
                 }
             }).then(({ data }) => {
-                // console.log("TEST SCALES HERE 1# ", data);
                 setScaleHook([Object.values(data)[0], Object.values(data)[2]]);
                 setInvertedScaleHook([Object.values(data)[1], Object.values(data)[3]]);
                 if (noteBuilderFoc === "scale" && showNotesOrder === "asc") {
@@ -2260,7 +2172,6 @@ export default function InitializationComponent() {
                 handleMingusKeyboardData(data);
                 dataToReturn.scaleData = data;
             });
-            // console.log("WHAT IS KEY / SCALE / CHORD? ", key, scale, chord);
         } else if (noteBuilderFoc.toLowerCase().includes("chord")) {
             axios.post(
                 `${process.env.NEXT_PUBLIC_FLASK_API_URL}/mingus_chords`,
@@ -2276,7 +2187,6 @@ export default function InitializationComponent() {
                     const chordsVal = JSON.parse(data);
                     const gc = getChord(chordLabel, chordsVal[0].progs_nums);
                     if (gc && gc.length > 0) {
-
                         setMTNames(gc[0]);
                     }
                     setChordHook(chordsVal);
@@ -2294,9 +2204,6 @@ export default function InitializationComponent() {
         selectedChordScaleOctaveRange.scale,
     ]);
 
-    // useEffect(() => {
-    //     console.log("CHUCK UPDATE NEEDED: ", universalSources.current && universalSources.current.stk1.instruments);
-    // }, [chuckUpdateNeeded]);
 
     // SLIDER CONTROL KNOB
     // ========================================================
@@ -2352,7 +2259,7 @@ export default function InitializationComponent() {
                         chuckRef.current && await chuckRef.current.setAssociativeFloatArrayValue("allFXDynamicFloats", `${universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].VarName}_${getConvertedRadio(fxRadioValue)}_${obj.name}`, value);
                     }
 
-                    console.log("****? ", value, "&&&&? ", chuckRef.current && await chuckRef.current.getAssociativeIntArrayValue("allFXDynamicInts", `${universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].VarName}_${getConvertedRadio(fxRadioValue)}_${obj.name}`));
+                    // console.log("****? ", value, "&&&&? ", chuckRef.current && await chuckRef.current.getAssociativeIntArrayValue("allFXDynamicInts", `${universalSources.current[getConvertedRadio(fxRadioValue) as keyof Sources].effects[currentEffectType.current as keyof Effects].VarName}_${getConvertedRadio(fxRadioValue)}_${obj.name}`));
                 }
             }
         } else if (obj.fxType === 'default') {
@@ -2412,7 +2319,6 @@ export default function InitializationComponent() {
         setHasHexKeys(false);
         setKeysVisible(true);
         setNewMicroTonalArr([])
-        // console.log("NEW FORMATS ", newFormats);
         if (newFormats.length > 1) {
             setFormats(newFormats.reverse());
         } else {
@@ -2430,7 +2336,6 @@ export default function InitializationComponent() {
 
     const resetCellSubdivisionsCounter = (x: number, y: number) => {
         currentHeatmapXY.current = { x: Number(x), y: Number(y) };
-        //*tk2
         console.log('master patterns ref: ', masterPatternsRef.current[`${y}`][`${x}`]);
         const subdivs: any = masterPatternsRef.current[`${y}`][`${x}`].subdivisions;
         setPatternsHashUpdated(true);
@@ -2452,21 +2357,7 @@ export default function InitializationComponent() {
     };
 
     const editPattern = (x: any, y: any, group: any) => {
-
-        // this is called by triggerEditPattern in renderer
-        // alert(`Hello!_${x}_${y}_${group}`);
-        // X & Y VALS ARE 1-INDEXED!
-        // WE NEED ABILITY TO 
-        // 1. SEE CLICKED BLOCK'S CURRENT SETTINGS
-        // 2. EDIT BLOCK HERE
-        // 3. SUBDIVIDE & EDIT SUBDIVISIONS OF BLOCK 
-        // 4. REVERT PRIOR SUBDIVISIONS
-        // 5. CHANGE BLOCK TO A REST
-        // 6. DO NOTHING (DO NOT EDIT & LEAVE BLOCK AS IS...)
-
-
-        console.log("PATTERNS HASH GENERAL", masterPatternsRef.current);
-        alert("serious edit check needed 2");
+        console.log("PATTERNS HASH GENERAL", masterPatternsRef.current[y][x], group);
         setPatternsHashHook(masterPatternsRef.current);
         setPatternsHashUpdated(true);
     }
@@ -2509,13 +2400,6 @@ export default function InitializationComponent() {
 
         }
     };
-
-
-    const userInteractionUpdatedScore = (newScore: any) => {
-        console.log("WHAT IS NEW SCORE in userInteractionUpdatedScore method?? ", newScore);
-        setPatternsHashHook(newScore);
-        setPatternsHashUpdated(true);
-    }
 
     const exitEditMode = () => {
         isInPatternEditMode.current = false;
@@ -2654,29 +2538,40 @@ export default function InitializationComponent() {
                     // setChuckMsg(parsedMsg); 
                     handleChuckMsg(parsedMsg)
                 } else {
+                    // (async () => {
+                    //     const osc1OutLevel = chuckRef.current && await chuckRef.current.getFloat("samplerOutputRMS");
+                    //     console.log("OSC1 OUT LEVEL: ", osc1OutLevel);
+                    // })();
+                    // if (message.includes("OSC1OUT")) {
+                    //     console.log("OSC1OUT ", message)
+                    // }
 
                     if (message.includes("SHREDCOUNT: ")) {
                         console.log("SHREDCOUNT ", message)
                     }
 
-                    if (message.includes("TICK TIMER: ")) {
-                        console.log("TICK TIMER: ", message)
+                    if (message.includes("KEY_VAL2")) { 
+                        console.log("GOT NOTES!>!>!>! ", message)
                     }
 
-                    if (message.includes("ADSR IN HERE >>> ")) {
-                        console.log("ADSR IN HERE >>>  ", message);
-                    }
+                    // if (message.includes("TICK TIMER: ")) {
+                    //     console.log("TICK TIMER: ", message)
+                    // }
 
-                    if (message.includes("PROGRAMMATIC")) {
-                        console.log("PLAYING PROGRAMMATIC NOTE", message);
-                    }
+                    // if (message.includes("ADSR IN HERE >>> ")) {
+                    //     console.log("ADSR IN HERE >>>  ", message);
+                    // }
 
-                    if (message.includes("PROGLEN")) {
-                        console.log("PLAYING PROGLEN", message);
-                    }
-                    if (message.includes("DURSTEPTEST")) {
-                        console.log("DURSTEPTEST: ", message);
-                    }
+                    // if (message.includes("PROGRAMMATIC")) {
+                    //     console.log("PLAYING PROGRAMMATIC NOTE", message);
+                    // }
+
+                    // if (message.includes("PROGLEN")) {
+                    //     console.log("PLAYING PROGLEN", message);
+                    // }
+                    // if (message.includes("DURSTEPTEST")) {
+                    //     console.log("DURSTEPTEST: ", message);
+                    // }
 
 
                     // console.log("CHUCK MESSAGE: ", message);     
@@ -3141,7 +3036,7 @@ export default function InitializationComponent() {
                                     </>
                                 ) :
                                 (
-                                    <Box sx={{ width: "100%", height: "100%", display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Box sx={{ width: "100%",  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                         <AnimatedTitle clickedBegin={clickedBegin} />
                                         <Button
                                             sx={{
@@ -3266,11 +3161,9 @@ export default function InitializationComponent() {
                                                 universalSources={universalSources.current}
                                                 handleSourceToggle={handleSourceToggle}
                                                 vizSource={vizSource}
-                                                // currentNumerCount={currentNumerCount}
                                                 currentBeatSynthCount={currentBeatSynthCount}
                                                 handleMasterFastestRate={handleMasterRateUpdate}
                                                 handleOsc1RateUpdate={handleOsc1RateUpdate}
-                                                // handleOsc2RateUpdate={handleOsc2RateUpdate}
                                                 handleStkRateUpdate={handleStkRateUpdate}
                                                 handleSamplerRateUpdate={handleSamplerRateUpdate}
                                                 handleAudioInRateUpdate={handleAudioInRateUpdate}
@@ -3303,7 +3196,6 @@ export default function InitializationComponent() {
                                                 mTFreqs={mTFreqs}
                                                 mTMidiNums={mTMidiNums}
                                                 updateKeyScaleChord={updateKeyScaleChord}
-                                                userInteractionUpdatedScore={userInteractionUpdatedScore}
                                                 handleAssignPatternNumber={handleAssignPatternNumber}
                                                 doAutoAssignPatternNumber={doAutoAssignPatternNum}
                                                 setStkValues={setStkValues}
@@ -3312,7 +3204,6 @@ export default function InitializationComponent() {
                                                 setFxKnobsCount={setFxKnobsCount}
                                                 doUpdateBabylonKey={doUpdateBabylonKey}
                                                 babylonKey={babylonKeyRef.current}
-                                                // setNeedsUpdate={setNeedsUpdate}
                                                 currentScreen={currentScreen}
                                                 currentFX={currentFX}
                                                 currentStkTypeVar={currentStkTypeVar}
@@ -3693,6 +3584,7 @@ export default function InitializationComponent() {
                         width: 'calc(100vw - 140px)',
                         position: 'absolute',
                         zIndex: "9999",
+                        // top: '64px',
                         bottom: '0px',
                         left: '140px',
                         // background: 'yellow',
@@ -3714,6 +3606,16 @@ export default function InitializationComponent() {
                         handleMingusChordsData={handleMingusChordsData}
                     />
 
+                    {clickedBegin && chuckHook && <AudioMixer
+                        universalSources={universalSources.current}
+                        handleUpdateVolumes={handleUpdateVolumes}
+                        handleUpdatePans={handleUpdatePans}
+                        handleToggleMutes={handleToggleMutes}
+                        handleToggleSolos={handleToggleSolos}
+                        expandedMixerSource={expandedMixerSource}
+                        setExpandedMixerSource={setExpandedMixerSource}
+                    />}
+
                     <Keyboard
                         chuckHook={chuckHook}
                         keysVisible={keysVisible}
@@ -3727,6 +3629,7 @@ export default function InitializationComponent() {
                         noteBuilderFocus={noteBuilderFocus}
                         mingusKeyboardData={mingusKeyboardData}
                         mingusChordsData={mingusChordsData}
+                        pressedNotes={pressedNotes.current}
                     />
                 </Box>
             </Box>

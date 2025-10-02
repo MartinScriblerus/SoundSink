@@ -1,7 +1,7 @@
 class MidiAudioProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.midiData = []; // Initialize midiData as an empty array
+    this.midiQueue = []; // Queue for incoming MIDI messages
     this.midiFrame = 0;
 
     this.bpmHistory = { current: [] };
@@ -19,9 +19,10 @@ class MidiAudioProcessor extends AudioWorkletProcessor {
     this.midiBPMClockIncoming = { current: [] };
 
     this.port.onmessage = (event) => {
-      //console.log("Received message in Worklet:", event.data);
-      // Store received MIDI data here, if needed
-      this.midiData = event.data; // Assuming event.data contains MIDI messages
+      // Push incoming MIDI data into queue
+      if (event.data) {
+        this.midiQueue.push(event.data);
+      }
     };
 
     this.quarterLengthEstimate = { current: 0 }; // Default quarter note length estimate in milliseconds
@@ -41,143 +42,84 @@ class MidiAudioProcessor extends AudioWorkletProcessor {
     
 
     // Example MIDI data processing
-    if (this.midiData && this.midiData.length > 0) {
-      // this.midiData.forEach(message => {
-        console.log('CHECK MSG: ', this.midiData[0], this.midiData[1], this.midiData[2]);
-        const statusByte = this.midiData[0] & 0xf0;
+    while (this.midiQueue.length > 0) {
+      const msg = this.midiQueue.shift();
+      // console.log("PROCESSING MIDI MSG", msg);
+      const statusByte = msg[0] & 0xf0;
+      const statusByteClock = msg[0] & 0xf8;
+      const note = msg[1];
+      const velocity = msg[2];
 
-        const statusByteClock = this.midiData[0] & 0xf8;
-
-        console.log('CHECK status byte: ', statusByte);
-        console.log('CHECK status byte clock: ', statusByteClock);
-        
-        if(this.midiData.length > 0 && this.midiData[0] >= 144 && this.midiData[0] < 160 && statusByte !== 0xf8)
-        {
-            if( this.midiData[2] > 0 )
-            {
-                // noteOnPlay( message[1], message[2] );
-              this.triggerType = 'noteOnPlay';
-              this.triggerArgs = [this.midiData[0], this.midiData[1], this.midiData[2]];
-              console.log("press play on!!! ", this.midiData[0], this.midiData[1], this.midiData[2], this.midiData[2]);
-            } else
-            {
-              this.triggerType = 'noteOffPlay';
-              this.triggerArgs = [this.midiData[0]];
-              // noteOffPlay( this.midiData[1] );
-            }
-        }
-        else if(
-          this.midiData.length > 0 && 
-          this.midiData && this.midiData.length > 0 && 
-          this.midiData[0] >= 128 && this.midiData[0] < 144 )
-        {
-          this.triggerType = 'noteOffPlay';
-          this.triggerArgs = [this.midiData[0]];
-          // noteOffPlay( this.midiData[1] );
+      // BPM / clock handling
+      if (statusByteClock) {
+        if (msg[0] === 250) {
+          this.quarterNoteBeatStart.current = Date.now();
+        } else if (this.quarterNoteBeatStart.current) {
+          this.quarterLengthNumPriorEstimates.current++;
+          const quarterLength = 24 * ((Date.now() - this.quarterNoteBeatStart.current) / this.quarterLengthNumPriorEstimates.current);
+          this.handleObserveQuarterLength(quarterLength);
         }
 
-        // Smoothing settings
-        const BPM_SMOOTHING_WINDOW = 50;  // Number of past BPM values to average
-        const MIN_CLOCK_PULSE_INTERVAL = 5;  // Minimum time between clock pulses to consider for BPM estimate
-        const MAX_CLOCK_PULSE_INTERVAL = 500; // Maximum reasonable gap between pulses (in milliseconds)
+        if (msg[0] === 248) {
+          this.midiFrame++;
+          const currentTime = Date.now();
 
-        if (statusByteClock) {
-          // console.log("Midi Msg Clock In: ", this.midiData.data[0])
-          if (this.midiData[0] === 250) {
-              this.quarterNoteBeatStart.current = Date.now();
-              // console.log("Midi Msg Start from External Clock In")
-          } else {
-              // if (Number(Date.now()) - quarterNoteBeatStart.current < 1000) {
-              if (this.quarterNoteBeatStart.current) {
-                  this.quarterLengthNumPriorEstimates.current = this.quarterLengthNumPriorEstimates.current + 1;
-                  this.quarterNoteBeatLength.current = 24 * ((Number(Date.now()) - this.quarterNoteBeatStart.current) / this.quarterLengthNumPriorEstimates.current);
-                  // console.log("Quarter Note Length: ", quarterNoteBeatLength.current);
-                  this.handleObserveQuarterLength(quarterNoteBeatLength.current);
-                  // this.quarterNoteBeatStart.current = undefined;
-              } 
-          }
-
-          if (this.midiData[0] === 248) {
-              this.midiFrame = this.midiFrame + 1;
-              const currentTime = Date.now();
-              console.log("MIDI FRAME??? ", this.midiFrame)
-              console.log("Midi Msg Clock In CURR: ", currentTime);
-              console.log("MIDI MSG LAST TIME: ", this.lastClockTime.current);
-              // Calculate the time since the last clock pulse
-              if (this.lastClockTime.current) {
-                  const timeBetweenPulses = currentTime - this.lastClockTime.current;  // in milliseconds
-                  // If time between pulses is too large, we assume we missed pulses
-                  if (timeBetweenPulses > MAX_CLOCK_PULSE_INTERVAL) {
-                      this.bpmSmoothingTooLarge.current = this.bpmSmoothingTooLarge.current + 1;
-                      // console.log(`Warning: Large gap between pulses! Time difference: ${timeBetweenPulses}ms`);
-                      return;  // Skip this message to avoid incorrect BPM calculations
-                  } else {
-                      this.bpmSmoothingIsFine.current = this.bpmSmoothingIsFine.current + 1;
+          if (this.lastClockTime.current) {
+            const delta = currentTime - this.lastClockTime.current;
+            if (delta > MAX_CLOCK_PULSE_INTERVAL) {
+              this.bpmSmoothingTooLarge.current++;
+            } else {
+              this.bpmSmoothingIsFine.current++;
+              if (delta > MIN_CLOCK_PULSE_INTERVAL && delta < MAX_CLOCK_PULSE_INTERVAL) {
+                const bpm = 60 / ((delta * 24) / 1000);
+                if (bpm && bpm > 0 && !isNaN(bpm)) {
+                  this.bpmHistory.current.push(bpm);
+                  if (this.bpmHistory.current.length > BPM_SMOOTHING_WINDOW) {
+                    this.bpmHistory.current.shift();
                   }
-                  if (timeBetweenPulses > MIN_CLOCK_PULSE_INTERVAL && timeBetweenPulses < MAX_CLOCK_PULSE_INTERVAL) {
-                      const timePerQuarterNote = timeBetweenPulses * 24;  // 24 pulses per quarter note
-                      const secondsPerQuarterNote = timePerQuarterNote / 1000;  // Convert to seconds
-                      const bpm = 60 / secondsPerQuarterNote;
-                      if (bpm && bpm !== Infinity && bpm > 0 && !isNaN(bpm)) {
-                          this.bpmHistory.current.push(bpm);
-                          if (this.bpmHistory.current.length > BPM_SMOOTHING_WINDOW) {
-                              this.bpmHistory.current.shift();
-                          }
-                          const smoothedBPM = this.bpmHistory.current.reduce((sum, bpm) => sum + bpm, 0) / this.bpmHistory.current.length;
-                          if (smoothedBPM && typeof smoothedBPM === "number" && (Number(+smoothedBPM) !== this.midiBPMClockIncoming.current.toString())) { 
-                            // setMidiBPMClockIncoming(smoothedBPM)
-                            this.midiBPMClockIncoming.current = smoothedBPM;
-                          }
-                      }
-                  }
+                  const smoothedBPM = this.bpmHistory.current.reduce((sum, b) => sum + b, 0) / this.bpmHistory.current.length;
+                  this.midiBPMClockIncoming.current = smoothedBPM;
+                }
               }
-              // Update last clock time
-              if (currentTime) this.lastClockTime.current = currentTime;
-          } 
+            }
+          }
+          this.lastClockTime.current = currentTime;
+        }
 
-          if (this.midiFrame % (96) == 0) {
-            //  console.log("Whole Note! at ", Date.now());
-             if (!this.noteWeights.current.includes('Whole')) this.noteWeights.current.push('Whole');   
-          } 
-          else if (this.midiFrame % 48 == 0) {
-              // console.log("Half Note! at ", Date.now()); 
-              if (!this.noteWeights.current.includes('Half')) this.noteWeights.current.push('Half');  
-          } 
-          else if (this.midiFrame % 24 == 0) {
-              // console.log("Quarter Note! at ", Date.now()); 
-              if (!this.noteWeights.current.includes('Quarter')) this.noteWeights.current.push('Quarter');  
-          }
-          else if (this.midiFrame % 12 == 0) {
-              // console.log("Eighth Note! at ", Date.now()); 
-              if (!this.noteWeights.current.includes('Eighth')) this.noteWeights.current.push('Eighth');  
-          }
-          else if (this.midiFrame % 6 == 0) {
-              // console.log("Sixteenth Note! at ", Date.now()); 
-              if (!this.noteWeights.current.includes('Sixteenth')) this.noteWeights.current.push('Sixteenth');  
-          }
+        // Note weights (unchanged)
+        if (this.midiFrame % 96 === 0 && !this.noteWeights.current.includes('Whole')) this.noteWeights.current.push('Whole');
+        else if (this.midiFrame % 48 === 0 && !this.noteWeights.current.includes('Half')) this.noteWeights.current.push('Half');
+        else if (this.midiFrame % 24 === 0 && !this.noteWeights.current.includes('Quarter')) this.noteWeights.current.push('Quarter');
+        else if (this.midiFrame % 12 === 0 && !this.noteWeights.current.includes('Eighth')) this.noteWeights.current.push('Eighth');
+        else if (this.midiFrame % 6 === 0 && !this.noteWeights.current.includes('Sixteenth')) this.noteWeights.current.push('Sixteenth');
       }
 
+      let triggerType = null;
+      let triggerArgs = null;
+
+      if (statusByte === 0x90 && velocity > 0) {
+        triggerType = 'noteOnPlay';
+        triggerArgs = [msg[0], note, velocity];
+      } else if (statusByte === 0x80 || (statusByte === 0x90 && velocity === 0)) {
+        triggerType = 'noteOffPlay';
+        // triggerArgs = [msg[0], note];
+        triggerArgs = [msg[0], note];
+      }
+
+      if (triggerType) {
         const eventData = {
-          // type: message.type, // e.g., 'noteOn', 'noteOff', etc.
-          // value: message.value, // Note number, velocity, etc.
-          // timestamp: currentTime, // Relative to audio context
-          triggerType: this.triggerType, // noteOn / noteOff
-          triggerArgs: this.triggerArgs, // args to pass into trigger type
-          quarterStartTimestamp: this.quarterNoteBeatStart.current, // Relative to audio context start
-          noteType: this.noteWeights.current, // Whole, half, quarter, etc.
+          triggerType,
+          triggerArgs,
+          quarterStartTimestamp: this.quarterNoteBeatStart.current,
+          noteType: this.noteWeights.current,
           noteTimestamp: Date.now(),
-          bpmHistory: this.bpmHistory.current, // this needs to be passed into any function here
-          bpmGuess: this.midiBPMClockIncoming
+          bpmHistory: this.bpmHistory.current,
+          bpmGuess: this.midiBPMClockIncoming.current
         };
-
-        console.log("CHECK FOR EVENT DATA??? ", eventData);
-
-        // console.log("BOOM EVENT: ", eventData);
-        // Send to main thread
+        // console.log("CHECK FOR EVENT DATA???", eventData);
         this.port.postMessage(eventData);
-      // });
-
-      this.midiData = []; // Clear after processing
+      }
+    // }
     }
     return true;
   }

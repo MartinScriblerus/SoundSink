@@ -107,6 +107,8 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           // right: "96px", 
           right: "0px",
           padding: "2px",
+          borderBottom: "transparent",
+          border: "transparent",
         }}>
         {/* RECORD */}
         <Box sx={{ 
@@ -121,7 +123,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
             {chuckHook && (
               <Button
               sx={{
-                border: `solid 1px ${NEON_PINK}`,
+                // border: `solid 1px ${NEON_PINK}`,
                 backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
                 color: 'rgba(245,245,245,0.78)',
                 height: '48px',
@@ -165,7 +167,7 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
           
              // width: '100px',
               //marginBottom: '4px',
-              border: `1px solid ${OBERHEIM_TEAL}`,
+              // border: `1px solid ${OBERHEIM_TEAL}`,
               minHeight: '48px',
               display: "flex",
               zIndex: '99',
@@ -191,18 +193,21 @@ function ResponsiveAppBar(props: KeysAppBarProps) {
         <Box sx={{ 
           display: "flex", 
           flexDirection: "column",
+                   borderBottom: "transparent"
           //padding: '4px !important', 
         }}>
           {chuckHook && (
             <Button
+              className="ui_SynthLayerButton"
               sx={{
                 color: 'rgba(245,245,245,0.78)',
-                // border: `solid 1px rgba(28,28,28,0.78)`,
-                backgroundColor: 'rgba(5, 2, 2, 0.78)',
+                // // border: `solid 1px rgba(28,28,28,0.78)`,
+                // backgroundColor: 'rgba(5, 2, 2, 0.78)',
+                              backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
                 height: '48px',
                 //width: '100px',
                 //marginRight: '8px',
-                border: `solid 1px ${CORDUROY_RUST}`,
+                // border: `solid 1px ${CORDUROY_RUST}`,
                 display: 'flex',
                 zIndex: '99',
                 pointerEvents: 'auto',

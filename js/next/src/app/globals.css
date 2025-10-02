@@ -195,6 +195,7 @@ body{
   padding-left: 8px;
   bottom: 0px;
   left: 140px;
+  pointer-events: auto;
 }
 
 #keyboardBox {

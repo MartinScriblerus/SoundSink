@@ -74,7 +74,7 @@ const FileWindow = (props: FileWindowProps) => {
         
         try {
             const result = await response.json();
-            console.log("UPLOAD FILE RESPONSE: ", response, "RESULT: ", result);
+            console.log("*** UPLOAD FILE RESPONSE: ", response, "RESULT: ", result);
         } catch (e) {
             console.error('Error parsing JSON response in upload file:', e);
         }
@@ -104,7 +104,12 @@ const FileWindow = (props: FileWindowProps) => {
         const end: number | any = regionEnd.current;
         // alert("TEST AUDIO: " + [start, end].toString());
         regionsPlugin[0].getRegions().forEach((region: Region) => {
+            // (region as any).play({ loop: true });
+                
+            
+            
             (region as any).play({ loop: true });
+
             console.log("REGION PLAYED: ", region);
 
         });
@@ -116,6 +121,12 @@ const FileWindow = (props: FileWindowProps) => {
                 
         if (!start ||!end ) return;
         
+        const duration = end - start;
+        if (duration > 5) {
+            alert("Max clip length is 5s");
+            return;
+        }
+
         const ffmpeg = ffmpegRef.current;
         console.log("File to proc 1?: ", filesToProcess.current);
         const audioFile = filesToProcess.current[filesToProcess.current.length - 1];
@@ -140,7 +151,7 @@ const FileWindow = (props: FileWindowProps) => {
             ]);
         
             // Read the clipped audio file
-            const clippedAudio = (await ffmpeg.readFile(`clipped_${audioFile.filename}`, 'binary')) as Uint8Array;
+            const clippedAudio: any = (await ffmpeg.readFile(`clipped_${audioFile.filename}`, 'binary')) as Uint8Array;
                 console.log("CLIPPED AUDIO: ", clippedAudio);
             if (clippedAudio) {
             // Create a blob from the clipped audio
@@ -163,7 +174,7 @@ const FileWindow = (props: FileWindowProps) => {
             chuck && chuck.createFile("", `${audioFile.filename.split('.').slice(0,-1).join(',')}_clipped.wav`, clippedAudio);
             ////////////////////////////////////////
             const clippedAudioMeydaData = await getMeydaData(arrayBuffer);
-            console.log("CLIPPED AUDIO MEYDA DATA: ", clippedAudioMeydaData);
+            console.log("*** CLIPPED AUDIO MEYDA DATA: ", clippedAudioMeydaData);
             
             // Save the clipped audio or play it
             const a = document.createElement('a');
@@ -180,10 +191,25 @@ const FileWindow = (props: FileWindowProps) => {
     
     const onReady = (ws: any) => {
         console.log("WAVESURFER READY: ", ws);
-        if (ws) {        
+        if (ws) {  
+            console.log("WAVESURFER PLUGINS: ", ws.plugins);   
+            
+            
+            // zoom so ~10s fit in the container
+            ws.zoom(100); // each second = 100px, tweak to taste
+            ws.setOptions({
+                scrollParent: true, // enable horizontal scroll
+                normalize: true,
+            });
+
+            // Add region through the Regions plugin
+            const regionsPlugin = ws.getActivePlugins().regions;
+
+
             const region = ws.plugins[0].addRegion({
+            // const region = regionsPlugin.addRegion({
                 start: 0,
-                end: .1,
+                end: 0.3,
                 drag: true,
                 resize: true,
                 color: 'rgba(0, 255, 0, 0.5)',
@@ -241,7 +267,7 @@ const FileWindow = (props: FileWindowProps) => {
             .then(response => response.arrayBuffer())
             .then(buffer => {
                 const uint8Array = new Uint8Array(buffer);
-                console.log("CLICKED FILE BUFFER: ", uint8Array);
+                console.log("*** CLICKED FILE BUFFER: ", uint8Array);
                 // WebChucK.FS_createDataFile('/', 'my_audio.wav', uint8Array, true, true);
        });
     }, [clickedFile]);
@@ -256,7 +282,7 @@ const FileWindow = (props: FileWindowProps) => {
                     position: "relative",
                     background: "rgba(28,28,28,0.98)",
                     pointerEvents: "auto",
-                    overflow: "hidden",
+                    // overflow: "hidden",
                 }}
             >
                 <Button style={{zIndex: 9999}} onClick={testAudio}>
@@ -272,6 +298,7 @@ const FileWindow = (props: FileWindowProps) => {
                     height={100}
                     waveColor="#4d91ff"
                     progressColor="#4D91ff"
+                    
                     // url="/my-server/audio.wav"
                     url={audioUrl}
                     onReady={onReady}

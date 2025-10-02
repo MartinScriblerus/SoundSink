@@ -16,6 +16,7 @@ interface Props {
     // updateKeyScaleChord: (a:any, b:any, c: any, d: any, e: any) => void;
     mingusKeyboardData: any;
     mingusChordsData: any;
+    pressedNotes: Set<number>; // Set of currently pressed MIDI note numbers
 };
 
 const Keyboard = ({
@@ -30,7 +31,8 @@ const Keyboard = ({
     noteBuilderFocus,
     notesAddedDetails,
     mingusKeyboardData,
-    mingusChordsData
+    mingusChordsData,
+    pressedNotes,
 }: Props) => {
     const [keysToDisplay, setKeysToDisplay] = useState<any>([]);
     const addedDetails = useRef<any>(notesAddedDetails);
@@ -53,15 +55,54 @@ const Keyboard = ({
         const removeHyphen = e.target.id.replace('-', '');
         const convertPoundTheNote = removeHyphen.replace('♯', '#');
     
-        // console.log("A D D E D * D E T A I L S ! ", addedDetails.current.length, addedDetails.current);
+        console.log("A D D E D * D E T A I L S ! ", addedDetails.current.length, addedDetails.current);
     
         const match:any = Array.from(addedDetails.current).find((d: any) => convertPoundTheNote === d.name);
         if (match) {
-            // console.log("about to noteOnPlay... CHUCK NOTE match: ", match);
+            console.log("about to noteOnPlay... CHUCK NOTE match: ", match);
             noteOnPlay(match.midiNote, match.midiHz, match.midiHz);
         }
     }, [addedDetails, noteOnPlay]);
 
+    const tryPlayChuckNoteOff = useCallback((e: any) => {
+        e.preventDefault();
+    
+        const removeHyphen = e.target.id.replace('-', '');
+        const convertPoundTheNote = removeHyphen.replace('♯', '#');
+    
+        const match:any = Array.from(addedDetails.current).find((d: any) => convertPoundTheNote === d.name);
+        if (!match) { return; }
+        console.log("Match for NOTE OFF: ", match);
+
+        if (pressedNotes.has(match?.midiNote) === false) { return; }
+
+        console.log("Removed Hyphen: ", removeHyphen, " into convertPoundTheNote ", convertPoundTheNote);
+        console.log("Pressed Notes Set has midiNote match: ", pressedNotes.has(match?.midiNote), pressedNotes, match?.midiNote);
+        
+        
+        if (match && pressedNotes.has(match.midiNote)) {
+            console.log("about to noteOffPlay... CHUCK NOTE match: ", match);
+            if (pressedNotes.has(match.midiNote)) noteOffPlay(match.midiNote);
+        }
+    }, [addedDetails, noteOffPlay]);
+
+    useEffect(() => {
+        const handleMouseUp = (e: any) => {
+            tryPlayChuckNoteOff(e);
+        };
+
+        const handleMouseOut = (e: any) => {
+            tryPlayChuckNoteOff(e);
+        }
+
+        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mouseout', handleMouseOut);
+        
+        return () => {
+            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mouseout', handleMouseUp);
+        };
+    }, []);
 
     useEffect(() => {
 
@@ -89,26 +130,47 @@ const Keyboard = ({
                 const octave: any = i && (
                     <span id={`octSpanWrapper-${i}`} key={`octSpanWrapper-${i}`}>
                         <li 
-                        style={{
-                            background: mingusKeyboardData && mingusKeyboardData.length > 1 && mingusKeyboardData[0].includes(`C`) 
-                            ? 'blue' 
-                            : mingusKeyboardData && mingusKeyboardData.length > 1 && mingusKeyboardData[1].includes(`C`) 
-                                ? 
-                                'green'
-                                : 
-                                ''
-                        }} id={`C-${i}`} key={`C-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white">{`C${i}`} </li>
-                        <li id={`C♯-${i}`} key={`C♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`C♯${i}`}</li>
-                        <li id={`D-${i}`} key={`D-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset">{`D${i}`}</li>
-                        <li id={`D♯-${i}`} key={`D♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`D♯${i}`}</li>
-                        <li id={`E-${i}`} key={`E-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset half">{`E${i}`}</li>
-                        <li id={`F-${i}`} key={`F-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white">{`F${i}`}</li>
-                        <li id={`F♯-${i}`} key={`F♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`F♯${i}`}</li>
-                        <li id={`G-${i}`} key={`G-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset">{`G${i}`}</li>
-                        <li id={`G♯-${i}`} key={`G♯-${i}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`G♯${i}`}</li>
-                        <li id={`A-${i}`} key={`A-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset">{`A${i}`}</li>
-                        <li id={`A♯-${i}`} key={`A♯-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey black">{`A♯${i}`}</li>
-                        <li id={`B-${i}`} key={`B-${i + 1}`} onClick={(e) => tryPlayChuckNote(e)} className="vizKey white offset half">{`B${i}`}</li>
+                            style={{
+                                background: mingusKeyboardData && mingusKeyboardData.length > 1 && mingusKeyboardData[0].includes(`C`) 
+                                ? 'blue' 
+                                : mingusKeyboardData && mingusKeyboardData.length > 1 && mingusKeyboardData[1].includes(`C`) 
+                                    ? 
+                                    'green'
+                                    : 
+                                    ''
+                            }} 
+                            id={`C-${i}`} key={`C-${i}`}                         
+                            onMouseDown={(e) => 
+                            {
+                                e.preventDefault(); 
+                                e.stopPropagation(); 
+                                return tryPlayChuckNote(e);
+                            }}
+                            onMouseUp={(e) => 
+                            {
+                                e.preventDefault(); 
+                                e.stopPropagation(); 
+                                return tryPlayChuckNoteOff(e);
+                            }}
+                            onMouseLeave={(e) => 
+                            {
+                                e.preventDefault(); 
+                                e.stopPropagation(); 
+                                return tryPlayChuckNoteOff(e);
+                            }}
+                            className="vizKey white">{`C${i}`} 
+                        </li>
+                        <li id={`C♯-${i}`} key={`C♯-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey black">{`C♯${i}`}</li>
+                        <li id={`D-${i}`} key={`D-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey white offset">{`D${i}`}</li>
+                        <li id={`D♯-${i}`} key={`D♯-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey black">{`D♯${i}`}</li>
+                        <li id={`E-${i}`} key={`E-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey white offset half">{`E${i}`}</li>
+                        <li id={`F-${i}`} key={`F-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey white">{`F${i}`}</li>
+                        <li id={`F♯-${i}`} key={`F♯-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey black">{`F♯${i}`}</li>
+                        <li id={`G-${i}`} key={`G-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey white offset">{`G${i}`}</li>
+                        <li id={`G♯-${i}`} key={`G♯-${i}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey black">{`G♯${i}`}</li>
+                        <li id={`A-${i}`} key={`A-${i + 1}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey white offset">{`A${i}`}</li>
+                        <li id={`A♯-${i}`} key={`A♯-${i + 1}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey black">{`A♯${i}`}</li>
+                        <li id={`B-${i}`} key={`B-${i + 1}`} onClick={(e) => {e.preventDefault(); e.stopPropagation(); return tryPlayChuckNote(e);}} className="vizKey white offset half">{`B${i}`}</li>
                     </span>
                 );
 

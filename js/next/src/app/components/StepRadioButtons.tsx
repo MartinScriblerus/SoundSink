@@ -9,7 +9,7 @@ const StepRadioButtons = (props: StepRadioBtnProps) => {
     return (
                             <FormControl
                               sx={{
-                                width: "fit-content !important",
+                                width: "calc(100% - 16px)",
                               }}
                             >
                               <FormLabel
@@ -28,7 +28,8 @@ const StepRadioButtons = (props: StepRadioBtnProps) => {
                                 onChange={handleAssignPatternNumber}
                                 sx={{
                                   display: "flex",
-                                  flexDirection: "row", 
+                                  flexDirection: "row",
+                                  paddingLeft: '8px',
                                 }}
                               >
                                 <FormControlLabel value="0" control={<Radio />} label="0" />

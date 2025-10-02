@@ -463,7 +463,7 @@ export const getSTK2Preset = (stkVal: string) => {
 }
 
 export const getFX1Preset = (fxVal: string) => {
-    console.log("FX VAL::: ", fxVal);
+    // console.log("FX VAL::: ", fxVal);
     const theFX1Fx = [];
     // if (fxVal === 'mod') {
     //     theFX1Fx.push({

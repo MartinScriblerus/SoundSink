@@ -88,12 +88,10 @@ const ReactDiagramsPedalboard = (props: PedalboardProps) => {
         // node2.setPosition(140, 280);
         node2.setPosition(width - 100, 48);
 
-        console.log("CURRENT CHAIN**: ", currentChain, sourceName );
+        // console.log("CURRENT CHAIN**: ", currentChain, sourceName );
         const newNodesFodder = currentChain && currentChain.length > 0 ? getNewNodes(sourceName, currentChain) : [];
         const newNodes: any = [];
         const newLinks: any = [];
-
-        console.log("NODES FODDER: ", newNodesFodder);
 
         // Add nodes to the engine
         newNodesFodder.forEach((node: any, idx: number) => {

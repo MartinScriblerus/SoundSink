@@ -50,7 +50,7 @@ const FileManager = (props: FileManagerProps) => {
                     <Button
                         component="label"
                         sx={{
-               border: `solid 1px ${HERITAGE_GOLD}`,
+            //    border: `solid 1px ${HERITAGE_GOLD}`,
                 backgroundColor: chuckHook && 'rgba(28,28,28,0.78)',
                 color: 'rgba(245,245,245,0.78)',
                 height: '48px',

@@ -214,28 +214,32 @@ const MingusPopup = ({
         { value: '8', label: '8' },
     ];
 
+
+
     useEffect(() => {
         // If modal is open, add event listener to detect outside clicks
         if (isKeySelectOpen || isScaleSelectOpen || isChordSelectOpen || isOctaveMaxSelectOpen || isOctaveMinSelectOpen) {
 
-            const handleClickOutside = (event: any) => {
-                if (dropdownOctaveMaxSelectRef.current && !dropdownOctaveMaxSelectRef.current.contains(event.target) &&
-                    dropdownOctaveMinSelectRef.current && !dropdownOctaveMinSelectRef.current.contains(event.target) &&
-                    dropdownKeySelectRef.current && !dropdownKeySelectRef.current.contains(event.target) &&
-                    dropdownScaleSelectRef.current && !dropdownScaleSelectRef.current.contains(event.target) &&
-                    dropdownChordSelectRef.current && !dropdownChordSelectRef.current.contains(event.target)
-                ) {
+            const handleClickOutside = (event: MouseEvent) => {
+                const refs = [
+                    dropdownOctaveMaxSelectRef.current,
+                    dropdownOctaveMinSelectRef.current,
+                    dropdownKeySelectRef.current,
+                    dropdownScaleSelectRef.current,
+                    dropdownChordSelectRef.current,
+                ];
 
+                const clickedInside = refs.some(
+                    (ref) => ref && ref.contains(event.target as Node)
+                );
 
-
+                if (!clickedInside) {
                     setIsChordSelectOpen(false);
                     setIsKeySelectOpen(false);
                     setIsScaleSelectOpen(false);
                     setIsOctaveMaxSelectOpen(false);
                     setIsOctaveMinSelectOpen(false);
-
                     console.log("Clicked outside");
-                    // document.dispatchEvent(new MouseEvent("mousedown"));
                 }
             };
 
@@ -312,7 +316,8 @@ const MingusPopup = ({
                             paddingTop: '8px',
                             paddingBottom: '8px',
                             // minWidth: "72px",
-                            paddingLeft: '0px',
+                            // paddingLeft: '0px',
+                            paddingLeft: '8px',
                         }}
                     >
                         Max:</div>
@@ -328,6 +333,7 @@ const MingusPopup = ({
                             textAlign: 'center',
                             paddingTop: '8px',
                             paddingBottom: '8px',
+                            paddingLeft: '18px',
                             overflow: 'hidden',
                             display: 'flex',
                             flexDirection: 'column',
@@ -418,7 +424,8 @@ const MingusPopup = ({
                             paddingTop: '8px',
                             paddingBottom: '8px',
                             // minWidth: "72px",
-                            paddingLeft: '0px',
+                            // paddingLeft: '0px',
+                            paddingLeft: '18px',
                         }}
                     >Min: </span>
                     <div
@@ -439,6 +446,7 @@ const MingusPopup = ({
                             margin: '0px',
                             paddingTop: '8px',
                             paddingBottom: '8px',
+                            paddingLeft: '18px',
 
                         }}
                     >
@@ -539,6 +547,7 @@ const MingusPopup = ({
                             paddingTop: '8px',
                             paddingBottom: '8px',
                             // paddingLeft: '8px',
+                            paddingLeft: '18px',
                         }}
                     >
                         Key:
@@ -561,6 +570,7 @@ const MingusPopup = ({
                             height: '64px !important',
                             paddingTop: '8px',
                             paddingBottom: '8px',
+                            // paddingLeft: '18px',
                         }}
                     >
                         {selectedKey}
@@ -619,7 +629,7 @@ const MingusPopup = ({
                 ><span style={{
                     pointerEvents: "none",
                     width: "100%",
-                }}>Chord:</span>
+                }}></span>
                     <div
                         ref={selectChordRef}
                         style={{
@@ -720,9 +730,12 @@ const MingusPopup = ({
                         pointerEvents: 'none',
                         paddingTop: '8px',
                         paddingBottom: '8px',
+                        paddingLeft: '4px',
                         // minWidth: "72px",
                         // paddingLeft: '8px',
-                    }}>Scale:</span>
+                    }}>
+                        {/* Scale: */}
+                    </span>
                     <div
                         ref={selectScaleRef}
                         style={{

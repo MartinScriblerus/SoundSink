@@ -22,11 +22,11 @@ export default function GenericRadioButtons(props: GenericRadioProps) {
     }}>
       <FormLabel
         sx={{
-            color: 'rgba(245,245,245,0.78)',
-            fontSize: '11px',
-            paddingLeft: '8px',
-            paddingRight: '8px',
-            width: "100%",
+          color: 'rgba(245,245,245,0.78)',
+          fontSize: '11px',
+          paddingLeft: '8px',
+          paddingRight: '8px',
+          width: "100%",
         }}
         id="scale-direction-select-label"
       >Scale Direction</FormLabel>
@@ -40,9 +40,10 @@ export default function GenericRadioButtons(props: GenericRadioProps) {
             alignItems: "left",
             justifyContent: "center",
             gap: 1,
-            paddingLeft: "2px",
+            paddingLeft: "8px",
             paddingRight: "2px",
             fontSize: '11px',
+            width: "calc(100% - 16px)",
         }}
       >
         {options && options.length > 0 && options.map((option, index) => (

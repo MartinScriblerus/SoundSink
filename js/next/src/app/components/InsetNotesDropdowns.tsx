@@ -35,7 +35,7 @@ const InsetNotesDropdown: React.FC<Props> = ({
       ...styles,
       backgroundColor: 'white',
       color: 'black',
-      minWidth: '180px',
+      // minWidth: '180px',
       display: 'flex',
       justifyContent: 'center',
       flexDirection: 'column',
@@ -89,7 +89,8 @@ const InsetNotesDropdown: React.FC<Props> = ({
       sx={{
         color: 'rgba(245,245,245,0.78)',
         fontSize: '11px',
-        px: 1,
+        // px: 1,
+        left: 0,
         mb: 0.5, // spacing between label and select
       }}
       id="notes-input-select-label"
@@ -126,7 +127,7 @@ const InsetNotesDropdown: React.FC<Props> = ({
           option: (base, state) => ({
             ...base,
             textAlign: 'left',  
-            paddingLeft: '8px',
+            // paddingLeft: '8px',
             color: state.isSelected ? 'white' : 'black',
           }),
           singleValue: (base) => ({

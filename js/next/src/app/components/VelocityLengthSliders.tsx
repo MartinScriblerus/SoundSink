@@ -35,12 +35,14 @@ const VelocityLengthSliders = (props: VelocityLengthSlidersProps) => {
             flexDirection: 'column',
             width: '100%',
             marginRight: '8px',
+            marginLeft: '8px',
         }}>
             <FormLabel
                 sx={{
                     color: 'rgba(245,245,245,0.78)',
                     fontSize: '11px',
-                    paddingLeft: '8px',
+                    // paddingLeft: '8px',
+                    marginLeft: '-8px',
                     paddingRight: '8px',
                 }}
                 id="velocities-select-label"

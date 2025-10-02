@@ -73,7 +73,6 @@ type RendererProps = {
   mTFreqs: number[];
   mTMidiNums: number[];
   updateKeyScaleChord: (a: any, b: any, c: any, d: any, e: any, f: any, g: any) => void;
-  userInteractionUpdatedScore: (x: number) => void;
   handleAssignPatternNumber: (e: any) => void;
   doAutoAssignPatternNumber: number;
 
@@ -501,7 +500,6 @@ export const Renderer = ({
   function handleLatestSamplesFinal(selected: any) {
     console.log("WHAT IS THE FILE NAME? ", currentXVal.current, currentYVal.current, selected);
     handleLatestSamples(selected.map((i: any) => i.value), currentXVal.current, currentYVal.current - 1);
-    // userInteractionUpdatedScore(masterPatternsHashHook);
   }
 
   function handleLatestNotesFinal(selected: any) {
@@ -781,7 +779,8 @@ export const Renderer = ({
                     width: "100%",
                     height: "82px",
                     // display: "grid",
-                    display: "flex",
+                    display: "flex",                                   
+                    flexDirection: "row",
                     // gridTemplateColumns: "1fr 2fr",
                     gap: 0.5,
                     justifyContent: "space-between",
@@ -793,8 +792,14 @@ export const Renderer = ({
                           sx={{
                             padding: "2px 8px 2px 8px",
                             borderRadius: "5px",
-                            // width: "100%",
-                            width: "240px",
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            height: "100%",
+                            //
+                            minWidth: "50%",
                             border: `1px solid ${noteBuilderFocus !== "MIDI" ? CORDUROY_RUST : OBERHEIM_TEAL}`,
                             // marginLeft: "4px",
                           }} key={`notesDropdown_${mTFreqs}`}>
@@ -811,7 +816,7 @@ export const Renderer = ({
                       )}
                     <Box
                       sx={{
-                        width: "100%",
+                        width: "50%",
                       }}
                     >
                       <MingusPopup
@@ -899,7 +904,7 @@ export const Renderer = ({
                         getAriaValueText={valuetext}
                         valueLabelDisplay="auto"
                         sx={{
-                          width: "50%",
+                          width: "80%",
                           color: 'rgba(245,245,245,0.78)',
                           backgroundColor: 'rgba(28,28,28,0.78)'
                         }}

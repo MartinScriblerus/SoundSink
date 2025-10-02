@@ -1,24 +1,14 @@
-import { Box, FormControl, TextField, Input, Button, } from '@mui/material';
+import { Box, FormControl, TextField } from '@mui/material';
 import React from 'react';
-import { ThemeProvider, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import { BPMModule } from '@/interfaces/audioInterfaces';
-import InputField from './InputField';
-import ToggleFXView from './ToggleFXView';
-
 
 const BPMModuleFun = (props: BPMModule) => {
     const {
         bpm,
         setBpm,
-        // handleChangeBPM,
-        // handleChangeBeatsNumerator,
         beatsNumerator,
-        // handleChangeBeatsDenominator,
         setChuckUpdateNeeded,
-        // setBeatsNumerator,
-        // setBeatsDenominator,
-        // setNumeratorSignature,
-        // setDenominatorSignature,
         handleChangeBeatsNumerator,
         handleChangeBeatsDenominator,
         beatsDenominator,
@@ -35,35 +25,16 @@ const BPMModuleFun = (props: BPMModule) => {
         setChuckUpdateNeeded(true);
     }
 
-    // const handleChangeBeatsNumerator = (newBeatsNumerator: number) => {
-    //     console.log('@@@@ newBeatsNumerator: ', newBeatsNumerator)
-    //     if (newBeatsNumerator) {
-    //         setBeatsNumerator(Number(newBeatsNumerator));
-    //         setNumeratorSignature(Number(newBeatsNumerator));
-    //     }
-    //     setChuckUpdateNeeded(true);
-    // }
-
-    // const handleChangeBeatsDenominator = (newDenominator: number) => {
-    //     if (newDenominator) {
-    //         setBeatsDenominator(Number(newDenominator));
-    //         setDenominatorSignature(Number(newDenominator));
-    //     }
-    //     setChuckUpdateNeeded(true);
-    // }
-
     return (
         <Box sx={{
             display: "contents",
             flexDirection: "column",
-            // border: "0.5px solid #b2b2b2",
             paddingBottom: "12px",
             paddingTop: "32px",
             minWidth: "140px",
             width: "100%",
             justifyContent: "stretch",
             alignItems: "center",
-            // borderRadius: "solid .5px rgba(245,245,245,0.78)",
         }}>
             <FormControl
                 sx={{

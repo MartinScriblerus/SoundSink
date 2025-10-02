@@ -126,4 +126,4 @@ import { DeferredPromise } from "webchuck";
   
   export const defer = () => new DeferredPromise();
 
-  export const getConvertedRadio = (fxRadioValue: string) => fxRadioValue === "STK" ? "stk1" : fxRadioValue === "audioin" ? "audioin" : fxRadioValue.toLowerCase(); 
+  export const getConvertedRadio = (fxRadioValue: string) => fxRadioValue === "STK" ? "stk1" : fxRadioValue === "audioin" ? "audioin" : fxRadioValue ? fxRadioValue.toLowerCase() : "";
